@@ -395,9 +395,8 @@ begin
     Result := Result + '/F4-Calculadora';
   end;
 
-  if compra then Result := Result + '/F5-Ficha Prod';
-
   Result := Result + '/F6-Busca por CodBar';
+  Result := Result + '/F7-Ficha Prod';
   Result := Result + '/F8-Alternar Entre Tabelas';
   
   if ConfParamGerais[13] = 'S' then
@@ -1104,10 +1103,12 @@ begin
     ShowMessage('Ocorreu um Erro Inesperado. Por Favor Tente Novamente.');
     exit;
   end;
+
   dm.IBselect.FetchAll;
   i := dm.produto.RecNo - 1;
   dm.produto.DisableControls;
   dm.IBselect.First;
+
   while not dm.IBselect.Eof do
     begin
       nome1 := dm.IBselect.FieldByName('nome').AsString;
@@ -4473,7 +4474,7 @@ end;
 procedure TForm20.FormShow(Sender: TObject);
 var
   cont, i : integer;
-  sim : String;
+  sim, ordem : String;
 begin
   JsEdit1.SetTabelaDoBd(self, 'tf', query1);
 //  if trim(funcoes.LerConfig(form22.Pgerais.Values['configu'], 2) = '' then begin
@@ -4682,17 +4683,23 @@ begin
 
       dm.produto.close;
       dm.produto.SQL.Clear;
-      dm.produto.SQL.Add('select nome as Descricao, p_compra as preco, estoque as minimo, quant as estoque, deposito, sugestao, unid as un, refori as '+ refori1 +', codbar, deposito, cod, aplic as Aplicacao, fracao from produto order by ' + ordem );
+      dm.produto.SQL.Add('select nome as Descricao, p_compra as preco, estoque as minimo, quant as estoque, deposito, sugestao, unid as unidade, refori as '+ refori1 +', codbar, cod, aplic as Aplicacao, fracao from produto order by ' + ordem );
       dm.produto.Open;
 
       funcoes.fetchDataSet(dm.produto);
 
-      sqlVenda := 'select nome as Descricao, p_compra as preco, estoque as minimo, quant as estoque, deposito, sugestao, unid as un, refori as '+ refori1 +', codbar, deposito, cod, aplic as Aplicacao, fracao from produto';
+      sqlVenda := 'select nome as Descricao, p_compra as preco, estoque as minimo, quant as estoque, deposito, sugestao, unid as unidade, refori as '+ refori1 +', codbar, cod, aplic as Aplicacao, fracao from produto';
 
       //dm.produto.FieldByName('sugestao').Visible := false;
       dm.produto.FieldByName('fracao').Visible := false;
 
       funcoes.FormataCampos(dm.produto,2,'ESTOQUE',3);
+
+
+      ordem := funcoes.buscaParamGeral(101, '');
+      if trim(ordem) <> '' then begin
+        funcoes.OrdenaCamposVenda(ordem, true);
+      end;
 
       //StaticText4.Caption := 'F12 - Por Fornecedor';
       //StaticText3.Caption := 'F8 - Código de Barras';

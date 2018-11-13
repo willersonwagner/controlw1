@@ -435,7 +435,7 @@ type
       paramverifica: boolean; valorbd: string; valorstring: string): boolean;
     function BuscaNomeBD(var query: TIBQuery; nomeCampo: string;
       NomeTabela: string; condicao: string): string;
-    procedure OrdenaCamposVenda(CAMPOS: string);
+    procedure OrdenaCamposVenda(CAMPOS: string; compra : boolean = false);
     procedure FormataCampos(query: TIBQuery; qtdCasasDecimais: integer;
       CampoFormatoDiferente: string; qtd: integer);
     Function ConverteNumerico(valor: string): string;
@@ -16130,7 +16130,7 @@ begin
   end;
 end;
 
-procedure Tfuncoes.OrdenaCamposVenda(CAMPOS: string);
+procedure Tfuncoes.OrdenaCamposVenda(CAMPOS: string; compra : boolean = false);
 var
   i, fim: integer;
 var
@@ -16138,16 +16138,31 @@ var
 begin
   i := 1;
   nomeCampo := tstringList.Create;
-  nomeCampo.Add('0=cod');
-  nomeCampo.Add('1=descricao');
-  nomeCampo.Add('2=preco');
-  nomeCampo.Add('3=estoque');
-  nomeCampo.Add('4=unid');
-  nomeCampo.Add('5=codbar');
-  nomeCampo.Add('6=aplicacao');
-  nomeCampo.Add('7=' + refori1);
-  nomeCampo.Add('8=localizacao');
-  nomeCampo.Add('9=deposito');
+
+  if compra then begin
+    nomeCampo.Add('0=Descricao');
+    nomeCampo.Add('1=preco');
+    nomeCampo.Add('2=minimo');
+    nomeCampo.Add('3=estoque');
+    nomeCampo.Add('4=deposito');
+    nomeCampo.Add('5=sugestao');
+    nomeCampo.Add('6=unidade');
+    nomeCampo.Add('7=' + refori1);
+    nomeCampo.Add('8=codbar');
+    nomeCampo.Add('9=cod');
+  end
+  else begin
+    nomeCampo.Add('0=cod');
+    nomeCampo.Add('1=descricao');
+    nomeCampo.Add('2=preco');
+    nomeCampo.Add('3=estoque');
+    nomeCampo.Add('4=unid');
+    nomeCampo.Add('5=codbar');
+    nomeCampo.Add('6=aplicacao');
+    nomeCampo.Add('7=' + refori1);
+    nomeCampo.Add('8=localizacao');
+    nomeCampo.Add('9=deposito');
+  end;
 
   fim := length(CAMPOS) + 1;
 
