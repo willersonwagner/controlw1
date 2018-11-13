@@ -1,0 +1,43 @@
+unit posiUsu;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, Grids, DBGrids;
+
+type
+  TForm41 = class(TForm)
+    DBGrid1: TDBGrid;
+    procedure FormShow(Sender: TObject);
+    procedure DBGrid1KeyPress(Sender: TObject; var Key: Char);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  Form41: TForm41;
+
+implementation
+
+uses Unit1;
+
+{$R *.dfm}
+
+procedure TForm41.FormShow(Sender: TObject);
+begin
+ dm.IBselect.Close;
+ dm.IBselect.SQL.Clear;
+ dm.IBselect.SQL.Add('select nome, case when (senha<>'') or (senha='')  then '+QuotedStr('********')+' end as usuario, case when (senha<>'') or (senha='')  then '+QuotedStr('********')+' end as senha,char_length(acesso) as nivel from usuario');
+ dm.IBselect.Open;
+ DBGrid1.DataSource := dm.ds1;
+end;
+
+procedure TForm41.DBGrid1KeyPress(Sender: TObject; var Key: Char);
+begin
+ if (key=#13) or (key=#27) then close;
+end;
+
+end.

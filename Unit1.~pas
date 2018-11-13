@@ -1,0 +1,135 @@
+unit Unit1;
+
+interface
+
+uses
+  SysUtils, Classes, IBQuery, IBDatabase, DB, IBCustomDataSet, IBTable,
+  IBSQL, IBUpdateSQL, DBClient, Provider, IBStoredProc,  RpCon, RpConDS,Dialogs,
+  ACBrNFeDANFEClass, ACBrDANFCeFortesFr, ACBrNFeDANFeESCPOS, ACBrBase, ACBrSocket,
+   ACBrIBPTax, forms, ACBrDFe, ACBrNFeDANFeRLClass, ACBrETQ, IdBaseComponent,
+   IdAntiFreezeBase, IdAntiFreeze, ACBrNFe, ACBrPosPrinter;
+
+
+type
+  Tdm = class(TDataModule)
+    IBselect: TIBQuery;
+    ds1: TDataSource;
+    IBQuery2: TIBQuery;
+    entrada: TDataSource;
+    IBSQL: TIBSQL;
+    ds: TDataSource;
+    bd: TIBDatabase;
+    IBTransaction2: TIBTransaction;
+    formpagttable: TIBQuery;
+    Dsformpagto: TDataSource;
+    formpagttableCOD: TIntegerField;
+    formpagttableNOME: TIBStringField;
+    formpagttableDINHEIRO: TIBStringField;
+    formpagttableDESC_PAG: TIBBCDField;
+    formpagttableDESC_ANT: TIBBCDField;
+    formpagttableCODGRU: TIBStringField;
+    formpagttableCODHIS: TIBStringField;
+    formpagttableREG_CAIXA: TIBStringField;
+    formpagttablePRAZO: TIBBCDField;
+    formpagttableIMP_FISCAL: TIBStringField;
+    IBTransaction1: TIBTransaction;
+    IBQuery1: TIBQuery;
+    produto: TIBQuery;
+    dsprod: TDataSource;
+    produtotemp: TIBQuery;
+    dsprodtemp: TDataSource;
+    IBTransaction3: TIBTransaction;
+    ProdutoQY: TIBQuery;
+    IBQuery3: TIBQuery;
+    IBQuery4: TIBQuery;
+    IBTable1: TIBTable;
+    TabelaOrdem: TIBTable;
+    TabelaOrdemCOD: TIntegerField;
+    TabelaOrdemDATA: TDateField;
+    TabelaOrdemNOME: TIBStringField;
+    TabelaOrdemUSUARIO: TSmallintField;
+    TabelaOrdemCLIENTE: TIntegerField;
+    TabelaOrdemEQUIP: TIBStringField;
+    TabelaOrdemMARCA: TIBStringField;
+    TabelaOrdemMODELO: TIBStringField;
+    TabelaOrdemSERIE: TIBStringField;
+    TabelaOrdemDEFEITO: TIBStringField;
+    TabelaOrdemTECNICO: TIBStringField;
+    TabelaOrdemVENDEDOR: TSmallintField;
+    TabelaOrdemOBS: TIBStringField;
+    TabelaOrdemSAIDA: TDateField;
+    TabelaOrdemSITUACAO: TIBStringField;
+    TabelaOrdemDIAG: TIBStringField;
+    TabelaOrdemPARECER: TIBStringField;
+    TabelaOrdemH_ENT: TTimeField;
+    TabelaOrdemH_SAI: TTimeField;
+    TabelaOrdemPAGO: TIBBCDField;
+    TabelaOrdemORDEM: TIBStringField;
+    TabelaOrdemusu: TIBStringField;
+    TabelaOrdemnomCli: TStringField;
+    ACBrNFe: TACBrNFe;
+    queryCupons: TIBQuery;
+    ACBrNFeDANFeESCPOS1: TACBrNFeDANFeESCPOS;
+    ACBrIBPTax1: TACBrIBPTax;
+    IdAntiFreeze1: TIdAntiFreeze;
+    ACBrETQ1: TACBrETQ;
+    DANFE: TACBrNFeDANFCeFortes;
+    ACBrPosPrinter1: TACBrPosPrinter;
+    ACBrNFeDANFeRL11: TACBrNFeDANFeRL;
+    ACBrNFeDANFeRL1: TACBrNFeDANFeRL;
+    procedure TabelaOrdemCalcFields(DataSet: TDataSet);
+    procedure ACBrNFeGerarLog(const Mensagem: String);
+    procedure DataModuleCreate(Sender: TObject);
+    procedure ACBrNFeStatusChange(Sender: TObject);
+
+   private
+    { Private declarations }
+  public
+    abortarScroll : boolean;
+
+    { Public declarations }
+  end;
+
+var
+  dm: Tdm;
+  filtro:boolean;
+implementation
+
+uses StrUtils, Math, func, principal;
+{$R *.dfm}
+
+
+procedure Tdm.TabelaOrdemCalcFields(DataSet: TDataSet);
+begin
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select nome from usuario where cod = :cod';
+  dm.IBselect.ParamByName('cod').AsInteger := TabelaOrdemUSUARIO.AsInteger;
+  dm.IBselect.Open;
+  TabelaOrdemusu.AsString := dm.IBselect.fieldbyname('nome').AsString;
+  dm.IBselect.Close;
+
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select nome from CLIENTE where cod = :cod';
+  dm.IBselect.ParamByName('cod').AsInteger := TabelaOrdemCLIENTE.AsInteger;
+  dm.IBselect.Open;
+
+  TabelaOrdemnomCli.AsString := dm.IBselect.fieldbyname('nome').AsString;
+end;
+
+procedure Tdm.ACBrNFeGerarLog(const Mensagem: String);
+begin
+  funcoes.WriteToTXT(caminhoEXE_com_barra_no_final + 'LOGNFE.txt', Mensagem + CRLF +
+  '-------------------------------------------------------------------------------------' + #13);
+end;
+
+procedure Tdm.DataModuleCreate(Sender: TObject);
+begin
+  abortarScroll := false;
+end;
+
+procedure Tdm.ACBrNFeStatusChange(Sender: TObject);
+begin
+  Application.ProcessMessages;
+end;
+
+end.

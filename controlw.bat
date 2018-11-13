@@ -1,0 +1,1 @@
+C:\Arquiv~1\WinRar\WinRAR.exe a -r ControlW.rar @controlw.lst

@@ -1,0 +1,7 @@
+*.pas
+*.ini
+*.dpr
+*.res 
+*.dof 
+*.dfm 
+*.dcu

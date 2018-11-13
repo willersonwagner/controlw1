@@ -1,0 +1,128 @@
+unit Unit63;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, Buttons, ExtCtrls, UTDownloadXMLNFeDLL, utils, U_Carregando;
+
+type
+  TForm63 = class(TForm)
+    ImgCaptcha: TImage;
+    ButCaptcha: TBitBtn;
+    ButBaixar: TBitBtn;
+    EditChave: TEdit;
+    Label9: TLabel;
+    Label10: TLabel;
+    EditCaptcha: TEdit;
+    Label1: TLabel;
+    procedure ButCaptchaClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure ButBaixarClick(Sender: TObject);
+    procedure EditChaveKeyPress(Sender: TObject; var Key: Char);
+    procedure EditCaptchaEnter(Sender: TObject);
+    procedure EditCaptchaKeyPress(Sender: TObject; var Key: Char);
+  private
+    { Private declarations }
+  public
+    Arquivo, pastaexec: String;
+    { Public declarations }
+  end;
+
+var
+  Form63: TForm63;
+  BaixarXMLNFe: TDownloadXMLNFeDLL;
+
+implementation
+
+{$R *.dfm}
+
+procedure TForm63.ButCaptchaClick(Sender: TObject);
+begin
+  try
+    Label1.Visible := true;
+    if BaixarXMLNFe.Captcha('Captcha.jpg') then begin
+      ImgCaptcha.Picture.LoadFromFile('Captcha.jpg');
+      EditCaptcha.Clear;
+      EditCaptcha.SetFocus;
+    end else
+      MsgErr('Erro quando foi baixar o captcha.' + BaixarXMLNFe.Msg);
+  finally
+    Label1.Visible := false;
+  end;
+end;
+
+procedure TForm63.FormShow(Sender: TObject);
+begin
+  F_Carregando.Show;
+  try
+    Application.ProcessMessages;
+    BaixarXMLNFe:= TDownloadXMLNFeDLL.Create;
+    BaixarXMLNFe.CaptchaBossURL('http://fasttypers.org/imagepost.ashx');
+    F_Carregando.Close; Application.ProcessMessages;
+    EditChave.SetFocus;
+  except
+    F_Carregando.Close;
+  end;
+end;
+
+procedure TForm63.ButBaixarClick(Sender: TObject);
+begin
+  if (length(StrNumeros(EditChave.Text)) <> 44) then
+    begin
+       MsgInf('Chave Inválida!');
+       EditChave.SetFocus;
+       exit;
+    end;
+
+  if (EditCaptcha.Text = '') then
+    begin
+       MsgInf('Informe Um Captcha!');
+       EditCaptcha.SetFocus;
+       exit;
+    end;
+
+  pastaexec := ExtractFileDir(ParamStr(0)) + '\ENTRADAXML\';
+  PastaCriar(pastaexec);
+  F_Carregando.Show;
+  try
+    Arquivo:= pastaexec + StrNumeros(EditChave.Text) + '.xml';
+
+    //********** BAIXANDO NO MODO SEM CERTIFICADO DIGITAL **********************
+      if BaixarXMLNFe.BaixarXMLNFeSemCert(EditChave.Text, EditCaptcha.Text, Arquivo) then begin
+        F_Carregando.Close;
+        //Web1.Navigate(Arquivo);
+        MsgInf('Download Efetuado com Sucesso');
+        EditChave.SelectAll;
+        EditChave.SetFocus;
+      end else
+        MsgInf(BaixarXMLNFe.Msg);
+      //********** BAIXANDO NO MODO SEM CERTIFICADO DIGITAL **********************
+
+    EditCaptcha.Clear;
+  finally
+    F_Carregando.Close;
+  end;  
+end;
+
+procedure TForm63.EditChaveKeyPress(Sender: TObject; var Key: Char);
+begin
+  if key = #27 then close;
+  if key = #13 then begin
+    EditCaptcha.SetFocus;
+  end;
+end;
+
+procedure TForm63.EditCaptchaEnter(Sender: TObject);
+begin
+  ButCaptcha.Click;
+end;
+
+procedure TForm63.EditCaptchaKeyPress(Sender: TObject; var Key: Char);
+begin
+  if key = #13 then begin
+    ButBaixar.SetFocus;
+  end;
+end;
+
+end.

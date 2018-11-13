@@ -1,0 +1,10 @@
+---------------------------------------------------------------
+Formulário: Form26
+Componente: Form26
+hora: 10:55:28
+data: 30/12/99
+usuario: 
+Erro: Cannot open file "C:\Documents and Settings\Josenir\Meus documentos\Dropbox\svn\ControlW\config.dat". O sistema não pode encontrar o arquivo especificado
+Método: 
+---------------------------------------------------------------
+
