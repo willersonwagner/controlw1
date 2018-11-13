@@ -2914,6 +2914,7 @@ begin
   form40.tipo.Add('98=generico');
   form40.tipo.Add('99=normal');
   form40.tipo.Add('100=normal');
+  form40.tipo.Add('101=normal');
   
   form40.troca := TStringList.Create;
   form40.troca.Add('0=S');
@@ -3019,7 +3020,8 @@ begin
   form40.troca.Add('97=');
   form40.troca.Add('98=');
   form40.troca.Add('99=');
-  form40.troca.Add('10=S');
+  form40.troca.Add('100=');
+  form40.troca.Add('101= ');
 
   form40.teclas := TStringList.Create;
   form40.teclas.Add('0=FT');
@@ -3125,6 +3127,7 @@ begin
   form40.teclas.Add('98=12');
   form40.teclas.Add('99=');
   form40.teclas.Add('100=SN');
+  form40.troca.Add('101=');
 
   form40.ListBox1.Clear;
   form40.ListBox1.Items.Add('0=Qual o Método de Arredondamento(F-Financeiro,T-Trunca)?');
@@ -3228,6 +3231,7 @@ begin
   form40.ListBox1.Items.Add('98=Qual o Estoque a ser Baixado nas vendas de Atacado ? (1-Loja 2-Deposito)');
   form40.ListBox1.Items.Add('99=Qual o Código do Plano de Contas para o Sped Contribuições ?');
   form40.ListBox1.Items.Add('100=Permitir a venda de Produtos com valor (0) Zero ?');
+  form40.ListBox1.Items.Add('101=Qual a Ordem da Tabela de Compra (Padrão:0123456789)?'+#13+#13+'0-Descricao '+#13+'1-Preço de Compra'+#13+'2-Mínimo'+#13+'3-Estoque Loja'+#13+'4-Estoque Depósito'+#13+'5-Sugestão'+#13+'6-Unidade'+#13+'7-Referência Original'+#13+'8-Código Barras'+#13+'9-Cod Sequência');
 
   Form40.ListBox1.Selected[0] := true;
   form40.showmodal;
