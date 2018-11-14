@@ -3021,10 +3021,6 @@ begin
      dm.IBQuery1.Close;
      dm.produto.close;
      dm.produto.Open;
-
-     if trim(ordemCompra) <> '' then begin
-        funcoes.OrdenaCamposVenda(ordemCompra, true);
-      end;
      funcoes.FormataCampos(dm.produto,2,'ESTOQUE',3);
 
 
@@ -3039,6 +3035,10 @@ begin
      limpatela;
      JsEditInteiro1.Text := IntToStr(StrToIntDef(novocod, 0) + 1);
      novocod := '';
+
+     if trim(ordemCompra) <> '' then begin
+        funcoes.OrdenaCamposVenda(ordemCompra, true);
+      end;
 end;
 
 procedure tform20.BuscaSelecao;

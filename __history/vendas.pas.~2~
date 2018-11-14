@@ -124,7 +124,7 @@ type
     testa, EXPORTADO, tamanhoFonteTotal, tamFontDesc : Smallint;
     pedido, configUsuarioConfirmarPreco : string;
     bdSmall : boolean;
-    configUsuario, clienteNome, ultimaNota, ordemCompra : String;
+    configUsuario, clienteNome, ultimaNota, ordem : String;
     semCliente : boolean;
     produtosServico : TStringList;
     //function baixa
@@ -3021,10 +3021,6 @@ begin
      dm.IBQuery1.Close;
      dm.produto.close;
      dm.produto.Open;
-
-     if trim(ordemCompra) <> '' then begin
-        funcoes.OrdenaCamposVenda(ordemCompra, true);
-      end;
      funcoes.FormataCampos(dm.produto,2,'ESTOQUE',3);
 
 
@@ -4702,9 +4698,9 @@ begin
       funcoes.FormataCampos(dm.produto,2,'ESTOQUE',3);
 
 
-      ordemCompra := funcoes.buscaParamGeral(101, '');
-      if trim(ordemCompra) <> '' then begin
-        funcoes.OrdenaCamposVenda(ordemCompra, true);
+      ordem := funcoes.buscaParamGeral(101, '');
+      if trim(ordem) <> '' then begin
+        funcoes.OrdenaCamposVenda(ordem, true);
       end;
 
       //StaticText4.Caption := 'F12 - Por Fornecedor';
@@ -5416,9 +5412,6 @@ begin
         begin
           if funcoes.buscaParamGeral(91, 'S') = 'S' then begin
             FiltraCompraPorFornec();
-            if trim(ordemCompra) <> '' then begin
-              funcoes.OrdenaCamposVenda(ordemCompra, true);
-            end;
             exit;
           end;
 

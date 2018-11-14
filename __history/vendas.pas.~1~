@@ -124,7 +124,7 @@ type
     testa, EXPORTADO, tamanhoFonteTotal, tamFontDesc : Smallint;
     pedido, configUsuarioConfirmarPreco : string;
     bdSmall : boolean;
-    configUsuario, clienteNome, ultimaNota, ordemCompra : String;
+    configUsuario, clienteNome, ultimaNota : String;
     semCliente : boolean;
     produtosServico : TStringList;
     //function baixa
@@ -3021,13 +3021,7 @@ begin
      dm.IBQuery1.Close;
      dm.produto.close;
      dm.produto.Open;
-
-     if trim(ordemCompra) <> '' then begin
-        funcoes.OrdenaCamposVenda(ordemCompra, true);
-      end;
      funcoes.FormataCampos(dm.produto,2,'ESTOQUE',3);
-
-
      ClientDataSet1.EnableControls;
      {fim := funcoes.dialogo('generico',0,'SN',0,false,'S','Control for Windows:','Imprime os Preços das Mercadorias? S/N','S');
 
@@ -4480,7 +4474,7 @@ end;
 procedure TForm20.FormShow(Sender: TObject);
 var
   cont, i : integer;
-  sim : String;
+  sim, ordem : String;
 begin
   JsEdit1.SetTabelaDoBd(self, 'tf', query1);
 //  if trim(funcoes.LerConfig(form22.Pgerais.Values['configu'], 2) = '' then begin
@@ -4702,9 +4696,9 @@ begin
       funcoes.FormataCampos(dm.produto,2,'ESTOQUE',3);
 
 
-      ordemCompra := funcoes.buscaParamGeral(101, '');
-      if trim(ordemCompra) <> '' then begin
-        funcoes.OrdenaCamposVenda(ordemCompra, true);
+      ordem := funcoes.buscaParamGeral(101, '');
+      if trim(ordem) <> '' then begin
+        funcoes.OrdenaCamposVenda(ordem, true);
       end;
 
       //StaticText4.Caption := 'F12 - Por Fornecedor';
@@ -5416,9 +5410,6 @@ begin
         begin
           if funcoes.buscaParamGeral(91, 'S') = 'S' then begin
             FiltraCompraPorFornec();
-            if trim(ordemCompra) <> '' then begin
-              funcoes.OrdenaCamposVenda(ordemCompra, true);
-            end;
             exit;
           end;
 
