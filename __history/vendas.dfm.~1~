@@ -241,6 +241,7 @@ object Form20: TForm20
       Width = 793
       Height = 233
       Align = alCustom
+      BorderStyle = bsNone
       Font.Charset = ANSI_CHARSET
       Font.Color = clWindowText
       Font.Height = -13

@@ -10045,22 +10045,24 @@ begin
   unid := '';
   listUnidades := funcoes.listaUnidades;
 
-  if form22.usuario = 'ADMIN' then unid := funcoes.dialogo('generico',0,'CDEFGHIJ',50,false,'S',Application.Title,'Confirme o Drive para Gerar a Exportação ('+listUnidades+')?', ConfParamGerais[33])
-  else unid := funcoes.dialogo('generico',0,listUnidades,50,false,'S',Application.Title,'Confirme o Drive para Gerar a Exportação ('+listUnidades+')?', ConfParamGerais[33]);
+  if form22.usuario = 'ADMIN' then unid := funcoes.dialogo('generico',0,'CDEFGHIJHLM',50,false,'S',Application.Title,'Confirme o Drive para Gerar a Exportação ('+listUnidades+')?', ConfParamGerais[33])
+  else unid := funcoes.dialogo('generico',0,'CDEFGHIJHLM',50,false,'S',Application.Title,'Confirme o Drive para Gerar a Exportação ('+listUnidades+')?', ConfParamGerais[33]);
   if unid = '*' then exit;
 
-  if ((not Contido(unid, listUnidades)) and (form22.usuario <> 'ADMIN')) then begin
+  //if ((not Contido(unid, listUnidades)) and (form22.usuario <> 'ADMIN')) then begin
+  if false then begin
     MessageDlg('Escolha Uma das Unidades Disponíveis: ' + #13 + funcoes.listaUnidadesComDescricoes.GetText, mtConfirmation, [mbOK], 1);
     exit;
   end
   else begin
-    dm.IBQuery1.Close;
-    dm.IBQuery1.SQL.Text := 'update pgerais set valor = :valor where cod = 33';
-    dm.IBQuery1.ParamByName('valor').AsString := unid;
-    dm.IBQuery1.ExecSQL;
-    dm.IBQuery1.Transaction.Commit;
-
-    ConfParamGerais[33] := unid;
+    if trim(unid) <> trim(ConfParamGerais[33])  then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := 'update pgerais set valor = :valor where cod = 33';
+      dm.IBQuery1.ParamByName('valor').AsString := unid;
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
+      ConfParamGerais[33] := unid;
+    end;
   end;
 
   unid := unid + ':\';

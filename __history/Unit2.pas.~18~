@@ -5752,7 +5752,7 @@ begin
 
   h1 := '';
   if CODCLI <> '' then begin
-    h1 := ' and (documento = '+CODCLI+') '
+    h1 := ' and (documento = '+CODCLI+') ';
   end;
 
   total := 0;
@@ -5760,8 +5760,8 @@ begin
   cli := 'x';
   //ibselect e ibquery2
   dm.IBselect.Close;
-      dm.IBselect.SQL.Clear;
-      dm.IBselect.SQL.Add('select * from contasreceber where (pago=0) and (vencimento>=:ini) and (vencimento<=:fim) order by documento');
+      dm.IBselect.SQL.Text := ('select * from contasreceber where (pago=0) and (vencimento>=:ini) and (vencimento<=:fim) '+h1+' order by documento');
+
       dm.IBselect.ParamByName('ini').AsDateTime := StrToDate(ini);
       dm.IBselect.ParamByName('fim').AsDateTime := StrToDate(fim);
       try
@@ -5769,6 +5769,13 @@ begin
       except
        exit;
       end;
+
+   if dm.IBselect.IsEmpty then begin
+     ShowMessage('Nenhum Registro retornado!');
+     dm.IBselect.Close;
+     exit;
+   end;
+
       dm.IBselect.First;
       form19.RichEdit1.Clear;
       form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete('+','+','-',80)+#13+#10))));
@@ -5798,7 +5805,7 @@ begin
       dm.IBQuery2.SQL.Add('select * from cliente where cod='+dm.IBselect.fieldbyname('documento').AsString);
       dm.IBQuery2.Open;
 
-      form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar(('|'+funcoes.CompletaOuRepete('Nome: '+dm.IBQuery2.fieldbyname('nome').AsString,'',' ',78)+'|'+#13+#10))));
+      form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar(('|'+funcoes.CompletaOuRepete('Nome: '+dm.IBQuery2.fieldbyname('cod').AsString +'-'+dm.IBQuery2.fieldbyname('nome').AsString,'',' ',78)+'|'+#13+#10))));
       form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete('|END: '+dm.IBQuery2.fieldbyname('ende').AsString+'         -'+dm.IBQuery2.fieldbyname('bairro').AsString,'|',' ',80)+#13+#10))));
       form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete('|FONE: '+dm.IBQuery2.fieldbyname('telres').AsString+'    FAX: '+dm.IBQuery2.fieldbyname('telcom').AsString+'    CIDADE: '+dm.IBQuery2.fieldbyname('cid').AsString+'    -'+dm.IBQuery2.fieldbyname('est').AsString,'|',' ',80)+#13+#10))));
       form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete('+','+','-',80)+#13+#10))));
@@ -5838,7 +5845,7 @@ begin
            form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete('|'+ende+'         -'+bairro,'|',' ',80)+#13+#10))));
            form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete('|FONE: '+telres+'    FAX: '+telcom+'    CIDADE: '+cid+'    -'+est,'|',' ',80)+#13+#10))));
            form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete('+','+','-',80)+#13+#10))));
-           form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar(('|'+funcoes.CompletaOuRepete('Nome: '+dm.IBQuery2.fieldbyname('nome').AsString,'',' ',78)+'|'+#13+#10))));
+           form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar(('|'+funcoes.CompletaOuRepete('Nome: '+dm.IBQuery2.fieldbyname('cod').AsString +'-'+dm.IBQuery2.fieldbyname('nome').AsString,'',' ',78)+'|'+#13+#10))));
            form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete('|END: '+dm.IBQuery2.fieldbyname('ende').AsString+'         -'+dm.IBQuery2.fieldbyname('bairro').AsString,'|',' ',80)+#13+#10))));
            form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete('|FONE: '+dm.IBQuery2.fieldbyname('telres').AsString+'    FAX: '+dm.IBQuery2.fieldbyname('telcom').AsString+'    CIDADE: '+dm.IBQuery2.fieldbyname('cid').AsString+'    -'+dm.IBQuery2.fieldbyname('est').AsString,'|',' ',80)+#13+#10))));
            form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete('+','+','-',80)+#13+#10))));
@@ -10039,21 +10046,23 @@ begin
   listUnidades := funcoes.listaUnidades;
 
   if form22.usuario = 'ADMIN' then unid := funcoes.dialogo('generico',0,'CDEFGHIJ',50,false,'S',Application.Title,'Confirme o Drive para Gerar a Exportação ('+listUnidades+')?', ConfParamGerais[33])
-  else unid := funcoes.dialogo('generico',0,listUnidades,50,false,'S',Application.Title,'Confirme o Drive para Gerar a Exportação ('+listUnidades+')?', ConfParamGerais[33]);
+  else unid := funcoes.dialogo('generico',0,'CDEFGHIJHLM',50,false,'S',Application.Title,'Confirme o Drive para Gerar a Exportação ('+listUnidades+')?', ConfParamGerais[33]);
   if unid = '*' then exit;
 
-  if ((not Contido(unid, listUnidades)) and (form22.usuario <> 'ADMIN')) then begin
+  //if ((not Contido(unid, listUnidades)) and (form22.usuario <> 'ADMIN')) then begin
+  if false then begin
     MessageDlg('Escolha Uma das Unidades Disponíveis: ' + #13 + funcoes.listaUnidadesComDescricoes.GetText, mtConfirmation, [mbOK], 1);
     exit;
   end
   else begin
-    dm.IBQuery1.Close;
-    dm.IBQuery1.SQL.Text := 'update pgerais set valor = :valor where cod = 33';
-    dm.IBQuery1.ParamByName('valor').AsString := unid;
-    dm.IBQuery1.ExecSQL;
-    dm.IBQuery1.Transaction.Commit;
-
-    ConfParamGerais[33] := unid;
+    if trim(unid) <> trim(ConfParamGerais[33])  then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := 'update pgerais set valor = :valor where cod = 33';
+      dm.IBQuery1.ParamByName('valor').AsString := unid;
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
+      ConfParamGerais[33] := unid;
+    end;
   end;
 
   unid := unid + ':\';
