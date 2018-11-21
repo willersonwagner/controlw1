@@ -11,7 +11,7 @@ uses
   JsEditData1, ComCtrls, Buttons, JsBotao1, sEdit, acPNG, AppEvnts,RLConsts,
   IdBaseComponent, IdComponent, IdTCPConnection, IdTCPClient, IdTime, funcoesdav, imprNovo,
   untnfceForm, pcnConversao, classes1,Unit63, DBClient, Data.DB, midaslib, DateUtils,
-  Vcl.Imaging.jpeg, shellapi, acbrmail, ACBrValidador;
+  Vcl.Imaging.jpeg, shellapi, acbrmail, ACBrValidador, Vcl.Imaging.pngimage;
 
 type
   Tform22 = class(TForm)
@@ -37,6 +37,8 @@ type
     ClientDataSet1: TClientDataSet;
     ClientDataSet1COOD: TIntegerField;
     ClientDataSet1NOME: TStringField;
+    Image2: TImage;
+    wppNum: TLabel;
     procedure nomeKeyPress(Sender: TObject; var Key: Char);
     procedure senhaKeyPress(Sender: TObject; var Key: Char);
     procedure FormShow(Sender: TObject);
@@ -382,8 +384,6 @@ begin
   //verifica atualiza BD foi colocado aqui pq não pode ser no oncreate
   //essa função vai ser chamada e vai verificar se existe o ARQUIVO BD0.FDB
   // e vai criar os campos que deve criar
-
-  //ShowMessage(GetFileList(ExtractFileDir(ParamStr(0)) + '\*.exe').GetText);
 
   Label9.Width := form22.Width;
 
