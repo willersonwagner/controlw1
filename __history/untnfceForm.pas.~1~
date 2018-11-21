@@ -3727,7 +3727,7 @@ begin
           Result := false;
 
           try
-            sendPostDataMensagem(form72.IdHTTP1, trim(e.Message + ' | ' + 'cstat: ' + IntToStr(csta) +' '+ ACBrNFe.WebServices.Retorno.xMotivo), 'EnviarCupomEletronico2 3728', IntToStr(csta), NomedoComputador);
+            sendPostDataMensagem(form72.IdHTTP1, trim(e.Message + ' | ' + ACBrNFe.WebServices.Retorno.xMotivo), 'EnviarCupomEletronico2 3728', IntToStr(csta), NomedoComputador);
           finally
           end;
 

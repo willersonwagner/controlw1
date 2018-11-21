@@ -385,6 +385,8 @@ begin
   //essa função vai ser chamada e vai verificar se existe o ARQUIVO BD0.FDB
   // e vai criar os campos que deve criar
 
+  //ShowMessage(GetFileList(ExtractFileDir(ParamStr(0)) + '\*.exe').GetText);
+
   Label9.Width := form22.Width;
 
   senha.Text := '';
