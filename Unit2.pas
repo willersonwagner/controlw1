@@ -7957,9 +7957,14 @@ begin
 
   if nota = '' then
     begin
+      semcliente := 'select v.nota, v.data, v.codhis as formapagto, a.nome as vendedor, v.desconto, v.total from venda v left join  vendedor a on (v.vendedor = a.cod) where (v.cancelado = 0) and ((v.ok = '+ QuotedStr('') +') or (v.ok = '+ QuotedStr('N') +' )) order by v.nota desc';
+      comcliente := 'select v.nota, v.data, v.codhis as formapagto, a.nome as vendedor, v.desconto, v.total, c.nome as cliente from ((venda v left join vendedor a on (v.vendedor = a.cod)) left join cliente c on (c.cod = v.cliente)) where (v.cancelado = 0) and ((v.ok = '+ QuotedStr('') +') or (v.ok = '+ QuotedStr('N') +' )) order by v.nota desc';
       dm.IBQuery2.Close;
       dm.IBQuery2.SQL.Clear;
-      dm.IBQuery2.SQL.Add('select v.nota, v.data, v.codhis as formapagto, a.nome as vendedor, v.desconto, v.total, c.nome as cliente from ((venda v left join vendedor a on (v.vendedor = a.cod)) left join cliente c on (c.cod = v.cliente)) where (v.cancelado = 0) and ((v.ok = '+ QuotedStr('') +') or (v.ok = '+ QuotedStr('N') +' )) order by v.nota desc');
+      if funcoes.buscaParamGeral(102, 'N') = 'S' then
+        dm.IBQuery2.SQL.Add(comcliente)
+      else
+        dm.IBQuery2.SQL.Add(semcliente);
       dm.IBQuery2.Open;
 
       dm.IBselect.Close;
