@@ -66,6 +66,7 @@ procedure TForm55.DBGrid1KeyPress(Sender: TObject; var Key: Char);
 var
   h_sai, sim, data, nota, cod : String;
   ordem : TOrdem;
+  BolOK  : boolean;
 begin
   if key = #27 then close;
   if key = #32 then
@@ -74,8 +75,6 @@ begin
       sim := DBGrid1.SelectedField.DisplayName;
       if ((sim = 'DATA') or (sim = 'H_ENT') or (sim = 'PAGO') or (sim = 'H_SAI')) then exit;
 
-      //if (UpperCase(DBGrid1.SelectedField.DisplayName) = 'CLIENTE') then
-      //  begin
           nota := funcoes.dialogo('normal',0,''+ #8 + #13+ #27,0,false,'','Control For Windows','Selecionar por:','');
           if nota = '*' then exit;
 
@@ -85,7 +84,7 @@ begin
           dm.IBQuery3.Close;
           dm.IBQuery3.SQL.Clear;
           //dm.IBQuery3.SQL.Add('select p.cod, nome, p.codbar from produto p join codbarras c on ((c.cod = p.cod)) where (p.codbar like '+QuotedStr('%'+ acc +'%')+') or (nome like '+ QuotedStr('%'+acc+'%') +') or ((c.codbar like '+QuotedStr('%'+ acc +'%')+') and (c.cod = p.cod))');
-          dm.IBQuery3.SQL.Add('select s.cod, s.data, c.nome as cliente, equip, marca from servico s inner join cliente c on (c.cod = s.cliente) where '+ sim +' like ''%'+ nota +'%''');
+          dm.IBQuery3.SQL.Text := ('select s.cod, s.data, c.nome as cliente, equip, marca from servico s inner join cliente c on (c.cod = s.cliente) where ('+ sim +' like '+QuotedStr('%'+ nota +'%')+') ' + StringReplace(condicao, 'where', 'and', [rfReplaceAll, rfIgnoreCase]));
           dm.IBQuery3.Open;
 
           if dm.IBQuery3.IsEmpty then
@@ -103,6 +102,16 @@ begin
 
   if key = #13 then
     begin
+      //essa condição é true se for pressionado ENTER na coluna COD e se o serviço ja foi encerrado
+      if ((DBGrid1.SelectedField.DisplayLabel = 'COD') and (Contido('s.venda <> 0', condicao))) then begin
+        BolOK := funcoes.lerServicoNoBdEcriaUmObjetoOrdem(DBGrid1.DataSource.DataSet.FieldByName('cod').AsString, ordem);
+        if not BolOK then exit;
+
+        funcoes.imprimeOrdemDeServico(ordem, false);
+        exit;
+      end;
+
+
       if consulta then
         begin
           retorno := DBGrid1.DataSource.DataSet.FieldByName('cod').AsString;

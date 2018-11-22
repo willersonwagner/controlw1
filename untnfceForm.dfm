@@ -27,8 +27,8 @@ object Form72: TForm72
   object BMDThread1: TBMDThread
     UpdateEnabled = False
     OnExecute = BMDThread1Execute
-    Left = 256
-    Top = 72
+    Left = 248
+    Top = 24
   end
   object IdHTTP1: TIdHTTP
     AllowCookies = False
