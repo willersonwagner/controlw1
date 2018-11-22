@@ -491,8 +491,8 @@ object form22: Tform22
     object Label1: TLabel
       Left = 233
       Top = 105
-      Width = 71
-      Height = 19
+      Width = 58
+      Height = 18
       Caption = 'Usu'#225'rio:'
       Color = clMoneyGreen
       Font.Charset = ANSI_CHARSET
@@ -507,8 +507,8 @@ object form22: Tform22
     object Label2: TLabel
       Left = 247
       Top = 148
-      Width = 54
-      Height = 19
+      Width = 49
+      Height = 18
       Caption = 'Senha:'
       Color = clMoneyGreen
       Font.Charset = ANSI_CHARSET
@@ -523,8 +523,8 @@ object form22: Tform22
     object Label6: TLabel
       Left = 316
       Top = 232
-      Width = 71
-      Height = 19
+      Width = 59
+      Height = 18
       Caption = 'Suporte:'
       Color = clMoneyGreen
       Font.Charset = ANSI_CHARSET
@@ -539,7 +539,7 @@ object form22: Tform22
     object Label7: TLabel
       Left = 233
       Top = 250
-      Width = 242
+      Width = 213
       Height = 17
       Caption = 'Ismael Rodrigues (99121 - 2123)'
       Color = clMoneyGreen
@@ -555,7 +555,7 @@ object form22: Tform22
     object Label8: TLabel
       Left = 233
       Top = 265
-      Width = 242
+      Width = 212
       Height = 24
       Caption = 'Escrit'#243'rio (3625 6779)'
       Color = clMoneyGreen
@@ -588,7 +588,7 @@ object form22: Tform22
       Left = 4
       Top = 217
       Width = 3
-      Height = 13
+      Height = 14
       Color = clMoneyGreen
       Font.Charset = ANSI_CHARSET
       Font.Color = clWhite
@@ -718,8 +718,8 @@ object form22: Tform22
     object wppNum: TLabel
       Left = 47
       Top = 251
-      Width = 104
-      Height = 21
+      Width = 105
+      Height = 22
       Caption = '99129-2839'
       Color = clWhite
       Font.Charset = DEFAULT_CHARSET
