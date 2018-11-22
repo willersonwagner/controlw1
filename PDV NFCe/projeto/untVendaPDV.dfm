@@ -2036,8 +2036,8 @@ object Form3: TForm3
     UsarFila = True
     FilaMaxItens = 100
     Intervalo = 300
-    Left = 400
-    Top = 176
+    Left = 432
+    Top = 88
   end
   object TimerEnvia: TTimer
     Enabled = False

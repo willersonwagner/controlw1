@@ -520,60 +520,9 @@ object form22: Tform22
       ParentFont = False
       Transparent = True
     end
-    object Label3: TLabel
-      Left = 463
-      Top = 240
-      Width = 131
-      Height = 19
-      Caption = 'Programadores:'
-      Color = clMoneyGreen
-      Font.Charset = ANSI_CHARSET
-      Font.Color = clWhite
-      Font.Height = -16
-      Font.Name = 'Cooper Black'
-      Font.Style = []
-      ParentColor = False
-      ParentFont = False
-      Transparent = True
-      Visible = False
-    end
-    object Label4: TLabel
-      Left = 423
-      Top = 264
-      Width = 230
-      Height = 17
-      Caption = 'Josenir Silv'#233'rio (99971 - 6912)'
-      Color = clMoneyGreen
-      Font.Charset = ANSI_CHARSET
-      Font.Color = clWhite
-      Font.Height = -15
-      Font.Name = 'Cooper Black'
-      Font.Style = []
-      ParentColor = False
-      ParentFont = False
-      Transparent = True
-      Visible = False
-    end
-    object Label5: TLabel
-      Left = 459
-      Top = 280
-      Width = 149
-      Height = 17
-      Caption = 'Wagner 99171 5639'
-      Color = clMoneyGreen
-      Font.Charset = ANSI_CHARSET
-      Font.Color = clWhite
-      Font.Height = -15
-      Font.Name = 'Cooper Black'
-      Font.Style = []
-      ParentColor = False
-      ParentFont = False
-      Transparent = True
-      Visible = False
-    end
     object Label6: TLabel
-      Left = 263
-      Top = 229
+      Left = 316
+      Top = 232
       Width = 71
       Height = 19
       Caption = 'Suporte:'
@@ -588,8 +537,8 @@ object form22: Tform22
       Transparent = True
     end
     object Label7: TLabel
-      Left = 227
-      Top = 277
+      Left = 233
+      Top = 250
       Width = 242
       Height = 17
       Caption = 'Ismael Rodrigues (99121 - 2123)'
@@ -604,8 +553,8 @@ object form22: Tform22
       Transparent = True
     end
     object Label8: TLabel
-      Left = 292
-      Top = 287
+      Left = 233
+      Top = 265
       Width = 242
       Height = 24
       Caption = 'Escrit'#243'rio (3625 6779)'
