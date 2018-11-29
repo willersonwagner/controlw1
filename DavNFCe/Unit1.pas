@@ -1426,7 +1426,7 @@ begin
     IBQueryServer1.ParamByName('vendedor').AsString := vendedor;
     IBQueryServer1.ExecSQL;
 
-    if baixarEstoque then begin
+    {if baixarEstoque then begin
       IBQueryServer1.Close;
       IBQueryServer1.SQL.Text :=
       'update produto set quant = quant - :quant where cod = :cod';
@@ -1435,7 +1435,7 @@ begin
       IBQueryServer1.ParamByName('cod').AsInteger := IBQuery2.fieldbyname('cod')
       .AsInteger;
       IBQueryServer1.ExecSQL;
-    end;
+    end;  }
 
 
     baixarEstoque := true;

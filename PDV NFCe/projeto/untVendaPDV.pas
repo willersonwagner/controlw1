@@ -650,7 +650,7 @@ begin
               end;
           end;
 
-          try
+         { try
           dtmMain.IBQuery1.Close;
           dtmMain.IBQuery1.SQL.Text := 'update produto set quant = quant - :quant where cod = :cod';
           dtmMain.IBQuery1.ParamByName('quant').AsCurrency := IBClientDataSet1.fieldbyname('quant').AsCurrency;
@@ -662,7 +662,7 @@ begin
                 gravaERRO_LOG('', e.Message, 'Update Produto: ' + #13 + 'Cod: ' + StrNum(IBClientDataSet1cod.AsString)
                 + #13 + 'Quant: ' + IBClientDataSet1quant.AsString + #13 );
               end;
-          end;
+          end;}
         end;
         
       IBClientDataSet1.Next;
