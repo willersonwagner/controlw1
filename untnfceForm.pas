@@ -569,7 +569,7 @@ begin
     on e: Exception do
     begin
       gravaERRO_LOG1('', e.Message, 'imprimirNfceESCPOS();');
-      MessageDlg('Erro na Impressão: ' + #13 + e.Message + #13, mtError,
+      MessageDlg('Erro na Impressï¿½o: ' + #13 + e.Message + #13, mtError,
         [mbOK], 1);
     end;
   end;
@@ -805,7 +805,7 @@ begin
     exit;
   end;
 
-  // busca as chaves da mesma numeração e a mesma serie para excluir
+  // busca as chaves da mesma numeraï¿½ï¿½o e a mesma serie para excluir
   // primeiro grava no log para saber se foi excluida
   query1.Close;
   query1.SQL.text :=
@@ -824,7 +824,7 @@ begin
     query1.Next;
   end;
 
-  // deleta as chaves que estiverem a mesma numeração e mesma serie
+  // deleta as chaves que estiverem a mesma numeraï¿½ï¿½o e mesma serie
   query1.Close;
   query1.SQL.text :=
     'delete from nfce where (substring(chave from 26 for 9) = :nota) and (substring(chave from 23 for 3) = :serie)'
@@ -901,7 +901,7 @@ begin
 
   IF (NOT ok) then
   begin
-    ERRO_dados := 'CNPJ do Emitente Inválido ' + #13;
+    ERRO_dados := 'CNPJ do Emitente Invï¿½lido ' + #13;
   end;
 
   invalido := invalido + CAMPO_VAZIO(ENDE);
@@ -990,12 +990,12 @@ begin
     ce := Le_Nodo('cStat', erro_dados);
     if funcoes.Contido(ce,'100-101') AND (Length(ce) = 3) AND (Length(test) >= 13) AND (Length(test) <= 15) then
     begin
-    ShowMessage('A nota '+ chaveNF +' já foi emitida.'+ #13 + #10 + #13 + #10 +
+    ShowMessage('A nota '+ chaveNF +' jï¿½ foi emitida.'+ #13 + #10 + #13 + #10 +
     'Numero de Protocolo: ' + test + ' ' + #13 + #10 +
-    'Data e Hora de Autorização: ' + Le_Nodo('dhRecbto', ERRO_DADOS) + ' ' + #13 + #10 +
+    'Data e Hora de Autorizaï¿½ï¿½o: ' + Le_Nodo('dhRecbto', ERRO_DADOS) + ' ' + #13 + #10 +
     'Status: ' + Le_Nodo('xMotivo', ERRO_DADOS) + ' ' + #13 + #10 +
-    'Use a rotina Utilitários > Nfe > Reimpressão para ' +
-    'imprimi-la, se necessário. Para emitir uma nova NF-e entre com um numero ' +
+    'Use a rotina Utilitï¿½rios > Nfe > Reimpressï¿½o para ' +
+    'imprimi-la, se necessï¿½rio. Para emitir uma nova NF-e entre com um numero ' +
     'diferente deste.');
     exit;
     end;
@@ -1363,10 +1363,10 @@ begin
   tot := MAT.total - MAT.desconto;
   cod_OP := CDCFOP;
   Result := '';
-  // se a empresa é optante do simples nacional
+  // se a empresa ï¿½ optante do simples nacional
   if pgerais.Values['10'] = '1' then
   begin
-    // EXPORTAÇÃO - CSOSN = 300
+    // EXPORTAï¿½ï¿½O - CSOSN = 300
     IF Contido(LeftStr(cod_OP, 1), '4-7') then
     begin
       with ACBrNFe.NotasFiscais.Items[0].nfe.Det.Items[indx].Imposto do
@@ -1461,7 +1461,7 @@ begin
     exit;
   end;
 
-  // EXPORTAÇÃO - CST = 41
+  // EXPORTAï¿½ï¿½O - CST = 41
   IF Contido(LeftStr(cod_OP, 1), '4-7') then
   begin
     with ACBrNFe.NotasFiscais.Items[0].nfe.Det.Items[indx].Imposto do
@@ -1976,7 +1976,7 @@ begin
     Ide.cUF := 14;
     Ide.cMunFG := StrToIntDef(dadosEmitente.Values['cod_mun'], 1400100);
 
-    Transp.modFrete := mfSemFrete; // NFC-e não pode ter FRETE
+    Transp.modFrete := mfSemFrete; // NFC-e nï¿½o pode ter FRETE
   end;
 end;
 
@@ -3063,6 +3063,8 @@ begin
 
     totNota := query1.FieldByName('total').AsCurrency; }
 
+
+// verifica se valor e qtd de itens sao validos, inicializa variaveis e adiciona o arquivo XML criado a AcBrNFe.NotasFiscais
   try
     Result := false;
     if not Contido(' ', nota) then
@@ -3074,7 +3076,7 @@ begin
 
       if query1.fieldbyname('total').AsCurrency <= 0 then
       begin
-        ShowMessage('Não Pode Ser Emitido Uma NFCe desta Venda!' + #13 +
+        ShowMessage('Nï¿½o Pode Ser Emitido Uma NFCe desta Venda!' + #13 +
           'Venda Com Valor R$ ' + formataCurrency(query1.fieldbyname('total')
           .AsCurrency));
         query1.Close;
@@ -3091,7 +3093,7 @@ begin
 
       if query1.fieldbyname('cont').AsInteger <= 0 then
       begin
-        ShowMessage('Não Pode Ser Emitido Uma NFCe desta Venda!' + #13 +
+        ShowMessage('Nï¿½o Pode Ser Emitido Uma NFCe desta Venda!' + #13 +
           'Quantidade de Itens: ' + query1.fieldbyname('cont').AsString);
         query1.Close;
         exit;
@@ -3145,7 +3147,7 @@ begin
       begin
         contOFFLINE := true;
         ACBrNFe.Configuracoes.Geral.FormaEmissao := teOffLine;
-        // contigência OFFLINE
+        // contigï¿½ncia OFFLINE
       end;
 
     except
@@ -3189,8 +3191,8 @@ begin
       on e: Exception do
       begin
         erro1 := e.Message;
-        gravaERRO_LOG1('', e.Message, 'Validação dos Dados');
-        MessageDlg('Falha na Validação da Nota: ' + #13 + e.Message + #13,
+        gravaERRO_LOG1('', e.Message, 'Validaï¿½ï¿½o dos Dados');
+        MessageDlg('Falha na Validaï¿½ï¿½o da Nota: ' + #13 + e.Message + #13,
           mtError, [mbOK], 1);
 
         Status := 'vali';
@@ -3213,138 +3215,123 @@ begin
       except
       end;
     end;
-
-    i := 0;
-    while true do
-    begin
-      if i = 1 then
-        break;
-      i := i + 1;
-      try
-        ERRO_dados := '';
-
-        csta := 999;
-        if acbrNFeEnviar(20) then
-        begin
-          //se entrou aqui é pq passou do metodo acbr.Enviar
-          ACBrNFe.WebServices.Retorno.Recibo :=
-            ACBrNFe.WebServices.enviar.Recibo;
-          ACBrNFe.WebServices.Retorno.Executar;
-
-          csta := ACBrNFe.WebServices.Retorno.cstat;
+    try
+      ERRO_dados := '';
+      csta := 999;
+      if acbrNFeEnviar(20) then
+      begin
+        //se entrou aqui ï¿½ pq passou do metodo acbr.Enviar
+        ACBrNFe.WebServices.Retorno.Recibo :=
+        ACBrNFe.WebServices.enviar.Recibo;
+        ACBrNFe.WebServices.Retorno.Executar;
+        csta := ACBrNFe.WebServices.Retorno.cstat;
         end;
 
         //ShowMessage('csta=' + IntToStr(csta) + #13 + #13 +
         //'ERRO_dados=' + ERRO_dados);
 
         //se nao veio resposta entao consulta pra ver se foi emitida ou o cstat veio com valor 0
-        if (Contido('(5)-Requisi', ERRO_dados) or (csta = 0)) then begin
-          if acbrNFeConsultar(20) then begin
-            csta := ACBrNFe.NotasFiscais[0].nfe.procNFe.cstat;
-            ACBrNFe.NotasFiscais[0].GravarXML(CHAVENF + '-nfe.xml', buscaPastaNFCe(CHAVENF, false));
-          end;
+      if ((Contido('(5)-Requisi', ERRO_dados) or (csta = 0))) and acbrNFeConsultar(20) then begin
+          csta := ACBrNFe.NotasFiscais[0].nfe.procNFe.cstat;
+          ACBrNFe.NotasFiscais[0].GravarXML(CHAVENF + '-nfe.xml', buscaPastaNFCe(CHAVENF, false));
         end;
+
 
         //se veio um valor valido no cstat entao limpa erro_dados e marca com true as
         //variaveis de controle
-        if (csta in [100, 150, 103]) then begin
-          ERRO_dados := '';
-          enviou := true;
-          Result := true;
-          break;
+      if (csta in [100, 150, 103]) then begin
+        ERRO_dados := '';
+        enviou := true;
+        Result := true;
+        break;
+      end;
+
+        //se ERRO_dados veio preenchido da thread entao ï¿½ pq tem um erro, cria uma execeï¿½ï¿½o
+      if ERRO_dados <> '' then
+      begin
+        Status := ERRO_dados;
+        raise Exception.Create(ERRO_dados);
+      end;
+    except
+      On e: Exception do
+      begin
+        erroTemp := e.Message;
+        gravaERRO_LOG1('', e.Message, 'Enviar');
+        csta := ACBrNFe.WebServices.Retorno.cstat;
+
+        try
+          SendPostDataMensagem(Form72.IdHTTP1,
+            trim(e.Message + ' | ' + ACBrNFe.WebServices.Retorno.xmotivo),
+            'EnviarCupomEletronico2 3728', IntToStr(csta), NomedoComputador);
+        finally
         end;
 
-        //se ERRO_dados veio preenchido da thread entao é pq tem um erro, cria uma execeção
-        if ERRO_dados <> '' then
+        if Contido('Rejeicao: ', e.Message) and not Contido('Duplicidade', e.Message) then
         begin
-          Status := ERRO_dados;
-          raise Exception.Create(ERRO_dados);
+          gravaERRO_LOG1('', e.Message,
+            'if Contido(Duplicidade, e.Message) = false then');
+          Status := e.Message;
+          MessageDlg('E3286: ' + e.Message, mtError, [mbOK], 1);
+          Result := false;
+          csta := 999;
+          // exit;
         end;
-      except
-        On e: Exception do
-        begin
-          erroTemp := e.Message;
-          gravaERRO_LOG1('', e.Message, 'Enviar');
-          csta := ACBrNFe.WebServices.Retorno.cstat;
 
+        Status := e.Message;
+
+        if (csta in [100, 150]) = false then
+          csta := 999;
+
+        if (Contido('Duplicidade de NF-e [chNFe:', e.Message)) THEN
+        begin
           try
-            SendPostDataMensagem(Form72.IdHTTP1,
-              trim(e.Message + ' | ' + ACBrNFe.WebServices.Retorno.xmotivo),
-              'EnviarCupomEletronico2 3728', IntToStr(csta), NomedoComputador);
-          finally
-
-          end;
-
-          if Contido('Rejeicao: ', e.Message) then
-          begin
-            if Contido('Duplicidade', e.Message) = false then
+            trataDuplicidade1(e.Message, false, false, true);
+            // inicializaVariaveis;
+            ACBrNFe.NotasFiscais.Clear;
+          except
+            on e: Exception do
             begin
               gravaERRO_LOG1('', e.Message,
-                'if Contido(Duplicidade, e.Message) = false then');
-              Status := e.Message;
-              MessageDlg('E3286: ' + e.Message, mtError, [mbOK], 1);
-              Result := false;
+                'else if Contido(Duplicidade de NF-e, com diferenca na Chave de Acesso [chNFe:, e.Message) THEN');
+            end;
+          end;
+        end
+        else if (Contido
+          ('Duplicidade de NF-e, com diferenca na Chave de Acesso [chNFe:',
+          e.Message) or (csta = 539)) THEN
+        begin
+          try
+            trataDuplicidade1(e.Message, false, false, true);
+            // MessageDlg(e.Message, mtError, [mbOK], 1);
+            // inicializaVariaveis;
+            ACBrNFe.NotasFiscais.Clear;
+            { inicializaVariaveis;
+              xml := GerarNFCeTexto(nota, cliente1);
+              GravarTexto(buscaPastaNFCe(chaveNF, false) + chaveNF + '-nfe.xml', xml);
+              ACBrNFe.NotasFiscais.Clear;
+              ACBrNFe.NotasFiscais.LoadFromFile(buscaPastaNFCe(chaveNF, false) +chaveNF + '-nfe.xml'); }
+          except
+            on e: Exception do
+            begin
+              gravaERRO_LOG1('', e.Message,
+                'else if Contido(Duplicidade de NF-e, com diferenca na Chave de Acesso [chNFe:, e.Message) THEN');
               csta := 999;
-              // exit;
             end;
-          end;
-
-          Status := e.Message;
-
-          if (csta in [100, 150]) = false then
-            csta := 999;
-
-          if (Contido('Duplicidade de NF-e [chNFe:', e.Message)) THEN
-          begin
-            try
-              trataDuplicidade1(e.Message, false, false, true);
-              // inicializaVariaveis;
-              ACBrNFe.NotasFiscais.Clear;
-            except
-              on e: Exception do
-              begin
-                gravaERRO_LOG1('', e.Message,
-                  'else if Contido(Duplicidade de NF-e, com diferenca na Chave de Acesso [chNFe:, e.Message) THEN');
-              end;
-            end;
-          end
-          else if (Contido
-            ('Duplicidade de NF-e, com diferenca na Chave de Acesso [chNFe:',
-            e.Message) or (csta = 539)) THEN
-          begin
-            try
-              trataDuplicidade1(e.Message, false, false, true);
-              // MessageDlg(e.Message, mtError, [mbOK], 1);
-              // inicializaVariaveis;
-              ACBrNFe.NotasFiscais.Clear;
-              { inicializaVariaveis;
-                xml := GerarNFCeTexto(nota, cliente1);
-                GravarTexto(buscaPastaNFCe(chaveNF, false) + chaveNF + '-nfe.xml', xml);
-                ACBrNFe.NotasFiscais.Clear;
-                ACBrNFe.NotasFiscais.LoadFromFile(buscaPastaNFCe(chaveNF, false) +chaveNF + '-nfe.xml'); }
-            except
-              on e: Exception do
-              begin
-                gravaERRO_LOG1('', e.Message,
-                  'else if Contido(Duplicidade de NF-e, com diferenca na Chave de Acesso [chNFe:, e.Message) THEN');
-                csta := 999;
-              end;
-            end;
-          end;
-
-          if ACBrNFe.WebServices.Retorno.RetornoWS = '' then
-          begin
-            csta := 999;
-            Result := false;
           end;
         end;
-      end; // try enviar
-    end; // while true
+
+        if ACBrNFe.WebServices.Retorno.RetornoWS = '' then
+        begin
+          csta := 999;
+          Result := false;
+        end;
+      end;
+    end; // try enviar
 
     if csta = 999 then
     begin
       LimpaVariaveis;
-      EnviarCupomEletronicoTitular(nota, Status, xmotivo, tipo, false, cliente1,
+      EnviarCupomEletronicoCont(nota, Status, xmotivo, tipo, false, cliente1,
         obs1, '', '', imp, recebido, EscPos);
       Result := true;
       exit;
@@ -3422,7 +3409,7 @@ begin
     begin
       Status := 'vali';
       xmotivo := ACBrNFe.WebServices.enviar.xmotivo;
-      ShowMessage('NF-e ' + ' Houve uma falha na Validação!' + #13 + #10 + #13 +
+      ShowMessage('NF-e ' + ' Houve uma falha na Validaï¿½ï¿½o!' + #13 + #10 + #13 +
         #10 + 'xMotivo: ' + ACBrNFe.WebServices.enviar.xmotivo + #13 +
         'cStat..: ' + IntToStr(csta) + #13 + 'Erro...: ' + erroTemp);
       // +qry.FieldByName('RECIBO_DESCSTATUS').AsString);
@@ -3430,10 +3417,74 @@ begin
       LimpaVariaveis;
       exit;
     end;
-  end
-  else // aqui é em contigencia OFFLINE
-  begin
+  end;
+  para := 'wagner.br.xx@gmail.com';
+  ACBrNFe.NotasFiscais.Clear;
 
+  Result := true;
+end;
+
+function EnviarCupomEletronicoCont(nota: String; var Status, xmotivo: string;
+  const tipo: integer; const enviar: boolean; const cliente1: String;
+  obs1: String = ''; serie1: String = '1'; nnf: STRING = '';
+  imp: boolean = true; recebido: currency = 0; EscPos: boolean = false)
+var
+  SQL, qUsuario, para, ssChave, erro1, NumeroRecibo, ser, erroTemp: string;
+  csta: integer;
+  enviou: boolean;
+  xml: AnsiString;
+  arq: TStringList;
+  TOTNOTA: currency;
+begin
+    if RightStr(trim(pastaControlW), 1) <> '\' then
+      pastaControlW := pastaControlW + '\';
+    carregaConfigsNFCe;
+
+    NomeGeneratorSerie := 'nfce';
+
+    // LerConfiguracaoNFCe();
+
+    DANFE.vTroco := recebido;
+    if DANFE.vTroco < 0 then
+      DANFE.vTroco := 0;
+
+    { danfe.vTroco := recebido - totNota;
+      if danfe.vTroco < 0 then danfe.vTroco := 0;
+
+      if tipoIMPRESSAO = 1 then begin
+      DANFEEscPos.vTroco := recebido - totNota;
+      if DANFEEscPos.vTroco < 0 then DANFEEscPos.vTroco := 0;
+      end; }
+
+    obs2 := obs1;
+    Status := '';
+    Result := false;
+    ssChave := '';
+    vlRecebido := recebido;
+    inicializaVariaveis();
+    TipoEmissao := tipo;
+    enviou := true;
+    DANFE.NFeCancelada := false;
+
+    ACBrNFe.NotasFiscais.Clear;
+    ACBrNFe.WebServices.Consulta.Clear;
+    ACBrNFe.WebServices.Retorno.Clear;
+    CDCFOP := '5102';
+
+    cliente := cliente1;
+    contOFFLINE := true;
+    ACBrNFe.Configuracoes.Geral.FormaEmissao := teOffLine;
+    serie1 := IntToStr(serie2);
+    /// //GERAR NFC-e:
+
+    xml := GerarNFCeTexto(nota, cliente1);
+    GravarTexto(buscaPastaNFCe(CHAVENF, false) + CHAVENF + '-nfe.xml', xml);
+    xml := '';
+
+    query1.Close;
+    ACBrNFe.NotasFiscais.Clear;
+    ACBrNFe.NotasFiscais.LoadFromFile(buscaPastaNFCe(CHAVENF, false) + CHAVENF +
+      '-nfe.xml', false);
     try
       ACBrNFe.NotasFiscais.Assinar;
       ACBrNFe.NotasFiscais.Validar;
@@ -3442,7 +3493,7 @@ begin
       begin
         gravaERRO_LOG1('', e.Message, 'validar');
         Status := 'vali';
-        MessageDlg('Falha na Validação da Nota11: ' + #13 + e.Message + #13,
+        MessageDlg('Falha na Validaï¿½ï¿½o da Nota11: ' + #13 + e.Message + #13,
           mtError, [mbOK], 1);
         Result := false;
         exit;
@@ -3482,13 +3533,13 @@ begin
 
     LimpaVariaveis;
     Result := true;
-  end;
 
   para := 'wagner.br.xx@gmail.com';
   ACBrNFe.NotasFiscais.Clear;
 
   Result := true;
 end;
+
 
 function EnviarCupomEletronico2(nota, chave1: String; var richED: TRichEdit;
   var estado: String; const imprime, dav: boolean;
@@ -3546,7 +3597,7 @@ begin
   begin
     query1.Close;
     if not dav then
-      ShowMessage('NFCe não encontrada');
+      ShowMessage('NFCe nï¿½o encontrada');
     exit;
   end;
 
@@ -3557,7 +3608,7 @@ begin
   if FileExists(buscaPastaNFCe(CHAVENF) + CHAVENF + '-nfe.xml') = false then
   begin
     Result := false;
-    richED.Lines.Add('NFCe Não Encontrada: ' + buscaPastaNFCe(CHAVENF) + CHAVENF
+    richED.Lines.Add('NFCe Nï¿½o Encontrada: ' + buscaPastaNFCe(CHAVENF) + CHAVENF
       + '-nfe.xml');
     exit;
   end
@@ -3651,7 +3702,7 @@ begin
       gravaERRO_LOG1('', 'Troca de Chave Por Erro de Envio: ' + #13#10 +
         'Chave Antiga: ' + ssChave + #13#10 + 'Chave   Nova: ' + CHAVENF +
         #13#10 + 'Data  Troca : ' + FormatDateTime('dd/mm/yyyy', now) + ' ' +
-        FormatDateTime('hh:mm:ss', now), 'Nova Criação de XML');
+        FormatDateTime('hh:mm:ss', now), 'Nova Criaï¿½ï¿½o de XML');
 
       ssChave := CHAVENF;
 
@@ -3660,7 +3711,7 @@ begin
         '-nfe.xml');
 
       gravaERRO_LOG1('', 'Acabou: ' + FormatDateTime('hh:mm:ss', now),
-        'Nova Criação de XML');
+        'Nova Criaï¿½ï¿½o de XML');
       // novo := true;
       // end;
     end
@@ -3754,7 +3805,7 @@ begin
           finally
           end;
 
-          if Contido('(5)-Requisição não', ERRO_dados) and (csta <> 100) then
+          if Contido('(5)-Requisiï¿½ï¿½o nï¿½o', ERRO_dados) and (csta <> 100) then
             exit;
 
           if ((csta = 778) or (false)) then
@@ -3779,7 +3830,7 @@ begin
               arq1.Free;
               ERRO_dados := 'Application.Terminate;';
               Application.Terminate;
-              estado := estado + #13 + #13 + 'O davNFCe Será Reiniciado!';
+              estado := estado + #13 + #13 + 'O davNFCe Serï¿½ Reiniciado!';
               end; }
             exit;
           end;
@@ -3853,7 +3904,7 @@ begin
               end;
             end;
             estado := e.Message + #13 + 'NFCe ' + CHAVENF +
-              ' já está marcada no BD como Cancelada!';
+              ' jï¿½ estï¿½ marcada no BD como Cancelada!';
             exit;
           end;
 
@@ -3968,7 +4019,7 @@ begin
       begin
         if dav = false then
         begin
-          ShowMessage('NF-e ' + ' Houve uma falha na Validação!' + #13 + #10 +
+          ShowMessage('NF-e ' + ' Houve uma falha na Validaï¿½ï¿½o!' + #13 + #10 +
             #13 + #10 + 'Favor Corrigir: ' +
             ACBrNFe.WebServices.enviar.xmotivo);
           // +qry.FieldByName('RECIBO_DESCSTATUS').AsString);
@@ -3984,7 +4035,7 @@ begin
         On e: Exception do
         begin
           richED.Lines.Add('BB: ' + e.Message);
-          // MessageDlg('Verifique se o Acrobat está instalado corretamente.', mtInformation, [mbok],0 );
+          // MessageDlg('Verifique se o Acrobat estï¿½ instalado corretamente.', mtInformation, [mbok],0 );
         end;
       end;
 
@@ -4020,7 +4071,7 @@ begin
     if query1.IsEmpty then
     begin
       query1.Close;
-      ShowMessage('NFCe não encontrada');
+      ShowMessage('NFCe nï¿½o encontrada');
       exit;
     end;
 
@@ -4069,7 +4120,7 @@ begin
     if query1.IsEmpty then
     begin
       query1.Close;
-      ShowMessage('NFCe não encontrada1');
+      ShowMessage('NFCe nï¿½o encontrada1');
       exit;
     end;
 
@@ -4085,7 +4136,7 @@ begin
   if query1.IsEmpty then
   begin
     query1.Close;
-    ShowMessage('NFCe não encontrada2');
+    ShowMessage('NFCe nï¿½o encontrada2');
     exit;
   end;
 
@@ -4122,7 +4173,7 @@ begin
   if query1.IsEmpty then
   begin
     query1.Close;
-    ShowMessage('NFCe não encontrada');
+    ShowMessage('NFCe nï¿½o encontrada');
     exit;
   end;
 
@@ -4191,7 +4242,7 @@ begin
   begin
     ShowMessage('Ocorreu um Erro no Cancelamento:' + #13 + tmp +
       IfThen(POS('Duplicidade', tmp) > 0,
-      #13 + #13 + 'Esta Nota já pode ter Sido Cancelada', ''));
+      #13 + #13 + 'Esta Nota jï¿½ pode ter Sido Cancelada', ''));
   end;
 end;
 
@@ -4221,7 +4272,7 @@ begin
     if query1.IsEmpty then
     begin
       query1.Close;
-      ShowMessage('NFCe não encontrada');
+      ShowMessage('NFCe nï¿½o encontrada');
       exit;
     end;
     chave := query1.fieldbyname('chave').AsString;
@@ -4304,7 +4355,7 @@ begin
       except
         on e: Exception do
         begin
-          MessageDlg('Ocorreu um Erro Na Impressão: ' + e.Message, mtError,
+          MessageDlg('Ocorreu um Erro Na Impressï¿½o: ' + e.Message, mtError,
             [mbOK], 1);
         end;
       end;
@@ -4333,7 +4384,7 @@ begin
   begin
     ShowMessage('Ocorreu um Erro no Cancelamento:' + #13 + tmp +
       IfThen(POS('Duplicidade', tmp) > 0,
-      #13 + #13 + 'Esta Nota já pode ter Sido Cancelada', ''));
+      #13 + #13 + 'Esta Nota jï¿½ pode ter Sido Cancelada', ''));
   end;
 
 end;
@@ -4353,7 +4404,7 @@ begin
   if query1.IsEmpty then
   begin
     query1.Close;
-    ShowMessage('NFCe de Número ' + numeroNota + ' Não Encontrado.');
+    ShowMessage('NFCe de Nï¿½mero ' + numeroNota + ' Nï¿½o Encontrado.');
     exit;
   end;
 
@@ -4480,7 +4531,7 @@ begin
       total.ICMSTot.vPIS := TOT_PIS;
       total.ICMSTot.vCOFINS := TOT_COFINS;
       total.ICMSTot.vOutro := 0;
-      Transp.modFrete := mfSemFrete; // NFC-e não pode ter FRETE
+      Transp.modFrete := mfSemFrete; // NFC-e nï¿½o pode ter FRETE
       infAdic.infCpl := TipoEmissao;
       infAdic.infAdFisco := '';
       // ACBrNFe.NotasFiscais.Items[0].SaveToFile(ExtractFileDir(ParamStr(0)) + '\arq.xml');
@@ -4536,8 +4587,8 @@ begin
     Result := fpDinheiro;
 
   if (POS('Refeicao', formaPagto) > 0) or (POS('REFEICAO', formaPagto) > 0) or
-    (POS('refeição', formaPagto) > 0) or (POS('REFEIÇÃO', formaPagto) > 0) or
-    (POS('Refeição', formaPagto) > 0) then
+    (POS('refeiï¿½ï¿½o', formaPagto) > 0) or (POS('REFEIï¿½ï¿½O', formaPagto) > 0) or
+    (POS('Refeiï¿½ï¿½o', formaPagto) > 0) then
     Result := fpValeRefeicao
   else
     Result := fpDinheiro;
@@ -4554,16 +4605,16 @@ begin
   else
     Result := fpDinheiro;
 
-  if (POS('Credito', formaPagto) > 0) or (POS('Crédito', formaPagto) > 0) or
-    (POS('credito', formaPagto) > 0) or (POS('crédito', formaPagto) > 0) or
-    (POS('CREDITO', formaPagto) > 0) or (POS('CRÉDITO', formaPagto) > 0) then
+  if (POS('Credito', formaPagto) > 0) or (POS('Crï¿½dito', formaPagto) > 0) or
+    (POS('credito', formaPagto) > 0) or (POS('crï¿½dito', formaPagto) > 0) or
+    (POS('CREDITO', formaPagto) > 0) or (POS('CRï¿½DITO', formaPagto) > 0) then
     Result := fpCartaoCredito
   else
     Result := fpDinheiro;
 
-  if (POS('Debito', formaPagto) > 0) or (POS('Débito', formaPagto) > 0) or
-    (POS('debito', formaPagto) > 0) or (POS('débito', formaPagto) > 0) or
-    (POS('DEBITO', formaPagto) > 0) or (POS('débito', formaPagto) > 0) then
+  if (POS('Debito', formaPagto) > 0) or (POS('Dï¿½bito', formaPagto) > 0) or
+    (POS('debito', formaPagto) > 0) or (POS('dï¿½bito', formaPagto) > 0) or
+    (POS('DEBITO', formaPagto) > 0) or (POS('dï¿½bito', formaPagto) > 0) then
     Result := fpCartaoDebito
   else
     Result := fpDinheiro;
@@ -4664,7 +4715,7 @@ begin
       try
         ACBrNFe.NotasFiscais.LoadFromFile(OpenDialog.fileName);
       except
-        ShowMessage('Arquivo NFC-e Inválido');
+        ShowMessage('Arquivo NFC-e Invï¿½lido');
         exit;
       end;
     end;
@@ -4693,7 +4744,7 @@ begin
         NomeMunicipioEmiente := Emit.EnderEmit.xMun;
         UFEmitente := Emit.EnderEmit.UF;
 
-        // Dados Destinatário !!
+        // Dados Destinatï¿½rio !!
         CNPJDestinario := dest.CNPJCPF;
         codMunicipioDestinario := IntToStr(dest.EnderDest.cMun);
         //
@@ -4949,7 +5000,7 @@ begin
   if not ACBrNFe.WebServices.EnvEvento.EventoRetorno.retEvento[0]
     .RetInfEvento.cstat > 200 then
   begin
-    MessageDlg('Evento - Não foi possível fazer o Download do XML:' + #13 +
+    MessageDlg('Evento - Nï¿½o foi possï¿½vel fazer o Download do XML:' + #13 +
       'Motivo: ' + ACBrNFe.WebServices.EnvEvento.EventoRetorno.retEvento[0]
       .RetInfEvento.xmotivo, mtError, [mbOK], 0);
     exit;
@@ -4969,7 +5020,7 @@ begin
 
   if not ACBrNFe.WebServices.DownloadNFe.Executar then
   begin
-    MessageDlg('NFe - Não foi possível fazer o Download do XML:' + #13 + #13 +
+    MessageDlg('NFe - Nï¿½o foi possï¿½vel fazer o Download do XML:' + #13 + #13 +
       'Motivo: ' + ACBrNFe.WebServices.DownloadNFe.retDownloadNFe.xmotivo,
       mtError, [mbOK], 0);
     exit;
@@ -4999,7 +5050,7 @@ begin
   else
   begin
     dadosDest.Values['cod'] := '';
-    Result := Result + 'CPF/CNPJ Inválidos.';
+    Result := Result + 'CPF/CNPJ Invï¿½lidos.';
   end;
   tipo := trim(tipo);
   IF (tipo = '1') OR (tipo = '6') then
@@ -5021,43 +5072,43 @@ begin
 
   IF NOT ok then
   begin
-    Result := Result + ' CPF/CNPJ do Destinatário Inválido ' + #13;
+    Result := Result + ' CPF/CNPJ do Destinatï¿½rio Invï¿½lido ' + #13;
     invalido := invalido + 1;
   end;
 
   if CAMPO_VAZIO(dadosDest.Values['ende']) = 1 then
   begin
-    Result := Result + 'Endereço Inválido ' + #13;
+    Result := Result + 'Endereï¿½o Invï¿½lido ' + #13;
     invalido := invalido + 1;
   end;
 
   if CAMPO_VAZIO(dadosDest.Values['bairro']) = 1 then
   begin
-    Result := Result + 'Bairro Inválido ' + #13;
+    Result := Result + 'Bairro Invï¿½lido ' + #13;
     invalido := invalido + 1;
   end;
 
   if CAMPO_VAZIO(dadosDest.Values['cod_mun']) = 1 then
   begin
-    Result := Result + 'Código do Municipio Inválido ' + #13;
+    Result := Result + 'Cï¿½digo do Municipio Invï¿½lido ' + #13;
     invalido := invalido + 1;
   end;
 
   if CAMPO_VAZIO(dadosDest.Values['cid']) = 1 then
   begin
-    Result := Result + 'Nome do Municipio Inválido ' + #13;
+    Result := Result + 'Nome do Municipio Invï¿½lido ' + #13;
     invalido := invalido + 1;
   end;
 
   if CAMPO_VAZIO(dadosDest.Values['est']) = 1 then
   begin
-    Result := Result + 'Estado Inválido ' + #13;
+    Result := Result + 'Estado Invï¿½lido ' + #13;
     invalido := invalido + 1;
   end;
 
   if CAMPO_VAZIO(dadosDest.Values['cep']) = 1 then
   begin
-    Result := Result + 'Cep Inválido ' + #13;
+    Result := Result + 'Cep Invï¿½lido ' + #13;
     invalido := invalido + 1;
   end;
 
@@ -5099,9 +5150,9 @@ var
 begin
   caminhoEXE_com_barra_no_final := ExtractFileDir(ParamStr(0)) + '\';
 
-  // asume o valor padrão como valor de retorno
+  // asume o valor padrï¿½o como valor de retorno
   Result := default;
-  // se config.dat não encontrado, cria e retorna o valor default
+  // se config.dat nï¿½o encontrado, cria e retorna o valor default
   if not FileExists(caminhoEXE_com_barra_no_final + 'CONFIG.DAT') then
   begin
     arq := TStringList.Create;
@@ -5112,7 +5163,7 @@ begin
 
   arq := TStringList.Create;
   arq.LoadFromFile(caminhoEXE_com_barra_no_final + 'CONFIG.DAT');
-  // se o valor do parametro é válido, pega esse valor
+  // se o valor do parametro ï¿½ vï¿½lido, pega esse valor
   if trim(arq.Values[config_name]) <> '' then
     Result := arq.Values[config_name];
   arq.Free;
@@ -5911,10 +5962,10 @@ var
 begin
   tot := MAT.total - MAT.desconto;
   Result := '';
-  // se a empresa é optante do simples nacional
+  // se a empresa ï¿½ optante do simples nacional
   if pgerais.Values['10'] = '1' then
   begin
-    // EXPORTAÇÃO - CSOSN = 300
+    // EXPORTAï¿½ï¿½O - CSOSN = 300
     IF Contido(LeftStr(cod_OP, 1), '4-7') then
     begin
       Result := '<ICMS><ICMSSN102><orig>' + _ORIGE +
@@ -5974,7 +6025,7 @@ begin
     exit;
   end;
 
-  // EXPORTAÇÃO - CST = 41
+  // EXPORTAï¿½ï¿½O - CST = 41
   IF Contido(LeftStr(cod_OP, 1), '4-7') then
   begin
     Result := '<ICMS><ICMS40><orig>' + _ORIGE +
@@ -6414,7 +6465,7 @@ begin
 
   IF NOT ok then
   begin
-    ERRO_dados := ' CPF/CNPJ do Destinatário Inválido ' + #13;
+    ERRO_dados := ' CPF/CNPJ do Destinatï¿½rio Invï¿½lido ' + #13;
     invalido := invalido + 1;
   end;
 
@@ -6498,12 +6549,12 @@ begin
   Wdigit1 := 0;
   Wdigit2 := 0;
   Want := CPF[1];
-  // variavel para testar se o cpf é repetido como 111.111.111-11
+  // variavel para testar se o cpf ï¿½ repetido como 111.111.111-11
   Delete(CPF, ansipos('.', CPF), 1); // retira as mascaras se houver
   Delete(CPF, ansipos('.', CPF), 1);
   Delete(CPF, ansipos('-', CPF), 1);
 
-  // testar se o cpf é repetido como 111.111.111-11
+  // testar se o cpf ï¿½ repetido como 111.111.111-11
   for i := 1 to length(CPF) do
   begin
     if CPF[i] <> Want then
@@ -6513,7 +6564,7 @@ begin
       break
     end;
   end;
-  // se o cpf é composto por numeros repetido retorna falso
+  // se o cpf ï¿½ composto por numeros repetido retorna falso
   if not Wvalid then
   begin
     Result := false;
@@ -6527,12 +6578,12 @@ begin
   end;
   Wdigit1 := ((11 - (Wdigit1 mod 11)) mod 11) mod 10;
   { formula do primeiro verificador
-    soma=1°*2+2°*3+3°*4.. até 9°*10
+    soma=1ï¿½*2+2ï¿½*3+3ï¿½*4.. atï¿½ 9ï¿½*10
     digito1 = 11 - soma mod 11
     se digito > 10 digito1 =0
   }
 
-  // verifica se o 1° digito confere
+  // verifica se o 1ï¿½ digito confere
   if IntToStr(Wdigit1) <> CPF[10] then
   begin
     Result := false;
@@ -6545,19 +6596,19 @@ begin
   end;
   Wdigit2 := ((11 - (Wdigit2 mod 11)) mod 11) mod 10;
   { formula do segundo verificador
-    soma=1°*2+2°*3+3°*4.. até 10°*11
+    soma=1ï¿½*2+2ï¿½*3+3ï¿½*4.. atï¿½ 10ï¿½*11
     digito1 = 11 - soma mod 11
     se digito > 10 digito1 =0
   }
 
-  // confere o 2° digito verificador
+  // confere o 2ï¿½ digito verificador
   if IntToStr(Wdigit2) <> CPF[11] then
   begin
     Result := false;
     exit;
   end;
 
-  // se chegar até aqui o cpf é valido
+  // se chegar atï¿½ aqui o cpf ï¿½ valido
   Result := true;
 end;
 
@@ -6760,7 +6811,7 @@ var
 begin
   if msg then
   begin
-    MessageDlg('Ocorreu Um Erro de Duplicidade e o Sistem irá recuperar a NFe!',
+    MessageDlg('Ocorreu Um Erro de Duplicidade e o Sistem irï¿½ recuperar a NFe!',
       mtWarning, [mbOK], 1);
   end;
 
@@ -6819,7 +6870,7 @@ var
 begin
   { if msg then
     begin
-    MessageDlg('Ocorreu Um Erro de Duplicidade e o Sistem irá recuperar a NFe!', mtWarning, [mbOK], 1);
+    MessageDlg('Ocorreu Um Erro de Duplicidade e o Sistem irï¿½ recuperar a NFe!', mtWarning, [mbOK], 1);
     end; }
 
   chavb := TChaveDetalhes.Create;
@@ -6879,7 +6930,7 @@ begin
     end;
 
     gravaERRO_LOG1('', buscaPastaNFCe(chavb.chave) + chavb.chave +
-      '-nfe.xml  Não Existe!', 'Nova Criação de XML');
+      '-nfe.xml  Nï¿½o Existe!', 'Nova Criaï¿½ï¿½o de XML');
     // exit;
   end;
 
@@ -7084,7 +7135,7 @@ begin
     exit;
   if not FileExists(ExtractFileDir(ParamStr(0)) + '\IBPT.csv') then
   begin
-    MessageDlg('Tabela do IBPT Não Foi Encontrada, Favor Contate o Suporte!',
+    MessageDlg('Tabela do IBPT Nï¿½o Foi Encontrada, Favor Contate o Suporte!',
       mtInformation, [mbOK], 1);
     exit;
   end;
@@ -7194,7 +7245,7 @@ begin
 
   if abs(DaysBetween(query1.fieldbyname('data').AsDateTime, now)) >= dias then
   begin
-    MessageDlg('O Sistema só pode Emitir NFCe quando As Notas Forem Enviadas: '
+    MessageDlg('O Sistema sï¿½ pode Emitir NFCe quando As Notas Forem Enviadas: '
       + #13 + notas, mtInformation, [mbOK], 1);
     exit;
   end;
@@ -7261,21 +7312,21 @@ begin
     CNPJ := strnum(query1.fieldbyname('ies').AsString);
     if length(CNPJ) <= 1 then
     begin
-      ShowMessage('Destinatário: Informação de Identidade ' + CNPJ +
-        ' Inválido!');
+      ShowMessage('Destinatï¿½rio: Informaï¿½ï¿½o de Identidade ' + CNPJ +
+        ' Invï¿½lido!');
       exit;
     end;
 
     if length(query1.fieldbyname('ende').AsString) < 5 then
     begin
-      ShowMessage('Destinatário: Endereço ' + query1.fieldbyname('ende')
+      ShowMessage('Destinatï¿½rio: Endereï¿½o ' + query1.fieldbyname('ende')
         .AsString + ' Muito Curto!');
       exit;
     end;
 
     if length(query1.fieldbyname('bairro').AsString) < 2 then
     begin
-      ShowMessage('Destinatário: Bairro ' + query1.fieldbyname('bairro')
+      ShowMessage('Destinatï¿½rio: Bairro ' + query1.fieldbyname('bairro')
         .AsString + ' Muito Curto!');
       exit;
     end;
@@ -7286,7 +7337,7 @@ begin
 
   if query1.IsEmpty then
   begin
-    ShowMessage('Cliente ' + strnum(cod) + ' Não Existe!');
+    ShowMessage('Cliente ' + strnum(cod) + ' Nï¿½o Existe!');
     query1.Close;
     exit;
   end;
@@ -7297,53 +7348,53 @@ begin
   begin
     if not testacpf(CNPJ) then
     begin
-      acc := acc + 'Destinatário: CPF ' + CNPJ + ' Inválido!' + #13;
+      acc := acc + 'Destinatï¿½rio: CPF ' + CNPJ + ' Invï¿½lido!' + #13;
     end;
   end
   else
   begin
     if not VALIDACNPJ(CNPJ) then
     begin
-      acc := acc + 'Destinatário: CNPJ ' + CNPJ + ' Inválido!' + #13;
+      acc := acc + 'Destinatï¿½rio: CNPJ ' + CNPJ + ' Invï¿½lido!' + #13;
     end;
   end;
 
   if length(query1.fieldbyname('ende').AsString) < 5 then
   begin
-    acc := acc + 'Destinatário: Endereço ' + query1.fieldbyname('ende').AsString
+    acc := acc + 'Destinatï¿½rio: Endereï¿½o ' + query1.fieldbyname('ende').AsString
       + ' Muito Curto!' + #13;
   end;
 
   if ((length(query1.fieldbyname('cod_mun').AsString) < 5) and
     (query1.fieldbyname('est').AsString <> 'RR')) then
   begin
-    acc := acc + 'Destinatário: Código do Município ' +
-      query1.fieldbyname('cod_mun').AsString + ' Inválido!' + #13;
+    acc := acc + 'Destinatï¿½rio: Cï¿½digo do Municï¿½pio ' +
+      query1.fieldbyname('cod_mun').AsString + ' Invï¿½lido!' + #13;
   end;
 
   if query1.fieldbyname('est').AsString = '' then
   begin
-    acc := acc + 'Destinatário: Estado Não Preenchido!' + #13;
+    acc := acc + 'Destinatï¿½rio: Estado Nï¿½o Preenchido!' + #13;
   end;
 
   if query1.fieldbyname('cid').AsString = '' then
   begin
-    acc := acc + 'Destinatário: Cidade Não Preenchida!' + #13;
+    acc := acc + 'Destinatï¿½rio: Cidade Nï¿½o Preenchida!' + #13;
   end;
 
   if query1.fieldbyname('cep').AsString = '' then
   begin
-    acc := acc + 'Destinatário: CEP Não Preenchido!' + #13;
+    acc := acc + 'Destinatï¿½rio: CEP Nï¿½o Preenchido!' + #13;
   end;
 
   if length(query1.fieldbyname('bairro').AsString) < 2 then
   begin
-    acc := acc + 'Destinatário: Bairro Inválido!' + #13;
+    acc := acc + 'Destinatï¿½rio: Bairro Invï¿½lido!' + #13;
   end;
 
   if acc <> '' then
   begin
-    ShowMessage('Dados do Destinatário Incompletos: ' + #13 + #13 + acc);
+    ShowMessage('Dados do Destinatï¿½rio Incompletos: ' + #13 + #13 + acc);
     exit;
   end;
 
@@ -7449,7 +7500,7 @@ begin
     cont := cont + 1;
     if trunc(cont / 2) > segundos then
     begin // se acabou o tempo de espera
-      ERRO_dados := '(5)-Requisição não enviada';
+      ERRO_dados := '(5)-Requisiï¿½ï¿½o nï¿½o enviada';
       Form72.BMDThread1.Suspend;
       Form72.BMDThread1.Stop;
       exit;
@@ -7502,7 +7553,7 @@ begin
 
     if trunc(cont / 2) > segundos then
     begin // se acabou o tempo de espera
-      ERRO_dados := '(5)-Requisição não enviada';
+      ERRO_dados := '(5)-Requisiï¿½ï¿½o nï¿½o enviada';
       TerminateThread(hThreadID, 0);
       exit;
     end;
@@ -7724,15 +7775,15 @@ begin
     begin
       if exception1 then
       begin
-        Exception.Create('(1)O Certificado Digital Está Vencido!' + #13 +
-          'Entre' + ' em contato com o suporte para atualização do certificado'
+        Exception.Create('(1)O Certificado Digital Estï¿½ Vencido!' + #13 +
+          'Entre' + ' em contato com o suporte para atualizaï¿½ï¿½o do certificado'
           + #13 + 'Vencimento: ' + FormatDateTime('dd/mm/yyyy',
           ACBrNFe.SSL.CertDataVenc));
         exit;
       end;
 
-      MessageDlg('(1)O Certificado Digital Está Vencido!' + #13 + 'Entre' +
-        ' em contato com o suporte para atualização do certificado' + #13 +
+      MessageDlg('(1)O Certificado Digital Estï¿½ Vencido!' + #13 + 'Entre' +
+        ' em contato com o suporte para atualizaï¿½ï¿½o do certificado' + #13 +
         'Vencimento: ' + FormatDateTime('dd/mm/yyyy', ACBrNFe.SSL.CertDataVenc),
         mtInformation, [mbOK], 1);
       exit;
@@ -8044,7 +8095,7 @@ begin
   try
     Params := TIdMultipartFormDataStream.Create;
     try
-      // o nome 'arquivo' é obrigatório, não se pode mudar se não mudar no arquivo php tbm.
+      // o nome 'arquivo' ï¿½ obrigatï¿½rio, nï¿½o se pode mudar se nï¿½o mudar no arquivo php tbm.
       Params.AddFile('file', arquivo, 'plain/text');
       Params.AddFormField('empresa',
         trim(query1.fieldbyname('empresa').AsString));
