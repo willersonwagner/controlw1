@@ -86,6 +86,15 @@ begin
   if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
   dm.IBQuery1.Transaction.StartTransaction;
 
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select quant, deposito from produto where cod = :cod';
+  dm.IBselect.ParamByName('cod').AsInteger := CODIGO.getValor;
+  dm.IBselect.Open;
+
+  quant1    := dm.IBselect.FieldByName('quant').AsCurrency;
+  deposito1 := dm.IBselect.FieldByName('deposito').AsCurrency;
+  dm.IBselect.Close;
+
   dm.IBQuery1.Close;
   dm.IBQuery1.SQL.Text := 'insert into acerto(ACERTO_SEQ, DOCUMENTO, DATA, CODIGO, NOME, QUANT,' +
   ' DEPOSITO, USUARIO) values('+ Incrementa_Generator('ACERTO_SEQ', 1) +',:DOCUMENTO, :DATA, :CODIGO, :NOME, :QUANT,:DEPOSITO, :USUARIO)';
@@ -104,6 +113,11 @@ begin
   dm.IBQuery1.ParamByName('depo').AsCurrency     := DEPOSITO.getValor;
   dm.IBQuery1.ParamByName('cod').AsInteger       := StrToIntDef(COD, -1);
   dm.IBQuery1.ExecSQL;
+
+  //funcoes.baixaEstoque(COD, quant.getValor, 1, false);
+  //funcoes.baixaEstoque(COD, DEPOSITO.getValor, 2, false);
+
+
   dm.IBQuery1.Transaction.Commit;
 
 

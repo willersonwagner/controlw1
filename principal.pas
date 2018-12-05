@@ -35,7 +35,6 @@ type
     ClientDataSet1COOD: TIntegerField;
     ClientDataSet1NOME: TStringField;
     Image2: TImage;
-    wppNum: TLabel;
     procedure nomeKeyPress(Sender: TObject; var Key: Char);
     procedure senhaKeyPress(Sender: TObject; var Key: Char);
     procedure FormShow(Sender: TObject);
@@ -182,7 +181,9 @@ if key=#27 then
 
           if dm.IBQuery1.IsEmpty then
             begin
-              form2.Show;
+              form22.usuario := nome.Text;
+              form2.RestaurarBackup1.Visible := true;
+              form2.ShowModal;
               exit;
             end;
         end;

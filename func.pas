@@ -1418,30 +1418,31 @@ begin
   saldoAnteriorLoja := saldoAnteriorLoja - dm.IBselect.FieldByName
     ('saldoanterior').AsCurrency;}
 
+  if cod1 <> '2' then begin
+    dm.IBselect.Close;
+    dm.IBselect.SQL.Clear;
+    dm.IBselect.SQL.Text := 'select o.vendedor,o.p_venda,o.nota,o.cod, o.quant, s.venda, s.data as data1, o.data as data2 from os_itens o left join servico s on (s.COD = o.nota) where o.cod  = :cod and ((s.venda is null) or (S.VENDA = 0))';
+    dm.IBselect.ParamByName('cod').AsString := strnum(te);
+    dm.IBselect.Open;
 
-  dm.IBselect.Close;
-  dm.IBselect.SQL.Clear;
-  dm.IBselect.SQL.Text := 'select o.vendedor,o.p_venda,o.nota,o.cod, o.quant, s.venda, s.data as data1, o.data as data2 from os_itens o left join servico s on (s.COD = o.nota) where o.cod  = :cod and ((s.venda is null) or (S.VENDA = 0))';
-  dm.IBselect.ParamByName('cod').AsString := strnum(te);
-  dm.IBselect.Open;
+    while not dm.IBselect.Eof  do begin
+      geral := geral + ( -dm.IBselect.FieldByName('quant').AsCurrency);
+      if dm.IBselect.FieldByName('data1').IsNull = false then ret := dm.IBselect.FieldByName('data1').AsDateTime;
+      if dm.IBselect.FieldByName('data2').IsNull = false then ret := dm.IBselect.FieldByName('data2').AsDateTime;
 
-  while not dm.IBselect.Eof  do begin
-    geral := geral + ( -dm.IBselect.FieldByName('quant').AsCurrency);
-    if dm.IBselect.FieldByName('data1').IsNull = false then ret := dm.IBselect.FieldByName('data1').AsDateTime;
-    if dm.IBselect.FieldByName('data2').IsNull = false then ret := dm.IBselect.FieldByName('data2').AsDateTime;
-
-    form33.ClientDataSet1.Open;
-    form33.ClientDataSet1.Append;
-    form33.ClientDataSet1.FieldByName('data').AsDateTime := ret;
-    form33.ClientDataSet1.FieldByName('historico').AsString := 'SERVIÇO NOTA ' + dm.IBselect.FieldByName('nota').AsString + ' VEND: ' + dm.IBselect.FieldByName('VENDEDOR').AsString;
-    form33.ClientDataSet1.FieldByName('preco').AsCurrency :=
-    dm.IBselect.FieldByName('p_venda').AsCurrency;
-    form33.ClientDataSet1.FieldByName('quant').AsCurrency := -dm.IBselect.FieldByName('quant').AsCurrency;
-    form33.ClientDataSet1.FieldByName('saldo').AsCurrency := geral;
+      form33.ClientDataSet1.Open;
+      form33.ClientDataSet1.Append;
+      form33.ClientDataSet1.FieldByName('data').AsDateTime := ret;
+      form33.ClientDataSet1.FieldByName('historico').AsString := 'SERVIÇO NOTA ' + dm.IBselect.FieldByName('nota').AsString + ' VEND: ' + dm.IBselect.FieldByName('VENDEDOR').AsString;
+      form33.ClientDataSet1.FieldByName('preco').AsCurrency :=
+      dm.IBselect.FieldByName('p_venda').AsCurrency;
+      form33.ClientDataSet1.FieldByName('quant').AsCurrency := -dm.IBselect.FieldByName('quant').AsCurrency;
+      form33.ClientDataSet1.FieldByName('saldo').AsCurrency := geral;
       form33.ClientDataSet1.FieldByName('cont').AsInteger :=
       form33.ClientDataSet1.RecordCount + 1;
       form33.ClientDataSet1.Post;
-    dm.IBselect.Next;
+      dm.IBselect.Next;
+    end;
   end;
 
 
@@ -10470,6 +10471,28 @@ begin
     end;
     finally
 
+    end;
+
+    if not VerificaCampoTabela('QTD_ENT', 'ITEM_ENTRADA') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('ALTER TABLE ITEM_ENTRADA ADD QTD_ENT NUMERIC(12,6) default 0 ');
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
+    if not VerSeExisteTRIGGERPeloNome('ALTERA_PRODUTO_ENTRADA') then begin
+      //dm.IBScript1.Close;
+      dm.IBScript1.Script.Text := ('CREATE TRIGGER altera_produto_entrada FOR item_entrada ' +
+      ' ACTIVE BEFORE INSERT POSITION 0 AS BEGIN ' +
+      ' if (new.destino <= 1) then begin ' +
+      ' update produto set quant = quant + new.QTD_ENT where cod = new.cod; ' +
+      ' end else begin ' +
+      ' update produto set deposito = deposito + new.QTD_ENT where cod = new.cod; ' +
+      ' END '+
+      ' END;');
+      dm.IBScript1.ExecuteScript;
+      //dm.IBQuery1.Transaction.Commit;
     end;
 
     //VerificaVersao_do_bd
@@ -24896,11 +24919,15 @@ begin
 
   funcoes.informacao(1, fim, 'Restaurando Backup...', False, true, 2);
 
+  if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+  if dm.IBQuery2.Transaction.InTransaction then dm.IBQuery2.Transaction.Commit;
   //sqls.SaveToFile(caminhoEXE_com_barra_no_final + 'sqlsBD.txt');
   sqls.Free;
   CAMPOS.Free;
   temp.Free;
   arq.Free;
+
+
   ShowMessage('Backup Recuperado Com Sucesso!');
 end;
 

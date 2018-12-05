@@ -2048,7 +2048,7 @@ begin
   funcoes.informacao(1,2,'AGUARDE... ',true,false,2);
   while not dm.ProdutoQY.Eof do
     begin
-      if form19.RichEdit1.Lines.Count >= b then
+      {if form19.RichEdit1.Lines.Count >= b then
         begin
           b := b + 98;
           form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete('-','','-',132) + CRLF + ' '))));
@@ -2059,7 +2059,7 @@ begin
           form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.RelatorioCabecalho(funcoes.LerValorPGerais('empresa',form22.pgerais),'TABELA DE PRECOS ALFABETICA PARA CONFERENCIA',132)))));
           form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar(('CODIGO  DESCRICAO DO PRODUTO                    |  ESTOQUE       |   PRECO        | ENTRADAS          | SAIDAS                      |'+#13+#10))));
           addRelatorioForm19(funcoes.CompletaOuRepete('-','','-',132) + CRLF);
-        end;
+        end;     }
 
       funcoes.informacao(dm.ProdutoQY.RecNo,dm.ProdutoQY.RecordCount,'AGUARDE... ',false,false,2);
       try

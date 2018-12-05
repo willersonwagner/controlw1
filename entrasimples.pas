@@ -692,9 +692,9 @@ begin
 
   dm.IBQuery4.Close;
   dm.IBQuery4.SQL.Clear;
-  dm.IBQuery4.SQL.Add('update or insert into item_entrada(validade,COD, fornec,codentrada, QUANT, P_COMPRA, DESTINO, USUARIO, NOTA, DATA,total) '+
+  dm.IBQuery4.SQL.Add('update or insert into item_entrada(validade,COD, fornec,codentrada, QUANT, P_COMPRA, DESTINO, USUARIO, NOTA, DATA,total, qtd_ent) '+
   'values(:validade,:COD, :fornec,'+funcoes.novocod('entrada')+',:QUANT,'+
-  ' :P_COMPRA, :DESTINO, :USUARIO,  :NOTA, :DATA,:total) matching(cod, nota, fornec, destino)');
+  ' :P_COMPRA, :DESTINO, :USUARIO,  :NOTA, :DATA,:total, :qtd_ent) matching(cod, nota, fornec, destino)');
   dm.IBQuery4.ParamByName('validade').AsDateTime := StrToDate(validade);
   dm.IBQuery4.ParamByName('data').AsDateTime     := StrToDateDef(data.Text, now);
   dm.IBQuery4.ParamByName('cod').AsString        := codigoProd;
@@ -705,6 +705,7 @@ begin
   dm.IBQuery4.ParamByName('destino').AsInteger   := StrToIntDef(destino, 1);
   dm.IBQuery4.ParamByName('usuario').AsString    := form22.codusario;
   dm.IBQuery4.ParamByName('total').AsCurrency    := funcoes.ArredondaFinanceiro(quant.getValor * p_compra.getValor, 2);
+  dm.IBQuery4.ParamByName('qtd_ent').AsCurrency  := quant.getValor;
   dm.IBQuery4.ExecSQL;
   cod := codbar.Text;
 
@@ -730,9 +731,9 @@ begin
     dm.IBQuery4.Transaction.Commit;
   except
   end;
-  }
 
-  funcoes.baixaEstoque(codigoProd, quant.getValor, StrToIntDef(destino, 1));
+
+  funcoes.baixaEstoque(codigoProd, quant.getValor, StrToIntDef(destino, 1));}
 
   try
     if dm.IBQuery4.Transaction.InTransaction then dm.IBQuery4.Transaction.Commit;
@@ -752,7 +753,7 @@ end;
 
 procedure tform17.ExcluiEntrada;
 var
-  ult : Smallint;
+  ult, origi : Smallint;
   nota, cod, campo, unid : string;
   total, quant : currency;
 begin
@@ -797,14 +798,18 @@ begin
       dm.IBQuery1.ParamByName('cod').AsString := DBGrid2.DataSource.DataSet.fieldbyname('codentrada').AsString;
       dm.IBQuery1.ExecSQL;
 
-      if campo = '1' then campo:='quant'
+      {if campo = '1' then campo:='quant'
         else campo:='deposito';
 
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Clear;
       dm.IBQuery1.SQL.Add('update produto set '+campo+'='+campo+'- :quant where cod='+cod);
       dm.IBQuery1.ParamByName('quant').AsCurrency := quant;
-      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.ExecSQL;}
+
+      origi := StrToIntDef(campo, 1);
+
+      funcoes.baixaEstoqueSP(cod, -quant, origi);
 
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Clear;

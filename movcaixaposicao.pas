@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, Grids, DBGrids;
+  Dialogs, StdCtrls, ExtCtrls, Grids, DBGrids, StrUtils;
 
 type
   TForm32 = class(TForm)
@@ -217,21 +217,26 @@ procedure TForm32.deletaPorTipo(Tipo : String);
 var
   recno : integer;
   valor : currency;
-  codmov, codES : String;
+  codmov, codES, his : String;
 begin
   if tipo.IsEmpty then begin
     if dm.IBselect.fieldbyname('entrada').AsCurrency > 0 then begin
+      valor  := dm.IBselect.fieldbyname('entrada').AsCurrency;
       tipo := 'R'
     end
-    else tipo := 'P';
+    else begin
+      tipo := 'P';
+      valor  := dm.IBselect.fieldbyname('saida').AsCurrency;
+    end;
   end;
 
-  if tipo = 'R' then begin
-    recno  := dm.IBselect.RecNo-1;
-    valor  := dm.IBselect.fieldbyname('entrada').AsCurrency;
-    codmov := dm.IBselect.fieldbyname('codmov').AsString;
-    codES  := dm.IBselect.fieldbyname('codentradasaida').AsString ;
+  recno  := dm.IBselect.RecNo-1;
+  valor  := dm.IBselect.fieldbyname('entrada').AsCurrency;
+  codmov := dm.IBselect.fieldbyname('codmov').AsString;
+  codES  := dm.IBselect.fieldbyname('codentradasaida').AsString ;
+  his    := dm.IBselect.fieldbyname('historico').AsString;
 
+  if tipo = 'R' then begin
     if codES = '0' then begin
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Text := ('select * from contasreceber where trim(HISTORICO) = :HIS and vencimento = :venc');
@@ -281,6 +286,8 @@ begin
         end;
       end;
 
+      funcoes.gravaAlteracao(copy('Reg CAIXA Apagado! Codmov ' + codmov + ' Valor> ' + CurrToStr(valor) + ' his>' + copy(his,1, 30) + 'tipo>' + IfThen(tipo = 'R', 'ENT', 'SAI'),1,100), 'CAI');
+
       dm.IBQuery2.close;
       dm.IBQuery2.SQL.Text := ('delete from caixa where codmov='+codmov);
       try
@@ -309,6 +316,7 @@ begin
     dm.IBQuery1.SQL.Text := ('select * from contasreceber where cod='+dm.IBselect.FieldByName('codentradasaida').AsString);
     dm.IBQuery1.Open;
     if dm.IBQuery1.IsEmpty then begin
+      funcoes.gravaAlteracao(copy('Reg CAIXA Apagado! Codmov ' + codmov + ' Valor> ' + CurrToStr(valor) + ' his>' + copy(his,1, 30) + 'tipo>' + IfThen(tipo = 'R', 'ENT', 'SAI'),1,100), 'CAI');
       dm.IBQuery2.close;
       dm.IBQuery2.SQL.Text := ('delete from caixa where codmov='+dm.IBselect.fieldbyname('codmov').AsString);
       try
@@ -386,6 +394,7 @@ begin
         end;
       end;
 
+      funcoes.gravaAlteracao(copy('Reg CAIXA Apagado! Codmov ' + codmov + ' Valor> ' + CurrToStr(valor) + ' his>' + copy(his,1, 30) + 'tipo>' + IfThen(tipo = 'R', 'ENT', 'SAI'),1,100), 'CAI');
       dm.IBQuery2.close;
       dm.IBQuery2.SQL.Text := ('delete from caixa where codmov='+codmov);
       try
@@ -426,6 +435,7 @@ begin
 
       if dm.IBQuery1.IsEmpty then begin
         dm.IBQuery2.SQL.Clear;
+        funcoes.gravaAlteracao(copy('Reg CAIXA Apagado! Codmov ' + codmov + ' Valor> ' + CurrToStr(valor) + ' his>' + copy(his,1, 30) + 'tipo>' + IfThen(tipo = 'R', 'ENT', 'SAI'),1,100), 'CAI');
         dm.IBQuery2.SQL.Add('delete from caixa where codmov='+codmov);
         try
           dm.IBQuery2.ExecSQL;
@@ -443,6 +453,7 @@ begin
           end;
         end;
 
+        funcoes.gravaAlteracao(copy('Reg CAIXA Apagado! Codmov ' + codmov + ' Valor> ' + CurrToStr(valor) + ' his>' + copy(his,1, 30) + 'tipo>' + IfThen(tipo = 'R', 'ENT', 'SAI'),1,100), 'CAI');
         exit;
       end
       else begin
@@ -453,6 +464,7 @@ begin
         dm.IBQuery1.ParamByName('his').AsString := dm.IBselect.fieldbyname('historico').AsString ;
         dm.IBQuery1.ExecSQL;
 
+        funcoes.gravaAlteracao(copy('Reg CAIXA Apagado! Codmov ' + codmov + ' Valor> ' + CurrToStr(valor) + ' his>' + copy(his,1, 30) + 'tipo>' + IfThen(tipo = 'R', 'ENT', 'SAI'),1,100), 'CAI');
         dm.IBQuery1.Close;
         dm.IBQuery1.SQL.Text := ('delete from caixa where codmov= '+codmov);
         dm.IBQuery1.ExecSQL;
@@ -483,6 +495,8 @@ begin
     dm.IBQuery1.Open;
     if dm.IBQuery1.IsEmpty then
       begin
+
+        funcoes.gravaAlteracao(copy('Reg CAIXA Apagado! Codmov ' + codmov + ' Valor> ' + CurrToStr(valor) + ' his>' + copy(his,1, 30) + 'tipo>' + IfThen(tipo = 'R', 'ENT', 'SAI'),1,100), 'CAI');
         dm.IBQuery2.SQL.Clear;
         dm.IBQuery2.SQL.Add('delete from caixa where codmov='+codmov);
         try
@@ -507,6 +521,8 @@ begin
       dm.IBQuery1.ParamByName('valor').AsCurrency := valor;
       dm.IBQuery1.ExecSQL;
 
+
+      funcoes.gravaAlteracao(copy('Reg CAIXA Apagado! Codmov ' + codmov + ' Valor> ' + CurrToStr(valor) + ' his>' + copy(his,1, 30) + 'tipo>' + IfThen(tipo = 'R', 'ENT', 'SAI'),1,100), 'CAI');
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Text := ('delete from caixa where codmov= '+codmov);
       dm.IBQuery1.ExecSQL;
