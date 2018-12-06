@@ -3036,6 +3036,331 @@ begin
   end;
 end;
 
+
+function EnviarCupomEletronico3(nota: String; var Status, xmotivo: string;
+  const tipo: integer; const enviar: boolean; const cliente1: String;
+  obs1: String = ''; serie1: String = '1'; nnf: STRING = '';
+  imp: boolean = true; recebido: currency = 0; EscPos: boolean = false)
+  : boolean;
+var
+  SQL, qUsuario, para, ssChave, erro1, NumeroRecibo, ser, erroTemp: string;
+  Mensagememail: TStrings;
+  csta, i: integer;
+  enviou: boolean;
+  xml: AnsiString;
+  arq: TStringList;
+  TOTNOTA: currency;
+begin
+  setVersaoNFCe;
+  if verificarValidadeCertificado(false) = false then
+    exit;
+
+  TOTNOTA := 0;
+// verifica se valor e qtd de itens sao validos, inicializa variaveis e adiciona o arquivo XML criado a AcBrNFe.NotasFiscais
+  try
+    Result := false;
+    if not Contido(' ', nota) then
+    begin
+      query1.Close;
+      query1.SQL.text := 'select total from venda where nota = :nota';
+      query1.ParamByName('nota').AsString := nota;
+      query1.Open;
+
+      if query1.fieldbyname('total').AsCurrency <= 0 then
+      begin
+        ShowMessage('N�o Pode Ser Emitido Uma NFCe desta Venda!' + #13 +
+          'Venda Com Valor R$ ' + formataCurrency(query1.fieldbyname('total')
+          .AsCurrency));
+        query1.Close;
+        exit;
+      end;
+
+      TOTNOTA := query1.fieldbyname('total').AsCurrency;
+
+      query1.Close;
+      query1.SQL.text :=
+        'select count(*) as cont from item_venda where nota = :nota';
+      query1.ParamByName('nota').AsString := nota;
+      query1.Open;
+
+      if query1.fieldbyname('cont').AsInteger <= 0 then
+      begin
+        ShowMessage('N�o Pode Ser Emitido Uma NFCe desta Venda!' + #13 +
+          'Quantidade de Itens: ' + query1.fieldbyname('cont').AsString);
+        query1.Close;
+        exit;
+      end;
+    end;
+
+    if RightStr(trim(pastaControlW), 1) <> '\' then
+      pastaControlW := pastaControlW + '\';
+    carregaConfigsNFCe;
+
+    NomeGeneratorSerie := 'nfce';
+
+    
+    DANFE.vTroco := recebido;
+    if DANFE.vTroco < 0 then
+      DANFE.vTroco := 0;
+    obs2 := obs1;
+    Status := '';
+    Result := false;
+    ssChave := '';
+    vlRecebido := recebido;
+    inicializaVariaveis();
+    TipoEmissao := tipo;
+    enviou := true;
+    DANFE.NFeCancelada := false;
+
+    ACBrNFe.NotasFiscais.Clear;
+    ACBrNFe.WebServices.Consulta.Clear;
+    ACBrNFe.WebServices.Retorno.Clear;
+    CDCFOP := '5102';
+
+    cliente := cliente1;
+  // seta forma de emissao
+    try
+
+      if enviar then
+      begin
+        contOFFLINE := false;
+        ACBrNFe.Configuracoes.Geral.FormaEmissao := teNormal;
+      end
+      else
+      begin
+        contOFFLINE := true;
+        ACBrNFe.Configuracoes.Geral.FormaEmissao := teOffLine;
+        // contig�ncia OFFLINE
+      end;
+
+    except
+      on e: Exception do
+      begin
+        gravaERRO_LOG1('', e.Message,
+          'ACBrNFe.Configuracoes.Geral.FormaEmissao := teNormal; LINHA 2590');
+      end;
+    end;
+
+    serie1 := IntToStr(serie2);
+    /// //GERAR NFC-e:
+// grava xml e carrega acbr.notasfiscais a partir dele
+    xml := GerarNFCeTexto(nota, cliente1);
+    GravarTexto(buscaPastaNFCe(CHAVENF, false) + CHAVENF + '-nfe.xml', xml);
+    xml := '';
+
+    query1.Close;
+    ACBrNFe.NotasFiscais.Clear;
+    ACBrNFe.NotasFiscais.LoadFromFile(buscaPastaNFCe(CHAVENF, false) + CHAVENF +
+      '-nfe.xml', false);
+
+  except
+    on e: Exception do
+    begin
+      gravaERRO_LOG1('', e.Message,
+        'ACBrNFe.NotasFiscais.LoadFromFile(pastaControlW + \NFCe\EMIT\ + chaveNF + -nfe.xml, false); LINHA 2625');
+    end;
+  end;
+//tenta assinar, gravar e validar. em excessao grava log, mostra erro na tela e resulta falso.
+  try
+    ACBrNFe.NotasFiscais.Assinar;
+    ACBrNFe.NotasFiscais[0].GravarXML(CHAVENF + '-nfe.xml',
+      buscaPastaNFCe(CHAVENF, false));
+    ACBrNFe.NotasFiscais.Validar;
+  except
+    on e: Exception do
+    begin
+      erro1 := e.Message;
+      gravaERRO_LOG1('', e.Message, 'Valida��o dos Dados');
+      MessageDlg('Falha na Valida��o da Nota: ' + #13 + e.Message + #13,
+        mtError, [mbOK], 1);
+      Status := 'vali';
+      Result := false;
+      exit;
+    end;
+  end;
+  ssChave := CHAVENF;
+  venda.adic := 'OFF';
+  //nao tenho certeza se precisa gravar de novo aqui.
+  ACBrNFe.NotasFiscais[0].GravarXML(CHAVENF + '-nfe.xml',
+    buscaPastaNFCe(CHAVENF, false));
+  //set ambiente de homologação se necessário
+  if (ACBrNFe.Configuracoes.WebServices.Ambiente = taHomologacao) then
+  begin
+    try
+      ACBrNFe.NotasFiscais[0].nfe.Det[0].Prod.xProd :=
+        'NOTA FISCAL EMITIDA EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL';
+    except
+    end;
+  end;
+  try
+    ERRO_dados := '';
+    csta := 999;
+    i = 0;
+    //tenta enviar 3 vezes ou ate conseguir, se sair por tentar 3 vezes envia em contingencia
+    while (csta not in [100, 103, 150]) and (i < 3) do  
+    begin
+      try
+        if acbrNFeEnviar(20) then
+        begin
+          //se entrou aqui � pq passou do metodo acbr.Enviar
+          ACBrNFe.WebServices.Retorno.Recibo := ACBrNFe.WebServices.enviar.Recibo;
+          ACBrNFe.WebServices.Retorno.Executar;
+          csta := ACBrNFe.WebServices.Retorno.cstat;
+        end;
+        //se conseguiu retorno valido pula para fora do while
+        if (csta in [100, 103, 150, 301]) then break;
+        //se nao veio resposta entao consulta pra ver se foi emitida ou o cstat veio com valor 0
+        if ((Contido('(5)-Requisi', ERRO_dados) or (csta = 0))) and acbrNFeConsultar(20) then 
+        begin
+          csta := ACBrNFe.NotasFiscais[0].nfe.procNFe.cstat;
+          ACBrNFe.NotasFiscais[0].GravarXML(CHAVENF + '-nfe.xml', buscaPastaNFCe(CHAVENF, false));
+        end;
+        //se ERRO_dados veio preenchido da thread entao � pq tem um erro, cria uma exece��o
+        if ERRO_dados <> '' then
+        begin
+          Status := ERRO_dados;
+          raise Exception.Create(ERRO_dados);
+        end;
+        // se alguma coisa deu errado com o envio grava esse erro e tenta trata-lo
+      except
+        On e: Exception do
+        begin
+          erroTemp := e.Message;
+          gravaERRO_LOG1('', e.Message, 'Enviar');
+          csta := ACBrNFe.WebServices.Retorno.cstat;
+
+          try
+            SendPostDataMensagem(Form72.IdHTTP1,
+              trim(e.Message + ' | ' + ACBrNFe.WebServices.Retorno.xmotivo),
+              'EnviarCupomEletronico2 3728', IntToStr(csta), NomedoComputador);
+          finally
+          end;
+          // se foi rejeitado e nao e por duplicidade, tenta mais duas vezes antes de colocar em contingencia
+          if Contido('Rejeicao: ', e.Message) and not Contido('Duplicidade', e.Message) then
+          begin
+            gravaERRO_LOG1('', e.Message,
+              'if Contido(Duplicidade, e.Message) = false then');
+            Status := e.Message;
+            MessageDlg('E3286: ' + e.Message, mtError, [mbOK], 1);
+            Result := false;
+            csta := 999;
+            i := i + 1;
+            continue;
+            // exit;
+          end;
+          Status := e.Message;
+          if (Contido('Duplicidade de NF-e [chNFe:', e.Message)) or ((Contido
+            ('Duplicidade de NF-e, com diferenca na Chave de Acesso [chNFe:',
+            e.Message) or (csta = 539))) THEN
+          begin
+            try
+              trataDuplicidade1(e.Message, false, false, true);
+              ACBrNFe.NotasFiscais.Clear;
+            except
+              on e: Exception do
+              begin
+                gravaERRO_LOG1('', e.Message,
+                  'tratamento de duplicidade - else if Contido(Duplicidade de NF-e, com diferenca na Chave de Acesso [chNFe:, e.Message) THEN');
+              end;
+            end;
+          end;
+          if ACBrNFe.WebServices.Retorno.RetornoWS = '' then
+          begin
+            csta := 999;
+            Result := false;
+            i = i + 1;
+            continue;
+          end;
+        end;
+      end;
+    end;
+  finally
+  end;
+  //confere se deu certo ou se precisa enviar em cont e toma devidas providencias
+  if (csta in [100, 103, 150, 301]) then //  imprime e salva no BD
+  begin
+    ssChave := CHAVENF;
+    ACBrNFe.NotasFiscais[0].GravarXML(CHAVENF + '-nfe.xml',
+    buscaPastaNFCe(CHAVENF, false));
+    if imp then
+    begin
+      TRY
+        SendPostData(Form72.IdHTTP1, buscaPastaNFCe(CHAVENF) + CHAVENF +
+          '-nfe.xml', 'E', IntToStr(csta));
+      FINALLY
+      END;
+
+      try
+      if tipoIMPRESSAO = 1 then
+        begin
+          DANFEEscPos.vTroco := recebido;
+          imprimirNfceESCPOS;
+        end
+        else
+          imprimirNfce();
+      except
+        on e: Exception do
+        begin
+          ShowMessage(e.Message);
+        end;
+      end;
+    end;
+    try
+      ACBrNFe.NotasFiscais[0].GravarXML(CHAVENF + '-nfe.xml',
+        buscaPastaNFCe(CHAVENF, false));
+    except
+      on e: Exception do
+      begin
+        gravaERRO_LOG1('', e.Message, 'insereNotaBD(venda); Linha 2842');
+      end;
+    end;
+    try
+      Result := true;
+      Status := 'OK';
+      venda.adic := '';
+      venda.chave := CHAVENF;
+      erro1 := LeftStr(erro1, 200);
+      if csta <> 100 then
+        venda.adic := 'OFF';
+      if csta = 301 then
+        venda.adic := 'DENEGADA';
+      insereNotaBD(venda);
+    except
+      on e: Exception do
+      begin
+        gravaERRO_LOG1('', e.Message, 'insereNotaBD(venda); Linha 2857');
+      end;
+    end;
+
+    Incrementa_Generator(NomeGeneratorSerie, 1);
+    LimpaVariaveis;
+    ACBrNFe.NotasFiscais.Clear; 
+  end
+   else if (csta = 999) then// imprime e grava no BD
+  begin
+    LimpaVariaveis;
+    EnviarCupomEletronicoCont(nota, Status, xmotivo, tipo, false, cliente1,
+      obs1, '', '', imp, recebido, EscPos);
+    Result := true;
+    exit;
+  end
+   else // nao deu certo em nenhum caso
+  begin
+    Status := 'vali';
+    xmotivo := ACBrNFe.WebServices.enviar.xmotivo;
+    ShowMessage('NF-e ' + ' Houve uma falha na Valida��o!' + #13 + #10 + #13 +
+      #10 + 'xMotivo: ' + ACBrNFe.WebServices.enviar.xmotivo + #13 +
+      'cStat..: ' + IntToStr(csta) + #13 + 'Erro...: ' + erroTemp);
+    Result := false;
+    LimpaVariaveis;  
+  end;
+  //nao tenho certeza se podia ignorar essa linha mas acho que sim
+  para := 'wagner.br.xx@gmail.com';
+end;
+
+
+
+
 function EnviarCupomEletronicoTitular(nota: String; var Status, xmotivo: string;
   const tipo: integer; const enviar: boolean; const cliente1: String;
   obs1: String = ''; serie1: String = '1'; nnf: STRING = '';
@@ -3427,7 +3752,7 @@ end;
 function EnviarCupomEletronicoCont(nota: String; var Status, xmotivo: string;
   const tipo: integer; const enviar: boolean; const cliente1: String;
   obs1: String = ''; serie1: String = '1'; nnf: STRING = '';
-  imp: boolean = true; recebido: currency = 0; EscPos: boolean = false)
+  imp: boolean = true; recebido: currency = 0; EscPos: boolean = false) : boolean
 var
   SQL, qUsuario, para, ssChave, erro1, NumeroRecibo, ser, erroTemp: string;
   csta: integer;
