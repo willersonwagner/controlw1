@@ -1653,7 +1653,7 @@ end;
 
 procedure TForm2.ResumoMensal1Click(Sender: TObject);
 var
-  ini, fim, sim, desp, separa, tmpGru, icm, _COD, adic : string;
+  ini, fim, sim, desp, separa, tmpGru, icm, _COD, adic, notas : string;
   _TOT, _QTD, _FRET, _ICM, QUANT_VENDA, CUSTO, DESCONTO, ENTR_CAIXA1, _TOTAL, AVISTA, tmp, despesas, _ENTDEP, FORNECE : currency;
   _SAIDEP, _RET, _FOR, LIQ, pag, _DESP :currency;
   i, a, fim1, fi   : integer;
@@ -1750,7 +1750,7 @@ begin
 
   dm.IBselect.Close;
   dm.IBselect.SQL.Clear;
-  dm.IBselect.SQL.Add('select v.nota, v.total, v.desconto, v.entrada, v.codhis, i.p_compra, i.total as p_total, i.p_venda, i.cod,'+
+  dm.IBselect.SQL.Add('select v.nota, v.total, v.desconto, v.entrada, v.codhis, p_compra, i.total as p_total, i.p_venda, i.cod,'+
   ' i.quant from venda v, item_venda i where ((v.data >= :dini) and (v.data <= :dfim)) and (v.cancelado = 0) and (v.nota = i.nota) order by v.nota');
   dm.IBselect.ParamByName('dini').AsDate := StrToDate(ini);
   dm.IBselect.ParamByName('dfim').AsDate := StrToDate(fim);
@@ -1767,33 +1767,31 @@ begin
   DESCONTO := DESCONTO + dm.IBselect.fieldbyname('desconto').AsCurrency;
 
   formas.Values[dm.IBselect.fieldbyname('codhis').AsString] := CurrToStr(StrToCurrDef(formas.Values[dm.IBselect.fieldbyname('codhis').AsString], 0) + dm.IBselect.fieldbyname('total').AsCurrency );
-  nota     := dm.IBselect.fieldbyname('nota').AsString;
+  nota   := dm.IBselect.fieldbyname('nota').AsString;
+  CUSTO  := 0;
+  _TOTAL := 0;
+  notas := '-';
   while not dm.IBselect.Eof do
     begin
       funcoes.informacao(dm.IBselect.RecNo, fi, 'Aguarde, Gerando Relatório...', false, false, 5);
 
-      if nota <> dm.IBselect.fieldbyname('nota').AsString then
-        begin
-          nota     := dm.IBselect.fieldbyname('nota').AsString;
-
-          if dm.IBselect.fieldbyname('entrada').AsCurrency <> 0 then
-            begin
-              formas.Values['1'] := CurrToStr(StrToCurrDef(formas.Values['1'], 0) + (dm.IBselect.fieldbyname('entrada').AsCurrency));
-              formas.Values[dm.IBselect.fieldbyname('codhis').AsString] := CurrToStr(StrToCurrDef(formas.Values[dm.IBselect.fieldbyname('codhis').AsString], 0) + (dm.IBselect.fieldbyname('total').AsCurrency - dm.IBselect.fieldbyname('entrada').AsCurrency));
-            end
-          else
-            begin
-              //aqui adiciona a forma de pagamento e o valor no stringlist
-              formas.Values[dm.IBselect.fieldbyname('codhis').AsString] := CurrToStr(StrToCurrDef(formas.Values[dm.IBselect.fieldbyname('codhis').AsString], 0) + (dm.IBselect.fieldbyname('total').AsCurrency));
-            end;
+      if not contido('-' + dm.IBselect.fieldbyname('nota').AsString + '-', notas) then begin
+        notas := notas + dm.IBselect.fieldbyname('nota').AsString + '-';
+        _TOTAL := _TOTAL +  dm.IBselect.fieldbyname('desconto').AsCurrency;
+        if dm.IBselect.fieldbyname('entrada').AsCurrency <> 0 then begin
+          formas.Values['1'] := CurrToStr(StrToCurrDef(formas.Values['1'], 0) + (dm.IBselect.fieldbyname('entrada').AsCurrency));
+          formas.Values[dm.IBselect.fieldbyname('codhis').AsString] := CurrToStr(StrToCurrDef(formas.Values[dm.IBselect.fieldbyname('codhis').AsString], 0) + (dm.IBselect.fieldbyname('total').AsCurrency - dm.IBselect.fieldbyname('entrada').AsCurrency));
+        end
+        else begin
+          //aqui adiciona a forma de pagamento e o valor no stringlist
+          formas.Values[dm.IBselect.fieldbyname('codhis').AsString] := CurrToStr(StrToCurrDef(formas.Values[dm.IBselect.fieldbyname('codhis').AsString], 0) + (dm.IBselect.fieldbyname('total').AsCurrency));
         end;
+      end;
 
-
-      CUSTO := CUSTO + (dm.IBselect.fieldbyname('p_compra').AsCurrency);
-
+      CUSTO  := CUSTO  + (dm.IBselect.fieldbyname('p_compra').AsCurrency);
+      _TOTAL := _TOTAL + (dm.IBselect.fieldbyname('p_total').AsCurrency);
       dm.IBselect.Next;
     end;
-
 
   dm.IBselect.Close;
   dm.IBselect.SQL.Clear;
@@ -1821,7 +1819,6 @@ begin
     end;
 
   AVISTA := 0;
-  _TOTAL := 0;
 
   dm.IBselect.Close;
   dm.IBQuery2.Close;
@@ -1841,7 +1838,7 @@ begin
           AVISTA := AVISTA + StrToCurrDef(formas.Values[ini], 0);
         end;
 
-      _TOTAL := _TOTAL + StrToCurrDef(formas.Values[ini], 0);
+      //_TOTAL := _TOTAL + StrToCurrDef(formas.Values[ini], 0);
 
       dm.IBQuery2.Close;
       dm.IBQuery2.SQL.Clear;
@@ -14196,7 +14193,7 @@ procedure TForm2.NFCePorData1Click(Sender: TObject);
 var
   dini, dfim, pstaNfe,tmp, sit, NUMFALTA : string;
   dini1, dfim1 : TDate;
-  arq, lista : TStringList;
+  arq, lista,pag, formas : TStringList;
   i1, f1 : integer;
   chav1 : TChaveDetalhes;
   tot, vnf, cancela : currency;
@@ -14237,8 +14234,22 @@ begin
   dm.IBselect.ParamByName('ini').AsDateTime := dini1;
   dm.IBselect.ParamByName('fim').AsDateTime := dfim1;
   dm.IBselect.Open;
-  chav1 := TChaveDetalhes.Create;
-  arq := TStringList.Create();
+  chav1  := TChaveDetalhes.Create;
+  arq    := TStringList.Create();
+  pag    := TStringList.Create();
+  formas := TStringList.Create();
+
+  formas.Add('01=Dinheiro');
+  formas.Add('02=Cheque');
+  formas.Add('03=Cartao de Credito');
+  formas.Add('04=Cartao de Debito');
+  formas.Add('05=Credito Loja');
+  formas.Add('10=Vale Alimentacao');
+  formas.Add('11=Vale Refeicao');
+  formas.Add('12=Vale Presente');
+  formas.Add('13=Vale Combustivel');
+  formas.Add('99=Outro');
+
   arq.Clear;
   tot     := 0;
   cancela := 0;
@@ -14276,6 +14287,7 @@ begin
           if Contido(TRIM(CST_PIS), '100-150') then
             begin
               sit := 'AUTORIZADA';
+              pag.Values[Le_Nodo('tPag', arq.GetText)] := CurrToStr(StrToCurrDef(pag.Values[Le_Nodo('tPag', arq.GetText)], 0) + converteCurrencyNFe(Le_Nodo('vPag', arq.GetText)));
             end
            else if CST_PIS = '135' then sit := 'CANCELADA'
            else sit := IfThen(trim(CST_PIS) <> '', 'cStat: ' + CST_PIS, '* * * SEM PROTOCOLO1 * * *');
@@ -14288,7 +14300,9 @@ begin
         end;
 
       if sit = 'CANCELADA' then cancela := cancela + vnf;
-      if sit = 'AUTORIZADA' then tot := tot + vnf;
+      if sit = 'AUTORIZADA' then begin
+        tot := tot + vnf;
+      end;
       if dm.IBselect.FieldByName('adic').AsString = 'OFF' then
         begin
           sit := 'AGUARDANDO ENVIO';
@@ -14306,6 +14320,23 @@ begin
   addRelatorioForm19(funcoes.CompletaOuRepete('CANCELADAS   ====>>', '', '.', 59) + CompletaOuRepete('', formataCurrency(cancela), ' ', 10) + CRLF);
   addRelatorioForm19(funcoes.CompletaOuRepete('TOTAL        ====>>', '', '.', 59) + CompletaOuRepete('', formataCurrency(tot + cancela), ' ', 10) + CRLF);
   addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 78) + CRLF);
+
+  if pag.Count > 0 then begin
+    addRelatorioForm19(CRLF);
+    addRelatorioForm19('-----------------------------------' + CRLF);
+    addRelatorioForm19('     Resumo Forma de Pagamento' + CRLF);
+    addRelatorioForm19('-----------------------------------' + CRLF);
+    for cont := 0 to pag.Count -1 do begin
+      addRelatorioForm19(CompletaOuRepete(pag.Names[cont] + '-' + formas.Values[pag.Names[cont]], formataCurrency(StrToCurr(pag.ValueFromIndex[cont])), ' ', 35) + CRLF);
+    end;
+    addRelatorioForm19('-----------------------------------' + CRLF);
+  end;
+
+
+
+  pag.Free;
+  formas.Free;
+  arq.Free;
   {if NUMFALTA <> '' then
     begin
       NUMFALTA := 'NUM. FALTANDO: ' + NUMFALTA;

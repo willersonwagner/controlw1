@@ -137,6 +137,7 @@ type
     enviandoCupom, enviandoBackup: boolean;
     fonteRelatorioForm19: integer;
     NegritoRelatorioForm19, saiComEnter: boolean;
+    procedure verificaProdutosDuplicados();
     function VerSeExisteTRIGGERPeloNome(Const nome: String): boolean;
     function primeiroDiaDoMes() : boolean;
     procedure adicionaNFCeNaoEncontrada(num, ser : String);
@@ -10495,6 +10496,26 @@ begin
       //dm.IBQuery1.Transaction.Commit;
     end;
 
+    if not VerificaCampoTabela('cod_seq', 'ITEM_VENDA') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('ALTER TABLE ITEM_VENDA ADD cod_seq integer default 0 ');
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('CREATE SEQUENCE ITEM_VENDA');
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('update item_venda set cod_seq = gen_id(item_venda, 1)');
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
     //VerificaVersao_do_bd
   end;
 
@@ -10531,6 +10552,7 @@ begin
   pger.Free;
 
   atualizaMSGsObsVenda;
+  funcoes.verificaProdutosDuplicados;
 
   DeleteFile(caminhoEXE_com_barra_no_final + 'bd0.fdb');
   DeleteFile(caminhoEXE_com_barra_no_final + 'exec.bat');
@@ -21770,15 +21792,29 @@ begin
         dm.IBselect.Next;
     end;
 
-    if FileExists(buscaPastaNFCe(dm.IBselect.FieldByName('chave').AsString) +
+    if FileExists(buscaPastaNFCe(dm.IBselect.FieldByname('chave').AsString) +
       dm.IBselect.FieldByName('chave').AsString + '-nfe.xml') then
     begin
       try
+        ACBrNFe.NotasFiscais.Clear;
+        ACBrNFe.NotasFiscais.LoadFromFile(buscaPastaNFCe(dm.IBselect.FieldByName('chave').AsString) +
+        dm.IBselect.FieldByName('chave').AsString + '-nfe.xml');
+        {if not ACBrNFe.NotasFiscais[0].VerificarAssinatura then begin
+          ACBrNFe.NotasFiscais[0].Assinar;
+          ACBrNFe.NotasFiscais[0].GravarXML(dm.IBselect.FieldByName('chave').AsString + '-nfe.xml', buscaPastaNFCe(dm.IBselect.FieldByname('chave').AsString));
+          ACBrNFe.NotasFiscais.Clear;
+        end;}
+
         arq.LoadFromFile(buscaPastaNFCe(dm.IBselect.FieldByName('chave')
           .AsString) + dm.IBselect.FieldByName('chave').AsString + '-nfe.xml');
 
-        if Le_Nodo('cStat', arq.text) = '' then
-        begin
+        if Le_Nodo('Signature', arq.text) = '' then begin
+          ACBrNFe.NotasFiscais[0].Assinar;
+          ACBrNFe.NotasFiscais[0].GravarXML(dm.IBselect.FieldByName('chave').AsString + '-nfe.xml', buscaPastaNFCe(dm.IBselect.FieldByname('chave').AsString));
+          ACBrNFe.NotasFiscais.Clear;
+        end;
+
+        if Le_Nodo('cStat', arq.text) = '' then begin
           semProtocolo := semProtocolo + ' Sem Protocolo1: ' +
             dm.IBselect.FieldByName('chave').AsString + CRLF;
 
@@ -24176,17 +24212,17 @@ begin
     informacao(dm.IBselect.RecNo, fim, 'Aguarde, Atualizando Unidades...',
       False, False, 5);
 
-    if SomenteLetras(dm.IBselect.FieldByName('unid').AsString) <>
-      trim(dm.IBselect.FieldByName('unid').AsString) then
-    begin
-      dm.IBQuery1.Close;
-      dm.IBQuery1.SQL.text :=
+    if not Contido('-'+ trim(dm.IBselect.FieldByName('unid').AsString) + '-', '-M2-M3-') then begin
+      if SomenteLetras(dm.IBselect.FieldByName('unid').AsString) <> trim(dm.IBselect.FieldByName('unid').AsString) then begin
+        dm.IBQuery1.Close;
+        dm.IBQuery1.SQL.text :=
         'update produto set unid = :unid where cod = :cod';
-      dm.IBQuery1.ParamByName('unid').AsString :=
+        dm.IBQuery1.ParamByName('unid').AsString :=
         SomenteLetras(dm.IBselect.FieldByName('unid').AsString);
-      dm.IBQuery1.ParamByName('cod').AsInteger := dm.IBselect.FieldByName('cod')
+        dm.IBQuery1.ParamByName('cod').AsInteger := dm.IBselect.FieldByName('cod')
         .AsInteger;
-      dm.IBQuery1.ExecSQL;
+        dm.IBQuery1.ExecSQL;
+      end;
     end;
 
     dm.IBselect.Next;
@@ -24205,19 +24241,18 @@ begin
   begin
     informacao(dm.IBselect.RecNo, fim, 'Aguarde, Atualizando Unidades...',
       False, False, 5);
-
-    if SomenteLetras(dm.IBselect.FieldByName('unid_sai').AsString) <>
-      trim(dm.IBselect.FieldByName('unid_sai').AsString) then
-    begin
-      dm.IBQuery1.Close;
-      dm.IBQuery1.SQL.Clear;
-      dm.IBQuery1.SQL.Add
+    if not Contido('-'+ trim(dm.IBselect.FieldByName('unid_sai').AsString) + '-', '-M2-M3-') then begin
+      if SomenteLetras(dm.IBselect.FieldByName('unid_sai').AsString) <> trim(dm.IBselect.FieldByName('unid_sai').AsString) then begin
+        dm.IBQuery1.Close;
+        dm.IBQuery1.SQL.Clear;
+        dm.IBQuery1.SQL.Add
         ('update unid set unid_sai = :unid_sai where nome = :nome');
-      dm.IBQuery1.ParamByName('unid_sai').AsString :=
+        dm.IBQuery1.ParamByName('unid_sai').AsString :=
         SomenteLetras(dm.IBselect.FieldByName('unid_sai').AsString);
-      dm.IBQuery1.ParamByName('nome').AsString :=
+        dm.IBQuery1.ParamByName('nome').AsString :=
         dm.IBselect.FieldByName('nome').AsString;
-      dm.IBQuery1.ExecSQL;
+        dm.IBQuery1.ExecSQL;
+      end;
     end;
 
     dm.IBselect.Next;
@@ -26362,6 +26397,51 @@ begin
     addRelatorioForm19(funcoes.CompletaOuRepete(#179,#179, ' ', 80) + CRLF);
     arq.Free;
   end;
+end;
+
+
+procedure Tfuncoes.verificaProdutosDuplicados();
+var
+ acc, cod : String;
+begin
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select nota,sum(total) + (select desconto from venda v where v.nota = i.nota), sum(p_compra), (select total from venda v where v.nota = i.nota) as total_nota from item_venda i where cancelado = 0 '+
+  ' group by (nota) having (sum(total) + (select desconto from venda v where v.nota = i.nota) ) <> (select total from venda v where v.nota = i.nota)';
+  dm.IBselect.Open;
+  dm.IBselect.FetchAll;
+
+  if dm.IBselect.IsEmpty then begin
+    dm.IBselect.Close;
+    exit;
+  end;
+
+  acc := '-';
+  while not dm.IBselect.Eof do begin
+    dm.IBQuery2.Close;
+    dm.IBQuery2.SQL.Text := 'select nota,cod,total,quant, cod_seq from item_venda where nota = :nota';
+    dm.IBQuery2.ParamByName('nota').AsInteger := dm.IBselect.FieldByName('nota').AsInteger;
+    dm.IBQuery2.open;
+
+    while not dm.IBQuery2.Eof do begin
+      cod := dm.IBQuery2.FieldByName('nota').AsString + dm.IBQuery2.FieldByName('cod').AsString + dm.IBQuery2.FieldByName('total').AsString + dm.IBQuery2.FieldByName('quant').AsString;
+      if not Contido('-' + cod + '-', acc) then begin
+        acc := acc + cod + '-';
+      end
+      else begin
+        dm.IBQuery1.Close;
+        dm.IBQuery1.SQL.Text := 'delete from item_venda where cod_seq = :cod';
+        dm.IBQuery1.ParamByName('cod').AsInteger := dm.IBQuery2.FieldByName('cod_seq').AsInteger;
+        dm.IBQuery1.ExecSQL;
+        //dm.IBQuery1.Transaction.Commit;
+      end;
+
+      dm.IBQuery2.Next;
+    end;
+
+    dm.IBselect.Next;
+  end;
+
+  if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
 end;
 
 

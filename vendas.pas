@@ -3991,8 +3991,8 @@ begin
       cod := ClientDataSet1CODIGO.AsString;
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Clear;
-      dm.IBQuery1.SQL.Text := ('insert into item_venda(data,nota,COD, QUANT, p_venda,total,origem,p_compra,codbar,aliquota, unid, desconto, nome, vendedor, TIPO)'+
-      ' values(:data,'+novocod+',:cod, :quant, :p_venda,:total,'+IntToStr(origem)+',:p_compra, :codbar,:aliq, :unid, :desconto, :nome, :vend, :tipo)');
+      dm.IBQuery1.SQL.Text := ('insert into item_venda(data,nota,COD, QUANT, p_venda,total,origem,p_compra,codbar,aliquota, unid, desconto, nome, vendedor, TIPO, cod_seq)'+
+      ' values(:data,'+novocod+',:cod, :quant, :p_venda,:total,'+IntToStr(origem)+',:p_compra, :codbar,:aliq, :unid, :desconto, :nome, :vend, :tipo, gen_id(item_venda, 1))');
       dm.IBQuery1.ParamByName('data').AsDateTime    := form22.datamov;
       dm.IBQuery1.ParamByName('cod').AsString       := ClientDataSet1CODIGO.AsString;
       dm.IBQuery1.ParamByName('codbar').AsString    := funcoes.BuscaNomeBD(dm.ibquery2,'codbar','produto','where cod=' + ClientDataSet1CODIGO.AsString);
@@ -6547,3 +6547,4 @@ begin
 end;
 
 end.
+
