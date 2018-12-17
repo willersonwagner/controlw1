@@ -10126,8 +10126,7 @@ begin
     end;
 
     // cria tabela producao_cad_ins
-    if NOT verSeExisteTabela('PRODUCAO_CAD_INS') then
-    begin
+    if NOT verSeExisteTabela('PRODUCAO_CAD_INS') then begin
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.text := 'CREATE TABLE PRODUCAO_CAD_INS (' +
         'cod integer DEFAULT 0 NOT NULL, ' +
@@ -10512,6 +10511,31 @@ begin
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Clear;
       dm.IBQuery1.SQL.Add('update item_venda set cod_seq = gen_id(item_venda, 1)');
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
+    if NOT verSeExisteTabela('EXCSERV') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.text := 'CREATE TABLE EXCSERV (' +
+        'COD_SEQ INTEGER NOT NULL, ' +
+        'COD INTEGER, ' +
+        'QUANT NUMERIC(15,3), ' +
+        'USUARIO SMALLINT, ' +
+        'DATAHORA TIMESTAMP,'+
+        'SERV INTEGER)';
+
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
+      dm.IBQuery1.Close;
+
+      dm.IBQuery1.SQL.text := 'alter table EXCSERV add constraint PK_EXCSERV primary key (COD_SEQ)' ;
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('CREATE SEQUENCE EXCSERV');
       dm.IBQuery1.ExecSQL;
       dm.IBQuery1.Transaction.Commit;
     end;

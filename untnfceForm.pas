@@ -173,7 +173,7 @@ FUNCTION NODO_ICMS(var MAT: Item_venda; CSTICM_CFOP, _ORIGE: string;
 FUNCTION NODO_EMIT(CNPJ, RAZAO, FANTASIA, ENDE, BAIRRO, COD_MUN, NOM_MUN, UF,
   CEP, FONE, IE, CRT: string): string;
 function GeraXml: String;
-procedure insereNotaBD(var dados: Tvenda);
+function insereNotaBD(var dados: Tvenda) : boolean;
 Function ProcuraItemNaLista(var lista: TList; cod1: integer): integer;
 function setPrinter(const indx: integer; ImpressoraNome: String = ''): String;
 procedure lerConfigBalanca();
@@ -685,8 +685,9 @@ begin
   end;
 end;
 
-procedure insereNotaBD(var dados: Tvenda);
+function insereNotaBD(var dados: Tvenda) : boolean;
 begin
+  Result := false;
   query1.Close;
   query1.SQL.text := 'select chave from nfce where chave = :chave';
   query1.ParamByName('chave').AsString := dados.chave;
@@ -720,6 +721,8 @@ begin
           IntToStr(venda.nota) + #13 + 'USUARIO1=' + IntToStr(USUARIO1) + #13 +
           'dados.cliente=' + IntToStr(dados.cliente) + #13 + 'DANFE.vTroco=' +
           CurrToStr(DANFE.vTroco), mtError, [mbOK], 1);
+
+        exit;
       end;
     end;
   end
@@ -741,6 +744,7 @@ begin
           IntToStr(venda.nota) + #13 + 'USUARIO1=' + IntToStr(USUARIO1) + #13 +
           'dados.cliente=' + IntToStr(dados.cliente) + #13 + 'DANFE.vTroco=' +
           CurrToStr(DANFE.vTroco), mtError, [mbOK], 1);
+        exit;
       end;
     end;
   end;
@@ -763,9 +767,11 @@ begin
         IntToStr(venda.nota) + #13 + 'USUARIO1=' + IntToStr(USUARIO1) + #13 +
         'dados.cliente=' + IntToStr(dados.cliente) + #13 + 'DANFE.vTroco=' +
         CurrToStr(DANFE.vTroco), mtError, [mbOK], 1);
+      exit;
     end;
 
   end;
+  Result := true;
 end;
 
 procedure insereNotaBD1(var dados: Tvenda);
@@ -1773,7 +1779,7 @@ begin
     codNF := StrToIntDef(Incrementa_Generator(NomeGeneratorSerie, 0), 0);
     if codNF = 0 then
     begin
-      codNF := StrToIntDef(Incrementa_Generator(NomeGeneratorSerie, 1), 1);
+      codNF := StrToIntDef(Incrementa_Generator(NomeGeneratorSerie, 0), 0);
     end;
     dadosEmitente.Values['nf'] := IntToStr(codNF);
   end;
@@ -3403,7 +3409,7 @@ begin
         if csta = 301 then
           venda.adic := 'DENEGADA';
 
-        insereNotaBD(venda);
+        if insereNotaBD(venda) then Incrementa_Generator(NomeGeneratorSerie, 1);
       except
         on e: Exception do
         begin
@@ -3411,7 +3417,6 @@ begin
         end;
       end;
 
-      Incrementa_Generator(NomeGeneratorSerie, 1);
       LimpaVariaveis;
       ACBrNFe.NotasFiscais.Clear;
       exit;
@@ -3449,7 +3454,7 @@ begin
 
     venda.adic := 'OFF';
     venda.chave := CHAVENF;
-    insereNotaBD(venda);
+    if insereNotaBD(venda) then Incrementa_Generator(NomeGeneratorSerie, 1);
     try
       ACBrNFe.NotasFiscais[0].GravarXML(CHAVENF + '-nfe.xml',
         buscaPastaNFCe(CHAVENF, false));
@@ -3465,8 +3470,6 @@ begin
         exit;
       end;
     end;
-
-    Incrementa_Generator(NomeGeneratorSerie, 1);
 
     if imp then
     begin

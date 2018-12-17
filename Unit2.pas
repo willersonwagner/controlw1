@@ -6726,6 +6726,41 @@ begin
          dm.IBselect.Next;
        end;
 
+     dm.IBselect.Close;
+     dm.IBselect.SQL.Text := 'select e.cod, p.nome, p.codbar, e.quant, e.usuario || ''-'' ||u.nome as usuario, datahora, serv from ' +
+     'excserv e left join produto p on (e.cod = p.cod) left join usuario u on (u.cod = e.usuario) where '+
+     'cast(datahora as date) >= :v1 and  cast(datahora as date) <= :v2';
+     dm.IBselect.ParamByName('v1').AsDateTime := StrToDate(ini);
+     dm.IBselect.ParamByName('v2').AsDateTime := StrToDate(fim);
+     dm.IBselect.Open;
+
+     ContaNota := 0;
+     while not dm.IBselect.Eof do
+       begin
+         if ContaNota = 0 then
+           begin
+             addRelatorioForm19('+-----------------------------------------------------------------------+' + CRLF);
+             addRelatorioForm19('|                   PRODUTOS EXCLUIDOS DE SERVICOS                      |' + CRLF);
+             addRelatorioForm19('+-----------------------------------------------------------------------+' + CRLF);
+             addRelatorioForm19('|COD NOME                         QUANT USUARIO        DATAHORA   SERVI |' + CRLF);
+             addRelatorioForm19('+-----------------------------------------------------------------------+' + CRLF);
+           end;
+
+         if funcoes.buscaParamGeral(5, 'N') = 'S' then imprimirtotaldia := 'codbar'
+         else imprimirtotaldia := 'cod';
+
+         addRelatorioForm19(funcoes.CompletaOuRepete(LeftStr(dm.IBselect.fieldbyname(imprimirtotaldia).AsString + '-' + dm.IBselect.fieldbyname('nome').AsString, 28), '', ' ', 28) + ' ' +
+         CompletaOuRepete('', formataCurrency(dm.IBselect.fieldbyname('quant').AsCurrency), ' ', 10) +' ' + CompletaOuRepete(LeftStr(dm.IBselect.fieldbyname('usuario').AsString, 10), '', ' ', 10 ) + ' ' +
+         FormatDateTime('dd/mm/yy hh:mm', dm.IBselect.fieldbyname('datahora').AsDateTime) + ' ' + CompletaOuRepete('', dm.IBselect.fieldbyname('serv').AsString, '0', 6) + CRLF);
+
+         ContaNota := ContaNota + 1;
+         dm.IBselect.Next;
+       end;
+
+       if ContaNota > 0  then addRelatorioForm19('+-----------------------------------------------------------------------+' + CRLF);
+       
+
+
        if notapul <> '' then begin
          ini := 'Notas Não Encontradas: ' + #13 + #10;
          addRelatorioForm19(ini);
@@ -6737,6 +6772,9 @@ begin
            end;
          addRelatorioForm19(notapul);
        end;
+
+
+
      end;
 
      funcoes.informacao(i, fi, 'Aguarde, Gerando Relatório...', false, true, 5);
