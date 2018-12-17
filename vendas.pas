@@ -3991,8 +3991,8 @@ begin
       cod := ClientDataSet1CODIGO.AsString;
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Clear;
-      dm.IBQuery1.SQL.Text := ('insert into item_venda(data,nota,COD, QUANT, p_venda,total,origem,p_compra,codbar,aliquota, unid, desconto, nome, vendedor, TIPO)'+
-      ' values(:data,'+novocod+',:cod, :quant, :p_venda,:total,'+IntToStr(origem)+',:p_compra, :codbar,:aliq, :unid, :desconto, :nome, :vend, :tipo)');
+      dm.IBQuery1.SQL.Text := ('insert into item_venda(data,nota,COD, QUANT, p_venda,total,origem,p_compra,codbar,aliquota, unid, desconto, nome, vendedor, TIPO, cod_seq)'+
+      ' values(:data,'+novocod+',:cod, :quant, :p_venda,:total,'+IntToStr(origem)+',:p_compra, :codbar,:aliq, :unid, :desconto, :nome, :vend, :tipo, gen_id(item_venda, 1))');
       dm.IBQuery1.ParamByName('data').AsDateTime    := form22.datamov;
       dm.IBQuery1.ParamByName('cod').AsString       := ClientDataSet1CODIGO.AsString;
       dm.IBQuery1.ParamByName('codbar').AsString    := funcoes.BuscaNomeBD(dm.ibquery2,'codbar','produto','where cod=' + ClientDataSet1CODIGO.AsString);
@@ -4904,16 +4904,32 @@ begin
           if ClientDataSet1estado.AsString = 'N' then begin
             if (separaPecas) and (separaVendaOrcamento = false) then begin
               ClientDataSet1vendedor.Visible := true;
-              if (RetornaAcessoUsuario > 0) and (form22.Pgerais.Values['codvendedor'] <> ClientDataSet1vendedor.AsString) then begin
+              //if (RetornaAcessoUsuario > 0) and (form22.Pgerais.Values['codvendedor'] <> ClientDataSet1vendedor.AsString) then begin
+              if (RetornaAcessoUsuario > 0) then begin
                 ShowMessage('Esse Usuário Não Tem Permissão Para Excluir Este Produto!');
                 exit;
               end;
+
+              //funcoes.gravaAlteracao('Prod. Excluido ' + ClientDataSet1CODIGO.AsString + ' Quant: ' + ClientDataSet1QUANT.AsString +
+              //' Servi: ' + JsEditInteiro1.Text + ' Usu: ' + form22.codusario, '998');
+
+
 
               funcoes.baixaEstoqueSP(ClientDataSet1CODIGO.AsString, ClientDataSet1QUANT.AsCurrency, 1);
 
               dm.IBQuery1.Close;
               dm.IBQuery1.SQL.Text := 'delete from os_itens where codseq = :cod';
               dm.IBQuery1.ParamByName('cod').AsInteger := ClientDataSet1seqServ.AsInteger;
+              dm.IBQuery1.ExecSQL;
+
+              dm.IBQuery1.Close;
+              dm.IBQuery1.SQL.Text := 'insert into EXCSERV(COD_SEQ, cod, quant, usuario, datahora, SERV)'+
+              ' values(gen_id(EXCSERV, 1), :cod, :quant, :usuario, :datahora, :SERV)';
+              dm.IBQuery1.ParamByName('cod').AsInteger       := ClientDataSet1seqServ.AsInteger;
+              dm.IBQuery1.ParamByName('quant').AsCurrency    := ClientDataSet1QUANT.AsCurrency;
+              dm.IBQuery1.ParamByName('usuario').AsInteger   := StrToIntDef(form22.codusario, 0);
+              dm.IBQuery1.ParamByName('datahora').AsDateTime := DateOf(form22.datamov) + TimeOf(now);
+              dm.IBQuery1.ParamByName('serv').AsInteger      := StrToIntDef(COD_SERVICO, 0);
               dm.IBQuery1.ExecSQL;
               dm.IBQuery1.Transaction.Commit;
             end;
@@ -6547,3 +6563,4 @@ begin
 end;
 
 end.
+

@@ -55,13 +55,7 @@ Coordinates=331,122,59,58
 [data1]
 Coordinates=191,190,49,58
 
-[Image2]
-Coordinates=121,10,57,58
-
 []
-Coordinates=10,258,53,58
-
-[wppNum]
-Coordinates=188,10,60,58
+Coordinates=121,10,57,58
 Visible=True
 

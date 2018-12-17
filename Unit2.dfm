@@ -12180,7 +12180,7 @@ object Form2: TForm2
           OnClick = SuporteOnline1Click
         end
         object RecuperarumBackup1: TMenuItem
-          Caption = 'Recuperar um Backup'
+          Caption = 'Recuperar B'
           OnClick = RecuperarumBackup1Click
         end
         object ema1: TMenuItem

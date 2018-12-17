@@ -208,7 +208,7 @@ end;
 procedure TForm48.insereEntrada();
 var
   nota : string;
-  total, quant1, p_compra, qtd, p_venda : currency;
+  total, quant1, p_compra, qtd, p_venda, QTD_UNIDADE : currency;
   lista : TItensProduto;
   i : integer;
 begin
@@ -258,8 +258,8 @@ begin
     begin
       dm.IBQuery4.Close;
       dm.IBQuery4.SQL.Clear;
-      dm.IBQuery4.SQL.Add('update or insert into item_entrada(COD,codentrada, QUANT, P_COMPRA, DESTINO, USUARIO, NOTA, FORNEC,DATA, total, unid, unid2, CRED_ICMS)' +
-      ' values(:COD,'+funcoes.novocod('entrada')+',:QUANT, :P_COMPRA, :DESTINO, :USUARIO,  :NOTA,:FORNEC, :DATA,:total, :unid, :unid2, :CRED_ICMS) matching(codentrada)');
+      dm.IBQuery4.SQL.Add('update or insert into item_entrada(COD,codentrada, QUANT, P_COMPRA, DESTINO, USUARIO, NOTA, FORNEC,DATA, total, unid, unid2, CRED_ICMS, QTD_ENT)' +
+      ' values(:COD,'+funcoes.novocod('entrada')+',:QUANT, :P_COMPRA, :DESTINO, :USUARIO,  :NOTA,:FORNEC, :DATA,:total, :unid, :unid2, :CRED_ICMS, :QTD_ENT) matching(codentrada)');
       dm.IBQuery4.ParamByName('data').AsDateTime     := form22.datamov;
       dm.IBQuery4.ParamByName('cod').AsString        := ClientDataSet1.fieldbyname('codigo').AsString;
       dm.IBQuery4.ParamByName('nota').AsString       := ClientDataSet1.fieldbyname('nota').AsString;
@@ -272,6 +272,12 @@ begin
       dm.IBQuery4.ParamByName('unid').AsString       := ClientDataSet1.fieldbyname('UNID_ENTRADA').AsString;
       dm.IBQuery4.ParamByName('unid2').AsString      := ClientDataSet1.fieldbyname('UNID_VENDA').AsString;
       dm.IBQuery4.ParamByName('CRED_ICMS').AsCurrency  := ClientDataSet1.fieldbyname('CRED_ICMS').AsCurrency;
+
+      QTD_UNIDADE := funcoes.verValorUnidade(ClientDataSet1.fieldbyname('UNID_ENTRADA').AsString);
+      qtd := ClientDataSet1.fieldbyname('QUANTIDADE_NFE').AsCurrency * QTD_UNIDADE;
+      qtd := Arredonda(qtd, 4);
+
+      dm.IBQuery4.ParamByName('QTD_ENT').AsCurrency    := qtd;
 
       try
         dm.IBQuery4.ExecSQL;
@@ -316,11 +322,11 @@ begin
 
 
     //baixa estoque separado para nao acontecer o deadlock
-    for i := 0 to lista.Count -1 do begin
+   { for i := 0 to lista.Count -1 do begin
       funcoes.baixaEstoqueSP(IntToStr(lista[i].cod), lista[i].quant, 1);
     end;
 
-    if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+    if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;}
 
     lista.Free;
     insereDadosAdic(fornecedor);

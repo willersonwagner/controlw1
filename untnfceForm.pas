@@ -173,7 +173,7 @@ FUNCTION NODO_ICMS(var MAT: Item_venda; CSTICM_CFOP, _ORIGE: string;
 FUNCTION NODO_EMIT(CNPJ, RAZAO, FANTASIA, ENDE, BAIRRO, COD_MUN, NOM_MUN, UF,
   CEP, FONE, IE, CRT: string): string;
 function GeraXml: String;
-procedure insereNotaBD(var dados: Tvenda);
+function insereNotaBD(var dados: Tvenda) : boolean;
 Function ProcuraItemNaLista(var lista: TList; cod1: integer): integer;
 function setPrinter(const indx: integer; ImpressoraNome: String = ''): String;
 procedure lerConfigBalanca();
@@ -685,8 +685,9 @@ begin
   end;
 end;
 
-procedure insereNotaBD(var dados: Tvenda);
+function insereNotaBD(var dados: Tvenda) : boolean;
 begin
+  Result := false;
   query1.Close;
   query1.SQL.text := 'select chave from nfce where chave = :chave';
   query1.ParamByName('chave').AsString := dados.chave;
@@ -697,11 +698,11 @@ begin
     query1.Close;
     query1.SQL.text :=
       'update or insert into nfce(chave, nota, data, cliente, adic, USUARIO, RECEBIDO) values(:chave, :nota, :data, :cliente, :adic, :USUARIO, :RECEBIDO) matching (chave)';
-    query1.ParamByName('chave').AsString := LeftStr(dados.chave, 44);
-    query1.ParamByName('nota').AsInteger := dados.nota;
-    query1.ParamByName('data').AsDate := now;
+    query1.ParamByName('chave').AsString    := LeftStr(dados.chave, 44);
+    query1.ParamByName('nota').AsInteger    := dados.nota;
+    query1.ParamByName('data').AsDate       := now;
     query1.ParamByName('cliente').AsInteger := dados.cliente;
-    query1.ParamByName('adic').AsString := trim(dados.adic);
+    query1.ParamByName('adic').AsString     := trim(dados.adic);
     query1.ParamByName('USUARIO').AsInteger := USUARIO1;
 
     if length(strnum(CurrToStr(DANFE.vTroco))) >= 8 then
@@ -720,6 +721,8 @@ begin
           IntToStr(venda.nota) + #13 + 'USUARIO1=' + IntToStr(USUARIO1) + #13 +
           'dados.cliente=' + IntToStr(dados.cliente) + #13 + 'DANFE.vTroco=' +
           CurrToStr(DANFE.vTroco), mtError, [mbOK], 1);
+
+        exit;
       end;
     end;
   end
@@ -741,6 +744,7 @@ begin
           IntToStr(venda.nota) + #13 + 'USUARIO1=' + IntToStr(USUARIO1) + #13 +
           'dados.cliente=' + IntToStr(dados.cliente) + #13 + 'DANFE.vTroco=' +
           CurrToStr(DANFE.vTroco), mtError, [mbOK], 1);
+        exit;
       end;
     end;
   end;
@@ -763,9 +767,11 @@ begin
         IntToStr(venda.nota) + #13 + 'USUARIO1=' + IntToStr(USUARIO1) + #13 +
         'dados.cliente=' + IntToStr(dados.cliente) + #13 + 'DANFE.vTroco=' +
         CurrToStr(DANFE.vTroco), mtError, [mbOK], 1);
+      exit;
     end;
 
   end;
+  Result := true;
 end;
 
 procedure insereNotaBD1(var dados: Tvenda);
@@ -1773,7 +1779,7 @@ begin
     codNF := StrToIntDef(Incrementa_Generator(NomeGeneratorSerie, 0), 0);
     if codNF = 0 then
     begin
-      codNF := StrToIntDef(Incrementa_Generator(NomeGeneratorSerie, 1), 1);
+      codNF := StrToIntDef(Incrementa_Generator(NomeGeneratorSerie, 0), 0);
     end;
     dadosEmitente.Values['nf'] := IntToStr(codNF);
   end;
@@ -3556,9 +3562,11 @@ begin
         //'ERRO_dados=' + ERRO_dados);
 
         //se nao veio resposta entao consulta pra ver se foi emitida ou o cstat veio com valor 0
-      if ((Contido('(5)-Requisi', ERRO_dados) or (csta = 0))) and acbrNFeConsultar(20) then begin
-          csta := ACBrNFe.NotasFiscais[0].nfe.procNFe.cstat;
-          ACBrNFe.NotasFiscais[0].GravarXML(CHAVENF + '-nfe.xml', buscaPastaNFCe(CHAVENF, false));
+        if (Contido('(5)-Requisi', ERRO_dados) or (csta = 0))  then begin
+          if acbrNFeConsultar(20) then begin
+            csta := ACBrNFe.NotasFiscais[0].nfe.procNFe.cstat;
+            ACBrNFe.NotasFiscais[0].GravarXML(CHAVENF + '-nfe.xml', buscaPastaNFCe(CHAVENF, false));
+          end;
         end;
 
 
@@ -3666,8 +3674,6 @@ begin
     ACBrNFe.NotasFiscais[0].GravarXML(CHAVENF + '-nfe.xml',
       buscaPastaNFCe(CHAVENF, false));
 
-    // if (cSta in [100, 150, 103, 301]) then
-
     if Contido('-' + IntToStr(csta) + '-', '-100-150-103-301-') then
     begin
       if imp then
@@ -3717,7 +3723,7 @@ begin
         if csta = 301 then
           venda.adic := 'DENEGADA';
 
-        insereNotaBD(venda);
+        if insereNotaBD(venda) then Incrementa_Generator(NomeGeneratorSerie, 1);
       except
         on e: Exception do
         begin
@@ -3725,7 +3731,6 @@ begin
         end;
       end;
 
-      Incrementa_Generator(NomeGeneratorSerie, 1);
       LimpaVariaveis;
       ACBrNFe.NotasFiscais.Clear;
       exit;
@@ -3827,7 +3832,7 @@ begin
 
     venda.adic := 'OFF';
     venda.chave := CHAVENF;
-    insereNotaBD(venda);
+    if insereNotaBD(venda) then Incrementa_Generator(NomeGeneratorSerie, 1);
     try
       ACBrNFe.NotasFiscais[0].GravarXML(CHAVENF + '-nfe.xml',
         buscaPastaNFCe(CHAVENF, false));
@@ -3839,10 +3844,10 @@ begin
           #13 + #13 + 'CHAVENF=' + CHAVENF + #13 + 'ADIC=' + venda.adic + #13 +
           'crc=' + buscaCRCdaChave(strnum(venda.chave)) + #13 + 'nota=' +
           IntToStr(venda.nota), mtError, [mbOK], 1);
+
+        exit;
       end;
     end;
-
-    Incrementa_Generator(NomeGeneratorSerie, 1);
 
     if imp then
     begin
