@@ -558,12 +558,13 @@ var
   valorb, v1 : currency;
   lista : TItensAcumProd;
 begin
-  valorbaixado := '999999999';
+  valorbaixado := '9999999';
   valorBaixado := funcoes.ConverteNumerico(funcoes.dialogo('numero',0,'1234567890,.'+#8,2,false,'',Application.Title,'O Valor é R$ '+FormatCurr('#,###,##0.00',DBGrid1.DataSource.DataSet.FieldByName('valor').AsCurrency)+' .Qual o Valor a Ser Baixado?',FormatCurr('#,###,###0.00',DBGrid1.DataSource.DataSet.FieldByName('valor').AsCurrency)));
   if valorbaixado = '*' then begin
     exit;
   end;
 
+  //atualizacao 18/12/2018 Wagner
   //se for maior dá uma mensagem que excedeu o valor da conta
   if StrToCurr(funcoes.ConverteNumerico(valorbaixado)) > DBGrid1.DataSource.DataSet.FieldByName('valor').AsCurrency then begin
     ShowMessage('Valor Excedeu o Total da Conta!');
