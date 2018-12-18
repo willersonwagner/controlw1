@@ -3926,19 +3926,16 @@ begin
         end;
     end;
 
-
   if acc <> '' then form34.cliente.Caption := acc
     else  form34.cliente.Caption := copy(funcoes.BuscaNomeBD(dm.ibquery2,'nome','cliente','where cod='+cliente),1,35);
 
   dm.IBQuery2.Close;
   form34.cont := 2;
   form34.juros := StrToCurr(funcoes.ConverteNumerico(juros));
+  //ShowMessage(CurrToStr(form34.juros));
 
-  if form34.juros < 0 then begin
-    MessageDlg('Valor de Juros nao pode ser Negativo, Acesso Negado!', mtInformation, [mbOK], 1);
-    exit;
-  end;
-
+  //form34.IBTable1.Filtered := false;
+  //form34.IBTable1.Filter := '(documento='+cliente+') and (pago=0)';
   form34.client1 := cliente;
 
 
@@ -6730,7 +6727,7 @@ begin
        end;
 
      dm.IBselect.Close;
-     dm.IBselect.SQL.Text := 'select e.cod, p.nome, p.codbar, e.quant, e.usuario || ''-'' ||u.nome as usuario, datahora, serv from ' +
+     dm.IBselect.SQL.Text := 'select e.cod, p.nome, e.quant, e.usuario || ''-'' ||u.nome as usuario, datahora, serv from ' +
      'excserv e left join produto p on (e.cod = p.cod) left join usuario u on (u.cod = e.usuario) where '+
      'cast(datahora as date) >= :v1 and  cast(datahora as date) <= :v2';
      dm.IBselect.ParamByName('v1').AsDateTime := StrToDate(ini);
@@ -6750,9 +6747,8 @@ begin
            end;
 
          if funcoes.buscaParamGeral(5, 'N') = 'S' then imprimirtotaldia := 'codbar'
-         else imprimirtotaldia := 'cod';
-
-         addRelatorioForm19(funcoes.CompletaOuRepete(LeftStr(dm.IBselect.fieldbyname(imprimirtotaldia).AsString + '-' + dm.IBselect.fieldbyname('nome').AsString, 28), '', ' ', 28) + ' ' +
+         else 'cod';
+         addRelatorioForm19(funcoes.CompletaOuRepete('| ' + LeftStr(dm.IBselect.fieldbyname('cod').AsString + '-' + dm.IBselect.fieldbyname('nome').AsString, 28), '', ' ', 28) + ' ' +
          CompletaOuRepete('', formataCurrency(dm.IBselect.fieldbyname('quant').AsCurrency), ' ', 10) +' ' + CompletaOuRepete(LeftStr(dm.IBselect.fieldbyname('usuario').AsString, 10), '', ' ', 10 ) + ' ' +
          FormatDateTime('dd/mm/yy hh:mm', dm.IBselect.fieldbyname('datahora').AsDateTime) + ' ' + CompletaOuRepete('', dm.IBselect.fieldbyname('serv').AsString, '0', 6) + CRLF);
 

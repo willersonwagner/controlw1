@@ -4913,7 +4913,6 @@ begin
               funcoes.baixaEstoqueSP(ClientDataSet1CODIGO.AsString, ClientDataSet1QUANT.AsCurrency, 1);
 
               dm.IBQuery1.Close;
-              dm.IBQuery1.Close;
               dm.IBQuery1.SQL.Text := 'delete from os_itens where codseq = :cod';
               dm.IBQuery1.ParamByName('cod').AsInteger := ClientDataSet1seqServ.AsInteger;
               dm.IBQuery1.ExecSQL;

@@ -4910,9 +4910,13 @@ begin
                 exit;
               end;
 
+              //funcoes.gravaAlteracao('Prod. Excluido ' + ClientDataSet1CODIGO.AsString + ' Quant: ' + ClientDataSet1QUANT.AsString +
+              //' Servi: ' + JsEditInteiro1.Text + ' Usu: ' + form22.codusario, '998');
+
+
+
               funcoes.baixaEstoqueSP(ClientDataSet1CODIGO.AsString, ClientDataSet1QUANT.AsCurrency, 1);
 
-              dm.IBQuery1.Close;
               dm.IBQuery1.Close;
               dm.IBQuery1.SQL.Text := 'delete from os_itens where codseq = :cod';
               dm.IBQuery1.ParamByName('cod').AsInteger := ClientDataSet1seqServ.AsInteger;
