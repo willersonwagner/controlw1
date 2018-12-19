@@ -557,6 +557,7 @@ type
   end;
 
 var
+//variaveis globais
   funcoes: Tfuncoes;
   cont: integer;
   refori1, CRLF: string;
