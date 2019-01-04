@@ -244,6 +244,7 @@ function inutilizacaoNFCE(ini, fim, modelo: integer; just: String;
   _serie: integer = 0): boolean;
 procedure setVersaoNFCe();
 procedure setVersaoNFe();
+function validaCFOP(const cfop : String) : boolean;
 
 procedure Carrega_NotaFiscal_ArquivoXML(OpenDialog: TOpenDialog;
   var NotaFiscal: String; var CFOP: String; var CondPagto: String;
@@ -300,7 +301,7 @@ var
 
   glbCFOP, glbNuCheque, glbNumeroDAV, glbNumeroIP, cliente, serie, cod_OP,
     NomeGeneratorSerie: string;
-  gTipoEmissao: string;
+  gTipoEmissao, listaCFOP: string;
   gTipoAmbiente: string;
   gUFComerciante: String;
   gFinalidadeNFe: String;
@@ -2579,6 +2580,9 @@ begin
     criaPasta(pastaControlW + 'NFCe\CANC\');
     criaPasta(pastaControlW + 'NFCe\RESP\');
     criaPasta(pastaControlW + 'NFCe\PDF\');
+
+    listaCFOP := '';
+
     if DANFE <> nil then
       DANFE.PathPDF := pastaControlW + 'NFCe\PDF\';
 
@@ -8239,6 +8243,24 @@ end;
 function FileAgeCreate(const fileName: string): String;
 begin
   Result := FormatDateTime('yy.mm.dd', FileDateToDateTime(FileAge(fileName)));
+end;
+
+function validaCFOP(const cfop : String) : boolean;
+begin
+  Result := false;
+  if listaCFOP = '' then begin
+    listaCFOP := '-';
+    query1.Close;
+    query1.SQL.Text := 'select cod from COD_OP where cod > 0';
+    query1.Open;
+
+    while not query1.Eof do begin
+      listaCFOP := listaCFOP + query1.FieldByName('cod').AsString + '-';
+      query1.Next;
+    end;
+  end;
+
+  if Contido('-' + cfop + '-', listaCFOP) then Result := true;
 end;
 
 end.

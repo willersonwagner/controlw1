@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, Mask, JsEditCPF1, JsEditNumero1, StdCtrls, JsEdit1,
-  JsEditInteiro1, ExtCtrls, Buttons, JsBotao1, untNFCe;
+  JsEditInteiro1, ExtCtrls, Buttons, JsBotao1, untnfceForm;
 
 type
   TdadosAdicSped = class(TForm)
@@ -425,6 +425,13 @@ begin
     ShowMessage('CFOP Inválido');
     cfop.SetFocus;
     exit;
+  end
+  else begin
+    if not validacfop(cfop.Text) then begin
+      ShowMessage('CFOP Inválido!' + #13 + 'O CFOP ' + cfop.Text + ' Não Existe!');
+      cfop.SetFocus;
+      exit;
+    end;
   end;
 
 
