@@ -1,9 +1,9 @@
 object CadClienteSimplificado: TCadClienteSimplificado
   Left = 192
   Top = 124
-  Width = 461
-  Height = 180
   Caption = 'Identifica'#231#227'o de Clientes'
+  ClientHeight = 219
+  ClientWidth = 443
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -42,6 +42,19 @@ object CadClienteSimplificado: TCadClienteSimplificado
     Font.Style = [fsBold]
     ParentFont = False
   end
+  object Label2: TLabel
+    Left = 8
+    Top = 110
+    Width = 44
+    Height = 16
+    Caption = 'CNPJ:'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'MS Sans Serif'
+    Font.Style = [fsBold]
+    ParentFont = False
+  end
   object nome: JsEdit
     Left = 8
     Top = 16
@@ -60,6 +73,7 @@ object CadClienteSimplificado: TCadClienteSimplificado
     OnKeyPress = nomeKeyPress
     FormularioComp = 'Form12'
     Indice = 0
+    TipoDeDado = teNumero
   end
   object cnpj: JsEditCPF
     Left = 8
@@ -80,20 +94,19 @@ object CadClienteSimplificado: TCadClienteSimplificado
   end
   object ToolBar1: TPanel
     Left = 0
-    Top = 118
-    Width = 453
+    Top = 184
+    Width = 443
     Height = 35
     Align = alBottom
     TabOrder = 2
+    ExplicitTop = 107
+    ExplicitWidth = 445
     object button: JsBotao
       Left = 0
       Top = 2
       Width = 75
       Height = 31
       Caption = 'Gravar'
-      TabOrder = 0
-      OnClick = buttonClick
-      OnKeyPress = buttonKeyPress
       Glyph.Data = {
         F6060000424DF606000000000000360000002800000018000000180000000100
         180000000000C0060000EB0A0000EB0A00000000000000000000CCCCCCCACACA
@@ -151,6 +164,26 @@ object CadClienteSimplificado: TCadClienteSimplificado
         3D8F64ACB8B1CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
         CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
         CCCCCCCCCCCCCCCCBAC0BCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC}
+      TabOrder = 0
+      OnClick = buttonClick
+      OnKeyPress = buttonKeyPress
     end
+  end
+  object JsEditCPF1: JsEditCPF
+    Left = 8
+    Top = 126
+    Width = 209
+    Height = 40
+    EditMask = '!999.999.999-99;1;_'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -29
+    Font.Name = 'MS Sans Serif'
+    Font.Style = [fsBold]
+    MaxLength = 14
+    ParentFont = False
+    TabOrder = 3
+    Text = '   .   .   -  '
+    OnKeyPress = cnpjKeyPress
   end
 end

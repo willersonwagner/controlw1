@@ -816,7 +816,7 @@ begin
 
   if formasPagamento.IsEmpty then exit;
 
-  {cliente := dialogo('generico',0,'1234567890,.'+#8,50,false,'',Application.Title,'Qual o Código do Cliente?', codCliente);
+  cliente := dialogo('generico',0,'1234567890,.'+#8,50,false,'',Application.Title,'Qual o Código do Cliente?', codCliente);
   cliente := trim(cliente);
 
   if cliente = '0' then
@@ -825,7 +825,7 @@ begin
       cliente := StrNum(codCliente);
     end;
 
-  if cliente = '*' then exit;}
+  if cliente = '*' then exit;
 
   cliente := codCliente;
 

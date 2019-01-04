@@ -15,6 +15,8 @@ type
     cnpj: JsEditCPF;
     ToolBar1: TPanel;
     button: JsBotao;
+    Label2: TLabel;
+    JsEditCPF1: JsEditCPF;
     procedure bairroKeyPress(Sender: TObject; var Key: Char);
     procedure buttonKeyPress(Sender: TObject; var Key: Char);
     procedure codKeyUp(Sender: TObject; var Key: Word;

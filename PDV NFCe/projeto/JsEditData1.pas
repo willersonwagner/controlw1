@@ -95,7 +95,9 @@ begin
   if (Key = #13) then
     begin
       ok := true;
-      if not(compData) then   Text := CompletaString(Text);
+      if not(compData) then begin
+         Text := CompletaString(Text);
+      end;
       if (Text = '  /  /    ') then
         begin
           //se valida campo, não deixa passar em branco
@@ -123,8 +125,10 @@ begin
   end;
   if (Self.Text = '') then Self.Text := '  /  /    ';
   if (Key = #27)  then JsEdit.LimpaCampos(self.Owner.Name);
-  if pos(key, #8+#13) = 0 then Inherited KeyPress(Key);
-  key := #0;
+  //if pos(key, #8+#13) = 0 then Inherited KeyPress(Key);
+  //key := #0;
+
+  inherited KeyPress(Key);
 end;
 
 function JsEditData.validaData() : boolean;
@@ -165,7 +169,7 @@ end;
 function JsEditData.CompletaString(parcial : string) : string;
 var ini : integer; atual, ret,acc: string;
 begin
-   atual := datetostr(date);
+   atual := FormatDateTime('dd/mm/yyyy',date);
    ret := '';
    acc := '';
 

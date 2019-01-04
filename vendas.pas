@@ -4105,6 +4105,7 @@ begin
     dm.IBQuery1.ParamByName('tipo').AsString        := LeftStr(tipoV, 3);
 
     dm.IBQuery1.ExecSQL;
+    dm.IBQuery1.Transaction.Commit;
     tipoV := LeftStr(tipoV, 1);
 
     if saidaDeEstoque then

@@ -480,6 +480,8 @@ begin
   ACBrNFe.DANFE := DANFE_Rave;
   expLogo := false;
 
+  //ACBrNFe.DANFE := DANFE;
+
   if impLogo = false then
   begin
     logo := DANFE_Rave.logo;
@@ -1769,7 +1771,7 @@ begin
     codNF := StrToIntDef(strnum(nnf), 0);
     if codNF = 0 then
     begin
-      // dadosEmitente.Values['nf'] := StrToIntDef(Incrementa_Generator('nfce', 0), 1);
+      //dadosEmitente.Values['nf'] := StrToIntDef(Incrementa_Generator('nfce', 0), 1);
       codNF := 1;
     end;
     dadosEmitente.Values['nf'] := IntToStr(codNF);
@@ -1779,7 +1781,7 @@ begin
     codNF := StrToIntDef(Incrementa_Generator(NomeGeneratorSerie, 0), 0);
     if codNF = 0 then
     begin
-      codNF := StrToIntDef(Incrementa_Generator(NomeGeneratorSerie, 0), 0);
+      codNF := StrToIntDef(Incrementa_Generator(NomeGeneratorSerie, 1), 0);
     end;
     dadosEmitente.Values['nf'] := IntToStr(codNF);
   end;
@@ -6397,16 +6399,25 @@ begin
     exit;
   end;
 
-  if length(strnum(CPF)) <> 11 then
-  begin
-    Result := '';
-    exit;
-  end;
-
-  IF length(strnum(CPF)) = 11 then
+  if length(strnum(CPF)) = 11 then
   begin
     ok := testacpf(CPF);
     CPF_CNPJ := '<CPF>' + CPF + '</CPF>';
+  end
+  else begin
+    ok := VALIDACNPJ(CPF);
+    CPF_CNPJ := '<CNPJ>' + CPF + '</CNPJ>';
+  end;
+
+  {if length(strnum(CPF)) <> 11 then
+  begin
+    Result := '';
+    exit;
+  end;}
+
+  IF length(strnum(CPF)) = 11 then
+  begin
+
   end;
 
   // SE O CODIGO DO MUNICIPIO ESTA EM BRANCO, USA O CODIGO DO MUNICIPIO DO EMITENTE
@@ -6441,7 +6452,7 @@ begin
     IE := '';
   end;
 
-  if length(strnum(CPF_CNPJ)) = 14 then
+  {if length(strnum(CPF_CNPJ)) = 14 then
   begin
     Result := '';
     exit;
@@ -6450,7 +6461,7 @@ begin
     begin
       indIEDest := '1';
     end;
-  end;
+  end;}
 
   tmp := '';
 

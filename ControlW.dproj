@@ -336,12 +336,6 @@
         <DCCReference Include="Unit59.pas">
             <Form>lancContasPagar</Form>
         </DCCReference>
-        <DCCReference Include="cadCli.pas">
-            <Form>cadCliNFCe</Form>
-        </DCCReference>
-        <DCCReference Include="cadCli1.pas">
-            <Form>CadClienteSimplificado</Form>
-        </DCCReference>
         <DCCReference Include="Unit60.pas">
             <Form>Form60</Form>
         </DCCReference>
@@ -421,6 +415,14 @@
         </DCCReference>
         <DCCReference Include="Unit75.pas">
             <Form>Form75</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
+        <DCCReference Include="cadCliCompleto.pas">
+            <Form>cadCliNFCe</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
+        <DCCReference Include="cadCli.pas">
+            <Form>CadClienteSimplificado</Form>
             <FormType>dfm</FormType>
         </DCCReference>
         <BuildConfiguration Include="Debug">

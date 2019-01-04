@@ -142,16 +142,25 @@ end;
 class function jsedit.RetornaIndiceDoUltimoCampo(formi:string) : Integer;
 var i : integer;
 begin
-  for i:=lista.Count-1 downto 0  do
+  Result := -1;
+  if not Assigned(lista) then lista := TObjectList.Create;
+  if lista.Count = 0 then exit;
+
+  for i := lista.Count-1 downto 0  do
    begin
       if not Assigned(lista.Items[i]) then lista.Delete(i)
       else
         begin
-          if (formi = tedit(lista.Items[i]).Owner.Name)  then
-            begin
-              result := i;
-              break ;
+          try
+            if  Assigned(lista.Items[i]) then begin
+              if (formi = tedit(lista.Items[i]).Owner.Name)  then begin
+                result := i;
+                break ;
+              end;
             end;
+          finally
+
+          end;
         end;
      end;
 end;
@@ -159,15 +168,20 @@ end;
 class function jsedit.RetornaIndiceDoPrimeiroCampo(formi : string) : Integer;
 var i : integer;
 begin
-  result := 0;
+  if not Assigned(lista) then lista := TObjectList.Create;
+  result := -1;
   if lista = nil then exit;
     for i := 0 to lista.Count - 1  do
       begin
-        if (formi = tEdit(lista.Items[i]).Owner.Name)  then
-          begin
+        try
+          if (formi = tEdit(lista.Items[i]).Owner.Name)  then begin
             result := i;
             break ;
           end;
+        finally
+
+        end;
+
       end;
 end;
 
@@ -179,11 +193,14 @@ begin
     begin
       for i := 0 to lista.Count - 1  do
         begin
-          if (formi = tEdit(lista.Items[i]).Owner.Name) and (tEdit(lista.Items[i]).Enabled)  then
-            begin
+          try
+            if (formi = tEdit(lista.Items[i]).Owner.Name) and (tEdit(lista.Items[i]).Enabled)  then begin
               result := i;
               break ;
             end;
+          finally
+
+          end;
         end;
     end;
 end;
@@ -196,7 +213,11 @@ begin
  result := 0;
  for i := 0 to lista.Count -1 do
   begin
-    if form = self.form then result := Result+1;
+    try
+      if form = self.form then result := Result+1;
+    finally
+
+    end;
   end;
 end;
 
@@ -205,11 +226,14 @@ var i, atual, fim: integer;
 begin
   atual := 9999;
   fim := lista.Count -1;
+ 
+  //ShowMessage('22=' + IntToStr(fim));
   for i := 0 to fim do
    begin
      //se o formulario do componente atual é igual ao formulario do componente q foi passado como parametro
-     if (TEdit(lista.Items[i]).Owner.Name = TEdit(comp).owner.Name) then
-      begin
+     try
+       //ShowMessage('33=' + TEdit(lista.Items[i]).Name);
+       if (TEdit(lista.Items[i]).Owner.Name = TEdit(comp).owner.Name) then begin
         //quando o contador for maior que o componente atual
         if i > atual then
          begin
@@ -217,28 +241,31 @@ begin
           if (TEdit(lista.Items[i]).Enabled) and (TEdit(lista.Items[i]).Visible) then
            begin
             Tedit(lista.Items[i]).SetFocus;
+            //Tedit(lista.Items[i]).SelLength := Length(Tedit(lista.Items[i]).Text);
+            //Tedit(lista.Items[i]).SelStart  := 0;
             break;
            end;
          end;
+
        //comparacao para encontrar o componente atual
        if tedit(lista.Items[i]).Name = tedit(comp).Name then
         begin
          //se o contador (i) é igual ao ultimo entao dá o focus no primeiro botao
          if i = RetornaIndiceDoUltimoCampo(jsedit(comp).owner.Name) then
           begin
-           if GetPrimeiroBotao(comp.Owner.Name)<> nil then GetPrimeiroBotao(comp.Owner.Name).SetFocus;
+           if GetPrimeiroBotao(comp.Owner.Name)<> nil then begin
+             if GetPrimeiroBotao(comp.Owner.Name) <> nil then
+             GetPrimeiroBotao(comp.Owner.Name).SetFocus;
+           end;
           end;
          atual := i;
         end;
       end;
+     finally
+     end;
    end;
-{   if (lista.Count-1=i)  then
-    begin
-     PostMessage((tedit(comp).Owner as TWinControl).Handle, WM_NEXTDLGCTL, 0, 0);
-    end;
-}
-
 end;
+
 
 procedure JsEdit.SetAlignment(const Value: TAlignment);
 begin
@@ -272,12 +299,14 @@ inherited KeyPress(Key);
 if self.func then
  begin
   ok := true;
+
   //se foi pressionado enter, se é o primeiro campo, se está em branco e se é um JsEditInteiro - preenche com 0
   if (Key = #13) and (self = lista.Items[RetornaIndiceDoPrimeiroCampo(self.Owner.Name)]) and (Self.Text = '') and (UsarCadastro) then
    //and (Self.ClassName = 'JsEditInteiro') then
      begin
        Self.Text := '0';
      end;
+
   //se foi pressionado enter, se é o primeiro campo, e se está preenchido
   if (Key = #13) and (self = lista.Items[RetornaIndiceDoPrimeiroCampo(self.Owner.Name)]) and (Self.Text <> '0') and (Self.ClassName = 'JsEditInteiro') and (UsarCadastro) then
      begin
@@ -296,8 +325,9 @@ if self.func then
             Self.SetFocus;
             exit;
           end;
-       if ok then
-          if func then AchaProximo(self)
+       if ok then begin
+          if func then AchaProximo(self);
+       end
          else
           Key := #0;
      end;
@@ -356,50 +386,49 @@ end;
 class procedure JsEdit.LiberaMemoria(form : tform);
 var i : integer;
 begin
+  if not Assigned(lista) then lista := TObjectList.Create;
+  if not Assigned(botoes) then botoes := TObjectList.Create;
   //varre a lista de traz pra frente excluindo os componentes
+
+  try
   if lista <> nil then
     begin
-      for i := lista.Count-1 downto 0 do
-        begin
-          try
-            //if not Assigned(lista.Items[i])) then lista.Delete(i)
-            //else
-             // begin
-                if tform(lista.Items[i]).Owner.Name = form.Name then
-                  begin
-                    lista.Delete(i);
-                  end;
-             // end;    
-          except
+      for i := lista.Count-1 downto 0 do begin
+        try
+          if tform(lista.Items[i]).Owner.Name = form.Name then begin
+            lista.Delete(i);
+          end;
+        except
         end;
-    end;
-
-  if botoes <> nil then
-    begin
-      for i := botoes.Count-1 downto 0 do
-        begin
-          if TBitBtn(botoes.Items[i]).Owner.Name = form.Name then
-            begin
-              botoes.Delete(i);
-            end;
-        end;
-
-  if botoes.Count = 0 then
-      begin
-        botoes.Free;
-        botoes := nil;
       end;
 
- end;
- if lista.Count = 0 then
-  begin
-   lista.Free;
-   lista := nil;
+  if Assigned(botoes) then begin
+      for i := botoes.Count-1 downto 0 do
+        begin
+          try
+          if assigned(botoes.Items[i]) then begin
+            if TBitBtn(botoes.Items[i]).Owner.Name = form.Name then begin
+              botoes.Delete(i);
+            end;
+          end
+          else botoes.Delete(i);
+          finally
+
+          end;
+        end;
+
+      if botoes.Count = 0 then begin
+        botoes.Clear;
+      end;
+  end;
+
+  if lista.Count = 0 then begin
+    lista.Clear;
   end;
 
  end;
-
-
+  finally
+  end;
 end;
 
 class procedure JsEdit.SetFocusNoPrimeiroCampo(comp:string);
@@ -409,8 +438,8 @@ begin
   //exit;
   for i := 0 to lista.Count-1 do
    begin
-      if comp = jsedit(lista.Items[i]).Owner.Name then
-        begin
+      try
+        if comp = jsedit(lista.Items[i]).Owner.Name then begin
           if not tedit(lista.Items[i]).Visible then
             begin
               tedit(lista.Items[i + 1]).SetFocus;
@@ -420,6 +449,9 @@ begin
           tedit(lista.Items[i]).SetFocus;
           break ;
         end;
+      finally
+
+      end;
    end;
 
  { JsEdit(lista.First).enabled := true;
@@ -429,15 +461,18 @@ end;
 class procedure JsEdit.SetFocusNoUltimoCampo;
 var i : integer;
 begin
-  for i:=lista.Count-1 downto 0  do
+  for i := lista.Count-1 downto 0  do
    begin
-      if formulario = tedit(lista.Items[i]).Owner.Name then
-        begin
+      try
+        if formulario = tedit(lista.Items[i]).Owner.Name then begin
           tedit(lista.Items[i]).Enabled := true;
           tedit(lista.Items[i]).SetFocus;
           break ;
         end;
-     end;
+      finally
+
+      end;
+   end;
 end;
 
 class procedure JsEdit.SetFocusNoPrimeiroBotao();
@@ -450,10 +485,13 @@ var
  ini, fim : integer;
  tipo, decimais : String;
 begin
-
   fim := RetornaIndiceDoUltimoCampo(form);
-  for ini := RetornaIndiceDoPrimeiroCampo(form) to fim do
+  ini := RetornaIndiceDoPrimeiroCampo(form);
+  if ini = -1 then exit;
+
+  for ini := ini to fim do
     begin
+      try
       tipo := lista.Items[ini].ClassName;
       JsEdit(lista.Items[ini]).Text := '';
       if tipo = 'JsEditData' then
@@ -466,6 +504,9 @@ begin
         DECIMAIS    := '00';
         IF POS(UpperCase(JsEdit(lista.Items[ini]).Name), 'P_COMPRA|P_VENDA|QUANT') > 0 THEN DECIMAIS := '000';
         JsEdit(lista.Items[ini]).Text := '0,' + decimais;
+      end;
+      finally
+
       end;
     end;
 
@@ -488,15 +529,20 @@ class function JsEdit.GetPrimeiroBotao(form:string) : TBitBtn;
 var i : Integer;
 begin
   Result := nil;
+
   if botoes <> nil then
     begin
       for i := 0 to botoes.Count - 1 do
         begin
+          try
           if TBitBtn(botoes.Items[i]).Owner.Name = form then
             begin
               result := TBitBtn(botoes.Items[i]);
               break;
             end;
+          finally
+
+          end;
         end;
     end;
 //  result := primeiroBotao;
@@ -509,11 +555,15 @@ begin
     begin
       for i := botoes.Count - 1 downto 0 do
         begin
+          try
           if TBitBtn(botoes.Items[i]).Owner.Name = form then
             begin
               result := TBitBtn(botoes.Items[i]);
               break;
             end;
+          finally
+
+          end;
         end;
     end;
 //  result := ultimoBotao;
@@ -526,14 +576,16 @@ begin
   result := nil;
 if lista <> nil then
  begin
-  for i:=0 to lista.Count-1 do
+  for i := 0 to lista.Count-1 do
    begin
-      if formi = jsedit(lista.Items[i]).owner.Name then
-        begin
-          //ShowMessage(JsEdit(lista.Items[i]).Text);
+      try
+        if formi = jsedit(lista.Items[i]).owner.Name then begin
           result := JsEdit(lista.Items[i]);
           break;
         end;
+      finally
+
+      end;
    end;
  end;
 end;
@@ -846,6 +898,7 @@ end;
 
 class procedure JsEdit.SetTabelaDoBd(form:tform;tabela1 : string; query1 : tibquery; primarykey1 : String = '');
 begin
+
   if not Assigned(tabelas) then tabelas := TStringList.Create;
   if not Assigned(primarykey) then primarykey := TStringList.Create;
   if tabelas.Values[form.Name]='' then tabelas.Add(form.Name+'='+tabela1);
@@ -890,7 +943,7 @@ class function JsEdit.DeletaChar(sub:string;texto:string):string;
 var i:integer;
 begin
   Result :='';
-  for i:=1 to length(texto) do
+  for i := 1 to length(texto) do
    begin
     //ShowMessage(texto[i]);
     if sub<>texto[i] then Result := Result + texto[i];

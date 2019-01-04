@@ -144,7 +144,20 @@ object Form12: TForm12
         Font.Style = [fsBold]
         ParentFont = False
       end
-      object cnpj: JsEditCPF
+      object Label6: TLabel
+        Left = 8
+        Top = 120
+        Width = 44
+        Height = 16
+        Caption = 'CNPJ:'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = 'MS Sans Serif'
+        Font.Style = [fsBold]
+        ParentFont = False
+      end
+      object cpf: JsEditCPF
         Left = 8
         Top = 72
         Width = 209
@@ -159,7 +172,7 @@ object Form12: TForm12
         ParentFont = False
         TabOrder = 0
         Text = '   .   .   -  '
-        OnKeyPress = cnpjKeyPress
+        OnKeyPress = cpfKeyPress
       end
       object nome: JsEdit
         Left = 8
@@ -181,15 +194,28 @@ object Form12: TForm12
         Indice = 0
         TipoDeDado = teNumero
       end
+      object cnpj1: JsEditCPF
+        Left = 8
+        Top = 136
+        Width = 257
+        Height = 40
+        EditMask = '!99.999.999/9999-99;1;_'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -29
+        Font.Name = 'MS Sans Serif'
+        Font.Style = [fsBold]
+        MaxLength = 18
+        ParentFont = False
+        TabOrder = 2
+        Text = '  .   .   /    -  '
+        OnKeyPress = cnpj1KeyPress
+      end
     end
     object TabSheet2: TTabSheet
       Caption = 'Estrangeiro'
       ImageIndex = 1
       OnShow = TabSheet2Show
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 281
-      ExplicitHeight = 165
       object Label2: TLabel
         Left = 8
         Top = 0

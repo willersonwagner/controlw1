@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, Buttons, JsBotao1, ExtCtrls, Mask, JsEditCPF1, JsEdit1,
-  JsEditInteiro1, untnfceForm;
+  JsEditInteiro1;
 
 type
   TcadCliNFCe = class(TForm)
@@ -55,7 +55,7 @@ var
 
 implementation
 
-uses untDtmMain, func;
+uses func, untnfceForm;
 
 {$R *.dfm}
 
@@ -96,7 +96,7 @@ procedure TcadCliNFCe.codKeyUp(Sender: TObject; var Key: Word;
 begin
   if (Key = 116) then
     begin
-      tedit(sender).Text := localizar1('Localizar Cliente','cliente','cod,nome,telres,telcom,cnpj as cpfcnpj,bairro','cod','','nome','nome',false,false,false,'','',450, nil);
+      tedit(sender).Text := funcoes.localizar('Localizar Cliente','cliente','cod,nome,telres,telcom,cnpj as cpfcnpj,bairro','cod','','nome','nome',false,false,false,'',450,NIL);
       key := 0;
     end;
 end;

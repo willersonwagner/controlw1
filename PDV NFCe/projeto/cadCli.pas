@@ -14,7 +14,7 @@ type
     PageControl1: TPageControl;
     TabSheet1: TTabSheet;
     TabSheet2: TTabSheet;
-    cnpj: JsEditCPF;
+    cpf: JsEditCPF;
     Label3: TLabel;
     nome: JsEdit;
     Label1: TLabel;
@@ -23,6 +23,8 @@ type
     Label4: TLabel;
     estran_ide: JsEditInteiro;
     Label5: TLabel;
+    cnpj1: JsEditCPF;
+    Label6: TLabel;
     procedure bairroKeyPress(Sender: TObject; var Key: Char);
     procedure buttonKeyPress(Sender: TObject; var Key: Char);
     procedure codKeyUp(Sender: TObject; var Key: Word;
@@ -30,7 +32,7 @@ type
     procedure buttonClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure numeroKeyPress(Sender: TObject; var Key: Char);
-    procedure cnpjKeyPress(Sender: TObject; var Key: Char);
+    procedure cpfKeyPress(Sender: TObject; var Key: Char);
     procedure codKeyPress(Sender: TObject; var Key: Char);
     procedure FormCreate(Sender: TObject);
     procedure nomeKeyPress(Sender: TObject; var Key: Char);
@@ -43,6 +45,7 @@ type
     procedure estran_nomeKeyPress(Sender: TObject; var Key: Char);
     procedure estran_nomeExit(Sender: TObject);
     procedure estran_ideKeyPress(Sender: TObject; var Key: Char);
+    procedure cnpj1KeyPress(Sender: TObject; var Key: Char);
   private
     estrangeiro : boolean;
     codpais : String;
@@ -68,8 +71,9 @@ uses untDtmMain;
 procedure TForm12.limpa();
 begin
   if PageControl1.ActivePage = TabSheet1 then begin
-    nome.Text := '';
-    cnpj.Text := '';
+    nome.Text  := '';
+    cnpj1.Text := '';
+    cpf.Text   := '';
     nome.SetFocus;
   end
   else begin
@@ -230,7 +234,7 @@ begin
   end;
 end;
 
-procedure TForm12.cnpjKeyPress(Sender: TObject; var Key: Char);
+procedure TForm12.cpfKeyPress(Sender: TObject; var Key: Char);
 begin
   if key = #27 then
     begin
@@ -239,20 +243,52 @@ begin
 
   if key = #13 then
     begin
-      if not testacpf(cnpj.Text) then
-        begin
+      if length(StrNum(cpf.Text)) = 11 then begin
+        if not testacpf(cpf.Text) then begin
           MessageDlg('CPF Inválido!', mtError, [mbOK], 1);
           key := #0;
           abort;
           exit;
         end
-      else
-        begin
+        else begin
           key := #0;
-          buscaCliente(cnpj.Text);
+          buscaCliente(cpf.Text);
           montaRetorno();
           button.SetFocus;
         end;
+      end
+      else begin
+        cnpj1.SetFocus;
+      end;
+    end;
+end;
+
+procedure TForm12.cnpj1KeyPress(Sender: TObject; var Key: Char);
+begin
+  if key = #27 then
+    begin
+      limpa;
+    end;
+
+  if key = #13 then
+    begin
+      if length(StrNum(tedit(sender).Text)) = 14 then begin
+        if not validacnpj(cnpj1.Text) then begin
+          MessageDlg('CNPJ Inválido!', mtError, [mbOK], 1);
+          key := #0;
+          abort;
+          exit;
+        end
+        else begin
+          key := #0;
+          buscaCliente(cnpj1.Text);
+          montaRetorno();
+          button.SetFocus;
+        end;
+      end
+      else begin
+        button.SetFocus;
+      end;
     end;
 end;
 
@@ -320,8 +356,9 @@ begin
   end;
 
   if length(nome.Text) < 2 then nome.Text := 'Venda ao Consumidor';
-  codCliente := 'nome=' + nome.Text + #13 +
-  'cpf=' + cnpj.Text;
+  codCliente := 'nome=' + nome.Text + #13;
+  if Length(StrNum(cnpj1.Text)) = 14  then codCliente := codCliente + 'cpf=' + cnpj1.Text
+  else codCliente := codCliente + 'cpf=' + cpf.Text;
 end;
 
 procedure TForm12.nomeKeyPress(Sender: TObject; var Key: Char);
@@ -333,7 +370,7 @@ begin
     end;
 
   if key = #13 then begin
-    cnpj.SetFocus;
+    cpf.SetFocus;
     key := #0;
   end;
 end;

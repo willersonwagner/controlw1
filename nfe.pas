@@ -1610,6 +1610,7 @@ begin
         dm.ACBrNFe.NotasFiscais[0].Imprimir;
         exit;
                                }
+
         imprimirNFe();
         form2.Button1.Click;
       except

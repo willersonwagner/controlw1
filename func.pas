@@ -15,7 +15,7 @@ uses
   IdExplicitTLSClientServerBase, ACBrETQ, Vcl.FileCtrl,
   TLHelp32, PsAPI, ACBrCargaBal, pcnConversaoNFe,
   pcnConversao, System.Zip, ACBrMail
-  , IdMultipartFormData;
+  , IdMultipartFormData, cadClicompleto;
 
 const
   OffsetMemoryStream: Int64 = 0;
@@ -121,6 +121,7 @@ type
       var lista: TItensAcumProd): boolean;
     procedure atualizaMSGsObsVenda();
     function imprimeOBS_Servico(tipo : String = 'M') : integer;
+    function ReferenciaChavesObrigatoriasNFe(var info1 : string) : string;
     { Private declarations }
   public
     inicio1: Smallint;
@@ -644,7 +645,7 @@ uses Unit1, Math, dialog, formpagtoformulario, StrUtils,
   buscaSelecao, Menus, Unit38, imprime1, Unit42, dm1,
   subconsulta, vendas, nfe, Unit48, login, DateUtils, zlib, envicupom,
   untnfceForm,
-  Unit57, cadCli, cadCli1, dadosTransp, cadproduto, gifAguarde, param,
+  Unit57, cadCli, dadosTransp, cadproduto, gifAguarde, param,
   caixaLista, unid, Unit69, consultaOrdem, Unit73;
 
 {$R *.dfm}
@@ -10541,6 +10542,10 @@ begin
       dm.IBQuery1.Transaction.Commit;
     end;
 
+    if not verSeExisteTabela('EXCSERV') then begin
+
+    end;
+
     //VerificaVersao_do_bd
   end;
 
@@ -18569,7 +18574,7 @@ begin
     end;
   end;
 
-  if buscaParamGeral(53, 'S') = 'S' then
+  if buscaParamGeral(53, 'N') = 'S' then
   begin
     cadCliNFCe := tcadCliNFCe.Create(self);
     cadCliNFCe.ShowModal;
@@ -18579,7 +18584,6 @@ begin
   else
   begin
     CadClienteSimplificado := tCadClienteSimplificado.Create(self);
-    CadClienteSimplificado.limpa;
     CadClienteSimplificado.ShowModal;
     Result := CadClienteSimplificado.codcliente;
   end;
@@ -20289,6 +20293,7 @@ begin
   if ((trim(cOp) = '') or (length(cOp) <> 4) or (LeftStr(cOp, 1) <> '5')) then
     cOp := '5102';
 
+
   if cOp = '' then
   begin
     dm.IBselect.Close;
@@ -20410,6 +20415,14 @@ begin
           '', 'nome', 'cod', False, False, False, '', 0, nil);
       if cOp = '*' then
         break;
+
+
+      //se for exportação indireta entao o sistema pede pra refenciar as chaves
+      if contido('-'+cOp+'-', '-3503-7501-') then begin
+        TAG_DOCREF := ReferenciaChavesObrigatoriasNFe(infoAdi);
+        if TAG_DOCREF = '' then exit;
+      end;
+
 
       if ((tipo = 'E') and (funcoes.Contido(LeftStr(cOp, 1), '123'))) or
         ((tipo = 'S') and (funcoes.Contido(LeftStr(cOp, 1), '567'))) then
@@ -26469,5 +26482,41 @@ begin
   if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
 end;
 
+function Tfuncoes.ReferenciaChavesObrigatoriasNFe(var info1 : string) : string;
+var
+  nfeRefLista : TStringList;
+  i : integer;
+  res, NFE_REF, TAG_DOCREF : string;
+begin
+  Result := '';
+  Res := funcoes.MensagemTextoInput
+        ('Nota de Devolução. É Obrigatório informar as chaves das NFes que Deseja Devolver.', 'XX');
+  nfeRefLista := tstringList.Create;
+  nfeRefLista.text := Res;
+
+  if trim(nfeRefLista.text) = '' then begin
+    nfeRefLista.Free;
+    ShowMessage('Preencha a Chave da Nota que deseja Devolver!');
+    exit;
+  end;
+
+  TAG_DOCREF := '';
+
+  if nfeRefLista.count > 0 then begin
+    for i := 0 to nfeRefLista.count - 1 do begin
+      NFE_REF := nfeRefLista[i];
+      if length(StrNum(NFE_REF)) = 44 then begin
+        TAG_DOCREF := TAG_DOCREF + '<NFref><refNFe>' + StrNum(NFE_REF) +'</refNFe></NFref>';
+        info1 := info1 + StrNum(NFE_REF) + ';';
+      end;
+    end;
+  end;
+
+  if TAG_DOCREF <> '' then begin
+    Result := TAG_DOCREF;
+    info1 := 'Chaves Referênciada: ' + info1;
+  end;
+
+end;
 
 end.

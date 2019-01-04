@@ -1,171 +1,45 @@
-object cadCliNFCe: TcadCliNFCe
+object CadClienteSimplificado: TCadClienteSimplificado
   Left = 192
   Top = 124
   Caption = 'Identifica'#231#227'o de Clientes'
-  ClientHeight = 142
-  ClientWidth = 508
+  ClientHeight = 253
+  ClientWidth = 470
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Font.Style = []
+  KeyPreview = True
   OldCreateOrder = False
   Position = poScreenCenter
-  OnClose = FormClose
   OnCreate = FormCreate
+  OnKeyDown = FormKeyDown
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
-  object Label1: TLabel
-    Left = 104
-    Top = 8
-    Width = 46
-    Height = 16
-    Caption = 'Nome:'
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -13
-    Font.Name = 'MS Sans Serif'
-    Font.Style = [fsBold]
-    ParentFont = False
-  end
-  object Label2: TLabel
-    Left = 16
-    Top = 56
-    Width = 72
-    Height = 16
-    Caption = 'Endere'#231'o:'
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -13
-    Font.Name = 'MS Sans Serif'
-    Font.Style = [fsBold]
-    ParentFont = False
-  end
-  object Label3: TLabel
-    Left = 368
-    Top = 8
-    Width = 34
-    Height = 16
-    Caption = 'CPF:'
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -13
-    Font.Name = 'MS Sans Serif'
-    Font.Style = [fsBold]
-    ParentFont = False
-  end
-  object Label7: TLabel
-    Left = 16
-    Top = 8
-    Width = 37
-    Height = 16
-    Caption = 'C'#243'd.:'
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -13
-    Font.Name = 'MS Sans Serif'
-    Font.Style = [fsBold]
-    ParentFont = False
-  end
-  object Label4: TLabel
-    Left = 344
-    Top = 56
-    Width = 47
-    Height = 16
-    Caption = 'Bairro:'
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -13
-    Font.Name = 'MS Sans Serif'
-    Font.Style = [fsBold]
-    ParentFont = False
-  end
-  object cod: JsEditInteiro
-    Left = 16
-    Top = 24
-    Width = 81
-    Height = 24
-    CharCase = ecUpperCase
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -13
-    Font.Name = 'MS Sans Serif'
-    Font.Style = [fsBold]
-    ParentFont = False
-    TabOrder = 0
-    OnKeyPress = codKeyPress
-    OnKeyUp = codKeyUp
-    FormularioComp = 'Form12'
-    Indice = 0
-    TipoDeDado = teNumero
-  end
-  object nome: JsEdit
-    Left = 104
-    Top = 24
-    Width = 257
-    Height = 24
-    CharCase = ecUpperCase
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -13
-    Font.Name = 'MS Sans Serif'
-    Font.Style = [fsBold]
-    MaxLength = 40
-    ParentFont = False
-    TabOrder = 1
-    OnEnter = nomeEnter
-    FormularioComp = 'Form12'
-    Indice = 0
-    TipoDeDado = teNumero
-  end
-  object cnpj: JsEditCPF
-    Left = 368
-    Top = 24
-    Width = 121
-    Height = 24
-    EditMask = '!999.999.999-99;1;_'
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -13
-    Font.Name = 'MS Sans Serif'
-    Font.Style = [fsBold]
-    MaxLength = 14
-    ParentFont = False
-    TabOrder = 2
-    Text = '   .   .   -  '
-    OnKeyPress = cnpjKeyPress
-    ValidaCampo = True
-  end
-  object ende: JsEdit
-    Left = 16
-    Top = 72
-    Width = 321
-    Height = 24
-    CharCase = ecUpperCase
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -13
-    Font.Name = 'MS Sans Serif'
-    Font.Style = [fsBold]
-    MaxLength = 34
-    ParentFont = False
-    TabOrder = 3
-    FormularioComp = 'Form12'
-    ValidaCampo = True
-    Indice = 0
-    TipoDeDado = teNumero
-  end
   object ToolBar1: TPanel
     Left = 0
-    Top = 107
-    Width = 508
+    Top = 218
+    Width = 470
     Height = 35
     Align = alBottom
-    TabOrder = 4
+    TabOrder = 0
+    object Label5: TLabel
+      Left = 85
+      Top = 10
+      Width = 236
+      Height = 16
+      Caption = 'F2 - Alterna Brasileiro/Estrangeiro'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'MS Sans Serif'
+      Font.Style = [fsBold]
+      ParentFont = False
+    end
     object button: JsBotao
-      Left = 0
+      Left = 4
       Top = 2
       Width = 75
       Height = 31
@@ -232,45 +106,184 @@ object cadCliNFCe: TcadCliNFCe
       OnKeyPress = buttonKeyPress
     end
   end
-  object bairro: JsEdit
-    Left = 344
-    Top = 72
-    Width = 145
-    Height = 24
-    CharCase = ecUpperCase
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -13
-    Font.Name = 'MS Sans Serif'
-    Font.Style = [fsBold]
-    MaxLength = 34
-    ParentFont = False
-    TabOrder = 5
-    OnKeyPress = bairroKeyPress
-    FormularioComp = 'Form12'
-    ValidaCampo = True
-    Indice = 0
-    TipoDeDado = teNumero
-  end
-  object tipo: JsEditInteiro
-    Left = 243
-    Top = 48
-    Width = 57
-    Height = 24
-    CharCase = ecUpperCase
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -13
-    Font.Name = 'MS Sans Serif'
-    Font.Style = [fsBold]
-    MaxLength = 40
-    ParentFont = False
-    TabOrder = 6
-    Text = '1'
-    Visible = False
-    FormularioComp = 'Form16'
-    ColorOnEnter = clSkyBlue
-    Indice = 0
-    TipoDeDado = teNumero
+  object PageControl1: TPageControl
+    Left = 0
+    Top = 0
+    Width = 470
+    Height = 218
+    ActivePage = TabSheet1
+    Align = alClient
+    TabOrder = 1
+    OnChange = PageControl1Change
+    object TabSheet1: TTabSheet
+      Caption = 'Brasileiro'
+      OnShow = TabSheet1Show
+      object Label3: TLabel
+        Left = 8
+        Top = 56
+        Width = 34
+        Height = 16
+        Caption = 'CPF:'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = 'MS Sans Serif'
+        Font.Style = [fsBold]
+        ParentFont = False
+      end
+      object Label1: TLabel
+        Left = 8
+        Top = 0
+        Width = 46
+        Height = 16
+        Caption = 'Nome:'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = 'MS Sans Serif'
+        Font.Style = [fsBold]
+        ParentFont = False
+      end
+      object Label6: TLabel
+        Left = 8
+        Top = 120
+        Width = 44
+        Height = 16
+        Caption = 'CNPJ:'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = 'MS Sans Serif'
+        Font.Style = [fsBold]
+        ParentFont = False
+      end
+      object cpf: JsEditCPF
+        Left = 8
+        Top = 72
+        Width = 209
+        Height = 40
+        EditMask = '!999.999.999-99;1;_'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -29
+        Font.Name = 'MS Sans Serif'
+        Font.Style = [fsBold]
+        MaxLength = 14
+        ParentFont = False
+        TabOrder = 0
+        Text = '   .   .   -  '
+        OnKeyPress = cpfKeyPress
+      end
+      object nome: JsEdit
+        Left = 8
+        Top = 15
+        Width = 425
+        Height = 32
+        CharCase = ecUpperCase
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -20
+        Font.Name = 'MS Sans Serif'
+        Font.Style = [fsBold]
+        MaxLength = 40
+        ParentFont = False
+        TabOrder = 1
+        OnExit = nomeExit
+        OnKeyPress = nomeKeyPress
+        FormularioComp = 'Form12'
+        Indice = 0
+        TipoDeDado = teNumero
+      end
+      object cnpj1: JsEditCPF
+        Left = 8
+        Top = 136
+        Width = 257
+        Height = 40
+        EditMask = '!99.999.999/9999-99;1;_'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -29
+        Font.Name = 'MS Sans Serif'
+        Font.Style = [fsBold]
+        MaxLength = 18
+        ParentFont = False
+        TabOrder = 2
+        Text = '  .   .   /    -  '
+        OnKeyPress = cnpj1KeyPress
+      end
+    end
+    object TabSheet2: TTabSheet
+      Caption = 'Estrangeiro'
+      ImageIndex = 1
+      OnShow = TabSheet2Show
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
+      object Label2: TLabel
+        Left = 8
+        Top = 0
+        Width = 46
+        Height = 16
+        Caption = 'Nome:'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = 'MS Sans Serif'
+        Font.Style = [fsBold]
+        ParentFont = False
+      end
+      object Label4: TLabel
+        Left = 8
+        Top = 53
+        Width = 79
+        Height = 16
+        Caption = 'Identidade:'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = 'MS Sans Serif'
+        Font.Style = [fsBold]
+        ParentFont = False
+      end
+      object estran_nome: JsEdit
+        Left = 8
+        Top = 15
+        Width = 425
+        Height = 32
+        CharCase = ecUpperCase
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -20
+        Font.Name = 'MS Sans Serif'
+        Font.Style = [fsBold]
+        MaxLength = 40
+        ParentFont = False
+        TabOrder = 0
+        OnExit = estran_nomeExit
+        OnKeyPress = estran_nomeKeyPress
+        FormularioComp = 'Form12'
+        Indice = 0
+        TipoDeDado = teNumero
+      end
+      object estran_ide: JsEditInteiro
+        Left = 8
+        Top = 75
+        Width = 273
+        Height = 32
+        CharCase = ecUpperCase
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -20
+        Font.Name = 'MS Sans Serif'
+        Font.Style = [fsBold]
+        ParentFont = False
+        TabOrder = 1
+        OnKeyPress = estran_ideKeyPress
+        FormularioComp = 'Form12'
+        Indice = 0
+        TipoDeDado = teNumero
+      end
+    end
   end
 end
