@@ -3056,7 +3056,7 @@ function EnviarCupomEletronicoTitular(nota: String; var Status, xmotivo: string;
 var
   SQL, qUsuario, para, ssChave, erro1, NumeroRecibo, ser, erroTemp: string;
   Mensagememail: TStrings;
-  csta, i: integer;
+  csta, i, a: integer;
   enviou: boolean;
   xml: AnsiString;
   arq: TStringList;
@@ -3236,24 +3236,41 @@ begin
         ERRO_dados := '';
 
         csta := 999;
-        if acbrNFeEnviar(20) then
-        begin
-          //se entrou aqui é pq passou do metodo acbr.Enviar
-          ACBrNFe.WebServices.Retorno.Recibo :=
-            ACBrNFe.WebServices.enviar.Recibo;
-          ACBrNFe.WebServices.Retorno.Executar;
+        a := 0;
 
-          csta := ACBrNFe.WebServices.Retorno.cstat;
+        //tenta enviar 2 vezes em intervalo de 10s de espera, caso venha retorno entao sai do while
+        while true do begin
+          a := a + 1;
+          if acbrNFeEnviar(10) then begin
+            //se entrou aqui é pq passou do metodo acbr.Enviar
+            ACBrNFe.WebServices.Retorno.Recibo := ACBrNFe.WebServices.enviar.Recibo;
+            ACBrNFe.WebServices.Retorno.Executar;
+
+            csta := ACBrNFe.WebServices.Retorno.cstat;
+           end
+           else begin
+             csta := ACBrNFe.WebServices.Retorno.cstat;
+           end;
+
+           {ShowMessage('acbrNFeEnviar(10)'  + #13 + 'csta=' + IntToStr(csta) + #13 + 'a=' + IntToStr(a));
+           if csta = 100 then csta := 999;
+           if csta = 204 then break;}
+          if (((csta > 0) and (csta < 999)) or (a >= 4)) then break;
         end;
 
-        //ShowMessage('csta=' + IntToStr(csta) + #13 + #13 +
-        //'ERRO_dados=' + ERRO_dados);
+        //se nao veio resposta entao consulta 3x pra ver se foi emitida ou o cstat veio com valor 999
+        //como foi iniciado a variavel, caso venha um cstat entao sai do while
+        if (Contido('(5)-', ERRO_dados) or (csta = 999) or (csta = 204))  then begin
+          a := 0;
+          while true do begin
+            a := a + 1;
+            if acbrNFeConsultar(10) then begin
+              csta := ACBrNFe.NotasFiscais[0].nfe.procNFe.cstat;
+              ACBrNFe.NotasFiscais[0].GravarXML(CHAVENF + '-nfe.xml', buscaPastaNFCe(CHAVENF, false));
+            end;
 
-        //se nao veio resposta entao consulta pra ver se foi emitida ou o cstat veio com valor 0
-        if (Contido('(5)-Requisi', ERRO_dados) or (csta = 0))  then begin
-          if acbrNFeConsultar(20) then begin
-            csta := ACBrNFe.NotasFiscais[0].nfe.procNFe.cstat;
-            ACBrNFe.NotasFiscais[0].GravarXML(CHAVENF + '-nfe.xml', buscaPastaNFCe(CHAVENF, false));
+            //ShowMessage('acbrNFeConsultar(10)'  + #13 + 'csta=' + IntToStr(csta) + #13 + 'a=' + IntToStr(a));
+            if (((csta > 0) and (csta < 999)) or (a >= 3)) then break;
           end;
         end;
 
@@ -3276,10 +3293,13 @@ begin
         On e: Exception do
         begin
           erroTemp := e.Message;
+          //grava o log de erro
           gravaERRO_LOG1('', e.Message, 'Enviar');
+          //pega o cstat do retorno
           csta := ACBrNFe.WebServices.Retorno.cstat;
 
           try
+            //aqui envia o retorno pro nosso site remoto
             SendPostDataMensagem(Form72.IdHTTP1,
               trim(e.Message + ' | ' + ACBrNFe.WebServices.Retorno.xmotivo),
               'EnviarCupomEletronico2 3728', IntToStr(csta), NomedoComputador);
@@ -7460,8 +7480,7 @@ begin
   Form72.BMDThread1.Start;
 
   ERRO_dados := '';
-  while true do
-  begin
+  while true do begin
     application.ProcessMessages;
     sleep(500);
     cont := cont + 1;
@@ -7923,6 +7942,7 @@ begin
   if enviouNFE = 'N' then
     enviouNFE := 'E';
 
+
   sleep(1);
 end;
 
@@ -8255,7 +8275,9 @@ begin
     query1.Open;
 
     while not query1.Eof do begin
-      listaCFOP := listaCFOP + query1.FieldByName('cod').AsString + '-';
+      if RightStr(query1.FieldByName('cod').AsString, 2) <> '00' then begin
+        listaCFOP := listaCFOP + query1.FieldByName('cod').AsString + '-';
+      end;
       query1.Next;
     end;
   end;

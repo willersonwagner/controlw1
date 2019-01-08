@@ -2300,6 +2300,7 @@ begin
   Result := false;
   arq := TStringList.Create;
   try
+  try
     arq.LoadFromFile(buscaPastaNFCe(chaveXML) + chaveXML +
     '-nfe.xml');
     cstat := Le_Nodo('cStat', arq.Text);
@@ -2315,9 +2316,11 @@ begin
     else Result := true;
   except
     on e:exception do begin
-      arq.Free;
       RichEdit1.Lines.Add('Erro: ' + e.Message);
     end;
+  end;
+  finally
+    arq.Free;
   end;
 end;
 

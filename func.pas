@@ -26442,6 +26442,8 @@ procedure Tfuncoes.verificaProdutosDuplicados();
 var
  acc, cod : String;
 begin
+  exit;
+
   dm.IBselect.Close;
   dm.IBselect.SQL.Text := 'select nota,sum(total) + (select desconto from venda v where v.nota = i.nota), sum(p_compra), (select total from venda v where v.nota = i.nota) as total_nota from item_venda i where cancelado = 0 '+
   ' group by (nota) having (sum(total) + (select desconto from venda v where v.nota = i.nota) ) <> (select total from venda v where v.nota = i.nota)';

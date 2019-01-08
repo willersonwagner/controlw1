@@ -552,7 +552,7 @@ begin
       _LUCRO1 := (ARREDONDA(_LUCRO1 / MAT1[_COM] * 100, 2));
       //ARQ.Add(CurrToStr(_LUCRO1) + '=' + CurrToStr(_LUC));
       IF _LUCRO1 >= _LUC then Break;
-      _PVENDA1 := (_PVENDA1 + 0.001);
+      _PVENDA1 := (_PVENDA1 + 0.01);
    END;
 
    {ARQ.SaveToFile('ARQ.TXT');

@@ -2027,6 +2027,8 @@ begin
              _codbar := DIGEAN('789000' + CompletaOuRepete('',dm.IBselect.fieldbyname('cod').AsString ,'0',6));
            end;
 
+         _codbar := trim(_codbar);
+
          UNID := trim(dm.IBselect.fieldbyname('unid').AsString);
          if unid = '' then UNID := 'UN';
 
