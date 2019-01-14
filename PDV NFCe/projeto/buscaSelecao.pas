@@ -51,11 +51,14 @@ begin
       begin
         if DBGrid1.SelectedField.DisplayName = 'preco' then
           begin
+            if (Contido(LerConfig(configu, 2), 'SPX') = false)  then exit;
+            if form1.pgerais.Values['37'] <> 'S' then exit;
+
             //doc := dialogoG('numero', 0, '', 2, false, '', 'PDV - ControlW', 'Informe o Valor Pago:', formataCurrency(DBGrid1.DataSource.DataSet.FieldByName('preco').AsCurrency), true);
             //if doc = '*' then exit;
 
             ent := DBGrid1.DataSource.DataSet.FieldByName('precoOrigi').AsCurrency;
-            form3.lancaDesconto(total, ent, configu, form1.pgerais.Values['2'], acessoUsu, DBGrid1.DataSource.DataSet.FieldByName('preco').AsCurrency);
+            form3.lancaDesconto(total, ent, configu, LerConfig(configu, 2), acessoUsu, DBGrid1.DataSource.DataSet.FieldByName('preco').AsCurrency);
             if total = DBGrid1.DataSource.DataSet.FieldByName('precoOrigi').AsCurrency then exit;
 
             //ShowMessage('Total='+CurrToStr(ent) + #13 + 'Desc=' + CurrToStr(total));
@@ -64,14 +67,15 @@ begin
             //total := StrToCurr(doc) - total;
 
             //aqui eu pego o valor original e o valor de desconto
-            val := Arredonda(DBGrid1.DataSource.DataSet.FieldByName('quant').AsCurrency * DBGrid1.DataSource.DataSet.FieldByName('precoOrigi').AsCurrency, 2);
+            val       := Arredonda(DBGrid1.DataSource.DataSet.FieldByName('quant').AsCurrency * DBGrid1.DataSource.DataSet.FieldByName('precoOrigi').AsCurrency, 2);
             totalDesc := Arredonda(DBGrid1.DataSource.DataSet.FieldByName('quant').AsCurrency * ent, 2);
 
             total := val - totalDesc;
             total := -total;
 
-            form3.tot_ge := form3.tot_ge + total;
+            form3.tot_ge        := form3.tot_ge + total;
             form3.descontoItens := form3.descontoItens + total;
+            //form3.descontoItens := 0;
             Form3.PainelTotal.Caption := formataCurrency(form3.tot_ge);
 
             DBGrid1.DataSource.DataSet.Edit;
@@ -146,7 +150,7 @@ begin
         begin
           if Length(acessoUsu) > 0 then
             begin
-              MessageDlg('Usuário bloqueado para Cancelamento de Item da Venda', mtError, [mbOK], 1);
+              MessageDlg('Usuário bloqueado para Cancelamento de Produtos', mtError, [mbOK], 1);
               exit;
             end;
 

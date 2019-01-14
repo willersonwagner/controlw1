@@ -313,7 +313,7 @@ object Form20: TForm20
       object LabelVenda: TLabel
         Left = 1
         Top = 1
-        Width = 796
+        Width = 75
         Height = 29
         Align = alTop
         Alignment = taCenter
@@ -324,7 +324,6 @@ object Form20: TForm20
         Font.Name = 'MS Sans Serif'
         Font.Style = [fsBold]
         ParentFont = False
-        ExplicitWidth = 75
       end
     end
     object panelTotal: TPanel
@@ -347,8 +346,8 @@ object Form20: TForm20
       object total: TLabel
         Left = 0
         Top = 0
-        Width = 279
-        Height = 103
+        Width = 150
+        Height = 90
         Align = alClient
         Alignment = taCenter
         Caption = '0,00'
@@ -358,8 +357,6 @@ object Form20: TForm20
         Font.Name = 'Arial Black'
         Font.Style = [fsBold]
         ParentFont = False
-        ExplicitWidth = 150
-        ExplicitHeight = 90
       end
     end
     object Panel4: TPanel
@@ -404,11 +401,9 @@ object Form20: TForm20
       object labelValores: TLabel
         Left = 1
         Top = 1
-        Width = 277
-        Height = 37
+        Width = 4
+        Height = 17
         Align = alClient
-        ExplicitWidth = 4
-        ExplicitHeight = 17
       end
     end
   end

@@ -1415,6 +1415,9 @@ begin
   nf := funcoes.dialogo('generico',0,'1234567890'+#8,50,false,'','Control For Windows','Informe o Número da Nota Fiscal Eletrônica:', nf);
   if nf = '*' then exit;
 
+
+  if nf = '' then nf := funcoes.buscaNFEsPorCPF_CNPJ('');
+
   nfOri := nf;
   nf := funcoes.StrNum(nf);
   nf := funcoes.recuperaChaveNFe(nf);

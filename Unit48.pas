@@ -309,12 +309,9 @@ begin
       dm.IBQuery4.ParamByName('IS_PIS').AsString     := lista[i].CST_PIS;
       dm.IBQuery4.ParamByName('COD_ISPIS').AsString  := lista[i].COD_ISPIS;
       dm.IBQuery4.ParamByName('cod').AsInteger       := lista[i].cod;
-      try
-        dm.IBQuery4.ExecSQL;
-      except
-        erro := 'erro';
-      end;
+      dm.IBQuery4.ExecSQL;
 
+      ShowMessage('cod=' + IntToStr(lista[i].cod) + #13 + 'compra=' + CurrToStr(lista[i].BASE_ICM));
     end;
 
     if dm.IBQuery4.Transaction.InTransaction then dm.IBQuery4.Transaction.Commit;
@@ -1311,7 +1308,7 @@ begin
           lista[i].CST_PIS  := ClientDataSet1.FieldByName('PIS').AsString;
           lista[i].COD_ISPIS  := ClientDataSet1.FieldByName('COD_ISPIS').AsString;
 
-          lista[i].BASE_ICM := ArredondaFinanceiro(ClientDataSet1.fieldbyname('PRECO_NFE').AsCurrency / QTD_UNIDADE, 3);
+          //lista[i].BASE_ICM := ArredondaFinanceiro(ClientDataSet1.fieldbyname('PRECO_NFE').AsCurrency / QTD_UNIDADE, 3);
           lista[i].ncm      := ClientDataSet1.fieldbyname('ncm').AsString;
 
           //lista[i].preco := StrToCurrDef(ClientDataSet1.FieldByName('PRECO_COMPRA').AsString, 0);

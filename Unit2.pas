@@ -9333,18 +9333,7 @@ end;
 procedure TForm2.Reimpresso2Click(Sender: TObject);
 begin
   NfeVenda := TNfeVenda.Create(self);
-  try
-    if ConfParamGerais[36] <> 'N' then NfeVenda.Reimpressao
-      else NfeVenda.Reimpressao1;
-  except
-    on e:exception do
-      begin
-        if funcoes.Contido('LENGTH', UpperCase(e.Message)) then
-          begin
-            //NfeVenda.GeraXml;
-          END;
-      end;
-  end;    
+  NfeVenda.Reimpressao1;
   NfeVenda.Free;
 end;
 

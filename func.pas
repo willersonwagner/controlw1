@@ -138,6 +138,7 @@ type
     enviandoCupom, enviandoBackup: boolean;
     fonteRelatorioForm19: integer;
     NegritoRelatorioForm19, saiComEnter: boolean;
+    function buscaNFEsPorCPF_CNPJ(cpf : String) : String;
     procedure verificaProdutosDuplicados();
     function VerSeExisteTRIGGERPeloNome(Const nome: String): boolean;
     function primeiroDiaDoMes() : boolean;
@@ -646,7 +647,7 @@ uses Unit1, Math, dialog, formpagtoformulario, StrUtils,
   subconsulta, vendas, nfe, Unit48, login, DateUtils, zlib, envicupom,
   untnfceForm,
   Unit57, cadCli, dadosTransp, cadproduto, gifAguarde, param,
-  caixaLista, unid, Unit69, consultaOrdem, Unit73;
+  caixaLista, unid, Unit69, consultaOrdem, Unit73, Unit76;
 
 {$R *.dfm}
 
@@ -26520,5 +26521,89 @@ begin
   end;
 
 end;
+
+function Tfuncoes.buscaNFEsPorCPF_CNPJ(cpf : String) : String;
+var
+  campo, xml, cnpjXML, data, sit : String;
+  arq, cc : tstringlist;
+begin
+  if cpf <> '' then exit;
+  form76 := TForm76.Create(self);
+  form76.ShowModal;
+  if Length(StrNum(form76.cpf.Text)) = 11        then begin
+    cpf   := form76.cpf.Text;
+    campo := 'CPF';
+  end
+  else if Length(StrNum(form76.cnpj1.Text)) = 14 then begin
+    cpf := form76.cnpj1.Text;
+    campo := 'CNPJ';
+  end
+  else exit;
+
+  arq := TStringList.Create;
+ 
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select * from nfe';
+  dm.IBselect.Open;
+
+  form33 := TForm33.Create(self);
+  form33.Caption := 'NFEs Por CPF/CNPJ: ' + cpf;
+
+  form33.ClientDataSet1.FieldDefs.Clear;
+  form33.ClientDataSet1.FieldDefs.Add('CHAVE', ftString, 50);
+  form33.ClientDataSet1.FieldDefs.Add('DATA'   , ftDate);
+  form33.ClientDataSet1.FieldDefs.Add('VALOR' ,ftCurrency);
+  form33.ClientDataSet1.FieldDefs.Add('ESTADO' ,ftString, 40);
+
+  form33.DataSource1.DataSet := form33.ClientDataSet1;
+  Form33.DBGrid1.DataSource  := form33.DataSource1;
+
+  form33.campolocalizaca := 'nfeB';
+  form33.ClientDataSet1.CreateDataSet;
+  form33.ClientDataSet1.LogChanges := false;
+  TCurrencyField(form33.ClientDataSet1.FieldByName('VALOR')).currency       := false;
+
+  retornoLocalizar := '';
+
+  while not dm.IBselect.Eof do begin
+    if FileExists(buscaPastaNFe('') + dm.IBselect.FieldByName('chave').AsString + '-nfe.xml') then begin
+      arq.LoadFromFile(buscaPastaNFe('') + dm.IBselect.FieldByName('chave').AsString + '-nfe.xml');
+      xml := arq.Text;
+      arq.Clear;
+    end
+    else xml := dm.IBselect.FieldByName('xml').AsString;
+
+    cnpjXML := Le_Nodo('dest', xml);
+    cnpjXML := IfThen(Le_Nodo('CNPJ', cnpjXML) <> '', Le_Nodo('CNPJ', cnpjXML), Le_Nodo('CPF', cnpjXML));
+
+    if cnpjXML = strnum(cpf) then begin
+      form33.ClientDataSet1.Insert;
+      form33.ClientDataSet1.FieldByName('CHAVE').AsString  := dm.IBselect.FieldByName('chave').AsString;
+      data := LeftStr(Le_Nodo('dhEmi', xml), 10);
+      data := funcoes.dataInglesToBrasil(data);
+      form33.ClientDataSet1.FieldByName('data').AsDateTime := StrToDate(data);
+      form33.ClientDataSet1.FieldByName('valor').AsCurrency := StrToCurr(StringReplace(NfeVenda.Le_Nodo('vNF', xml), '.', ',',[rfReplaceAll, rfIgnoreCase]));
+
+      sit := Le_Nodo('cStat', xml);
+      if      sit = '100' then sit := 'AUTORIZADA'
+      else if sit = '101' then sit := 'CANCELADA'
+      else if sit = '135' then sit := 'CANCELADA'
+      else sit := 'NAO AUTORIZADA';
+
+      form33.ClientDataSet1.FieldByName('estado').AsString := sit;
+      form33.ClientDataSet1.Post;
+    end;
+
+    dm.IBselect.Next;
+  end;
+
+  arq.Free;
+  xml := '';
+  form33.ShowModal;
+  form33.Free;
+  Result := retornoLocalizar;
+end;
+
+
 
 end.

@@ -56,11 +56,20 @@ var
   val, total, ent : currency;
   query : TIBQuery;
 begin
-{if not(funcoes.Contido(key,#13+#27+#8)) then
-  begin
-    DataSource1.DataSet.Locate(campolocalizaca,key,[]);
-  end;
- }
+ if campolocalizaca = 'nfeB' then begin
+   if key = #13 then begin
+     funcoes.retornoLocalizar := copy(DBGrid1.DataSource.DataSet.FieldByName('chave').AsString, 26, 9);
+     close;
+   end;
+
+   if key = #27 then begin
+     funcoes.retornoLocalizar := '';
+     close;
+   end;
+   exit;
+ end;
+
+
  if campolocalizaca = 'nfceX' then begin
    if UpCase(key) = 'I' then begin
      doc := IntToStr(StrToInt(copy(DBGrid1.DataSource.DataSet.FieldByName('chave').AsString, 26, 9)));

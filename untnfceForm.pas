@@ -3301,7 +3301,7 @@ begin
           try
             //aqui envia o retorno pro nosso site remoto
             SendPostDataMensagem(Form72.IdHTTP1,
-              trim(e.Message + ' | ' + ACBrNFe.WebServices.Retorno.xmotivo),
+              trim(e.Message + ' | ' + ACBrNFe.WebServices.Retorno.xmotivo) + ' ' + CHAVENF,
               'EnviarCupomEletronico2 3728', IntToStr(csta), NomedoComputador);
           finally
 
@@ -4228,7 +4228,7 @@ function Cancelamento_NFe1(numeroNota, Justificativa: String;
   cancelamento: integer = 0; chaveENT: String = ''): boolean;
 var
   chave, idLote, CNPJ, Protocolo, tmp, tmp1: string;
-  cstat: integer;
+  cstat, a: integer;
   arq1: TStringList;
 begin
   carregaConfigsNFCe;
@@ -4281,7 +4281,17 @@ begin
     InfEvento.tpAmb := ACBrNFe.Configuracoes.WebServices.Ambiente;
   end;
 
-  ACBrNFe.EnviarEvento(StrToInt(idLote));
+  a := 0;
+  while True do begin
+    a := a + 1;
+    try
+      ACBrNFe.EnviarEvento(StrToInt(idLote));
+      break;
+    except
+    end;
+
+    if a = 6 then break;
+  end;
 
   tmp := ACBrNFe.WebServices.EnvEvento.EventoRetorno.retEvento.Items[0]
     .RetInfEvento.xmotivo;

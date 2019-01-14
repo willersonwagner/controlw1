@@ -431,7 +431,7 @@ begin
    - Arredonda(((IfThen(CalcularMinimoPrecoTotalOriginal <> 0, CalcularMinimoPrecoTotalOriginal, tot_g) * StrToCurr(LerConfig(Configu,0)))/100),2);
   ///desc1  := 0;
 
-  if ((tipoDesc = '') or (tipoDesc = 'X')) then tipoDesc := 'S';
+  if ((tipoDesc = '') or (tipoDesc = 'X') or (tipoDesc = 'P')) then tipoDesc := 'S';
 
   if tipoDesc = 'S' then
     begin
@@ -465,7 +465,7 @@ begin
 
     exit;
   end
- else if tipoDesc = 'N' then
+ else if tipoDesc = 'P' then
    begin
      //verifica se foi dado desconto por item
      temp1 := StrToCurrDef(LerConfig(ConfigUsuario,0), 0);
@@ -526,7 +526,7 @@ begin
       else fim := CurrToStr(total1);
 
       desconto := desconto + (total1 - StrToCurr(fim));
-      total1 := StrToCurr(fim);
+      total1   := StrToCurr(fim);
       desco.Caption := iif(desconto < 0, 'Acres', 'Desc')+' R$ '+FormatCurr('#,###,###0.00',desconto)+' R$ '+FormatCurr('#,###,###0.00', total1);
 
       mostraDesconto(total31, desconto, true);
@@ -593,7 +593,7 @@ begin
   dtmMain.IBQuery1.ParamByName('cliente').AsInteger    := 0;
   dtmMain.IBQuery1.ParamByName('nota').AsInteger       := StrToIntDef(StrNum(nota_venda), 0);
   dtmMain.IBQuery1.ParamByName('data').AsDateTime      := now;
-  dtmMain.IBQuery1.ParamByName('total').AsCurrency     := tot_ge;
+  dtmMain.IBQuery1.ParamByName('total').AsCurrency     := tot_ge - desconto;
   dtmMain.IBQuery1.ParamByName('pagto').AsInteger      := StrToIntDef(StrNum(codhis), 1);
   dtmMain.IBQuery1.ParamByName('desc').AsCurrency      := desconto;                                                                             //'+codhis+'
   dtmMain.IBQuery1.ParamByName('prazo').AsInteger      := 0;
@@ -627,13 +627,14 @@ begin
             
           dtmMain.IBQuery1.Close;
           dtmMain.IBQuery1.SQL.Clear;
-          dtmMain.IBQuery1.SQL.Add('insert into item_venda(data,nota,COD, QUANT, p_venda,total,origem,p_compra,codbar,aliquota, unid)'+
-          ' values(:data,'+StrNum(nota_venda)+',:cod, :quant, :p_venda,:total,1,:p_compra, :codbar,:aliq, :unid)');
+          dtmMain.IBQuery1.SQL.Add('insert into item_venda(desconto, data,nota,COD, QUANT, p_venda,total,origem,p_compra,codbar,aliquota, unid)'+
+          ' values(:desconto, :data,'+StrNum(nota_venda)+',:cod, :quant, :p_venda,:total,1,:p_compra, :codbar,:aliq, :unid)');
+          dtmMain.IBQuery1.ParamByName('desconto').AsCurrency := IBClientDataSet1.fieldbyname('precoOrigi').AsCurrency - IBClientDataSet1.fieldbyname('preco').AsCurrency;
           dtmMain.IBQuery1.ParamByName('data').AsDateTime    := now;
           dtmMain.IBQuery1.ParamByName('cod').AsInteger      := IBClientDataSet1.fieldbyname('cod').AsInteger;
           dtmMain.IBQuery1.ParamByName('quant').AsCurrency   := IBClientDataSet1.fieldbyname('quant').AsCurrency;
-          dtmMain.IBQuery1.ParamByName('p_venda').AsCurrency := IBClientDataSet1.fieldbyname('preco').AsCurrency;
-          dtmMain.IBQuery1.ParamByName('total').AsCurrency   := IBClientDataSet1.fieldbyname('total').AsCurrency;
+          dtmMain.IBQuery1.ParamByName('p_venda').AsCurrency := IBClientDataSet1.fieldbyname('precoOrigi').AsCurrency;
+          dtmMain.IBQuery1.ParamByName('total').AsCurrency   := Arredonda(IBClientDataSet1.FieldByName('quant').AsCurrency * IBClientDataSet1.FieldByName('precoOrigi').AsCurrency, 3);
           dtmMain.IBQuery1.ParamByName('p_compra').AsCurrency := Arredonda(IBClientDataSet1.fieldbyname('quant').AsCurrency * dtmMain.IBQuery2.fieldbyname('p_compra').AsCurrency,2);
           dtmMain.IBQuery1.ParamByName('codbar').AsString     := dtmMain.IBQuery2.fieldbyname('codbar').AsString;
           dtmMain.IBQuery1.ParamByName('aliq').AsString       := copy(dtmMain.IBQuery2.fieldbyname('aliquota').AsString,1 ,2);
@@ -798,12 +799,12 @@ begin
 
   tot1    := tot_ge;
 
-  if form1.pgerais.Values['37'] = 'S' then
+  {if form1.pgerais.Values['37'] = 'S' then
     begin
       totalTemp := somaTotalOriginal();
       lancaDesconto(desconto, tot_ge, configu, form1.pgerais.Values['2'], acessoUsuVenda, 0, totalTemp);
       desconto := - desconto;
-    end;
+    end;}
 
   if buscaClienteCompleto = 1 then exit;
   desconto := desconto + descontoItens;
@@ -1160,7 +1161,7 @@ begin
   qutd := currtostr(quant.getValor);
   preco1 := currtostr(prec);
   preco.setValor(prec);
-  preco1 := confirmaPrecoProduto(dtmMain.IBQuery2.fieldbyname('cod').Asstring, qutd, preco1, 1, false);
+  //preco1 := confirmaPrecoProduto(dtmMain.IBQuery2.fieldbyname('cod').Asstring, qutd, preco1, 1, false);
   if preco1 = '*' then exit;
   
   prec := strtocurr(preco1);
@@ -1417,6 +1418,7 @@ begin
  if pgerais.Values['65'] = 'S' then begin
    if screen.width = 800 then nomesajuda.Caption := 'F2-Ler Balança/F3-Cancela Item/F4-Troca Usuário/F5-Consulta Por Nome/F6-Cancelar/'+ #13 +
                                                    'F7-AbreGaveta/F8-Ident. Cliente/F9-DAV/F10-Reimprimir/F11-Menu Fiscal/F12-Consultar Por Cód. Barras'+#13+'/Vendedor: ' + form1.vendedor + '-' + form1.NomeVend
+
    else  nomesajuda.Caption := 'F2-Ler Balança/F3-Cancela Item/F4-Troca Usuário/F5-Consulta Por Nome/F6-Cancelar Venda/F7-AbreGaveta'+#13+
    'F8-Ident. Cliente/F9-DAV/F10-Reimprimir/F11-Menu Fiscal/F12-Consultar Por Cód. Barras/Vendedor: ' + form1.vendedor + '-' + form1.NomeVend ;
  end
@@ -1964,6 +1966,8 @@ begin
           break;
         end;
     end;
+
+    if (formasPagamento.RecordCount = 1) and (codhis <> '1') then recebido := tot_ge;
 end;
 
 procedure TForm3.lerFormasParaGravarAVendaPreencheEntrada();

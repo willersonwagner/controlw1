@@ -137,7 +137,7 @@ var
 implementation
 
 uses Unit1, localizar, MaskUtils, Unit2, StrUtils, func,
-  principal, cadproduto, backup, consulta;
+  principal, cadproduto, backup, consulta, cadfornecedor;
 
 {$R *.dfm}
 function TForm17.buscaProdutoTabelaRetornaQTD(cod, destino : String) : currency;
@@ -1020,6 +1020,13 @@ end;
 procedure TForm17.fornecKeyPress(Sender: TObject; var Key: Char);
 begin
     if (key=#13) then begin
+       if (tedit(sender).Text = '0') then begin
+         form8 := tform8.Create(self);
+         form8.ShowModal;
+         tedit(sender).Text := form8.valor_a_retornar;
+         form8.Free;
+       end;
+
        if (tedit(sender).Text = '') then fornec.Text := funcoes.localizar('Localizar Fornecedor','fornecedor','cod,nome, cnpj, estado','cod','','nome','nome',true,false,false,'',300, nil);
        if (tedit(sender).Text <> '') then
          begin

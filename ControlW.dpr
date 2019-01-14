@@ -112,7 +112,8 @@ uses
   Unit74 in 'Unit74.pas' {Form74},
   Unit75 in 'Unit75.pas' {Form75},
   cadCliCompleto in 'cadCliCompleto.pas' {cadCliNFCe},
-  cadCli in 'cadCli.pas' {CadClienteSimplificado};
+  cadCli in 'cadCli.pas' {CadClienteSimplificado},
+  Unit76 in 'Unit76.pas' {Form76};
 
 {$R *.res}
 
@@ -132,8 +133,9 @@ begin
   Application.CreateForm(TForm73, Form73);
   Application.CreateForm(TForm74, Form74);
   Application.CreateForm(TForm75, Form75);
-  Application.CreateForm(TcadCliNFCe, cadCliNFCe);
-  Application.CreateForm(TCadClienteSimplificado, CadClienteSimplificado);
+  ///Application.CreateForm(TcadCliNFCe, cadCliNFCe);
+  //Application.CreateForm(TCadClienteSimplificado, CadClienteSimplificado);
+  //Application.CreateForm(TForm76, Form76);
   //Application.CreateForm(TconsultaCNPJ, consultaCNPJ);
   //Application.CreateForm(TForm71, Form71);
   //Application.CreateForm(TForm69, Form69);

@@ -128,6 +128,7 @@ function cabecalho_SF_Bloco_0(const contribuicoes : boolean = false) : String;
 function bloco1() : String;
 function blocoE() : String;
 function blocoA() : String;
+function blocoB() : String;
 function blocoF(reg : integer = 1) : String;
 function blocoG() : String;
 function blocoH() : String;
@@ -943,6 +944,9 @@ begin
    informacao(0, fim, 'Verificando Entradas...', true, false, 5);
    erro1 := 0;
 
+   blocoB();
+   TOTAL_REG(ARQ_TMP, 'B');
+
    //gera os registros C100, C170 e C190 da tabela ENTRADA
    ent := leEntradas_SF();
    if ent = -1 then begin
@@ -1426,7 +1430,7 @@ begin
        FORM_NUM1(listaProdutos[ini].quant) + '|' + UNID + '|' + FORM_NUM1(TOT_ITEM) + '|' + FORM_NUM1(listaProdutos[ini].descCom) + '|' +
         IfThen( leftt(DESC, 1) = '_', '1', '0') + '|' + '0' + TRIB + '|' + _CFOP + '|' + _CFOP + '|' +
        FORM_NUM1(BASE_ICM) + '|' + FORM_NUM1(IfThen(TRIB = '00', PERC_ICMS, 0)) + '|' + FORM_NUM1(TOT_ICM) + '|' +
-       '0|0|0|0|03||0|0|0|99|0|0|0|0|0|99|0|0|0|0|0||';
+       '0|0|0|0|03||0|0|0|99|0|0|0|0|0|99|0|0|0|0|0||' + IfThen(StrToDateTime(dataIni) >= StrToDateTime('01/01/2019'), '|', '');
        //CAMPO 09 - IF(LEFT(DESC, 1) = "_", "1", "0") - MAT DE CONSUMO - NAO EXISTE MOV. FISICA DO ITEM
        //ITENS DE MATERIAL DE CONSUMO DEVEM COMECAR COM O CARACTERE "_"
 
@@ -1496,7 +1500,7 @@ begin
 
    if strnum(tipo) = '5' then tipo := '1B';
    
-   LINHA := '|C100|0|1|1' + strzero(COD_FOR, 6) + '|' + strzero(TIPO, 2) + '|00|' + _SER + '|' + inttostr(NOTA) + '|' + _CHNFE + '|' + //9
+   LINHA := '|C100|'+IfThen(TIPO = '65', '1', '0')+'|1|1' + strzero(COD_FOR, 6) + '|' + strzero(TIPO, 2) + '|00|' + _SER + '|' + inttostr(NOTA) + '|' + _CHNFE + '|' + //9
    DATA_BRA_FULL(_DAT1) + '|' + DATA_BRA_FULL(_DAT2) + '|' +   FORM_NUM1(POS1) + '|0|' +
     FORM_NUM1(DADOS_ADIC[3]) + '|' + FORM_NUM1(DADOS_ADIC[4] + DADOS_ADIC[10]) + '|' + FORM_NUM1(TOT) +
     '|' + _FRETE + '|' + FORM_NUM1(DADOS_ADIC[1]) + '|' + FORM_NUM1(DADOS_ADIC[2]) +  '|' + FORM_NUM1(DADOS_ADIC[5]) + '|' +
@@ -1721,7 +1725,7 @@ function bloco1() : String;
 begin
   LINHA := '|1001|0|';
   GRAVA_SPED(ARQ_TMP, LINHA);
-  LINHA := '|1010|N|N|N|N|N|N|N|N|N|';
+  LINHA := '|1010|N|N|N|N|N|N|N|N|N|' + ifthen(StrToDateTime(dataIni) >= StrToDateTime('01/01/2019'),'N|N|N|', '');
   GRAVA_SPED(ARQ_TMP, LINHA);
   //TOTALIZA REGISTROS DO TIPO D - 1 DIGITO APENAS PORQUE É PARCIAL, SE FOR TOTAL, INFORMAM-SE 4 DIGITO
 end;
@@ -3329,6 +3333,7 @@ begin
      end;
 
   blocoA();
+
   leSaidas_Contribuicoes();
   TOTAL_REG(ARQ_TMP, 'C');
 
@@ -5450,6 +5455,12 @@ begin
     codPIS1 := '';
     exit;
   end;
+end;
+
+function blocoB() : String;
+begin
+  LINHA := '|B001|1|';
+  GRAVA_SPED(ARQ_TMP, LINHA);
 end;
 
 
