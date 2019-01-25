@@ -311,7 +311,7 @@ begin
       dm.IBQuery4.ParamByName('cod').AsInteger       := lista[i].cod;
       dm.IBQuery4.ExecSQL;
 
-      ShowMessage('cod=' + IntToStr(lista[i].cod) + #13 + 'compra=' + CurrToStr(lista[i].BASE_ICM));
+      //ShowMessage('cod=' + IntToStr(lista[i].cod) + #13 + 'compra=' + CurrToStr(lista[i].BASE_ICM));
     end;
 
     if dm.IBQuery4.Transaction.InTransaction then dm.IBQuery4.Transaction.Commit;

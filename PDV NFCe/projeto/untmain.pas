@@ -908,8 +908,11 @@ begin
       dtmMain.IBQuery1.Next;
     end;
 
-
-  if desconto <> 0 then mfd.RichEdit1.Lines.Add(CompletaOuRepete(strzero('0', 2) + ' ' + CompletaOuRepete('DESCONTO', '', ' ', 15), formataCurrency(desconto), ' ', 39));
+  if desconto <> 0 then begin
+    mfd.RichEdit1.Lines.Add(CompletaOuRepete(strzero('0', 2) + ' ' + CompletaOuRepete('DESCONTO', '', ' ', 15), formataCurrency(desconto), ' ', 39));
+    //total := total + desconto;
+  end;
+  //soma os descontos no total
 
   dtmMain.IBQuery1.Close;
   dtmMain.IBQuery1.SQL.Text := 'select iif(tipo = ''1'', ''SANGRIA'', ''SUPRIMENTO'') as tipo'+

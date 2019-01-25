@@ -4952,7 +4952,7 @@ begin
             if (separaPecas) and (separaVendaOrcamento = false) then begin
               ClientDataSet1vendedor.Visible := true;
               //if (RetornaAcessoUsuario > 0) and (form22.Pgerais.Values['codvendedor'] <> ClientDataSet1vendedor.AsString) then begin
-              if (RetornaAcessoUsuario > 0) then begin
+              if ((RetornaAcessoUsuario > 0) and (funcoes.buscaParamGeral(103, 'N') = 'N')) then begin
                 ShowMessage('Esse Usuário Não Tem Permissão Para Excluir Este Produto!');
                 exit;
               end;

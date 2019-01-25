@@ -68,6 +68,7 @@ type
     RichEdit2: TRichEdit;
     Button3: TButton;
     Timer2: TTimer;
+    IBClientDataSet1desconto: TCurrencyField;
     procedure FormShow(Sender: TObject);
     procedure codbarKeyPress(Sender: TObject; var Key: Char);
     procedure FormCreate(Sender: TObject);
@@ -124,6 +125,7 @@ type
     procedure reimprimir();
     procedure aguardaRespostaECF(const intervalo : integer = 100);
     function somaTotalOriginal(somaValorReal : boolean = false; naoSomarCancelados : boolean = true) : Currency;
+    function somaDescontosItens() : Currency;
     procedure setaConfigBalanca();
     procedure setaCoresPDV();
     procedure alinhaComponentes();
@@ -593,7 +595,7 @@ begin
   dtmMain.IBQuery1.ParamByName('cliente').AsInteger    := 0;
   dtmMain.IBQuery1.ParamByName('nota').AsInteger       := StrToIntDef(StrNum(nota_venda), 0);
   dtmMain.IBQuery1.ParamByName('data').AsDateTime      := now;
-  dtmMain.IBQuery1.ParamByName('total').AsCurrency     := tot_ge - desconto;
+  dtmMain.IBQuery1.ParamByName('total').AsCurrency     := tot_ge;
   dtmMain.IBQuery1.ParamByName('pagto').AsInteger      := StrToIntDef(StrNum(codhis), 1);
   dtmMain.IBQuery1.ParamByName('desc').AsCurrency      := desconto;                                                                             //'+codhis+'
   dtmMain.IBQuery1.ParamByName('prazo').AsInteger      := 0;
@@ -799,14 +801,17 @@ begin
 
   tot1    := tot_ge;
 
-  {if form1.pgerais.Values['37'] = 'S' then
+  if form1.pgerais.Values['37'] = 'S' then
     begin
       totalTemp := somaTotalOriginal();
       lancaDesconto(desconto, tot_ge, configu, form1.pgerais.Values['2'], acessoUsuVenda, 0, totalTemp);
       desconto := - desconto;
-    end;}
+      PainelTotal.Caption := formataCurrency(tot_ge);
+    end;
 
   if buscaClienteCompleto = 1 then exit;
+
+  descontoItens := somaDescontosItens;
   desconto := desconto + descontoItens;
 
   if lerReceido() = false then exit;
@@ -2110,9 +2115,26 @@ begin
   //Timer2.Enabled := not Timer2.Enabled;
 end;
 
+function TForm3.somaDescontosItens() : Currency;
+begin
+  try
+  IBClientDataSet1.DisableControls;
+  IBClientDataSet1.First;
+  Result := 0;
+  while not IBClientDataSet1.Eof do
+    begin
+      Result := Result + IBClientDataSet1.fieldbyname('desconto').AsCurrency;
+      IBClientDataSet1.Next;
+    end;
+
+ finally
+   IBClientDataSet1.First;
+   IBClientDataSet1.EnableControls;
+ end;
+end;
+
 function TForm3.somaTotalOriginal(somaValorReal : boolean = false; naoSomarCancelados : boolean = true) : Currency;
 begin
-
   try
   IBClientDataSet1.DisableControls;
   IBClientDataSet1.First;
@@ -2138,6 +2160,7 @@ begin
     end;
 
  finally
+   IBClientDataSet1.First;
    IBClientDataSet1.EnableControls;
  end;
 end;
@@ -2285,6 +2308,13 @@ begin
     Application.ProcessMessages;
 
     Result := EnviarCupomEletronicoTitular(nota, statu, xmot, tpemissao, envi, cliente, obs, '', '',TRUE, recebido1, imp);
+
+    if statu = '999' then begin
+      EnviarCupomEletronicoTitular(nota, statu, xmot, tpemissao, false, cliente, obs, '', '',true, recebido1, imp);
+      Result := true;
+    end;
+
+
     if Result = true then
       begin
         atualizaGenerator();

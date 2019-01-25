@@ -79,8 +79,9 @@ begin
             Form3.PainelTotal.Caption := formataCurrency(form3.tot_ge);
 
             DBGrid1.DataSource.DataSet.Edit;
-            DBGrid1.DataSource.DataSet.FieldByName('preco').AsCurrency := ent;
-            DBGrid1.DataSource.DataSet.FieldByName('total').AsCurrency := totalDesc;
+            DBGrid1.DataSource.DataSet.FieldByName('preco').AsCurrency    := ent;
+            DBGrid1.DataSource.DataSet.FieldByName('total').AsCurrency    := totalDesc;
+            DBGrid1.DataSource.DataSet.FieldByName('desconto').AsCurrency := total;
             DBGrid1.DataSource.DataSet.Post;
             //form3.lancaDesconto( DBGrid1.SelectedField.);
           end;

@@ -653,6 +653,12 @@ begin
 
     Result := EnviarCupomEletronicoTitular(nota, statu, xmot, tpemissao, envi, cliente, obs, '',nnf,TRUE, recebido, primeiroCupom);
 
+    //se nao enviou entao gera em contingencia OFFline
+    if statu = '999' then begin
+      EnviarCupomEletronicoTitular(nota, statu, xmot, tpemissao, false, cliente,
+        obs, '', '', true, recebido, primeiroCupom);
+    end;
+
     if statu = 'vali' then
       begin
         funcoes.mensagemEnviandoNFCE('Aguarde, Enviando NFCe...', false, true);

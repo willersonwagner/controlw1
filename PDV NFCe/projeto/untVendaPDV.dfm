@@ -2015,6 +2015,9 @@ object Form3: TForm3
       FieldName = 'quant_promo'
       Visible = False
     end
+    object IBClientDataSet1desconto: TCurrencyField
+      FieldName = 'desconto'
+    end
     object IBClientDataSet1p_total: TAggregateField
       DefaultExpression = 'sum(total)'
       FieldName = 'p_total'

@@ -3227,20 +3227,20 @@ begin
     end;
 
     i := 0;
-    while true do
-    begin
-      if i = 1 then
-        break;
-      i := i + 1;
+
       try
         ERRO_dados := '';
 
         csta := 999;
         a := 0;
 
+        ACBrNFe.WebServices.enviar.Clear;
+
         //tenta enviar 2 vezes em intervalo de 10s de espera, caso venha retorno entao sai do while
         while true do begin
           a := a + 1;
+          form65.Label1.Caption := 'Aguarde, Enviando '+IntToStr(a)+'...';
+          form65.Label1.Update;
           if acbrNFeEnviar(10) then begin
             //se entrou aqui é pq passou do metodo acbr.Enviar
             ACBrNFe.WebServices.Retorno.Recibo := ACBrNFe.WebServices.enviar.Recibo;
@@ -3249,30 +3249,44 @@ begin
             csta := ACBrNFe.WebServices.Retorno.cstat;
            end
            else begin
+             //as vezes acbrNFeEnviar função retorna FALSE mas tem numero de recibo
+             if ACBrNFe.WebServices.enviar.Recibo <> '' then begin
+               ACBrNFe.WebServices.Retorno.Executar;
+             end;
+
              csta := ACBrNFe.WebServices.Retorno.cstat;
            end;
 
-           {ShowMessage('acbrNFeEnviar(10)'  + #13 + 'csta=' + IntToStr(csta) + #13 + 'a=' + IntToStr(a));
-           if csta = 100 then csta := 999;
-           if csta = 204 then break;}
           if (((csta > 0) and (csta < 999)) or (a >= 4)) then break;
         end;
 
         //se nao veio resposta entao consulta 3x pra ver se foi emitida ou o cstat veio com valor 999
         //como foi iniciado a variavel, caso venha um cstat entao sai do while
-        if (Contido('(5)-', ERRO_dados) or (csta = 999) or (csta = 204))  then begin
+        if (Contido('(5)-', ERRO_dados) or (csta = 999) or (csta = 204) or (csta = 0))  then begin
           a := 0;
           while true do begin
             a := a + 1;
+            form65.Label1.Caption := 'Aguarde, Consultando '+IntToStr(a)+'...';
+            form65.Label1.Update;
             if acbrNFeConsultar(10) then begin
               csta := ACBrNFe.NotasFiscais[0].nfe.procNFe.cstat;
               ACBrNFe.NotasFiscais[0].GravarXML(CHAVENF + '-nfe.xml', buscaPastaNFCe(CHAVENF, false));
             end;
 
-            //ShowMessage('acbrNFeConsultar(10)'  + #13 + 'csta=' + IntToStr(csta) + #13 + 'a=' + IntToStr(a));
             if (((csta > 0) and (csta < 999)) or (a >= 3)) then break;
           end;
         end;
+
+        if csta = 217 then begin
+          ERRO_dados := 'Rejeição (217): NF-e não consta na base de dados da SEFAZ';
+        end;
+
+        if ((csta = 0) and  (ERRO_dados = '')) then begin
+          ERRO_dados := 'Requisicao nao Enviada';
+        end;
+
+        form65.Label1.Caption := 'Retorno OK: '+IntToStr(csta)+'...';
+        form65.Label1.Update;
 
         //se veio um valor valido no cstat entao limpa erro_dados e marca com true as
         //variaveis de controle
@@ -3280,7 +3294,6 @@ begin
           ERRO_dados := '';
           enviou := true;
           Result := true;
-          break;
         end;
 
         //se ERRO_dados veio preenchido da thread entao é pq tem um erro, cria uma execeção
@@ -3306,7 +3319,7 @@ begin
           finally
 
           end;
-
+         
           if Contido('Rejeicao: ', e.Message) then
           begin
             if Contido('Duplicidade', e.Message) = false then
@@ -3326,61 +3339,31 @@ begin
           if (csta in [100, 150]) = false then
             csta := 999;
 
-          if (Contido('Duplicidade de NF-e [chNFe:', e.Message)) THEN
-          begin
+          if (Contido('Duplicidade de NF-e, com diferenca na Chave de Acesso [chNFe:', e.Message) or (csta = 539) or (csta = 204)) THEN begin
             try
-              trataDuplicidade1(e.Message, false, false, true);
-              // inicializaVariaveis;
+              trataDuplicidade1(e.Message, false, false, false);
               ACBrNFe.NotasFiscais.Clear;
             except
-              on e: Exception do
-              begin
-                gravaERRO_LOG1('', e.Message,
-                  'else if Contido(Duplicidade de NF-e, com diferenca na Chave de Acesso [chNFe:, e.Message) THEN');
-              end;
-            end;
-          end
-          else if (Contido
-            ('Duplicidade de NF-e, com diferenca na Chave de Acesso [chNFe:',
-            e.Message) or (csta = 539)) THEN
-          begin
-            try
-              trataDuplicidade1(e.Message, false, false, true);
-              // MessageDlg(e.Message, mtError, [mbOK], 1);
-              // inicializaVariaveis;
-              ACBrNFe.NotasFiscais.Clear;
-              { inicializaVariaveis;
-                xml := GerarNFCeTexto(nota, cliente1);
-                GravarTexto(buscaPastaNFCe(chaveNF, false) + chaveNF + '-nfe.xml', xml);
-                ACBrNFe.NotasFiscais.Clear;
-                ACBrNFe.NotasFiscais.LoadFromFile(buscaPastaNFCe(chaveNF, false) +chaveNF + '-nfe.xml'); }
-            except
-              on e: Exception do
-              begin
-                gravaERRO_LOG1('', e.Message,
-                  'else if Contido(Duplicidade de NF-e, com diferenca na Chave de Acesso [chNFe:, e.Message) THEN');
+              on e: Exception do begin
+                gravaERRO_LOG1('', e.Message, 'else if Contido(Duplicidade de NF-e, com diferenca na Chave de Acesso [chNFe:, e.Message) THEN');
                 csta := 999;
               end;
             end;
           end;
-
-          if ACBrNFe.WebServices.Retorno.RetornoWS = '' then
-          begin
-            csta := 999;
-            Result := false;
-          end;
         end;
       end; // try enviar
-    end; // while true
-
+  
     if csta = 999 then
     begin
       LimpaVariaveis;
-      EnviarCupomEletronicoTitular(nota, Status, xmotivo, tipo, false, cliente1,
+      ACBrNFe.NotasFiscais.Clear;
+      Status := '999';
+      {EnviarCupomEletronicoTitular(nota, Status, xmotivo, tipo, false, cliente1,
         obs1, '', '', imp, recebido, EscPos);
-      Result := true;
+      Result := true;}
       exit;
     end;
+
 
     ssChave := CHAVENF;
     ACBrNFe.NotasFiscais[0].GravarXML(CHAVENF + '-nfe.xml',
@@ -3524,7 +3507,7 @@ function EnviarCupomEletronico2(nota, chave1: String; var richED: TRichEdit;
   const lerconfig: boolean = true): boolean;
 var
   para, ssChave, ssChaveVelha, NumeroRecibo, erro2: string;
-  csta: integer;
+  csta, a: integer;
   Mensagememail: TStrings;
   xml: AnsiString;
   chaveDetalhe: TChaveDetalhes;
@@ -3729,31 +3712,69 @@ begin
       try
         ERRO_dados := '';
         richED.Lines.Add('Enviando...');
-        ACBrNFe.WebServices.Retorno.Clear;
 
-        if acbrNFeEnviar(35) then
-        begin
-          csta := ACBrNFe.WebServices.enviar.cstat;
-          if csta = 0 then
-            csta := ACBrNFe.WebServices.enviar.cstat;
+        ACBrNFe.WebServices.enviar.Clear;
 
-          richED.Lines.Add('Recibo: ' + ACBrNFe.WebServices.enviar.Recibo);
-          richED.Lines.Add('Consultando Recibo... ');
-          ACBrNFe.WebServices.Retorno.Recibo :=
-            ACBrNFe.WebServices.enviar.Recibo;
-          ACBrNFe.WebServices.Retorno.Executar;
+        //tenta enviar 2 vezes em intervalo de 10s de espera, caso venha retorno entao sai do while
+        while true do begin
+          a := a + 1;
+          form65.Label1.Caption := 'Aguarde, Enviando '+IntToStr(a)+'...';
+          form65.Label1.Update;
+          if acbrNFeEnviar(10) then begin
+            //se entrou aqui é pq passou do metodo acbr.Enviar
+            ACBrNFe.WebServices.Retorno.Recibo := ACBrNFe.WebServices.enviar.Recibo;
+            richED.Lines.Add('Recibo: ' + ACBrNFe.WebServices.enviar.Recibo);
+            richED.Lines.Add('Consultando Recibo... ');
+            ACBrNFe.WebServices.Retorno.Executar;
 
-          csta := ACBrNFe.WebServices.Retorno.cstat;
+            csta := ACBrNFe.WebServices.Retorno.cstat;
+           end
+           else begin
+             //as vezes acbrNFeEnviar função retorna FALSE mas tem numero de recibo
+             if ACBrNFe.WebServices.enviar.Recibo <> '' then begin
+               richED.Lines.Add('Recibo: ' + ACBrNFe.WebServices.enviar.Recibo);
+               richED.Lines.Add('Consultando Recibo... ');
+               ACBrNFe.WebServices.Retorno.Executar;
+             end;
 
-          richED.Lines.Add('Enviado Cstat: ' + IntToStr(csta));
-          if Contido('-' + IntToStr(csta) + '-', '-100-150-') then
-            ERRO_dados := '';
+             csta := ACBrNFe.WebServices.Retorno.cstat;
+           end;
 
-          sleep(10);
-          estado := 'OK';
-
-          richED.Lines.Add('xMotivo=' + ACBrNFe.WebServices.enviar.xmotivo);
+          if (((csta > 0) and (csta < 999)) or (a >= 4)) then break;
         end;
+
+        //se nao veio resposta entao consulta 3x pra ver se foi emitida ou o cstat veio com valor 999
+        //como foi iniciado a variavel, caso venha um cstat entao sai do while
+        if (Contido('(5)-', ERRO_dados) or (csta = 999) or (csta = 204) or (csta = 0))  then begin
+          a := 0;
+          while true do begin
+            a := a + 1;
+            form65.Label1.Caption := 'Aguarde, Consultando '+IntToStr(a)+'...';
+            form65.Label1.Update;
+            if acbrNFeConsultar(10) then begin
+              csta := ACBrNFe.NotasFiscais[0].nfe.procNFe.cstat;
+              ACBrNFe.NotasFiscais[0].GravarXML(CHAVENF + '-nfe.xml', buscaPastaNFCe(CHAVENF, false));
+            end;
+
+            if (((csta > 0) and (csta < 999)) or (a >= 3)) then break;
+          end;
+        end;
+
+        if csta = 217 then begin
+          ERRO_dados := 'Rejeição (217): NF-e não consta na base de dados da SEFAZ';
+        end;
+
+        if ((csta = 0) and  (ERRO_dados = '')) then begin
+          ERRO_dados := 'Requisicao nao Enviada';
+        end;
+
+        richED.Lines.Add('Enviado Cstat: ' + IntToStr(csta));
+        if Contido('-' + IntToStr(csta) + '-', '-100-150-') then ERRO_dados := '';
+
+        sleep(10);
+        estado := 'OK';
+
+        richED.Lines.Add('xMotivo=' + ACBrNFe.WebServices.enviar.xmotivo);
 
         if ERRO_dados <> '' then
         begin
@@ -6821,7 +6842,6 @@ begin
     criaXMLs(IntToStr(chavb.codNF), '', chavb.chave);
   end;
 
-  // reStartGenerator('nfce', chavb.nnf + 1);
 
   ACBrNFe.NotasFiscais.Clear;
 

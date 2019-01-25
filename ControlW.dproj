@@ -419,15 +419,12 @@
         </DCCReference>
         <DCCReference Include="cadCliCompleto.pas">
             <Form>cadCliNFCe</Form>
-            <FormType>dfm</FormType>
         </DCCReference>
         <DCCReference Include="cadCli.pas">
             <Form>CadClienteSimplificado</Form>
-            <FormType>dfm</FormType>
         </DCCReference>
         <DCCReference Include="Unit76.pas">
             <Form>Form76</Form>
-            <FormType>dfm</FormType>
         </DCCReference>
         <BuildConfiguration Include="Debug">
             <Key>Cfg_2</Key>

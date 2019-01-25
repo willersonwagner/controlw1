@@ -7065,6 +7065,8 @@ begin
   query.Database := dm.bd;
   Result := '';
 
+  if demo then exit;
+
   try
     tmpi := '';
     tmpi := funcoes.addRegSite('', query, abrirDialogo);
@@ -16860,6 +16862,7 @@ begin
     pergunta1.tamanhoEdit := 0
   else
     pergunta1.tamanhoEdit := tamanhocampo;
+
   pergunta1.botoes := trocaletras;
   pergunta1.tipo := tipo;
   pergunta1.valorTecla := ValorEntrada;
@@ -19886,7 +19889,7 @@ begin
 
   if not venda then
   begin
-    nota := funcoes.dialogo('not', 100, '1234567890' + #8 + #32, 100,
+    nota := funcoes.dialogo('not', 300, '1234567890' + #8 + #32, 400,
       simplificado, '', Application.Title, 'Qual a Nota de Venda?', nota);
 
     if nota = '*' then
@@ -19898,7 +19901,7 @@ begin
   begin
     if nota = '' then
     begin
-      nCF := funcoes.dialogo('not', 0, '1234567890' + #8 + #32, 50, true, '',
+      nCF := funcoes.dialogo('not', 300, '1234567890' + #8 + #32, 300, true, '',
         Application.Title, 'Qual o Número do Cupom Fiscal ?', '');
       if nCF = '*' then
         exit;
