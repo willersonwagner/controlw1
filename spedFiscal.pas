@@ -645,7 +645,7 @@ begin
       COD_ALIQ := StrNum(trim(dm.IBQuery2.fieldbyname('aliquota').AsString));
 
       //NÃO CREDITAR ICMS DE MATERIAL DE CONSUMO
-      IF (LeftStr(DESC, 1) = '_') then COD_ALIQ := '12';
+      IF (LeftStr(DESC, 1) = '_') and (StrToInt(strnum(COD_ALIQ)) <  11) then COD_ALIQ := '12';
       NUM_ALIQ := StrToIntDef(COD_ALIQ, 0);
 
       NUM_ALIQ := menor(NUM_ALIQ, 12);
@@ -945,7 +945,7 @@ begin
    erro1 := 0;
 
    blocoB();
-   TOTAL_REG(ARQ_TMP, 'B');
+
 
    //gera os registros C100, C170 e C190 da tabela ENTRADA
    ent := leEntradas_SF();
@@ -5459,8 +5459,12 @@ end;
 
 function blocoB() : String;
 begin
+  IF StrToDateTime(dataIni) < StrToDateTime('01/01/2019') THEN exit;
+
   LINHA := '|B001|1|';
   GRAVA_SPED(ARQ_TMP, LINHA);
+
+  TOTAL_REG(ARQ_TMP, 'B');
 end;
 
 

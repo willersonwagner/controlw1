@@ -138,6 +138,7 @@ type
     enviandoCupom, enviandoBackup: boolean;
     fonteRelatorioForm19: integer;
     NegritoRelatorioForm19, saiComEnter: boolean;
+    function retiraZerosEsquerda(const valor : string) : String;
     function buscaNFEsPorCPF_CNPJ(cpf : String) : String;
     procedure verificaProdutosDuplicados();
     function VerSeExisteTRIGGERPeloNome(Const nome: String): boolean;
@@ -26605,6 +26606,11 @@ begin
   form33.ShowModal;
   form33.Free;
   Result := retornoLocalizar;
+end;
+
+function Tfuncoes.retiraZerosEsquerda(const valor : string) : String;
+begin
+  Result := IntToStr(StrToIntDef(valor, 0));
 end;
 
 

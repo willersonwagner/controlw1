@@ -237,6 +237,7 @@ object frmConhecimentoFrete: TfrmConhecimentoFrete
     Font.Name = 'Arial Black'
     Font.Style = [fsBold]
     ParentFont = False
+    Visible = False
   end
   object Label18: TLabel
     Left = 12
@@ -250,11 +251,12 @@ object frmConhecimentoFrete: TfrmConhecimentoFrete
     Font.Name = 'Arial Black'
     Font.Style = [fsBold]
     ParentFont = False
+    Visible = False
   end
   object NUMDOC: JsEditInteiro
     Left = 8
     Top = 24
-    Width = 113
+    Width = 112
     Height = 21
     CharCase = ecUpperCase
     TabOrder = 0
@@ -270,7 +272,7 @@ object frmConhecimentoFrete: TfrmConhecimentoFrete
   object TRANSP: JsEditInteiro
     Left = 152
     Top = 24
-    Width = 113
+    Width = 112
     Height = 21
     CharCase = ecUpperCase
     TabOrder = 1
@@ -285,7 +287,7 @@ object frmConhecimentoFrete: TfrmConhecimentoFrete
   object DATA: JsEditData
     Left = 296
     Top = 24
-    Width = 73
+    Width = 72
     Height = 21
     EditMask = '!99/99/0000;1;_'
     MaxLength = 10
@@ -299,7 +301,7 @@ object frmConhecimentoFrete: TfrmConhecimentoFrete
   object SERIE: JsEditInteiro
     Left = 8
     Top = 72
-    Width = 41
+    Width = 40
     Height = 21
     CharCase = ecUpperCase
     TabOrder = 3
@@ -311,7 +313,7 @@ object frmConhecimentoFrete: TfrmConhecimentoFrete
   object CHEGADA: JsEditData
     Left = 56
     Top = 72
-    Width = 73
+    Width = 72
     Height = 21
     EditMask = '!99/99/0000;1;_'
     MaxLength = 10
@@ -324,7 +326,7 @@ object frmConhecimentoFrete: TfrmConhecimentoFrete
   object IND_FRETE: JsEditInteiro
     Left = 136
     Top = 72
-    Width = 113
+    Width = 112
     Height = 21
     CharCase = ecUpperCase
     TabOrder = 5
@@ -337,12 +339,11 @@ object frmConhecimentoFrete: TfrmConhecimentoFrete
   object COD_CFOP: JsEditInteiro
     Left = 256
     Top = 72
-    Width = 113
+    Width = 112
     Height = 21
     CharCase = ecUpperCase
     TabOrder = 6
     Text = '2353'
-    OnKeyPress = COD_CFOPKeyPress
     FormularioComp = 'frmTransferenciaCupom'
     ColorOnEnter = 16776176
     Indice = 0
@@ -351,7 +352,7 @@ object frmConhecimentoFrete: TfrmConhecimentoFrete
   object VLR_SERV: JsEditNumero
     Left = 8
     Top = 128
-    Width = 113
+    Width = 112
     Height = 24
     CharCase = ecUpperCase
     Font.Charset = DEFAULT_CHARSET
@@ -371,7 +372,7 @@ object frmConhecimentoFrete: TfrmConhecimentoFrete
   object VLR_DESC: JsEditNumero
     Left = 128
     Top = 128
-    Width = 113
+    Width = 112
     Height = 24
     CharCase = ecUpperCase
     Font.Charset = DEFAULT_CHARSET
@@ -391,7 +392,7 @@ object frmConhecimentoFrete: TfrmConhecimentoFrete
   object VLR_TOTAL: JsEditNumero
     Left = 256
     Top = 128
-    Width = 113
+    Width = 112
     Height = 24
     CharCase = ecUpperCase
     Font.Charset = DEFAULT_CHARSET
@@ -411,7 +412,7 @@ object frmConhecimentoFrete: TfrmConhecimentoFrete
   object VLR_BC_ICM: JsEditNumero
     Left = 8
     Top = 176
-    Width = 113
+    Width = 112
     Height = 24
     CharCase = ecUpperCase
     Font.Charset = DEFAULT_CHARSET
@@ -428,10 +429,30 @@ object frmConhecimentoFrete: TfrmConhecimentoFrete
     TipoDeDado = teNumero
     CasasDecimais = 2
   end
+  object ALIQICMS: JsEditNumero
+    Left = 127
+    Top = 176
+    Width = 84
+    Height = 24
+    CharCase = ecUpperCase
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'MS Sans Serif'
+    Font.Style = [fsBold]
+    ParentFont = False
+    TabOrder = 11
+    Text = '0,00'
+    FormularioComp = 'frmTransferenciaCupom'
+    ColorOnEnter = 16776176
+    Indice = 0
+    TipoDeDado = teNumero
+    CasasDecimais = 2
+  end
   object VLR_ICMS: JsEditNumero
     Left = 224
     Top = 176
-    Width = 73
+    Width = 72
     Height = 24
     CharCase = ecUpperCase
     Font.Charset = DEFAULT_CHARSET
@@ -451,7 +472,7 @@ object frmConhecimentoFrete: TfrmConhecimentoFrete
   object VLR_NT: JsEditNumero
     Left = 313
     Top = 176
-    Width = 56
+    Width = 55
     Height = 24
     CharCase = ecUpperCase
     Font.Charset = DEFAULT_CHARSET
@@ -471,7 +492,7 @@ object frmConhecimentoFrete: TfrmConhecimentoFrete
   object MOD_FRETE: JsEditInteiro
     Left = 8
     Top = 224
-    Width = 113
+    Width = 112
     Height = 21
     CharCase = ecUpperCase
     MaxLength = 3
@@ -483,15 +504,48 @@ object frmConhecimentoFrete: TfrmConhecimentoFrete
     Indice = 0
     TipoDeDado = teNumero
   end
+  object usuario: JsEditInteiro
+    Left = 152
+    Top = 224
+    Width = 120
+    Height = 21
+    CharCase = ecUpperCase
+    TabOrder = 15
+    Visible = False
+    FormularioComp = 'frmConhecimentoFrete'
+    Indice = 0
+    TipoDeDado = teNumero
+  end
+  object chavecte: JsEdit
+    Left = 280
+    Top = 224
+    Width = 120
+    Height = 21
+    CharCase = ecUpperCase
+    TabOrder = 16
+    Visible = False
+    FormularioComp = 'frmConhecimentoFrete'
+    Indice = 0
+    TipoDeDado = teNumero
+  end
+  object chave: TMaskEdit
+    Left = 9
+    Top = 272
+    Width = 313
+    Height = 21
+    EditMask = '!9999.9999.9999.9999.9999.9999.9999.9999.9999.9999.9999;1;_'
+    MaxLength = 54
+    TabOrder = 17
+    Text = '    .    .    .    .    .    .    .    .    .    .    '
+    OnKeyPress = chaveKeyPress
+  end
   object ToolBar1: TPanel
     Left = 0
     Top = 394
     Width = 431
     Height = 37
     Align = alBottom
-    TabOrder = 15
-    ExplicitTop = 297
-    ExplicitWidth = 413
+    TabOrder = 18
     object JsBotao1: JsBotao
       Left = 0
       Top = 2
@@ -624,60 +678,5 @@ object frmConhecimentoFrete: TfrmConhecimentoFrete
       TabOrder = 1
       OnClick = JsBotao2Click
     end
-  end
-  object usuario: JsEditInteiro
-    Left = 152
-    Top = 224
-    Width = 121
-    Height = 21
-    CharCase = ecUpperCase
-    TabOrder = 16
-    Visible = False
-    FormularioComp = 'frmConhecimentoFrete'
-    Indice = 0
-    TipoDeDado = teNumero
-  end
-  object chave: TMaskEdit
-    Left = 9
-    Top = 272
-    Width = 313
-    Height = 21
-    EditMask = '!9999.9999.9999.9999.9999.9999.9999.9999.9999.9999.9999;1;_'
-    MaxLength = 54
-    TabOrder = 17
-    Text = '    .    .    .    .    .    .    .    .    .    .    '
-    OnKeyPress = chaveKeyPress
-  end
-  object chavecte: JsEdit
-    Left = 280
-    Top = 224
-    Width = 121
-    Height = 21
-    CharCase = ecUpperCase
-    TabOrder = 18
-    Visible = False
-    FormularioComp = 'frmConhecimentoFrete'
-    Indice = 0
-    TipoDeDado = teNumero
-  end
-  object ALIQICMS: JsEditNumero
-    Left = 127
-    Top = 176
-    Width = 85
-    Height = 24
-    CharCase = ecUpperCase
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -13
-    Font.Name = 'MS Sans Serif'
-    Font.Style = [fsBold]
-    ParentFont = False
-    TabOrder = 11
-    Text = '0,00'
-    FormularioComp = 'frmTransferenciaCupom'
-    ColorOnEnter = 16776176
-    Indice = 0
-    TipoDeDado = teNumero
-    CasasDecimais = 2
   end
 end

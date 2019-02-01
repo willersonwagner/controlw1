@@ -24,6 +24,10 @@ type
     Label12: TLabel;
     Label13: TLabel;
     Label14: TLabel;
+    Label15: TLabel;
+    Label16: TLabel;
+    Label17: TLabel;
+    Label18: TLabel;
     NUMDOC: JsEditInteiro;
     TRANSP: JsEditInteiro;
     DATA: JsEditData;
@@ -35,20 +39,16 @@ type
     VLR_DESC: JsEditNumero;
     VLR_TOTAL: JsEditNumero;
     VLR_BC_ICM: JsEditNumero;
+    ALIQICMS: JsEditNumero;
     VLR_ICMS: JsEditNumero;
     VLR_NT: JsEditNumero;
     MOD_FRETE: JsEditInteiro;
+    usuario: JsEditInteiro;
+    chavecte: JsEdit;
+    chave: TMaskEdit;
     ToolBar1: TPanel;
     JsBotao1: JsBotao;
     JsBotao2: JsBotao;
-    usuario: JsEditInteiro;
-    Label15: TLabel;
-    chave: TMaskEdit;
-    chavecte: JsEdit;
-    ALIQICMS: JsEditNumero;
-    Label16: TLabel;
-    Label17: TLabel;
-    Label18: TLabel;
     procedure FormShow(Sender: TObject);
     procedure JsBotao1Click(Sender: TObject);
     procedure TRANSPKeyPress(Sender: TObject; var Key: Char);
@@ -60,7 +60,6 @@ type
     procedure JsBotao2Click(Sender: TObject);
     procedure NUMDOCKeyUp(Sender: TObject; var Key: Word;
       Shift: TShiftState);
-    procedure COD_CFOPKeyPress(Sender: TObject; var Key: Char);
     procedure chaveKeyPress(Sender: TObject; var Key: Char);
   private
     procedure enviar();
@@ -167,6 +166,12 @@ begin
       form39.ListBox1.Items.Add('2 - DE TERCEIROS');
       form39.ListBox1.Items.Add('9 - SEM COBRANÇA DE FRETE');
       tedit(sender).Text := funcoes.lista(Sender, false);
+
+      if tedit(sender).Text = '*' then begin
+        tedit(sender).Text := '';
+        abort;
+        exit;
+      end;
     end;
 end;
 
@@ -267,19 +272,6 @@ begin
 
 
   Result := true;
-end;
-
-procedure TfrmConhecimentoFrete.COD_CFOPKeyPress(Sender: TObject;
-  var Key: Char);
-begin
-  if key = #13 then
-    begin
-     if not validaCFOP then
-       begin
-         key := #0;
-         abort;
-       end;
-    end;
 end;
 
 procedure TfrmConhecimentoFrete.chaveKeyPress(Sender: TObject;

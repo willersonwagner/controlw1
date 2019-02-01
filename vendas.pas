@@ -4024,8 +4024,8 @@ begin
 
       dm.IBQuery1.ParamByName('nome').AsString    := codmov;
       dm.IBQuery1.ParamByName('tipo').AsString    := RightStr(trim(tipoV), 3);
-      dm.IBQuery1.ParamByName('vend').AsString    := strnum(ClientDataSet1vendedor.AsString);
-      if dm.IBQuery1.ParamByName('vend').AsString = '0' then dm.IBQuery1.ParamByName('vend').AsString := strnum(JsEdit2.Text);
+      dm.IBQuery1.ParamByName('vend').AsString    := strnum(funcoes.retiraZerosEsquerda(ClientDataSet1vendedor.AsString));
+      if dm.IBQuery1.ParamByName('vend').AsString = '0' then dm.IBQuery1.ParamByName('vend').AsString := strnum(funcoes.retiraZerosEsquerda(JsEdit2.Text));
 
       dm.IBselect.Close;
 
@@ -6606,5 +6606,6 @@ begin
 end;
 
 end.
+
 
 

@@ -8356,16 +8356,16 @@ begin
 
            desconto := dm.IBselect.fieldbyname('desconto').AsCurrency;
            venda    := dm.IBselect.fieldbyname('nota').AsString;
-           vended   := dm.IBselect.fieldbyname('vendedor').AsString;
+           vended   := funcoes.retiraZerosEsquerda(dm.IBselect.fieldbyname('vendedor').AsString);
 
            if avista then
              begin
-               com0.Values[dm.IBselect.fieldbyname('vendedor').AsString] := '0';                   // lista de cod de vendedores
+               com0.Values[vended] := '0';                   // lista de cod de vendedores
                com3.Values[vended] := CurrToStr(StrToCurrDef(com3.Values[vended], 0) + (desconto * comiAvista / 100));
              end
            else
              begin
-               com0.Values[dm.IBselect.fieldbyname('vendedor').AsString] := '0';                   // lista de cod de vendedores
+               com0.Values[vended] := '0';                   // lista de cod de vendedores
                com4.Values[vended] := CurrToStr(StrToCurrDef(com4.Values[vended], 0) + (desconto * comiAprazo / 100));
              end;
 
@@ -8389,11 +8389,11 @@ begin
              else          mattVal[4] := mattVal[2] + (tot * comiAprazo / 100);
          end;
 
-         com0.Values[dm.IBselect.fieldbyname('vendedor').AsString] := '0';                   // lista de cod de vendedores
-         com1.Values[dm.IBselect.fieldbyname('vendedor').AsString] := CurrToStr(StrToCurrDef(com1.Values[dm.IBselect.fieldbyname('vendedor').AsString], 0) + mattVal[1]);
-         com2.Values[dm.IBselect.fieldbyname('vendedor').AsString] := CurrToStr(StrToCurrDef(com2.Values[dm.IBselect.fieldbyname('vendedor').AsString], 0) + mattVal[2]);
-         com3.Values[dm.IBselect.fieldbyname('vendedor').AsString] := CurrToStr(StrToCurrDef(com3.Values[dm.IBselect.fieldbyname('vendedor').AsString], 0) + mattVal[3]);
-         com4.Values[dm.IBselect.fieldbyname('vendedor').AsString] := CurrToStr(StrToCurrDef(com4.Values[dm.IBselect.fieldbyname('vendedor').AsString], 0) + mattVal[4]);
+         com0.Values[funcoes.retiraZerosEsquerda(dm.IBselect.fieldbyname('vendedor').AsString)] := '0';                   // lista de cod de vendedores
+         com1.Values[funcoes.retiraZerosEsquerda(dm.IBselect.fieldbyname('vendedor').AsString)] := CurrToStr(StrToCurrDef(com1.Values[funcoes.retiraZerosEsquerda(dm.IBselect.fieldbyname('vendedor').AsString)], 0) + mattVal[1]);
+         com2.Values[funcoes.retiraZerosEsquerda(dm.IBselect.fieldbyname('vendedor').AsString)] := CurrToStr(StrToCurrDef(com2.Values[funcoes.retiraZerosEsquerda(dm.IBselect.fieldbyname('vendedor').AsString)], 0) + mattVal[2]);
+         com3.Values[funcoes.retiraZerosEsquerda(dm.IBselect.fieldbyname('vendedor').AsString)] := CurrToStr(StrToCurrDef(com3.Values[funcoes.retiraZerosEsquerda(dm.IBselect.fieldbyname('vendedor').AsString)], 0) + mattVal[3]);
+         com4.Values[funcoes.retiraZerosEsquerda(dm.IBselect.fieldbyname('vendedor').AsString)] := CurrToStr(StrToCurrDef(com4.Values[funcoes.retiraZerosEsquerda(dm.IBselect.fieldbyname('vendedor').AsString)], 0) + mattVal[4]);
 
        dm.IBselect.Next; //next do dataset de venda
        ini := ini + 1;
