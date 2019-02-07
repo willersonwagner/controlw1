@@ -224,13 +224,6 @@ object Form1: TForm1
     Left = 488
     Top = 216
   end
-  object IdSNTP1: TIdSNTP
-    Host = 'time.windows.com'
-    Port = 123
-    ReceiveTimeout = 10000
-    Left = 16
-    Top = 216
-  end
   object ACBrNFeDANFeRL1: TACBrNFeDANFeRL
     ACBrNFe = ACBrNFe1
     MostrarPreview = True
@@ -411,12 +404,20 @@ object Form1: TForm1
   end
   object IdAntiFreeze1: TIdAntiFreeze
     Left = 368
-    Top = 56
+    Top = 16
   end
   object FinalizaTimer: TTimer
     Enabled = False
     OnTimer = FinalizaTimerTimer
     Left = 512
     Top = 72
+  end
+  object IdSNTP1: TIdSNTP
+    BroadcastEnabled = True
+    Host = 'time.windows.com'
+    Port = 123
+    ReceiveTimeout = 5000
+    Left = 16
+    Top = 272
   end
 end

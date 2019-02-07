@@ -23,8 +23,8 @@ type
     Label4: TLabel;
     estran_ide: JsEditInteiro;
     Label5: TLabel;
-    cnpj1: JsEditCPF;
     Label6: TLabel;
+    cnpj1: TMaskEdit;
     procedure bairroKeyPress(Sender: TObject; var Key: Char);
     procedure buttonKeyPress(Sender: TObject; var Key: Char);
     procedure codKeyUp(Sender: TObject; var Key: Word;

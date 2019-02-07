@@ -194,10 +194,10 @@ object CadClienteSimplificado: TCadClienteSimplificado
         Indice = 0
         TipoDeDado = teNumero
       end
-      object cnpj1: TMaskEdit
+      object cnpj1: JsEditCPF
         Left = 8
-        Top = 142
-        Width = 281
+        Top = 136
+        Width = 257
         Height = 40
         EditMask = '!99.999.999/9999-99;1;_'
         Font.Charset = DEFAULT_CHARSET
@@ -216,6 +216,10 @@ object CadClienteSimplificado: TCadClienteSimplificado
       Caption = 'Estrangeiro'
       ImageIndex = 1
       OnShow = TabSheet2Show
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object Label2: TLabel
         Left = 8
         Top = 0

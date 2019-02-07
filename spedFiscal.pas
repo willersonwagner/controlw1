@@ -1329,7 +1329,7 @@ begin
 
                   //RATEIA DESCONTO NT
                   //LIDO := ARREDONDA((dsProduto.FieldByName('total').AsCurrency / TOT) * DADOS_ADIC[4], 2);
-                  LIDO := (listaProdutos[ini].total / TOT) * (DADOS_ADIC[4] + DADOS_ADIC[10]);
+                  LIDO := ArredondaTrunca((listaProdutos[ini].total / TOT) * (DADOS_ADIC[4] + DADOS_ADIC[10]), 2);
 			            IF LIDO > 0 then
                     begin
                       IF LIDO <= QTD1 then
@@ -1430,7 +1430,7 @@ begin
        FORM_NUM1(listaProdutos[ini].quant) + '|' + UNID + '|' + FORM_NUM1(TOT_ITEM) + '|' + FORM_NUM1(listaProdutos[ini].descCom) + '|' +
         IfThen( leftt(DESC, 1) = '_', '1', '0') + '|' + '0' + TRIB + '|' + _CFOP + '|' + _CFOP + '|' +
        FORM_NUM1(BASE_ICM) + '|' + FORM_NUM1(IfThen(TRIB = '00', PERC_ICMS, 0)) + '|' + FORM_NUM1(TOT_ICM) + '|' +
-       '0|0|0|0|03||0|0|0|99|0|0|0|0|0|99|0|0|0|0|0||' + IfThen(StrToDateTime(dataIni) >= StrToDateTime('01/01/2019'), '|', '');
+       '0|0|0|0|03||0|0|0|99|0|0|0|0|0|99|0|0|0|0|0||' + IfThen(StrToDateTime(dataIni) >= StrToDateTime('01/01/2019'),FORM_NUM1(listaProdutos[ini].descNT)+ '|', '');
        //CAMPO 09 - IF(LEFT(DESC, 1) = "_", "1", "0") - MAT DE CONSUMO - NAO EXISTE MOV. FISICA DO ITEM
        //ITENS DE MATERIAL DE CONSUMO DEVEM COMECAR COM O CARACTERE "_"
 

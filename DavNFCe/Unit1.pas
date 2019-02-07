@@ -10,7 +10,7 @@ uses
   IdBaseComponent, IdComponent, IdUDPBase, IdUDPClient, IdSNTP,
   ACBrNFeDANFEClass, ACBrNFeDANFeRLClass, IdAntiFreezeBase, IdAntiFreeze,
   ACBrNFeDANFeESCPOS, ACBrDANFCeFortesFr, Vcl.Menus, RxShell, sEdit, acPNG, vcl.imaging.jpeg,
-  TLHelp32, pcnConversaoNFe;
+  TLHelp32, pcnConversaoNFe, IdTCPConnection, IdTCPClient, IdDayTime;
 
 const
   WM_ICONTRAY = WM_USER + 1;
@@ -36,7 +36,6 @@ type
     IBQuery1: TIBQuery;
     IBQuery2: TIBQuery;
     Gauge1: TGauge;
-    IdSNTP1: TIdSNTP;
     ACBrNFeDANFeRL1: TACBrNFeDANFeRL;
     ACBrNFe1: TACBrNFe;
     Panel1: TPanel;
@@ -53,6 +52,7 @@ type
     IdAntiFreeze1: TIdAntiFreeze;
     FinalizaTimer: TTimer;
     Label3: TLabel;
+    IdSNTP1: TIdSNTP;
     procedure FormCreate(Sender: TObject);
     procedure Timer2Timer(Sender: TObject);
     procedure FormClick(Sender: TObject);
@@ -121,6 +121,7 @@ type
     pgerais1: TStringList;
     arquivo : TStringList;
     erroConectaServidor : integer;
+    function ObterDataHoraInternet: TDateTime;
     { Public declarations }
   end;
 
@@ -492,11 +493,14 @@ begin
         end;
 
         //rotina para assinar a nfce a partir de uma lista em txt
+        RichEdit1.Lines.Add('Assinando Notas...');
         assinaNotas;
 
+        RichEdit1.Lines.Add('Verificando NFCes...');
         verificaNFCeNovo(DateToStr(StartOfTheMonth(now)), DateToStr(EndOfTheMonth(now)), false);
 
         try
+          RichEdit1.Lines.Add('Sincronizando o Estoque...');
           sincronizaEstoque;
         except
         on e: exception do
@@ -506,6 +510,7 @@ begin
         end;
 
         try
+          RichEdit1.Lines.Add('Sincronizando o Usuarios...');
           sincronizaUsuarios;
         except
         on e: exception do
@@ -616,7 +621,7 @@ end;
 
 procedure TForm1.Button1Click(Sender: TObject);
 begin
-  criaXMLs(InputBox('', '', ''), '', '');
+  ObterDataHoraInternet;
 end;
 
 function TForm1.conectaBD_Servidor(): boolean;
@@ -1776,12 +1781,29 @@ var
   data: TDateTime;
   SystemTime: TSystemTime;
   cont: integer;
+SNTPClient: TIdSNTP;
 begin
+  RichEdit1.Lines.Add('Buscando Data: ' + IdSNTP1.Host);
+
   cont := 0;
-  while true do
-  begin
-    if cont > 5 then
-    begin
+
+  try
+    acertaDataSite(data);
+    RichEdit1.Lines.Add('--------------------------------------------------');
+    RichEdit1.Lines.Add('Hora Ajustada: ' + FormatDateTime('dd/mm/yy', data) + ' '
+    + FormatDateTime('hh:mm:ss', data));
+    RichEdit1.Lines.Add('--------------------------------------------------');
+  finally
+  end;
+
+  exit;
+
+
+
+
+  cont := 0;
+  while true do begin
+    if cont > 2 then begin
       RichEdit1.Lines.Add
         ('Tentativas de Atualização de Hora Esgotados e Não Possivel atualizar a Hora!');
       exit;
@@ -2520,6 +2542,8 @@ var
   cont, serie, fi, i: integer;
 begin
   RichEdit1.Lines.Add('Verificando Erros em NFCe, Aguarde...');
+  Application.ProcessMessages;
+  Application.ProcessMessages;
 
   ibquery1.Close;
   ibquery1.SQL.text := 'select * from nfce where chave = '''' ';
@@ -2575,6 +2599,10 @@ begin
 
   fi := ibquery1.RecordCount;
   arq := tstringList.Create;
+
+  RichEdit1.Lines.Add('Analisando ' + IntToStr(fi) + ' Registros de NFCe....');
+  Application.ProcessMessages;
+  Application.ProcessMessages;
 
   while not ibquery1.Eof do
   begin
@@ -2770,6 +2798,21 @@ begin
   ACBrNFe1.NotasFiscais.Clear;
   arq.Free;
   DeleteFile(ExtractFileDir(ParamStr(0)) + '\notas.ass');
+end;
+
+function TForm1.ObterDataHoraInternet: TDateTime;
+var
+  IDSntp: TIDSntp;
+begin
+  IDSntp := TIDSntp.Create(nil);
+  try
+    IDSntp.Host := 'time2.stupi.se';
+    IDSntp.Port := 123;
+    Result := IDSntp.DateTime;
+    ShowMessage(DateTimeToStr(Result));
+  finally
+    IDSntp.Free;
+  end;
 end;
 
 

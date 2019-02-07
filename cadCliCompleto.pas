@@ -55,7 +55,7 @@ var
 
 implementation
 
-uses func, untnfceForm;
+uses func, untnfceForm, caixaLista;
 
 {$R *.dfm}
 
@@ -259,12 +259,29 @@ end;
 
 procedure TcadCliNFCe.tipoKeyPress(Sender: TObject; var Key: Char);
 begin
-  if key = #13 then begin
-    cnpj.SetFocus;
-    setMask;
-    key := #0;
-  end;
+  if (key=#13) and ((tedit(sender).Text='0') or (tedit(sender).Text='')) then
+ begin
+   form39 := tform39.Create(self);
+   form39.ListBox1.Items.Add('1 - PESSOA FÍSICA');
+   form39.ListBox1.Items.Add('2 - PESSOA JURÍDICA');
+   form39.ListBox1.Items.Add('3 - GOVERNO MUNICIPAL');
+   form39.ListBox1.Items.Add('4 - GOVERNO ESTADUAL');
+   form39.ListBox1.Items.Add('5 - GOVERNO FEDERAL');
+   form39.ListBox1.Items.Add('6 - PRODUTOR RURAL');
+   form39.ListBox1.Items.Add('7 - ESTRANGEIRO');
+   tedit(sender).Text := funcoes.lista(Sender, false);
+   if tedit(sender).Text = '*' then
+     begin
+       tedit(sender).Text := '0';
+       key := #0;
+     end;
 
+   setMask;
+   cnpj.SetFocus;
+   key := #0;
+
+  //tedit(sender).Text := funcoes.localizar('Tipo de Cliente','tipocli','cod,nome','cod','cod','nome','cod',false,false,false,'',300,sender);
+ end;
 end;
 
 end.

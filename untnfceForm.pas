@@ -245,6 +245,7 @@ function inutilizacaoNFCE(ini, fim, modelo: integer; just: String;
 procedure setVersaoNFCe();
 procedure setVersaoNFe();
 function validaCFOP(const cfop : String) : boolean;
+function acertaDataSite(var data : TDateTime) : boolean;
 
 procedure Carrega_NotaFiscal_ArquivoXML(OpenDialog: TOpenDialog;
   var NotaFiscal: String; var CFOP: String; var CondPagto: String;
@@ -6991,8 +6992,25 @@ begin
       except
       end;
 
-      if stat = '110' then
-      begin
+      if stat = '101' then begin
+        query1.Close;
+        query1.SQL.text :=
+          'update nfce set adic = ''CANC'', EXPORTADO = 0 where chave = :chave';
+        query1.ParamByName('chave').AsString := chavb.chave;
+        query1.ExecSQL;
+        query1.Transaction.Commit;
+
+        try
+          richedt.Lines.Add('((MARCADO COMO CANCELADO!))');
+        except
+        end;
+
+        ACBrNFe.NotasFiscais[0].GravarXML(chavb.chave + '-nfe.xml',
+          buscaPastaNFCe(chavb.chave, false));
+        exit;
+      end;
+
+      if stat = '110' then begin
         query1.Close;
         query1.SQL.text :=
           'update nfce set adic = ''DENEGADA'', EXPORTADO = 1 where chave = :chave';
@@ -8313,6 +8331,40 @@ begin
   end;
 
   if Contido('-' + cfop + '-', listaCFOP) then Result := true;
+end;
+
+
+function acertaDataSite(var data : TDateTime) : boolean;
+var
+  th  : String;
+  arq : TStringList;
+  SystemTime: TSystemTime;
+begin
+  Result := false;
+  th     := '';
+  try
+    th := 'http://controlw.blog.br/si2/data.php';
+    form72.IdHTTP1.Request.UserAgent :=
+    'Mozilla/5.0 (Windows NT 5.1; rv:2.0b8) Gecko/20100101 Firefox/4.0b8';
+    form72.IdHTTP1.HTTPOptions := [hoForceEncodeParams];
+    th     := form72.IdHTTP1.Get(th);
+    form72.IdHTTP1.Disconnect;
+  except
+  end;
+
+  if th <> '' then begin
+    Result := true;
+    LE_CAMPOS(arq, th, '|', true);
+
+    data := EncodeDate(StrToInt(arq.Values['2']), StrToInt(arq.Values['1']), StrToInt(arq.Values['0'])) +
+    EncodeTime(StrToInt(arq.Values['3']), StrToInt(arq.Values['4']), StrToInt(arq.Values['5']), 0);
+
+    DateTimeToSystemTime(data, SystemTime);
+    //date('|d|m|Y|H|i|s|');
+
+    SetLocalTime(SystemTime);
+    arq.Free;
+  end;
 end;
 
 end.

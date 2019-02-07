@@ -456,52 +456,9 @@ end;
 
 procedure Tform22.Button1Click(Sender: TObject);
 var
-  op : TOpenDialog;
-  proc : TMailStatus;
-  val, ser : string;
-  i : integer;
+  data : TDateTime;
 begin
-  for I := 0 to 10000 do begin
-    dm.IBQuery1.Close;
-    dm.IBQuery1.SQL.Text := 'update venda set ok = ''S'' ';
-    dm.IBQuery1.ExecSQL;
-    dm.IBQuery1.Transaction.Commit;
-  end;
 
-  ShowMessage('terminou');
-  exit;
-  val := InputBox('numero:', '','');
-  ser := InputBox('serie:', '','');
-
-  ShowMessage(achaXML_NFCePeloNumero(val, ser));
-  exit;
-  ShowMessage(funcoes.MensagemTextoInput('',''));
-
-  exit;
-  nota := 52003;
-  Imprimir_DANFE_PDF('52003', '52003', tipoIMPRESSAO <> 1, '5');
-
-
-  //funcoes.buscaNomeConfigDat;
-  exit;
-  funcoes.enviaXMLsEmail;
-
-  exit;
-  {cod := InputBox('Cod produto','','');
-  funcoes.VER_ESTOQUE('ACERTA', 'Lançando Acertos de Estoque', 'Acert', StrToIntDef(COD, -1));
-  exit;
-  DM.IBselect.Close;
-  DM.IBselect.SQL.Text := 'SELECT DESCONTO FROM PRODUTO';
-  DM.IBselect.Open;
-
-  DM.IBselect.FieldByName('DESCONTO').
-  EXIT;}
-
-  if InputBox('1-restaura 2-faz backup','','1') = '1' then
-  funcoes.restaurarbackup
-    else funcoes.SincronizarExtoque2('d:\matriz.dat');
-  //showmessage(buscaVersaoIBPT_Local);
-  //funcoes.SincronizarExtoque2('d:\matriz.dat');
 end;
 
 function Tform22.enviNFCe(const perg : String = ''; nnf : String = ''; recebido : currency = 0) : boolean;
@@ -627,6 +584,7 @@ begin
       if cliente = '0' then cliente := '';
       cliente := funcoes.dialogo('generico',0,'1234567890,.'+#8,50,false,'',Application.Title,'Qual o Código do Cliente?',cliente);
       cliente := trim(cliente);
+
 
       if  cliente = '*' then exit;
 

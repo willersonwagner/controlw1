@@ -18550,8 +18550,7 @@ function Tfuncoes.cadastroClienteNFCeRetornaCod(total: currency = 0;
   cod: integer = 0): string;
 begin
   Result := '';
-  if total >= 10000 then
-  begin
+  if total >= 10000 then begin
     Result := '';
     while true do
     begin
@@ -21459,6 +21458,17 @@ begin
   funcoes.Mensagem(Application.Title, 'Aguarde, Buscando Data...', 15,
     'Courier New', False, 0, clRed);
   Application.ProcessMessages;
+
+  try
+    acertaDataSite(dataMov);
+    Result := true;
+  finally
+    pergunta1.option := 2;
+    funcoes.Mensagem(Application.Title, '', 15, '',False, 0, clBlack, true);
+  end;
+
+  exit;
+
   try
     while true do
     begin
@@ -21839,23 +21849,28 @@ begin
       dm.IBselect.FieldByName('chave').AsString + '-nfe.xml') then
     begin
       try
-        ACBrNFe.NotasFiscais.Clear;
-        ACBrNFe.NotasFiscais.LoadFromFile(buscaPastaNFCe(dm.IBselect.FieldByName('chave').AsString) +
-        dm.IBselect.FieldByName('chave').AsString + '-nfe.xml');
-        {if not ACBrNFe.NotasFiscais[0].VerificarAssinatura then begin
-          ACBrNFe.NotasFiscais[0].Assinar;
-          ACBrNFe.NotasFiscais[0].GravarXML(dm.IBselect.FieldByName('chave').AsString + '-nfe.xml', buscaPastaNFCe(dm.IBselect.FieldByname('chave').AsString));
-          ACBrNFe.NotasFiscais.Clear;
-        end;}
-
         arq.LoadFromFile(buscaPastaNFCe(dm.IBselect.FieldByName('chave')
           .AsString) + dm.IBselect.FieldByName('chave').AsString + '-nfe.xml');
 
         if Le_Nodo('Signature', arq.text) = '' then begin
-          ACBrNFe.NotasFiscais[0].Assinar;
-          ACBrNFe.NotasFiscais[0].GravarXML(dm.IBselect.FieldByName('chave').AsString + '-nfe.xml', buscaPastaNFCe(dm.IBselect.FieldByname('chave').AsString));
-          ACBrNFe.NotasFiscais.Clear;
+            if verificaSePodeEmitirNFe
+             then begin
+              ACBrNFe.NotasFiscais.Clear;
+              ACBrNFe.NotasFiscais.LoadFromFile(buscaPastaNFCe(dm.IBselect.FieldByName('chave').AsString) +
+              dm.IBselect.FieldByName('chave').AsString + '-nfe.xml');
+              ACBrNFe.NotasFiscais[0].Assinar;
+              ACBrNFe.NotasFiscais[0].GravarXML(dm.IBselect.FieldByName('chave').AsString + '-nfe.xml', buscaPastaNFCe(dm.IBselect.FieldByname('chave').AsString));
+              ACBrNFe.NotasFiscais.Clear;
+            end;
         end;
+      except
+        on e: exception do
+        begin
+          //ShowMessage(e.Message + #13 + dm.IBselect.FieldByName('chave')
+           // .AsString);
+        end;
+      end;
+
 
         if Le_Nodo('cStat', arq.text) = '' then begin
           semProtocolo := semProtocolo + ' Sem Protocolo1: ' +
@@ -21874,13 +21889,6 @@ begin
         end;
 
         arq.Clear;
-      except
-        on e: exception do
-        begin
-          ShowMessage(e.Message + #13 + dm.IBselect.FieldByName('chave')
-            .AsString);
-        end;
-      end;
     end
     else
     begin
@@ -26612,7 +26620,6 @@ function Tfuncoes.retiraZerosEsquerda(const valor : string) : String;
 begin
   Result := IntToStr(StrToIntDef(valor, 0));
 end;
-
 
 
 end.

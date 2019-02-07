@@ -337,9 +337,6 @@
             <Form>lancContasPagar</Form>
         </DCCReference>
         <DCCReference Include="cadCli.pas">
-            <Form>cadCliNFCe</Form>
-        </DCCReference>
-        <DCCReference Include="cadCli1.pas">
             <Form>CadClienteSimplificado</Form>
         </DCCReference>
         <DCCReference Include="Unit60.pas">
