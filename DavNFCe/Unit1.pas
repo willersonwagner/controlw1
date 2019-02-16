@@ -2604,8 +2604,13 @@ begin
   Application.ProcessMessages;
   Application.ProcessMessages;
 
+  Gauge1.Progress := 0;
+  Gauge1.MaxValue := fi;
+
   while not ibquery1.Eof do
   begin
+    Gauge1.Progress := Gauge1.Progress + 1;
+    Application.ProcessMessages;
     i := i + 1;
     if serie <> ibquery1.FieldByName('serie').AsInteger then begin
       if serie <> 99999 then begin
@@ -2630,6 +2635,7 @@ begin
     end;
 
     while true do begin
+      Application.ProcessMessages;
       if ibquery1.Eof then break;
       if cont <> ibquery1.FieldByName('nnf').AsInteger then begin
         erro := '';

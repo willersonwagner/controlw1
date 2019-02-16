@@ -24530,7 +24530,11 @@ begin
         end;
         dm.IBQuery1.ParamByName('NSU').AsString := UltNSU;
         dm.IBQuery1.ParamByName('SIT').AsString := Impresso;
-        dm.IBQuery1.ExecSQL;
+        try
+          dm.IBQuery1.ExecSQL;
+        except
+
+        end;
       end;
 
       dataset.Post;

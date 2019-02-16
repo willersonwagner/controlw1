@@ -1166,7 +1166,8 @@ begin
   qutd := currtostr(quant.getValor);
   preco1 := currtostr(prec);
   preco.setValor(prec);
-  //preco1 := confirmaPrecoProduto(dtmMain.IBQuery2.fieldbyname('cod').Asstring, qutd, preco1, 1, false);
+  preco1 := confirmaPrecoProduto(dtmMain.IBQuery2.fieldbyname('cod').Asstring, qutd, preco1, 1, false);
+
   if preco1 = '*' then exit;
   
   prec := strtocurr(preco1);
@@ -2791,8 +2792,7 @@ var
   atacado : boolean;
 begin
   Result := valor;
-
-    if form1.pgerais.Values['37'] = 'S' then exit;
+  if form1.pgerais.Values['104'] <> 'S' then exit;
 
   tipoDesconto     := LerConfig(configu, 2);
   if contido(tipoDesconto, 'SP') = false then exit;

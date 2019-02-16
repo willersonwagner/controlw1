@@ -132,7 +132,10 @@ function blocoB() : String;
 function blocoF(reg : integer = 1) : String;
 function blocoG() : String;
 function blocoH() : String;
+function blocoI() : String;
 function blocoM() : String;
+function blocoP_vazio() : String;
+function blocoM01012019() : String;
 function blocoK() : String;
 FUNCTION BLOCOP() : string;
 FUNCTION BLOCO0500() : string;
@@ -294,6 +297,7 @@ begin
       if ini = fim then break;
       ini := ini + 1;
     end;
+
   TOTAL_REG(HAND, '9');
   TOT := 0;
 
@@ -861,7 +865,8 @@ end;
 FUNCTION FORM_NUM1(VALOR : currency) : String;
 begin
   Result := '0.00';
-  Result := FormatCurr('0.00', VALOR);
+  //Result := CurrToStr(VALOR);
+  Result := FormatCurr('0.00',VALOR);
 end;
 
 
@@ -972,7 +977,7 @@ begin
    TOTAL_REG(ARQ_TMP, 'E');
 
    blocoG();
-   TOTAL_REG(ARQ_TMP, 'G');
+
 
    try
    blocoH();
@@ -1684,11 +1689,33 @@ begin
     end;
 end;
 
+function blocoI() : String;
+begin
+  if StrToDateTime(dataIni) < StrToDateTime('01/01/2019') then exit;
+
+  LINHA := '|I001|1|';
+  GRAVA_SPED(ARQ_TMP, LINHA);
+
+  TOTAL_REG(ARQ_TMP, 'I');
+end;
+
+function blocoP_vazio() : String;
+begin
+  if StrToDateTime(dataIni) < StrToDateTime('01/01/2019') then exit;
+
+  LINHA := '|P001|1|';
+  GRAVA_SPED(ARQ_TMP, LINHA);
+
+  TOTAL_REG(ARQ_TMP, 'P');
+end;
+
 
 function blocoG() : String;
 begin
   LINHA := '|G001|1|';
   GRAVA_SPED(ARQ_TMP, LINHA);
+
+  TOTAL_REG(ARQ_TMP, 'G');
   //TOTALIZA REGISTROS DO TIPO G - 1 DIGITO APENAS PORQUE É PARCIAL, SE FOR TOTAL, INFORMAM-SE 4 DIGITOS
 end;
 
@@ -1741,6 +1768,7 @@ begin
     begin
       MODELO := '003';
       IF StrToDateTime(dataIni) >= StrToDateTime('01/06/2018') THEN MODELO := '004';
+      IF StrToDateTime(dataIni) >= StrToDateTime('01/01/2019') THEN MODELO := '005';
       LINHA := '|0000|'+ MODELO +'|0|||' + DATA_BRA_FULL(StrToDateTime(dataIni)) + '|' + DATA_BRA_FULL(StrToDateTime(DataFim)) + '|';
 
       dm.IBselect.Close;
@@ -3342,8 +3370,10 @@ begin
 
   //daqui pra baixo ja o TOTAL_REG ja esta dentro da função
   blocoF(0);
+  blocoI;
   blocoM();
-  //BLOCOP();
+
+  blocoP_vazio();
   bloco0_Sped_Contribuicoes();
 
   cabecalho_SF_Bloco_0(true);
@@ -3994,6 +4024,163 @@ var
   i3, cod_pis : integer;
   blo : boolean;
 begin
+  if StrToDateTime(dataIni) >= StrToDateTime('01/01/2019') then begin
+    blocoM01012019;
+    exit;
+  end;
+
+  LINHA := '|M001|0|';
+  GRAVA_SPED(ARQ_TMP, LINHA);
+
+  //PIS TRIBUTADO - M200
+  REC_BRUTA := 0;  //TOTALIZADOR DE RECEITA BRUTA
+  _PIS := 0;
+  BC_PISTRIB := 0;
+  blo := false;
+
+  FOR ini := 0 TO listaTOT_PIS.Count -1 do
+    begin
+      COD := listaTOT_PIS[ini].CST;
+      IF ((listaTOT_PIS[ini].pis > 0) AND (COD = '01')) then
+        begin
+          //ACUMULA RECEITA BRUTA PARA CONTRIBUIÇÃO PREVIDENCIARIA
+	        REC_BRUTA  := REC_BRUTA + listaTOT_PIS[ini].total;
+          _PIS       := _PIS + RoundTo1(listaTOT_PIS[ini].total * TRIB_ALIQ_PIS / 100);
+	        BC_PISTRIB := BC_PISTRIB + listaTOT_PIS[ini].total;
+        end;
+    end;
+
+  //DETALHAMENTO PIS TRIBUTADO
+  IF (_PIS > 0)  then begin
+    blo := true;
+    LINHA := '|M200|0|0|0|0|0|0|0|' + FORM_NUM1(_PIS) + '|0|0|' +
+    FORM_NUM1(_PIS) + '|' + FORM_NUM1(_PIS) + '|';
+    GRAVA_SPED(ARQ_TMP, LINHA);
+    LINHA := '|M205|' + '12' + '|810902|' + FORM_NUM1(_PIS) + '|';
+    GRAVA_SPED(ARQ_TMP, LINHA);
+    LINHA := '|M210|' + '51' + '|' + FORM_NUM1(BC_PISTRIB) + '|' + FORM_NUM1(BC_PISTRIB) + '|' +
+    FORM_NUM1(TRIB_ALIQ_PIS) + '|||' + FORM_NUM1(_PIS) + '|0|0|0|0|' + FORM_NUM1(_PIS) + '|' + IfThen(StrToDateTime(dataIni) >= StrToDateTime('01/01/2019'),'0|0|0|', '') ;
+    GRAVA_SPED(ARQ_TMP, LINHA);
+  end;
+
+   if blo = false then begin
+     LINHA := '|M200|0|0|0|0|0|0|0|' + FORM_NUM1(_PIS) + '|0|0|' +
+     FORM_NUM1(_PIS) + '|' + FORM_NUM1(_PIS) + '|';
+     GRAVA_SPED(ARQ_TMP, LINHA);
+   end;
+
+  //PIS NÃO TRUBUTADO - M400
+  MAT_CST_PIS.Clear;
+  MAT_NOTA.Clear;
+
+  MAT_CST_PIS.Add('04');
+  MAT_CST_PIS.Add('05');
+  MAT_CST_PIS.Add('06');
+  MAT_CST_PIS.Add('07');
+  MAT_CST_PIS.Add('08');
+  MAT_CST_PIS.Add('09');
+  MAT_CST_PIS.Add('99');
+
+  FOR i3 := 0 TO MAT_CST_PIS.Count -1 do
+    begin
+      TOT_APUR_CST  := 0;
+      FOR INI := 0 TO listaTOT_PIS.Count -1 do begin
+        COD := listaTOT_PIS[ini].CST;
+
+        IF ((listaTOT_PIS[ini].pis + listaTOT_PIS[ini].cofins > 0) AND (COD = MAT_CST_PIS[i3])) then begin
+          TOT_APUR_CST := TOT_APUR_CST + listaTOT_PIS[ini].total;
+          LINHA := '|M410|' + RightStr(listaTOT_PIS[ini].cod, 3) + '|' + FORM_NUM1(listaTOT_PIS[ini].total) + '|'+codCTA+'||'; //PROVISORIO - COD. 301 - PRECISA SRE INFORMADO NO CAD. DO PRODUTO
+          MAT_NOTA.Add(LINHA);
+        end;
+      end;
+
+      IF TOT_APUR_CST > 0 then begin
+        LINHA := '|M400|' + MAT_CST_PIS[i3] + '|' + FORM_NUM1(TOT_APUR_CST) + '|'+codCTA+'||';
+        GRAVA_SPED(ARQ_TMP, LINHA);
+        //ASORT(MAT_NOTA) ordenar a matriz, ainda nao fiz
+
+        FOR INI := 0 TO MAT_NOTA.Count -1 do begin
+          GRAVA_SPED(ARQ_TMP, MAT_NOTA[INI]);
+        end;
+
+        MAT_NOTA.Clear;
+      end;
+    end;
+
+  //COFINS TRIBUTADA - M600
+  _PIS := 0;
+  BC_PISTRIB := 0;
+  FOR INI := 0 TO listaTOT_PIS.Count -1 do
+    begin
+      COD := listaTOT_PIS[ini].CST;
+      IF ((listaTOT_PIS[ini].cofins > 0) AND (COD = '01')) then
+        begin
+          //ACUMULA RECEITA BRUTA PARA CONTRIBUIÇÃO PREVIDENCIARIA
+          _PIS := _PIS + RoundTo1(listaTOT_PIS[ini].total * TRIB_ALIQ_COFINS / 100);
+          //_PIS := _PIS + RoundTo1(StrToCurrDef(BAS_ALIQPIS.Values[MAT_ALIQPIS[INI]], 0) * TRIB_ALIQ_COFINS / 100);
+          BC_PISTRIB := BC_PISTRIB + listaTOT_PIS[ini].total;
+        end;
+    end;
+
+  //DETALHAMENTO COFINS TRIBUTADA
+  IF _PIS > 0 then
+    begin
+      LINHA := '|M600|0|0|0|0|0|0|0|' + FORM_NUM1(_PIS) + '|0|0|' +
+      FORM_NUM1(_PIS) + '|' + FORM_NUM1(_PIS) + '|';
+      GRAVA_SPED(ARQ_TMP, LINHA);
+      LINHA := '|M605|' + '12' + '|217201|' + FORM_NUM1(_PIS) + '|';
+      GRAVA_SPED(ARQ_TMP, LINHA);
+      LINHA := '|M610|' + '51' + '|' + FORM_NUM1(BC_PISTRIB) + '|' + FORM_NUM1(BC_PISTRIB) + '|' +
+      FORM_NUM1(TRIB_ALIQ_COFINS) + '|||' + FORM_NUM1(_PIS) + '|0|0|0|0|' + FORM_NUM1(_PIS) + '|' + IfThen(StrToDateTime(dataIni) >= StrToDateTime('01/01/2019'),'0|0|0|', '') ;
+      GRAVA_SPED(ARQ_TMP, LINHA);
+    end
+  else
+    begin
+      LINHA := '|M600|0|0|0|0|0|0|0|' + FORM_NUM1(_PIS) + '|0|0|' +
+      FORM_NUM1(_PIS) + '|' + FORM_NUM1(_PIS) + '|';
+      GRAVA_SPED(ARQ_TMP, LINHA);
+    end;
+
+  //COFINS NÃO TRIBUTADO - M800
+  MAT_NOTA.Clear;
+  FOR i3 := 0 TO MAT_CST_PIS.Count -1 do
+    begin
+      TOT_APUR_CST  := 0;
+      FOR INI := 0 TO listaTOT_PIS.Count -1 do
+        begin
+          COD := listaTOT_PIS[ini].CST;
+          IF ((listaTOT_PIS[ini].cofins > 0) AND (COD = MAT_CST_PIS[i3])) then
+            begin
+              TOT_APUR_CST := TOT_APUR_CST + listaTOT_PIS[ini].total;
+              LINHA := '|M810|' + RightStr(listaTOT_PIS[ini].cod, 3) + '|' + FORM_NUM1(listaTOT_PIS[ini].total) + '|'+codCTA+'||'; //PROVISORIO - COD. 301 - PRECISA SRE INFORMADO NO CAD. DO PRODUTO
+       		    MAT_NOTA.Add(LINHA);
+            end;
+        end;
+
+      IF TOT_APUR_CST > 0 then
+        begin
+          LINHA := '|M800|' + MAT_CST_PIS[i3] + '|' + FORM_NUM1(TOT_APUR_CST) + '|'+codCTA+'||';
+          GRAVA_SPED(ARQ_TMP, LINHA);
+          //ASORT(MAT_NOTA)
+          FOR INI := 0 TO MAT_NOTA.Count -1 do
+            begin
+              GRAVA_SPED(ARQ_TMP, MAT_NOTA[INI]);
+            end;
+
+          MAT_NOTA.Clear;
+        end;
+    end;
+
+  TOTAL_REG(ARQ_TMP, 'M');
+end;
+
+
+function blocoM01012019() : String;
+var
+  COD, COD_ISEN : String;
+  i3, cod_pis : integer;
+  blo : boolean;
+begin
   LINHA := '|M001|0|';
   GRAVA_SPED(ARQ_TMP, LINHA);
 
@@ -4025,7 +4212,7 @@ begin
       LINHA := '|M205|' + '12' + '|810902|' + FORM_NUM1(_PIS) + '|';
       GRAVA_SPED(ARQ_TMP, LINHA);
       LINHA := '|M210|' + '51' + '|' + FORM_NUM1(BC_PISTRIB) + '|' + FORM_NUM1(BC_PISTRIB) + '|' +
-      FORM_NUM1(TRIB_ALIQ_PIS) + '|||' + FORM_NUM1(_PIS) + '|0|0|0|0|' + FORM_NUM1(_PIS) + '|';
+      '0|0|' + FORM_NUM1(BC_PISTRIB) + '|' + FORM_NUM1(TRIB_ALIQ_PIS) + '|0||'+ FORM_NUM1(_PIS) +'|0|0|' + IfThen(StrToDateTime(dataIni) >= StrToDateTime('01/01/2019'),'0|0|'+ FORM_NUM1(_PIS) +'|', '') ;
       GRAVA_SPED(ARQ_TMP, LINHA);
     end;
 
@@ -4051,31 +4238,27 @@ begin
   FOR i3 := 0 TO MAT_CST_PIS.Count -1 do
     begin
       TOT_APUR_CST  := 0;
-      FOR INI := 0 TO listaTOT_PIS.Count -1 do
-        begin
-          COD := listaTOT_PIS[ini].CST;
+      FOR INI := 0 TO listaTOT_PIS.Count -1 do begin
+        COD := listaTOT_PIS[ini].CST;
 
-          IF ((listaTOT_PIS[ini].pis > 0) AND (COD = MAT_CST_PIS[i3])) then
-            begin
-              TOT_APUR_CST := TOT_APUR_CST + listaTOT_PIS[ini].total;
-              LINHA := '|M410|' + RightStr(listaTOT_PIS[ini].cod, 3) + '|' + FORM_NUM1(listaTOT_PIS[ini].total) + '|'+codCTA+'||'; //PROVISORIO - COD. 301 - PRECISA SRE INFORMADO NO CAD. DO PRODUTO
-              MAT_NOTA.Add(LINHA);
-            end;
+        IF ((listaTOT_PIS[ini].pis + listaTOT_PIS[ini].cofins > 0) AND (COD = MAT_CST_PIS[i3])) then begin
+          TOT_APUR_CST := TOT_APUR_CST + listaTOT_PIS[ini].total;
+          LINHA := '|M410|' + RightStr(listaTOT_PIS[ini].cod, 3) + '|' + FORM_NUM1(listaTOT_PIS[ini].total) + '|'+codCTA+'||'; //PROVISORIO - COD. 301 - PRECISA SRE INFORMADO NO CAD. DO PRODUTO
+          MAT_NOTA.Add(LINHA);
+        end;
+      end;
+
+      IF TOT_APUR_CST > 0 then begin
+        LINHA := '|M400|' + MAT_CST_PIS[i3] + '|' + FORM_NUM1(TOT_APUR_CST) + '|'+codCTA+'||';
+        GRAVA_SPED(ARQ_TMP, LINHA);
+        //ASORT(MAT_NOTA) ordenar a matriz, ainda nao fiz
+
+        FOR INI := 0 TO MAT_NOTA.Count -1 do begin
+          GRAVA_SPED(ARQ_TMP, MAT_NOTA[INI]);
         end;
 
-      IF TOT_APUR_CST > 0 then
-        begin
-          LINHA := '|M400|' + MAT_CST_PIS[i3] + '|' + FORM_NUM1(TOT_APUR_CST) + '|'+codCTA+'||';
-          GRAVA_SPED(ARQ_TMP, LINHA);
-          //ASORT(MAT_NOTA) ordenar a matriz, ainda nao fiz
-
-          FOR INI := 0 TO MAT_NOTA.Count -1 do
-            begin
-              GRAVA_SPED(ARQ_TMP, MAT_NOTA[INI]);
-            end;
-
-          MAT_NOTA.Clear;
-        end;
+        MAT_NOTA.Clear;
+      end;
     end;
 
   //COFINS TRIBUTADA - M600
@@ -4102,7 +4285,7 @@ begin
       LINHA := '|M605|' + '12' + '|217201|' + FORM_NUM1(_PIS) + '|';
       GRAVA_SPED(ARQ_TMP, LINHA);
       LINHA := '|M610|' + '51' + '|' + FORM_NUM1(BC_PISTRIB) + '|' + FORM_NUM1(BC_PISTRIB) + '|' +
-      FORM_NUM1(TRIB_ALIQ_COFINS) + '|||' + FORM_NUM1(_PIS) + '|0|0|0|0|' + FORM_NUM1(_PIS) + '|';
+      '0|0|' + FORM_NUM1(BC_PISTRIB) + '|' + FORM_NUM1(TRIB_ALIQ_COFINS) + '|0||'+ FORM_NUM1(_PIS) +'|0|0|0|0|'+ FORM_NUM1(_PIS) +'|';
       GRAVA_SPED(ARQ_TMP, LINHA);
     end
   else
