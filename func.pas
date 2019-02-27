@@ -10460,6 +10460,19 @@ begin
       dm.IBQuery1.Transaction.Commit;
     end;
 
+
+    if not VerSeExisteTRIGGERPeloNome('DELETA_PRODUTO_ENTRADA') then begin
+      dm.IBScript1.Script.Text := ('CREATE TRIGGER DELETA_PRODUTO_ENTRADA FOR item_entrada ' +
+      ' ACTIVE BEFORE DELETE POSITION 0 AS BEGIN ' +
+      ' if (old.destino <= 1) then begin'+
+      ' update produto set quant = quant - old.QTD_ENT where cod = old.cod; ' +
+      ' end else begin ' +
+      ' update produto set deposito = deposito - old.QTD_ENT where cod = old.cod; ' +
+      ' END '+
+      ' END;');
+      dm.IBScript1.ExecuteScript;
+    end;
+
     try
     if not VerSeExisteTRIGGERPeloNome('ALTERA_PRODUTO') then begin
       //dm.IBScript1.Close;

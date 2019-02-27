@@ -131,7 +131,8 @@ var
 procedure TrimAppMemorySize;
 
 const
-  { sqlSinc : String = 'select p.cod, hash(nome || codbar || cast(p_venda as varchar(20))'+
+  { sqlSinc : String = 'select p.cod, hash(nome || codbar || cast(p_venda as varchar(20
+  ))'+
     ' ||unid||classif||aliquota||is_pis||p.cod_ispis) as hash from produto p order by p.cod';
     sqlSincServer : String = 'select p.cod,nome, codbar, quant, p_venda, unid, classif, aliquota, is_pis, cod_ispis, hash(nome || codbar || cast(p_venda as varchar(20))'+
     ' ||unid||classif||aliquota||is_pis||p.cod_ispis) as hash from produto p order by p.cod'; }
@@ -169,7 +170,7 @@ begin
   erro12 := '1';
   QueryControlProd.Close;
   QueryControlProd.SQL.Text :=
-    'select nota, chave, data from nfce where ((adic = ''OFF'') and (substring(chave from 23 for 3) = :serie)) and tentativa < 20 ';
+    'select nota, chave, data from nfce where ((adic = ''OFF'') and (substring(chave from 23 for 3) = :serie)) and tentativa < 10 ';
   QueryControlProd.ParamByName('serie').AsString := strzero(getSerieNFCe, 3);
   try
     QueryControlProd.Open;
@@ -260,7 +261,7 @@ begin
         end;
       end;
 
-      if Contido('Rejeicao', esta) then begin
+      if (Contido('Rejeicao', esta) or (Contido('656', esta))) then begin
         IBQuery2.Close;
         IBQuery2.SQL.Text := 'update nfce set tentativa = tentativa + 1 where chave = :chave';
         IBQuery2.ParamByName('chave').AsString := QueryControlProd.fieldbyname('chave').AsString;
@@ -500,7 +501,6 @@ begin
         verificaNFCeNovo(DateToStr(StartOfTheMonth(now)), DateToStr(EndOfTheMonth(now)), false);
 
         try
-          RichEdit1.Lines.Add('Sincronizando o Estoque...');
           sincronizaEstoque;
         except
         on e: exception do
@@ -510,7 +510,6 @@ begin
         end;
 
         try
-          RichEdit1.Lines.Add('Sincronizando o Usuarios...');
           sincronizaUsuarios;
         except
         on e: exception do
@@ -709,8 +708,12 @@ begin
   if conectaBD_Servidor = false then
     exit;
 
+  RichEdit1.Lines.Add('Sincronizando o Estoque...');
+
   if verSeOcorreuMudancaEstoque = false then
     exit;
+
+
 
   IBQueryServer1.Close;
   IBQueryServer1.SQL.Text := sqlSincServer;
@@ -938,6 +941,8 @@ begin
 
   if conectaBD_Servidor = false then
     exit;
+
+  RichEdit1.Lines.Add('Sincronizando o Usuarios...');
 
   IBQueryServer1.Close;
   IBQueryServer1.SQL.Text := 'select * from usuario';

@@ -3992,9 +3992,15 @@ begin
 
       cod := ClientDataSet1CODIGO.AsString;
       dm.IBQuery1.Close;
-      dm.IBQuery1.SQL.Clear;
-      dm.IBQuery1.SQL.Text := ('insert into item_venda(data,nota,COD, QUANT, p_venda,total,origem,p_compra,codbar,aliquota, unid, desconto, nome, vendedor, TIPO, cod_seq)'+
-      ' values(:data,'+novocod+',:cod, :quant, :p_venda,:total,'+IntToStr(origem)+',:p_compra, :codbar,:aliq, :unid, :desconto, :nome, :vend, :tipo, gen_id(item_venda, 1))');
+
+      if LeftStr(tipoV, 1) = 'V' then begin
+        dm.IBQuery1.SQL.Text := ('update or insert into item_venda(data,nota,COD, QUANT, p_venda,total,origem,p_compra,codbar,aliquota, unid, desconto, nome, vendedor, TIPO, cod_seq)'+
+        ' values(:data,'+novocod+',:cod, :quant, :p_venda,:total,'+IntToStr(origem)+',:p_compra, :codbar,:aliq, :unid, :desconto, :nome, :vend, :tipo, gen_id(item_venda, 1)) matching(nota, cod, quant)');
+      end
+      else begin
+        dm.IBQuery1.SQL.Text := ('insert into item_venda(data,nota,COD, QUANT, p_venda,total,origem,p_compra,codbar,aliquota, unid, desconto, nome, vendedor, TIPO, cod_seq)'+
+        ' values(:data,'+novocod+',:cod, :quant, :p_venda,:total,'+IntToStr(origem)+',:p_compra, :codbar,:aliq, :unid, :desconto, :nome, :vend, :tipo, gen_id(item_venda, 1))');
+      end;
       dm.IBQuery1.ParamByName('data').AsDateTime    := form22.datamov;
       dm.IBQuery1.ParamByName('cod').AsString       := ClientDataSet1CODIGO.AsString;
       dm.IBQuery1.ParamByName('codbar').AsString    := funcoes.BuscaNomeBD(dm.ibquery2,'codbar','produto','where cod=' + ClientDataSet1CODIGO.AsString);
@@ -4035,58 +4041,23 @@ begin
     end;
 
 
-    {while not ClientDataSet1.Eof do begin
-      totProd         := StrToCurr(ClientDataSet1TOTAL.AsString);
-      total_A_Limitar := StrToCurr(ClientDataSet1PRECO.AsString);
 
-      cod := ClientDataSet1CODIGO.AsString;
-      dm.IBQuery1.Close;
-      dm.IBQuery1.SQL.Clear;
-      dm.IBQuery1.SQL.Text := ('insert into item_venda(data,nota,COD, QUANT, p_venda,total,origem,p_compra,codbar,aliquota, unid, desconto, nome, vendedor, TIPO, cod_seq)'+
-      ' values(:data,'+novocod+',:cod, :quant, :p_venda,:total,'+IntToStr(origem)+',:p_compra, :codbar,:aliq, :unid, :desconto, :nome, :vend, :tipo, gen_id(item_venda, 1))');
-      dm.IBQuery1.ParamByName('data').AsDateTime    := form22.datamov;
-      dm.IBQuery1.ParamByName('cod').AsString       := ClientDataSet1CODIGO.AsString;
-      dm.IBQuery1.ParamByName('codbar').AsString    := funcoes.BuscaNomeBD(dm.ibquery2,'codbar','produto','where cod=' + ClientDataSet1CODIGO.AsString);
-      dm.IBQuery1.ParamByName('quant').AsCurrency   := StrToCurr(ClientDataSet1QUANT.AsString);
-      dm.IBQuery1.ParamByName('p_venda').AsCurrency := total_A_Limitar;
-      dm.IBQuery1.ParamByName('total').AsCurrency   := totProd;
-
-      totVolumes := totVolumes + dm.IBQuery1.ParamByName('quant').AsCurrency;
-      totVenda   := totVenda   + Arredonda(dm.IBQuery1.ParamByName('quant').AsCurrency * StrToCurr(ClientDataSet1PRECO.AsString), 2);
-
-      dm.IBselect.Close;
-      dm.IBselect.SQL.Clear;
-      dm.IBselect.SQL.Add('select p_compra, aliquota, unid, codbar from produto where cod = '+ClientDataSet1CODIGO.AsString);
-      dm.IBselect.Open;
-
-      dm.IBQuery1.ParamByName('p_compra').AsCurrency  := Arredonda(StrToCurr(ClientDataSet1QUANT.AsString) * dm.IBselect.fieldbyname('p_compra').AsCurrency,2);
-      dm.IBQuery1.ParamByName('codbar').AsString      := dm.IBselect.fieldbyname('codbar').AsString;
-      dm.IBQuery1.ParamByName('aliq').AsInteger       := IfThen(StrToIntDef(StrNum(trim(dm.IBselect.fieldbyname('aliquota').AsString)), 2) = 0, 2, StrToIntDef(StrNum(dm.IBselect.fieldbyname('aliquota').AsString), 2));
-      dm.IBQuery1.ParamByName('unid').AsString        := copy(dm.IBselect.fieldbyname('unid').AsString,1,6);
-
-      if funcoes.buscaParamGeral(71, 'N') = 'S' then begin
-        dm.IBQuery1.ParamByName('desconto').AsCurrency  := (ClientDataSet1TOT_ORIGI2.AsCurrency - ClientDataSet1TOTAL.AsCurrency);
-      end;
-
-      codmov := '';
-      if ClientDataSet1m2.AsInteger = 1 then codmov := LeftStr(ClientDataSet1DESCRICAO.AsString, 40);
-
-      dm.IBQuery1.ParamByName('nome').AsString    := codmov;
-      dm.IBQuery1.ParamByName('tipo').AsString    := RightStr(trim(tipoV), 3);
-      dm.IBQuery1.ParamByName('vend').AsString    := strnum(ClientDataSet1vendedor.AsString);
-      if dm.IBQuery1.ParamByName('vend').AsString = '0' then dm.IBQuery1.ParamByName('vend').AsString := strnum(JsEdit2.Text);
-
-      dm.IBselect.Close;
-
-      dm.IBQuery1.ExecSQL;
-
-      ClientDataSet1.Next;
-    end;    }
 
     //grava a venda
     dm.IBQuery1.Close;
-    dm.IBQuery1.SQL.Clear;
-    dm.IBQuery1.SQL.Add('insert into venda(hora,vendedor,cliente,nota,data,total,codhis,desconto,prazo,entrada, EXPORTADO, USUARIO, tipo)'+
+
+    {if RightStr(tipoV, 1) = 'V' then begin
+      dm.IBQuery1.SQL.Text := ('update or insert into venda(hora,vendedor,cliente,nota,data,total,codhis,desconto,prazo,entrada, EXPORTADO, USUARIO, tipo)'+
+      ' values(:hora,:vend,:cliente,:nota,:data,:total,:pagto,:desc,:prazo,:entrada, :exportado, :USUARIO, :tipo) matching(nota, cod, quant)');
+    end
+    else begin
+      dm.IBQuery1.SQL.Text := ('insert into venda(hora,vendedor,cliente,nota,data,total,codhis,desconto,prazo,entrada, EXPORTADO, USUARIO, tipo)'+
+      ' values(:hora,:vend,:cliente,:nota,:data,:total,:pagto,:desc,:prazo,:entrada, :exportado, :USUARIO, :tipo)');
+    end;}
+
+
+    dm.IBQuery1.Close;
+    dm.IBQuery1.SQL.Text := ('insert into venda(hora,vendedor,cliente,nota,data,total,codhis,desconto,prazo,entrada, EXPORTADO, USUARIO, tipo)'+
     ' values(:hora,:vend,:cliente,:nota,:data,:total,:pagto,:desc,:prazo,:entrada, :exportado, :USUARIO, :tipo)');
     dm.IBQuery1.ParamByName('hora').AsTime          := now;
     dm.IBQuery1.ParamByName('vend').AsInteger       := StrToIntDef(strnum(JsEdit2.Text), 0);

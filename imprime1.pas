@@ -647,9 +647,15 @@ begin
   end;
 
   //setCofiguracoesImpressora;
-  form19.RichEdit1.Lines.SaveToFile(arq);
-  AssignPrn(PrintText);
-  AssignFile(F, arq);
+  try
+    form19.RichEdit1.Lines.SaveToFile(arq);
+    AssignPrn(PrintText);
+    AssignFile(F, arq);
+  except
+    on e:exception do begin
+      messa
+    end;
+  end;
   Reset(F);
   printer.canvas.font := Memo1.Font;
   Printer.Canvas.Font.Name := 'Courier New';

@@ -139,44 +139,29 @@ end;
 
 procedure TForm7.deletaEntrada();
 var
-  val, temp : String;
+  val, fornec, temp : String;
 begin
+
   if dm.IBQuery1.IsEmpty then exit;
   if (UpperCase(tabela) <> 'ENTRADA') then exit;
 
   if messageDlg('Confirma Exclusão Desta Entrada?', mtConfirmation, [mbyes, mbNo], 0) = mrYes then
     begin
-      val := dm.IBQuery1.fieldbyname('nota').AsString;
-
-      dm.IBQuery3.Close;
-      dm.IBQuery3.SQL.Clear;
-      dm.IBQuery3.SQL.Add('select quant, cod, destino from item_entrada where nota = '+ val);
-      dm.IBQuery3.Open;
-
-      while not dm.IBQuery3.Eof do
-        begin
-          if dm.IBQuery3.FieldByName('destino').AsInteger = 1 then  temp := 'quant'
-           else temp := 'deposito';
-
-          dm.IBQuery4.Close;
-          dm.IBQuery4.SQL.Clear;
-          dm.IBQuery4.SQL.Add('update produto set '+ temp +' = '+ temp +' - :qu where cod = :cod');
-          dm.IBQuery4.ParamByName('qu').AsCurrency := dm.IBQuery3.fieldbyname('quant').AsCurrency;
-          dm.IBQuery4.ParamByName('cod').AsString := dm.IBQuery3.fieldbyname('cod').AsString;
-          dm.IBQuery4.ExecSQL;
-          dm.IBQuery3.Next;
-        end;
+      val    := dm.IBQuery1.fieldbyname('nota').AsString;
+      fornec := dm.IBQuery1.fieldbyname('fornec').AsString;
 
       dm.IBQuery4.Close;
       dm.IBQuery4.SQL.Clear;
-      dm.IBQuery4.SQL.Add('delete from entrada where nota = :nota');
-      dm.IBQuery4.ParamByName('nota').AsString := val;
+      dm.IBQuery4.SQL.Add('delete from entrada where nota = :nota and fornec = :fornec');
+      dm.IBQuery4.ParamByName('nota').AsString   := val;
+      dm.IBQuery4.ParamByName('fornec').AsString := fornec;
       dm.IBQuery4.ExecSQL;
 
       dm.IBQuery4.Close;
       dm.IBQuery4.SQL.Clear;
-      dm.IBQuery4.SQL.Add('delete from item_entrada where nota = :nota');
-      dm.IBQuery4.ParamByName('nota').AsString := val;
+      dm.IBQuery4.SQL.Add('delete from item_entrada where nota = :nota and fornec = :fornec');
+      dm.IBQuery4.ParamByName('nota').AsString   := val;
+      dm.IBQuery4.ParamByName('fornec').AsString := fornec;
       dm.IBQuery4.ExecSQL;
 
       dm.IBQuery4.Transaction.Commit;

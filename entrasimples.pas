@@ -106,7 +106,7 @@ type
     procedure formatcamposEntrada();
     procedure buscaFornecedores(cod1 : String);
     procedure trocaCodigoCodbar;
-    function buscaProdutoTabelaRetornaQTD(cod, destino : String) : currency;
+    function buscaProdutoTabelaRetornaQTD(cod, destino : String; var codentrada : string) : currency;
     procedure limpaCamposGeral;
     procedure limpaCampos;
     procedure abreDataSet;
@@ -140,7 +140,7 @@ uses Unit1, localizar, MaskUtils, Unit2, StrUtils, func,
   principal, cadproduto, backup, consulta, cadfornecedor;
 
 {$R *.dfm}
-function TForm17.buscaProdutoTabelaRetornaQTD(cod, destino : String) : currency;
+function TForm17.buscaProdutoTabelaRetornaQTD(cod, destino : String; var codentrada : string) : currency;
 begin
   Result := 0;
   if DBGrid2.DataSource.DataSet.IsEmpty then exit;
@@ -149,13 +149,16 @@ begin
   DBGrid2.DataSource.DataSet.DisableControls;
   DBGrid2.DataSource.DataSet.First;
   Result := 0;
+  codentrada := '-';
 
   while not DBGrid2.DataSource.DataSet.Eof do
     begin
       if (DBGrid2.DataSource.DataSet.FieldByName('cod').AsString = cod) and (DBGrid2.DataSource.DataSet.FieldByName('destino').AsString = destino) then
         begin
-          Result := DBGrid2.DataSource.DataSet.FieldByName('quant').AsCurrency;
+          Result     := DBGrid2.DataSource.DataSet.FieldByName('quant').AsCurrency;
+          codentrada := codentrada + DBGrid2.DataSource.DataSet.FieldByName('codentrada').AsString + '-';
         end;
+
       DBGrid2.DataSource.DataSet.Next;
     end;
 
@@ -610,7 +613,7 @@ end;
 
 function TForm17.GravaEntradanovo() : boolean;
 var
-  campo, cod, nota, tabela, sim, validade : string;
+  campo, cod, nota, tabela, sim, validade, codentrada : string;
   total, qtd :currency;
 begin
   Result := false;
@@ -644,9 +647,8 @@ begin
   begin
   if DBGrid2.DataSource.DataSet.Locate('cod', codigoProd, []) then
     begin
-      qtd := buscaProdutoTabelaRetornaQTD(codigoProd, destino);
-      if qtd <> 0 then
-        begin
+      qtd := buscaProdutoTabelaRetornaQTD(codigoProd, destino, codentrada);
+      if qtd <> 0 then begin
           sim := funcoes.dialogo('generico', 0, 'SN', 0, true, 'S', 'Control For Windows', 'Este Produto  já Existe Nesta Nota, Deseja Alterar?SIM ou NÃO (S/N)','S') ;
           if sim = '*' then exit;
 
@@ -658,7 +660,11 @@ begin
             end
           else
             begin
-              funcoes.baixaEstoque(codigoProd, -qtd, StrToInt(destino));
+              //funcoes.baixaEstoque(codigoProd, -qtd, StrToInt(destino));
+              dm.IBQuery1.Close;
+              dm.IBQuery1.SQL.Text := 'delete from item_entrada where '+QuotedStr(codentrada)+'  like ''%-''|| codentrada || ''-%''';
+              dm.IBQuery1.ExecSQL;
+              dm.IBQuery1.Transaction.Commit;
             end;
 
         end;
@@ -668,15 +674,7 @@ begin
    end;
 
 
-  nota := codigo.Text;
-  dm.IBQuery4.SQL.Clear;
-  dm.IBQuery4.SQL.Add('select sum(total) as total from item_entrada where nota = :nota and fornec = :fornec'  );
-  dm.IBQuery4.ParamByName('nota').AsString   := nota;
-  dm.IBQuery4.ParamByName('fornec').AsString := strnum(fornec.text);
-  dm.IBQuery4.Open;
-
-  total := dm.IBQuery4.FieldByName('total').AsCurrency;
-  dm.IBQuery4.Close;
+  total := lertotal;
 
   dm.IBQuery4.SQL.Clear;
   dm.IBQuery4.SQL.Add('update or insert into entrada(nota, data,chegada,total_nota,fornec) VALUES  (:nota, :data,:chegada,:total_nota,:fornec) matching(nota, fornec) ');
@@ -707,33 +705,14 @@ begin
   dm.IBQuery4.ParamByName('total').AsCurrency    := funcoes.ArredondaFinanceiro(quant.getValor * p_compra.getValor, 2);
   dm.IBQuery4.ParamByName('qtd_ent').AsCurrency  := quant.getValor;
   dm.IBQuery4.ExecSQL;
+  dm.IBQuery4.Transaction.Commit;
+
   cod := codbar.Text;
 
   if destino = '1' then campo := 'quant'
     else campo := 'deposito';
 
   tabela := 'entrada';
-
- { dm.IBQuery4.Close;
-  dm.IBQuery4.SQL.Clear;
-
-  if sim <> '' then
-    begin
-      dm.IBQuery4.SQL.Add('update produto set '+campo+'= (('+campo+' - :valor) + :quant) where cod= :cod');
-      dm.IBQuery4.ParamByName('valor').AsCurrency := DBGrid2.DataSource.DataSet.fieldbyname('quant').AsCurrency;
-    end
-  else dm.IBQuery4.SQL.Add('update produto set '+campo+'='+campo+'+ :quant where cod= :cod');
-
-  dm.IBQuery4.ParamByName('quant').AsCurrency  := quant.getValor;
-  dm.IBQuery4.ParamByName('cod').AsString := codigoProd;
-  try
-    dm.IBQuery4.ExecSQL;
-    dm.IBQuery4.Transaction.Commit;
-  except
-  end;
-
-
-  funcoes.baixaEstoque(codigoProd, quant.getValor, StrToIntDef(destino, 1));}
 
   try
     if dm.IBQuery4.Transaction.InTransaction then dm.IBQuery4.Transaction.Commit;
@@ -748,7 +727,7 @@ begin
   abreDataSet;
   tot.Caption := 'R$  '+FormatCurr('#,##,###0.00',lertotal);
   limpaCampos;
-
+  lertotal(true);
 end;
 
 procedure tform17.ExcluiEntrada;
@@ -768,53 +747,17 @@ begin
       dm.IBselect.Close;
       dm.IBselect.SQL.Clear;
       dm.IBselect.SQL.Add('select nota from item_entrada where nota = :nota and fornec = :fornec');
-      dm.IBselect.ParamByName('nota').AsString := nota;
+      dm.IBselect.ParamByName('nota').AsString   := nota;
       dm.IBselect.ParamByName('fornec').AsString := strnum(fornec.Text);
       dm.IBselect.Open;
       dm.IBselect.FetchAll;
 
-      if dm.IBselect.RecordCount = 1 then ult := 1;
-
-      cod := DBGrid2.DataSource.DataSet.FieldByName('codentrada').AsString;
-      dm.IBselect.Close;
-      dm.IBselect.SQL.Clear;
-      dm.IBselect.SQL.Add('select total, unid from item_entrada where codentrada = :cod');
-      dm.IBselect.ParamByName('cod').AsString := cod;
-      dm.IBselect.Open;
-
-      quant := funcoes.verValorUnidade(dm.IBselect.fieldbyname('unid').AsString);
-
-      total := dm.IBselect.fieldbyname('total').AsCurrency;
-      dm.IBselect.Close;
-
-      quant := quant * DBGrid2.DataSource.DataSet.fieldbyname('quant').AsCurrency;
-
-      cod   := DBGrid2.DataSource.DataSet.fieldbyname('cod').AsString;
-      campo := DBGrid2.DataSource.DataSet.fieldbyname('destino').AsString;
+      ult := dm.IBselect.RecordCount;
 
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Clear;
       dm.IBQuery1.SQL.Add('delete from item_entrada where codentrada = :cod');
       dm.IBQuery1.ParamByName('cod').AsString := DBGrid2.DataSource.DataSet.fieldbyname('codentrada').AsString;
-      dm.IBQuery1.ExecSQL;
-
-      {if campo = '1' then campo:='quant'
-        else campo:='deposito';
-
-      dm.IBQuery1.Close;
-      dm.IBQuery1.SQL.Clear;
-      dm.IBQuery1.SQL.Add('update produto set '+campo+'='+campo+'- :quant where cod='+cod);
-      dm.IBQuery1.ParamByName('quant').AsCurrency := quant;
-      dm.IBQuery1.ExecSQL;}
-
-      origi := StrToIntDef(campo, 1);
-
-      funcoes.baixaEstoqueSP(cod, -quant, origi);
-
-      dm.IBQuery1.Close;
-      dm.IBQuery1.SQL.Clear;
-      dm.IBQuery1.SQL.Add('update entrada set total_nota = total_nota - :quant where nota='+nota);
-      dm.IBQuery1.ParamByName('quant').AsCurrency := total;
       dm.IBQuery1.ExecSQL;
 
       if ult = 1 then

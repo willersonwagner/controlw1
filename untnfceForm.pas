@@ -271,7 +271,7 @@ var
   enviouNFE: Char;
   gProxHost, gProxPorta, gProxUser, gProxSenha, DigiVerifi, CHAVENF, natOp,
     ERRO_dados, infAdic, dHAtual, tpEmis, obs2, margemEsquerda, versaoNFe,
-    versaoNFCe, codUlt, chaveRecria: string;
+    versaoNFCe, codUlt, chaveRecria, ssChaveVelha: string;
   venda: Tvenda;
   lista: TList;
   codNF, erro12002, USUARIO1: integer;
@@ -292,7 +292,7 @@ var
   pgerais: TStringList;
   TipoEmissao: integer;
   pathSalvarControlW, pastaControlW, cstIcmCfop, cstpisCfop, portaCOMNFCE,
-    impreNFCE, impreNFE: String;
+    impreNFCE, impreNFE, ssChave: String;
   previewNFCe1, campoDescontoExiste, usarCertificadoA3: boolean;
 
   richedt: TRichEdit;
@@ -779,27 +779,25 @@ begin
 end;
 
 procedure insereNotaBD1(var dados: Tvenda);
+var
+  chave : String;
+  cont  : integer;
 begin
-  if dados.chave <> '' then
-  begin
-    { {query1.Close;
-      query1.SQL.text := 'delete from nfce where nota = :nota';
-      query1.ParamByName('nota').AsInteger := dados.nota;
-      query1.ExecSQL;
-      query1.Transaction.Commit; }
-  end;
 
   query1.Close;
-  query1.SQL.text :=
-    'update or insert into nfce(chave, nota, data, cliente, adic) values(:chave, :nota, :data, :cliente, :adic) matching(chave)';
+  query1.SQL.text := 'delete from nfce where chave = :chave';
+  query1.ParamByName('chave').AsString := ssChaveVelha;
+  query1.ExecSQL;
+
+  query1.Close;
+  query1.SQL.text := 'update or insert into nfce(chave, nota, data, cliente, adic) values(:chave, :nota, :data, :cliente, :adic) matching(chave)';
   query1.ParamByName('chave').AsString := dados.chave;
   query1.ParamByName('nota').AsInteger := dados.nota;
-  query1.ParamByName('data').AsDate := now;
+  query1.ParamByName('data').AsDate    := now;
   query1.ParamByName('cliente').AsInteger := dados.cliente;
-  query1.ParamByName('adic').AsString := dados.adic;
+  query1.ParamByName('adic').AsString     := dados.adic;
   query1.ExecSQL;
   query1.Transaction.Commit;
-
 end;
 
 procedure insereNotaBD2(var dados: Tvenda; GravaMudancaDeChave: boolean = true);
@@ -3055,7 +3053,7 @@ function EnviarCupomEletronicoTitular(nota: String; var Status, xmotivo: string;
   imp: boolean = true; recebido: currency = 0; EscPos: boolean = false)
   : boolean;
 var
-  SQL, qUsuario, para, ssChave, erro1, NumeroRecibo, ser, erroTemp: string;
+  SQL, qUsuario, para, erro1, NumeroRecibo, ser, erroTemp: string;
   Mensagememail: TStrings;
   csta, i, a: integer;
   enviou: boolean;
@@ -3507,7 +3505,7 @@ function EnviarCupomEletronico2(nota, chave1: String; var richED: TRichEdit;
   var estado: String; const imprime, dav: boolean;
   const lerconfig: boolean = true): boolean;
 var
-  para, ssChave, ssChaveVelha, NumeroRecibo, erro2: string;
+  para, NumeroRecibo, erro2: string;
   csta, a: integer;
   Mensagememail: TStrings;
   xml: AnsiString;
@@ -3661,12 +3659,18 @@ begin
       GravarTexto(buscaPastaNFCe(CHAVENF) + CHAVENF + '-nfe.xml', xml);
       xml := '';
 
+      try
+       richED.Lines.Add('Troca de Chave ' + ssChave + ' Para ' + CHAVENF);
+      finally
+
+      end;
+
       gravaERRO_LOG1('', 'Troca de Chave Por Erro de Envio: ' + #13#10 +
         'Chave Antiga: ' + ssChave + #13#10 + 'Chave   Nova: ' + CHAVENF +
         #13#10 + 'Data  Troca : ' + FormatDateTime('dd/mm/yyyy', now) + ' ' +
         FormatDateTime('hh:mm:ss', now), 'Nova Criação de XML');
 
-      ssChave := CHAVENF;
+      //ssChave := CHAVENF;
 
       ACBrNFe.NotasFiscais.Clear;
       ACBrNFe.NotasFiscais.LoadFromFile(buscaPastaNFCe(CHAVENF) + CHAVENF +
@@ -3674,7 +3678,7 @@ begin
 
       gravaERRO_LOG1('', 'Acabou: ' + FormatDateTime('hh:mm:ss', now),
         'Nova Criação de XML');
-      // novo := true;
+      novo := true;
       // end;
     end
     else

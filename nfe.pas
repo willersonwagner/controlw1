@@ -4439,7 +4439,7 @@ begin
 
   if erro_dados = 'ERRO' then exit;
 
-  IF DEST_NFE = '2' then
+  IF ((DEST_NFE = '2') AND (LeftStr(cod_OP, 1) = '7')) then
     begin
       _EXPORTA := '<exporta><UFSaidaPais>' +  dadosEmitente.Values['est'] + '</UFSaidaPais>' +
       '<xLocExporta>' + dadosEmitente.Values['cid'] + '</xLocExporta>'+
