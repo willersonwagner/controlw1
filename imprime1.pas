@@ -631,6 +631,7 @@ begin
       ShowMessage('Não existe impressora neste computador');
       exit;
     end;
+
   arq := caminhoEXE_com_barra_no_final + 'TEXTO.TXT';
 
   if arquivo <> '%' then
@@ -641,20 +642,25 @@ begin
       end;
     end;
 
-  try
-   if FileExists(arq) then DeleteFile(arq);
-  except
-  end;
-
   //setCofiguracoesImpressora;
-  try
-    form19.RichEdit1.Lines.SaveToFile(arq);
-    AssignPrn(PrintText);
-    AssignFile(F, arq);
-  except
-    on e:exception do begin
-      messa
-    end;
+
+  ini := 0;
+
+  criaPasta(caminhoEXE_com_barra_no_final + 'impressao\');
+  while ini < 4 do begin
+    arq := caminhoEXE_com_barra_no_final + 'impressao\' + 'TEXTO'+IfThen(ini = 0, '', IntToStr(ini))+'.TXT';
+    try
+      if FileExists(arq) then DeleteFile(arq);
+      form19.RichEdit1.Lines.SaveToFile(arq);
+      AssignPrn(PrintText);
+      AssignFile(F, arq);
+      break;
+     except
+       on e:exception do begin
+       end;
+     end;
+
+    ini := ini + 1;
   end;
   Reset(F);
   printer.canvas.font := Memo1.Font;

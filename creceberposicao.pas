@@ -280,7 +280,7 @@ begin
        DBGrid1.DataSource.DataSet.MoveBy(i);
        DBGrid1.DataSource.DataSet.EnableControls;
        form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete('','','-',78)+#13+#10))));
-       imprime.textx('\texto.txt');
+       imprime.textx('texto.txt');
        form19.RichEdit1.Clear;
      end;
 
