@@ -4,7 +4,7 @@ object dadosAdicSped: TdadosAdicSped
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Dados Adicionais da Nota Fiscal'
-  ClientHeight = 485
+  ClientHeight = 515
   ClientWidth = 465
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -18,16 +18,19 @@ object dadosAdicSped: TdadosAdicSped
   OnClose = FormClose
   OnCreate = FormCreate
   OnKeyDown = FormKeyDown
+  OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
   object Panel2: TPanel
     Left = 0
     Top = 0
     Width = 465
-    Height = 485
+    Height = 515
     Align = alClient
     BorderWidth = 3
     TabOrder = 0
+    ExplicitLeft = -8
+    ExplicitTop = 16
     object Label3: TLabel
       Left = 24
       Top = 40
@@ -43,7 +46,7 @@ object dadosAdicSped: TdadosAdicSped
     end
     object Label4: TLabel
       Left = 24
-      Top = 64
+      Top = 96
       Width = 160
       Height = 16
       Caption = 'S'#233'rie..............:'
@@ -56,7 +59,7 @@ object dadosAdicSped: TdadosAdicSped
     end
     object Label5: TLabel
       Left = 24
-      Top = 88
+      Top = 120
       Width = 160
       Height = 16
       Caption = 'CFOP...............:'
@@ -69,7 +72,7 @@ object dadosAdicSped: TdadosAdicSped
     end
     object Label6: TLabel
       Left = 24
-      Top = 112
+      Top = 144
       Width = 160
       Height = 16
       Caption = 'Frete por Conta....:'
@@ -82,7 +85,7 @@ object dadosAdicSped: TdadosAdicSped
     end
     object Label7: TLabel
       Left = 24
-      Top = 136
+      Top = 168
       Width = 160
       Height = 16
       Caption = 'Total Frete........:'
@@ -95,7 +98,7 @@ object dadosAdicSped: TdadosAdicSped
     end
     object Label8: TLabel
       Left = 24
-      Top = 160
+      Top = 192
       Width = 160
       Height = 16
       Caption = 'Total Seguro.......:'
@@ -108,7 +111,7 @@ object dadosAdicSped: TdadosAdicSped
     end
     object Label9: TLabel
       Left = 24
-      Top = 184
+      Top = 216
       Width = 160
       Height = 16
       Caption = 'Total Desconto.....:'
@@ -121,7 +124,7 @@ object dadosAdicSped: TdadosAdicSped
     end
     object Label10: TLabel
       Left = 24
-      Top = 208
+      Top = 240
       Width = 160
       Height = 16
       Caption = 'Total Desconto NT..:'
@@ -134,7 +137,7 @@ object dadosAdicSped: TdadosAdicSped
     end
     object Label11: TLabel
       Left = 24
-      Top = 280
+      Top = 312
       Width = 160
       Height = 16
       Caption = 'Total Confins ST...:'
@@ -147,7 +150,7 @@ object dadosAdicSped: TdadosAdicSped
     end
     object Label12: TLabel
       Left = 24
-      Top = 256
+      Top = 288
       Width = 160
       Height = 16
       Caption = 'Total PIS ST.......:'
@@ -160,7 +163,7 @@ object dadosAdicSped: TdadosAdicSped
     end
     object Label13: TLabel
       Left = 24
-      Top = 232
+      Top = 264
       Width = 160
       Height = 16
       Caption = 'Total Desp. Aces...:'
@@ -173,7 +176,7 @@ object dadosAdicSped: TdadosAdicSped
     end
     object Label14: TLabel
       Left = 26
-      Top = 328
+      Top = 360
       Width = 160
       Height = 16
       Caption = '% Cr'#233'dito ICMS.....:'
@@ -212,7 +215,7 @@ object dadosAdicSped: TdadosAdicSped
     end
     object Label15: TLabel
       Left = 30
-      Top = 407
+      Top = 439
       Width = 80
       Height = 16
       Caption = 'Chave NFe:'
@@ -225,7 +228,7 @@ object dadosAdicSped: TdadosAdicSped
     end
     object Label17: TLabel
       Left = 30
-      Top = 377
+      Top = 409
       Width = 152
       Height = 16
       Caption = 'Total ICMS ST.....:'
@@ -238,7 +241,7 @@ object dadosAdicSped: TdadosAdicSped
     end
     object Label18: TLabel
       Left = 26
-      Top = 304
+      Top = 336
       Width = 160
       Height = 16
       Caption = 'ICMS Desonerado....:'
@@ -251,7 +254,7 @@ object dadosAdicSped: TdadosAdicSped
     end
     object Label19: TLabel
       Left = 24
-      Top = 352
+      Top = 384
       Width = 160
       Height = 16
       Caption = 'R$ Cr'#233'dito ICMS....:'
@@ -262,224 +265,27 @@ object dadosAdicSped: TdadosAdicSped
       Font.Style = [fsBold]
       ParentFont = False
     end
-    object nota: JsEditInteiro
-      Left = 64
-      Top = 8
-      Width = 121
-      Height = 21
-      CharCase = ecUpperCase
-      TabOrder = 0
-      OnKeyPress = notaKeyPress
-      OnKeyUp = notaKeyUp
-      AddLista = False
-      FormularioComp = 'dadosAdicSped'
-      Indice = 0
-      TipoDeDado = teNumero
-    end
-    object fornec: JsEditInteiro
-      Left = 312
-      Top = 8
-      Width = 121
-      Height = 21
-      CharCase = ecUpperCase
-      TabOrder = 1
-      OnKeyPress = fornecKeyPress
-      OnKeyUp = fornecKeyUp
-      FormularioComp = 'dadosAdicSped'
-      Indice = 0
-      TipoDeDado = teNumero
-    end
-    object tipo: JsEditInteiro
-      Left = 192
-      Top = 40
-      Width = 65
-      Height = 21
-      CharCase = ecUpperCase
-      MaxLength = 3
-      TabOrder = 2
-      OnKeyPress = tipoKeyPress
-      FormularioComp = 'dadosAdicSped'
-      ValidaCampo = True
-      Indice = 0
-      TipoDeDado = teNumero
-    end
-    object serie: JsEditInteiro
-      Left = 192
-      Top = 64
-      Width = 33
-      Height = 21
-      CharCase = ecUpperCase
-      MaxLength = 3
-      TabOrder = 3
-      FormularioComp = 'dadosAdicSped'
-      ValidaCampo = True
-      Indice = 0
-      TipoDeDado = teNumero
-    end
-    object cfop: JsEditInteiro
-      Left = 192
-      Top = 88
-      Width = 65
-      Height = 21
-      CharCase = ecUpperCase
-      MaxLength = 5
-      TabOrder = 4
-      FormularioComp = 'dadosAdicSped'
-      ValidaCampo = True
-      Indice = 0
-      TipoDeDado = teNumero
-    end
-    object tipofrete: JsEditInteiro
-      Left = 192
-      Top = 112
-      Width = 33
-      Height = 21
-      CharCase = ecUpperCase
-      MaxLength = 2
-      TabOrder = 5
-      OnKeyPress = tipofreteKeyPress
-      FormularioComp = 'dadosAdicSped'
-      ValidaCampo = True
-      Indice = 0
-      TipoDeDado = teNumero
-    end
-    object totfrete: JsEditNumero
-      Left = 192
-      Top = 136
-      Width = 89
-      Height = 21
-      CharCase = ecUpperCase
-      TabOrder = 6
-      Text = '0,00'
-      FormularioComp = 'dadosAdicSped'
-      Indice = 0
-      TipoDeDado = teNumero
-      CasasDecimais = 2
-    end
-    object totseg: JsEditNumero
-      Left = 192
-      Top = 160
-      Width = 89
-      Height = 21
-      CharCase = ecUpperCase
-      TabOrder = 7
-      Text = '0,00'
-      FormularioComp = 'dadosAdicSped'
-      Indice = 0
-      TipoDeDado = teNumero
-      CasasDecimais = 2
-    end
-    object totdesc: JsEditNumero
-      Left = 192
-      Top = 184
-      Width = 89
-      Height = 21
-      CharCase = ecUpperCase
-      TabOrder = 8
-      Text = '0,00'
-      FormularioComp = 'dadosAdicSped'
-      Indice = 0
-      TipoDeDado = teNumero
-      CasasDecimais = 2
-    end
-    object totdescnt: JsEditNumero
-      Left = 192
-      Top = 208
-      Width = 89
-      Height = 21
-      CharCase = ecUpperCase
-      TabOrder = 9
-      Text = '0,00'
-      FormularioComp = 'dadosAdicSped'
-      Indice = 0
-      TipoDeDado = teNumero
-      CasasDecimais = 2
-    end
-    object totdespaces: JsEditNumero
-      Left = 192
-      Top = 232
-      Width = 89
-      Height = 21
-      CharCase = ecUpperCase
-      TabOrder = 10
-      Text = '0,00'
-      FormularioComp = 'dadosAdicSped'
-      Indice = 0
-      TipoDeDado = teNumero
-      CasasDecimais = 2
-    end
-    object totpis: JsEditNumero
-      Left = 192
-      Top = 256
-      Width = 89
-      Height = 21
-      CharCase = ecUpperCase
-      TabOrder = 11
-      Text = '0,00'
-      FormularioComp = 'dadosAdicSped'
-      Indice = 0
-      TipoDeDado = teNumero
-      CasasDecimais = 2
-    end
-    object totcofins: JsEditNumero
-      Left = 192
-      Top = 280
-      Width = 89
-      Height = 21
-      CharCase = ecUpperCase
-      TabOrder = 12
-      Text = '0,00'
-      FormularioComp = 'dadosAdicSped'
-      Indice = 0
-      TipoDeDado = teNumero
-      CasasDecimais = 2
-    end
-    object TOTICMS_DESON: JsEditNumero
-      Left = 192
-      Top = 304
-      Width = 91
-      Height = 21
-      CharCase = ecUpperCase
-      TabOrder = 13
-      Text = '0,00'
-      FormularioComp = 'dadosAdicSped'
-      Indice = 0
-      TipoDeDado = teNumero
-      CasasDecimais = 2
-    end
-    object credicm: JsEditNumero
-      Left = 192
-      Top = 328
-      Width = 91
-      Height = 21
-      CharCase = ecUpperCase
-      TabOrder = 14
-      Text = '0,00'
-      FormularioComp = 'dadosAdicSped'
-      Indice = 0
-      TipoDeDado = teNumero
-      CasasDecimais = 2
-    end
-    object CREDICMS_REAIS: JsEditNumero
-      Left = 192
-      Top = 352
-      Width = 91
-      Height = 21
-      CharCase = ecUpperCase
-      TabOrder = 15
-      Text = '0,00'
-      FormularioComp = 'dadosAdicSped'
-      Indice = 0
-      TipoDeDado = teNumero
-      CasasDecimais = 2
+    object Label20: TLabel
+      Left = 24
+      Top = 67
+      Width = 160
+      Height = 16
+      Caption = 'C'#243'd. da Situa'#231#227'o...:'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Courier New'
+      Font.Style = [fsBold]
+      ParentFont = False
     end
     object Panel3: TPanel
       Left = 4
-      Top = 440
+      Top = 470
       Width = 457
       Height = 41
       Align = alBottom
-      TabOrder = 18
+      TabOrder = 0
+      ExplicitTop = 440
       object Label16: TLabel
         Left = 184
         Top = 12
@@ -626,30 +432,255 @@ object dadosAdicSped: TdadosAdicSped
         OnClick = JsBotao2Click
       end
     end
-    object chavenfe: TMaskEdit
-      Left = 120
-      Top = 405
-      Width = 313
+    object nota: JsEditInteiro
+      Left = 64
+      Top = 8
+      Width = 120
       Height = 21
-      EditMask = '!9999.9999.9999.9999.9999.9999.9999.9999.9999.9999.9999;1;_'
-      MaxLength = 54
-      TabOrder = 17
-      Text = '    .    .    .    .    .    .    .    .    .    .    '
-      OnKeyPress = chavenfeKeyPress
+      CharCase = ecUpperCase
+      TabOrder = 1
+      OnKeyPress = notaKeyPress
+      OnKeyUp = notaKeyUp
+      AddLista = False
+      FormularioComp = 'dadosAdicSped'
+      Indice = 0
+      TipoDeDado = teNumero
     end
-    object TOTICMSST: JsEditNumero
+    object fornec: JsEditInteiro
+      Left = 312
+      Top = 8
+      Width = 120
+      Height = 21
+      CharCase = ecUpperCase
+      TabOrder = 2
+      OnKeyPress = fornecKeyPress
+      OnKeyUp = fornecKeyUp
+      FormularioComp = 'dadosAdicSped'
+      Indice = 0
+      TipoDeDado = teNumero
+    end
+    object tipo: JsEditInteiro
       Left = 192
-      Top = 377
-      Width = 91
+      Top = 40
+      Width = 64
+      Height = 21
+      CharCase = ecUpperCase
+      MaxLength = 3
+      TabOrder = 3
+      OnKeyPress = tipoKeyPress
+      FormularioComp = 'dadosAdicSped'
+      ValidaCampo = True
+      Indice = 0
+      TipoDeDado = teNumero
+    end
+    object cod_sit: JsEditInteiro
+      Left = 192
+      Top = 67
+      Width = 64
+      Height = 21
+      CharCase = ecUpperCase
+      MaxLength = 2
+      TabOrder = 4
+      OnKeyPress = cod_sitKeyPress
+      FormularioComp = 'dadosAdicSped'
+      ValidaCampo = True
+      Indice = 0
+      TipoDeDado = teNumero
+    end
+    object serie: JsEditInteiro
+      Left = 192
+      Top = 96
+      Width = 32
+      Height = 21
+      CharCase = ecUpperCase
+      MaxLength = 3
+      TabOrder = 5
+      FormularioComp = 'dadosAdicSped'
+      ValidaCampo = True
+      Indice = 0
+      TipoDeDado = teNumero
+    end
+    object cfop: JsEditInteiro
+      Left = 192
+      Top = 120
+      Width = 64
+      Height = 21
+      CharCase = ecUpperCase
+      MaxLength = 5
+      TabOrder = 6
+      FormularioComp = 'dadosAdicSped'
+      ValidaCampo = True
+      Indice = 0
+      TipoDeDado = teNumero
+    end
+    object tipofrete: JsEditInteiro
+      Left = 192
+      Top = 144
+      Width = 32
+      Height = 21
+      CharCase = ecUpperCase
+      MaxLength = 2
+      TabOrder = 7
+      OnKeyPress = tipofreteKeyPress
+      FormularioComp = 'dadosAdicSped'
+      ValidaCampo = True
+      Indice = 0
+      TipoDeDado = teNumero
+    end
+    object totfrete: JsEditNumero
+      Left = 192
+      Top = 168
+      Width = 88
+      Height = 21
+      CharCase = ecUpperCase
+      TabOrder = 8
+      Text = '0,00'
+      FormularioComp = 'dadosAdicSped'
+      Indice = 0
+      TipoDeDado = teNumero
+      CasasDecimais = 2
+    end
+    object totseg: JsEditNumero
+      Left = 192
+      Top = 192
+      Width = 88
+      Height = 21
+      CharCase = ecUpperCase
+      TabOrder = 9
+      Text = '0,00'
+      FormularioComp = 'dadosAdicSped'
+      Indice = 0
+      TipoDeDado = teNumero
+      CasasDecimais = 2
+    end
+    object totdesc: JsEditNumero
+      Left = 192
+      Top = 216
+      Width = 88
+      Height = 21
+      CharCase = ecUpperCase
+      TabOrder = 10
+      Text = '0,00'
+      FormularioComp = 'dadosAdicSped'
+      Indice = 0
+      TipoDeDado = teNumero
+      CasasDecimais = 2
+    end
+    object totdescnt: JsEditNumero
+      Left = 192
+      Top = 240
+      Width = 88
+      Height = 21
+      CharCase = ecUpperCase
+      TabOrder = 11
+      Text = '0,00'
+      FormularioComp = 'dadosAdicSped'
+      Indice = 0
+      TipoDeDado = teNumero
+      CasasDecimais = 2
+    end
+    object totdespaces: JsEditNumero
+      Left = 192
+      Top = 264
+      Width = 88
+      Height = 21
+      CharCase = ecUpperCase
+      TabOrder = 12
+      Text = '0,00'
+      FormularioComp = 'dadosAdicSped'
+      Indice = 0
+      TipoDeDado = teNumero
+      CasasDecimais = 2
+    end
+    object totpis: JsEditNumero
+      Left = 192
+      Top = 288
+      Width = 88
+      Height = 21
+      CharCase = ecUpperCase
+      TabOrder = 13
+      Text = '0,00'
+      FormularioComp = 'dadosAdicSped'
+      Indice = 0
+      TipoDeDado = teNumero
+      CasasDecimais = 2
+    end
+    object totcofins: JsEditNumero
+      Left = 192
+      Top = 312
+      Width = 88
+      Height = 21
+      CharCase = ecUpperCase
+      TabOrder = 14
+      Text = '0,00'
+      FormularioComp = 'dadosAdicSped'
+      Indice = 0
+      TipoDeDado = teNumero
+      CasasDecimais = 2
+    end
+    object TOTICMS_DESON: JsEditNumero
+      Left = 192
+      Top = 336
+      Width = 90
+      Height = 21
+      CharCase = ecUpperCase
+      TabOrder = 15
+      Text = '0,00'
+      FormularioComp = 'dadosAdicSped'
+      Indice = 0
+      TipoDeDado = teNumero
+      CasasDecimais = 2
+    end
+    object credicm: JsEditNumero
+      Left = 192
+      Top = 360
+      Width = 90
       Height = 21
       CharCase = ecUpperCase
       TabOrder = 16
+      Text = '0,00'
+      FormularioComp = 'dadosAdicSped'
+      Indice = 0
+      TipoDeDado = teNumero
+      CasasDecimais = 2
+    end
+    object CREDICMS_REAIS: JsEditNumero
+      Left = 192
+      Top = 384
+      Width = 90
+      Height = 21
+      CharCase = ecUpperCase
+      TabOrder = 17
+      Text = '0,00'
+      FormularioComp = 'dadosAdicSped'
+      Indice = 0
+      TipoDeDado = teNumero
+      CasasDecimais = 2
+    end
+    object TOTICMSST: JsEditNumero
+      Left = 192
+      Top = 409
+      Width = 90
+      Height = 21
+      CharCase = ecUpperCase
+      TabOrder = 18
       Text = '0,00'
       OnKeyPress = TOTICMSSTKeyPress
       FormularioComp = 'dadosAdicSped'
       Indice = 0
       TipoDeDado = teNumero
       CasasDecimais = 2
+    end
+    object chavenfe: TMaskEdit
+      Left = 120
+      Top = 437
+      Width = 313
+      Height = 21
+      EditMask = '!9999.9999.9999.9999.9999.9999.9999.9999.9999.9999.9999;1;_'
+      MaxLength = 54
+      TabOrder = 19
+      Text = '    .    .    .    .    .    .    .    .    .    .    '
+      OnKeyPress = chavenfeKeyPress
     end
   end
 end

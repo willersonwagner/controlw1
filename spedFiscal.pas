@@ -158,7 +158,7 @@ FUNCTION ALIQ_CREDICM(const CODFOR : Integer) : currency;
 function REM_SPED() : String;
 function escreveArqSPED(var arqTXT : TextFile; const linha : String; var numercacao : integer) : String;
 function escreveArqSPED_sem_somar(var arqTXT : TextFile; const linha : String) : String;
-FUNCTION DADOS_ADNF(nota, fornec : Integer; var _CFOP, _FRETE, TIPO, _CHNFE, _SER : String) : String;
+FUNCTION DADOS_ADNF(nota, fornec : Integer; var cod_sit, _CFOP, _FRETE, TIPO, _CHNFE, _SER : String) : String;
 FUNCTION FORM_NUM1(VALOR : currency) : String;
 FUNCTION DATA_BRA_FULL(DAT : TDateTime) : String;
 procedure CriaArquivo(var arq : TextFile; Caminho, Texto : String);
@@ -828,7 +828,7 @@ begin
   Writeln(arqTXT, linha);
 end;
 
-FUNCTION DADOS_ADNF(nota, fornec : Integer; var _CFOP, _FRETE, TIPO, _CHNFE, _SER : String) : String;
+FUNCTION DADOS_ADNF(nota, fornec : Integer; var cod_sit, _CFOP, _FRETE, TIPO, _CHNFE, _SER : String) : String;
 begin
   Result := '';
 
@@ -847,11 +847,15 @@ begin
 
   if not dm.IBselect.IsEmpty then
     begin
-      _CFOP  := dm.IBselect.fieldbyname('cfop').AsString;
-      _FRETE := dm.IBselect.fieldbyname('TIPOFRETE').AsString;
-      tipo   := dm.IBselect.fieldbyname('tipo').AsString;
-      _CHNFE := dm.IBselect.fieldbyname('chavenfe').AsString;
-      _SER   := dm.IBselect.fieldbyname('serie').AsString;
+      cod_sit := dm.IBselect.fieldbyname('cod_sit').AsString;
+      if trim(cod_sit) = '' then cod_sit := '00';
+
+
+      _CFOP   := dm.IBselect.fieldbyname('cfop').AsString;
+      _FRETE  := dm.IBselect.fieldbyname('TIPOFRETE').AsString;
+      tipo    := dm.IBselect.fieldbyname('tipo').AsString;
+      _CHNFE  := dm.IBselect.fieldbyname('chavenfe').AsString;
+      _SER    := dm.IBselect.fieldbyname('serie').AsString;
 
       //DADOS ADICIONAIS DA NF: 1-FRETE, 2-SEGURO 3-DESCONTO, 4-DESC. NAO TRIB, 5-DESP. ACESS., 6-PIS ST, 7-COFINS ST, 8-credImcs *****Control****
       LE_VALORES_DADOADIC(dm.IBselect); //carrega os valores da matriz DADOS_ADIC
@@ -1099,11 +1103,12 @@ end;
 
 function leEntradas_SF() : Smallint;
 var
- _COD_FORNEC, dinicrip, dfimcrip, cfopTemp : String;
+ _COD_FORNEC, dinicrip, dfimcrip, cfopTemp, cod_sit : String;
  DATA_EMI : TDateTime;
  ini, i, fim, tmp1, C : integer;
  prod : TregProd;
  texto : TStringList;
+ quant : double;
 begin
   Result := -1;
   if MessageDlg('Deseja fazer a checagem de NFCes ?', mtConfirmation, [mbYes, mbNo], 1) = idyes then begin
@@ -1202,7 +1207,7 @@ begin
       //BUSCA DADOS ADICIONAIS DA NOTA FISCAL
       //DADOS_ADIC É UMA MATRIZ COM 8 POSIÇÕES, O OITAVO TERMO É O PERCENTUAL DE CRÉDITO DE ICMS
 
-      DADOS_ADNF(NOTA, COD_FOR, _CFOP, _FRETE, TIPO, _CHNFE, _SER);
+      DADOS_ADNF(NOTA, COD_FOR, cod_sit, _CFOP, _FRETE, TIPO, _CHNFE, _SER);
 
       if length(StrNum(_CHNFE)) = 44 then  _SER := leSerieDaChaveNfe(_CHNFE);
 
@@ -1237,7 +1242,11 @@ begin
       while not dm.IBselect.Eof do
         begin
           tmp1 := listaProdutos.Find(dm.IBselect.fieldbyname('cod').AsInteger);
-          TOT_ITEM := arredonda(dm.IBselect.fieldbyname('quant').AsExtended * dm.IBselect.fieldbyname('p_compra').AsExtended, 2);
+
+          quant := dm.IBselect.fieldbyname('quant').AsExtended;
+          if ((cod_sit = '06') and (quant = 0)) then quant := 1;
+
+          TOT_ITEM := arredonda(quant * dm.IBselect.fieldbyname('p_compra').AsExtended, 2);
 
           if tmp1 = -1 then
             begin
@@ -1246,7 +1255,7 @@ begin
               ACUMULA_COD(dm.IBselect.fieldbyname('cod').AsString, UNID);
               VE_UNIDADE(unid);
               listaProdutos[tmp1].cod      := dm.IBselect.fieldbyname('cod').AsInteger;
-              listaProdutos[tmp1].quant    := dm.IBselect.fieldbyname('quant').AsExtended;
+              listaProdutos[tmp1].quant    := quant;
               listaProdutos[tmp1].unid     := unid;
               listaProdutos[tmp1].aliq     := '00';
               listaProdutos[tmp1].cod_aliq := StrToInt(strnum(dm.IBselect.FieldByName('aliquota').AsString));
@@ -1261,7 +1270,7 @@ begin
             end
           else
             begin
-              listaProdutos[tmp1].quant := listaProdutos[tmp1].quant + dm.IBselect.fieldbyname('quant').AsExtended;
+              listaProdutos[tmp1].quant := listaProdutos[tmp1].quant + quant;
               listaProdutos[tmp1].total := listaProdutos[tmp1].total + TOT_ITEM;
             end;
 

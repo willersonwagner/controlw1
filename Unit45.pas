@@ -24,9 +24,19 @@ type
     Label14: TLabel;
     Label2: TLabel;
     Label1: TLabel;
+    Panel3: TPanel;
+    Label16: TLabel;
+    JsBotao1: JsBotao;
+    JsBotao2: JsBotao;
+    Label15: TLabel;
+    Label17: TLabel;
+    Label18: TLabel;
+    Label19: TLabel;
+    Label20: TLabel;
     nota: JsEditInteiro;
     fornec: JsEditInteiro;
     tipo: JsEditInteiro;
+    cod_sit: JsEditInteiro;
     serie: JsEditInteiro;
     cfop: JsEditInteiro;
     tipofrete: JsEditInteiro;
@@ -37,19 +47,11 @@ type
     totdespaces: JsEditNumero;
     totpis: JsEditNumero;
     totcofins: JsEditNumero;
-    credicm: JsEditNumero;
-    Panel3: TPanel;
-    Label16: TLabel;
-    JsBotao1: JsBotao;
-    JsBotao2: JsBotao;
-    Label15: TLabel;
-    chavenfe: TMaskEdit;
-    Label17: TLabel;
-    TOTICMSST: JsEditNumero;
-    Label18: TLabel;
     TOTICMS_DESON: JsEditNumero;
-    Label19: TLabel;
+    credicm: JsEditNumero;
     CREDICMS_REAIS: JsEditNumero;
+    TOTICMSST: JsEditNumero;
+    chavenfe: TMaskEdit;
     procedure notaKeyPress(Sender: TObject; var Key: Char);
     procedure JsBotao1Click(Sender: TObject);
     procedure chavenfeKeyPress(Sender: TObject; var Key: Char);
@@ -66,6 +68,8 @@ type
     procedure fornecKeyPress(Sender: TObject; var Key: Char);
     procedure FormCreate(Sender: TObject);
     procedure TOTICMSSTKeyPress(Sender: TObject; var Key: Char);
+    procedure cod_sitKeyPress(Sender: TObject; var Key: Char);
+    procedure FormShow(Sender: TObject);
   private
     cnpjFornec : string;
     function validaPreenchimentos() : boolean;
@@ -114,6 +118,7 @@ begin
       exit;
     end;
 
+  cod_sit.Text     := dm.IBselect.fieldbyname('cod_sit').AsString;
   fornec.Text      := dm.IBselect.fieldbyname('fornec').AsString;
   nota.Text        := dm.IBselect.fieldbyname('nota').AsString;
   tipo.Text        := dm.IBselect.fieldbyname('tipo').AsString;
@@ -149,10 +154,11 @@ procedure TdadosAdicSped.insereOuAlteraDadosAdic();
 begin
   dm.IBQuery1.Close;
   dm.IBQuery1.SQL.Clear;
-  dm.IBQuery1.SQL.Add('update or insert into SPEDDADOSADIC(nota, fornec, tipo, serie, cfop, tipofrete, totseg, ' +
-  ' totdesc, totdescnt, totdespaces, totpis, CREDICMS_REAIS, TOTICMS_DESON, totconfins, credicms, chavenfe, totfrete, TOTICMSST) values(:nota, :fornec, :tipo, :serie, :cfop, :tipofrete, :totseg, ' +
+  dm.IBQuery1.SQL.Add('update or insert into SPEDDADOSADIC(nota, cod_sit, fornec, tipo, serie, cfop, tipofrete, totseg, ' +
+  ' totdesc, totdescnt, totdespaces, totpis, CREDICMS_REAIS, TOTICMS_DESON, totconfins, credicms, chavenfe, totfrete, TOTICMSST) values(:nota, :cod_sit, :fornec, :tipo, :serie, :cfop, :tipofrete, :totseg, ' +
   ':totdesc, :totdescnt, :totdespaces, :totpis, :CREDICMS_REAIS, :TOTICMS_DESON, :totcofins, :credicms, :chavenfe, :totfrete, :TOTICMSST) matching(nota, fornec)'  );
   dm.IBQuery1.ParamByName('nota').AsString          := nota.Text;
+  dm.IBQuery1.ParamByName('cod_sit').AsString       := cod_sit.Text;
   dm.IBQuery1.ParamByName('fornec').AsString        := fornec.Text;
   dm.IBQuery1.ParamByName('tipo').AsString          := tipo.Text;
   dm.IBQuery1.ParamByName('serie').AsString         := serie.Text;
@@ -183,6 +189,11 @@ begin
   if key = #27 then close; 
   if key = #13 then
     begin
+      if nota.Text = '' then begin
+        ShowMessage('Preenchimento Obrigatório!');
+        abort;
+      end;
+
       fornec.SetFocus;
       buscaFornecedores(nota.Text);
     end;
@@ -235,7 +246,9 @@ if (key = #13) then
    form39.ListBox1.Items.Add('01 - NF Modelo 1');
    form39.ListBox1.Items.Add('04 - NF Produtor');
    form39.ListBox1.Items.Add('05 - Nota Fiscal Avulsa');
-   tedit(sender).Text := funcoes.lista(Sender, false);
+
+   form39.buscaListaBox(tedit(sender).Text);
+   tedit(sender).Text := funcoes.lista(Sender, false, 5);
    if tedit(sender).Text = '*' then
      begin
        tedit(sender).Text := '';
@@ -263,7 +276,9 @@ if (key = #13) then
    form39.ListBox1.Items.Add('1 - Emitente');
    form39.ListBox1.Items.Add('2 - Destinatário');
    form39.ListBox1.Items.Add('9 - Sem Frete');
-   tedit(sender).Text := funcoes.lista(Sender, false);
+
+   form39.buscaListaBox(tedit(sender).Text);
+   tedit(sender).Text := funcoes.lista(Sender, false, 5);
    if tedit(sender).Text = '*' then
      begin
        tedit(sender).Text := '';
@@ -320,6 +335,11 @@ begin
     end;
 end;
 
+procedure TdadosAdicSped.FormShow(Sender: TObject);
+begin
+  nota.SetFocus;
+end;
+
 procedure TdadosAdicSped.JsBotao2Click(Sender: TObject);
 begin
   if StrNum(chavenfe.Text) = '0' then
@@ -332,6 +352,30 @@ begin
   excluiDadosAdic(chavenfe.Text);
   limpaCampos;
   ShowMessage('Exclusão Efetuada com Sucesso!');
+end;
+
+procedure TdadosAdicSped.cod_sitKeyPress(Sender: TObject; var Key: Char);
+begin
+  if (key = #13) then begin
+   form39 := tform39.Create(self);
+   form39.ListBox1.Items.Add('00 - Documento regular');
+   form39.ListBox1.Items.Add('01 - Documento regular extemporâneo');
+   form39.ListBox1.Items.Add('02 - Documento cancelado');
+   form39.ListBox1.Items.Add('03 - Documento cancelado extemporâneo');
+   form39.ListBox1.Items.Add('04 - NF-e ou CT-e - Denegado');
+   form39.ListBox1.Items.Add('05 - NF-e ou CT-e - Numeração inutilizada');
+   form39.ListBox1.Items.Add('06 - Documento Fiscal Complementar');
+   form39.ListBox1.Items.Add('07 - Documento Fiscal Complementar extemporâneo');
+   form39.ListBox1.Items.Add('03 - Documento cancelado extemporâneo');
+
+   form39.buscaListaBox(tedit(sender).Text);
+   tedit(sender).Text := funcoes.lista(Sender, false, 5);
+   if tedit(sender).Text = '*' then
+     begin
+       tedit(sender).Text := '';
+       key := #0;
+     end;
+  end;
 end;
 
 procedure TdadosAdicSped.excluiDadosAdic(chave : String);

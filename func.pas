@@ -10559,8 +10559,17 @@ begin
       dm.IBQuery1.Transaction.Commit;
     end;
 
-    if not verSeExisteTabela('EXCSERV') then begin
+    if not VerificaCampoTabela('cod_sit', 'SPEDDADOSADIC') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('ALTER TABLE SPEDDADOSADIC ADD cod_sit varchar(2) default '''' ');
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
 
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('update SPEDDADOSADIC set cod_sit = '''' where cod_sit is null ');
+      dm.IBQuery1.ExecSQL;
     end;
 
     //VerificaVersao_do_bd
@@ -15342,6 +15351,7 @@ begin
     end;
 
     if conf  = 0 then form39.conf := 99;
+    form39.conf := conf;
     form39.AutoSize := False;
     form39.Height   := form39.ListBox1.Items.count * 20;
     form39.Width    := length(RetornaMaiorTstrings(form39.ListBox1.Items)) *

@@ -80,7 +80,7 @@ uses func, Unit1, principal, buscaSelecao, cadproduto, StrUtils, unid,
 {$R *.dfm}
 procedure TForm48.insereDadosAdic(const fornec : string);
 var
-  tipo, serie, cfop, tipofrete : string;
+  tipo, serie, cfop, tipofrete, cod_sit : string;
   fe : TStringList;
   vProd, totnota, tmp : currency;
 begin
@@ -90,12 +90,16 @@ begin
   fe[10] := copy(StrNum(fe[10]),1, 44);
   TOTvICMSDeson_Produtos := 0;
 
+  cod_sit := '00';
+  if Le_Nodo('finNFe', xml.GetText) = '2' then cod_sit := '06';
+
   dm.IBQuery1.Close;
   dm.IBQuery1.SQL.Clear;
-  dm.IBQuery1.SQL.Add('update or insert into SPEDDADOSADIC(nota, fornec, tipo, serie, cfop, tipofrete, totseg, totdesc, TOTDESCNT' +
-  ', TOTDESPACES, TOTPIS, TOTCONFINS, CREDICMS, CHAVENFE, TOTFRETE, TOTICMSST, TOTICMS_DESON) values(:nota, :fornec, :tipo, :serie, :cfop, :tipofrete, :totseg,' +
+  dm.IBQuery1.SQL.Add('update or insert into SPEDDADOSADIC(nota, cod_sit, fornec, tipo, serie, cfop, tipofrete, totseg, totdesc, TOTDESCNT' +
+  ', TOTDESPACES, TOTPIS, TOTCONFINS, CREDICMS, CHAVENFE, TOTFRETE, TOTICMSST, TOTICMS_DESON) values(:nota, :cod_sit, :fornec, :tipo, :serie, :cfop, :tipofrete, :totseg,' +
   ' :totdesc, :TOTDESCNT, :TOTDESPACES, :TOTPIS, :TOTCONFINS, :CREDICMS, :CHAVENFE, :TOTFRETE, :TOTICMSST, :TOTICMS_DESON) matching(CHAVENFE)');
   dm.IBQuery1.ParamByName('nota').AsString          := nota;
+  dm.IBQuery1.ParamByName('cod_sit').AsString       := cod_sit;
   dm.IBQuery1.ParamByName('fornec').AsString        := fornec;
   dm.IBQuery1.ParamByName('tipo').AsString          := fe[0];
   dm.IBQuery1.ParamByName('serie').AsString         := fe[1];

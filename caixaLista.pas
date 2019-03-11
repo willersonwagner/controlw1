@@ -14,13 +14,13 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
     //PadraoSeNaoExistir : TStringList;
-    procedure buscaListaBox(nome: String);
 
     { Private declarations }
   public
     conf : integer;
     padraoSeNaoExistir : string;
     teclas, substitui : TStringList;
+    procedure buscaListaBox(nome: String);
 
     { Public declarations }
   end;
@@ -112,24 +112,24 @@ var
   temp : TStringList;
   i : integer;
 begin
-  if conf=3 then begin
+  if conf = 3 then begin
     buscaListaBox(padraoSeNaoExistir);
     exit;
   end;
 
-if conf=2 then
-begin
-  //self.BorderStyle := bsNone;
-  //self.WindowState := wsMaximized;
-  if form22.Pgerais.Values['conf_ter']='' then
-    begin
+ if conf=2 then begin
+   if form22.Pgerais.Values['conf_ter']='' then begin
       padraoSeNaoExistir := '-0- '+ form22.Pgerais.Values['nota'] + ' -1- 1 -2- 2 -3- -4- -5- -6- -7- -8- -9- -10- -11- -12- -13- -14- -15- -16- -17- -18- -19- -20-';
       form22.Pgerais.Values['conf_ter'] := padraoSeNaoExistir;
     end
-  else padraoSeNaoExistir := form22.Pgerais.Values['conf_ter'];
-end;
+    else padraoSeNaoExistir := form22.Pgerais.Values['conf_ter'];
+  end;
 
-if ((conf <> 1) or (conf <> 2)) then
+  if conf = 5 then begin
+    exit;
+  end;
+
+if ((conf <> 1) and (conf <> 2) and (conf <> 5)) then
   begin
     ListBox1.Selected[0] := true;
   end;
@@ -160,6 +160,7 @@ begin
     cod := ListBox1.Items[i];
     cod := copy(cod, 1, pos('-', cod) -1);
     cod := trim(cod);
+
     if UpperCase(nome) = UpperCase(cod) then begin
       ListBox1.Selected[i] := true;
       exit;
