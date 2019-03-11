@@ -3613,7 +3613,10 @@ begin
   else begin     }
   //end;
 
-  if preco = 0 then preco := qery.fieldbyname('PRECO').AsCurrency;
+  //se param geral 106 estiver habilitado entao pega o preco atualizado do estoque
+  if ((preco = 0) or (funcoes.buscaParamGeral(106, 'N') = 'S')) then preco := qery.fieldbyname('PRECO').AsCurrency;
+
+
 
   if ((funcoes.buscaParamGeral(63, 'N') = 'N') and (ClientDataSet1.Locate('codigo',qery.fieldbyname('cod').AsString,[]))) then
     begin
@@ -6422,16 +6425,18 @@ begin
       end;
     end;
 
-    if funcoes.buscaParamGeral(55, 'N') <> 'S' then begin
+    {if funcoes.buscaParamGeral(55, 'N') = 'N' then begin
       valor := buscaPreco(dm.produto.fieldbyname('cod').AsInteger, qtd);
       if (valor <> 0) and (valor < v2) then v2 := valor;
-    end;
+    end;}
+
 
     //if valor <> 0 then v2 := valor;
     if valor = 0 then begin
         valor := dm.produto.FieldByName('PRECO').AsCurrency;
         v2    := valor;
     end;
+
 
     if qtd > 50000 then
       begin
