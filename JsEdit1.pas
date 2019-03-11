@@ -684,7 +684,15 @@ begin
     arq.Free;
 
     if query.Transaction.InTransaction then query.Transaction.Commit;
-    query.ExecSQL;
+
+    try
+      query.ExecSQL;
+    except
+      on e:exception do begin
+        MessageDlg(e.Message + #13 + #13 + stringSql, mtError, [mbOK], 1);
+        exit;
+      end;
+    end;
     if query.Transaction.InTransaction then query.Transaction.Commit;
     LimpaCampos(form.Name);
 end;

@@ -211,6 +211,7 @@ if key = #13 then
       if tedit(sender).Text = '101' then
         begin
           fornece := funcoes.dialogo('generico',90,'1234567890'+#8, 90, false,'','Control For Windows','Qual o Cód. do Fornecedor ?','') ;
+          if fornece = '*' then exit;
          // if StrNum(fornece) <> '0' then
            // begin
               fornec.Text := fornece;

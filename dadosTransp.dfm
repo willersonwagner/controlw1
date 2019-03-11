@@ -140,12 +140,12 @@ object Form43: TForm43
       Height = 21
       CharCase = ecUpperCase
       TabOrder = 3
-      Text = '0,00'
+      Text = '0,0000'
       OnKeyPress = liqKeyPress
       FormularioComp = 'Form43'
       Indice = 0
       TipoDeDado = teNumero
-      CasasDecimais = 2
+      CasasDecimais = 4
     end
     object bruto: JsEditNumero
       Left = 92
@@ -154,12 +154,12 @@ object Form43: TForm43
       Height = 21
       CharCase = ecUpperCase
       TabOrder = 2
-      Text = '0,00'
+      Text = '0,0000'
       OnKeyPress = brutoKeyPress
       FormularioComp = 'Form43'
       Indice = 0
       TipoDeDado = teNumero
-      CasasDecimais = 2
+      CasasDecimais = 4
     end
     object marca: JsEdit
       Left = 258

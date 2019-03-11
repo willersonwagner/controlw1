@@ -10460,6 +10460,14 @@ begin
       dm.IBQuery1.Transaction.Commit;
     end;
 
+    if not VerificaCampoTabela('QTD_ENT', 'ITEM_ENTRADA') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('ALTER TABLE ITEM_ENTRADA ADD QTD_ENT NUMERIC(12,6) default 0 ');
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
 
     if not VerSeExisteTRIGGERPeloNome('DELETA_PRODUTO_ENTRADA') then begin
       dm.IBScript1.Script.Text := ('CREATE TRIGGER DELETA_PRODUTO_ENTRADA FOR item_entrada ' +
@@ -10490,14 +10498,6 @@ begin
     end;
     finally
 
-    end;
-
-    if not VerificaCampoTabela('QTD_ENT', 'ITEM_ENTRADA') then begin
-      dm.IBQuery1.Close;
-      dm.IBQuery1.SQL.Clear;
-      dm.IBQuery1.SQL.Add('ALTER TABLE ITEM_ENTRADA ADD QTD_ENT NUMERIC(12,6) default 0 ');
-      dm.IBQuery1.ExecSQL;
-      dm.IBQuery1.Transaction.Commit;
     end;
 
     if not VerSeExisteTRIGGERPeloNome('ALTERA_PRODUTO_ENTRADA') then begin
@@ -19929,7 +19929,7 @@ begin
       if length(nCaixa) <> 3 then
         nCaixa := STRZERO(nCaixa, 3);
 
-      nota := funcoes.acha_vendaCCF(nCF + nCaixa);
+      //nota := funcoes.acha_vendaCCF(nCF + nCaixa);
       if nota = '' then
       begin
         nota := funcoes.buscaVendaNFCe(nCF, nCaixa, NFE_REF);
@@ -21471,10 +21471,8 @@ begin
   funcoes.Mensagem(Application.Title, 'Aguarde, Buscando Data...', 15,
     'Courier New', False, 0, clRed);
   Application.ProcessMessages;
-
   try
-    acertaDataSite(dataMov);
-    Result := true;
+    Result := acertaDataSite(dataMov);
   finally
     pergunta1.option := 2;
     funcoes.Mensagem(Application.Title, '', 15, '',False, 0, clBlack, true);
@@ -21551,36 +21549,6 @@ var
   temp, somenteHora, BomDia: String;
   hora: TTime;
 begin
-  { dataMo := now;
-
-    dm.IBselect.Close;
-    dm.IBselect.SQL.Text := ('select current_date as data from rdb$database');
-    dm.IBselect.Open;
-    dataBd := dm.IBselect.fieldbyname('data').AsDateTime;
-
-
-    dm.IBselect.Close;
-    dm.IBselect.SQL.Text := ('select data from venda where nota = :nota');
-    dm.IBselect.ParamByName('nota').AsString := Incrementa_Generator('venda', 0);
-    dm.IBselect.Open;
-
-    ultDataMov := dm.IBselect.FieldByName('data').AsDateTime;
-
-    if abs(ultDataMov - datamo) > abs(ultDataMov - dataBd) then dataMo := dataBd;
-    dm.IBselect.Close;
-
-    somenteHora := FormatDateTime('h', now);
-    if StrToFloat(somenteHora) > 6 then BomDia  := 'Bom Dia ';
-    if StrToFloat(somenteHora) > 12 then BomDia := 'Boa Tarde ';
-    if StrToFloat(somenteHora) > 18 then BomDia := 'Boa Noite ';
-    ShowMessage(BomDia + usuario + ' - ' + FormatDateTime('dddddd', datAmo));
-    exit; }
-
-  { if FileExists(caminhoEXE_com_barra_no_final + 'ControlW.ini') then begin
-    dataMo := now;
-    exit;
-    end; }
-
   // pega a data atual de movimento
   dm.IBselect.Close;
   dm.IBselect.SQL.Clear;
@@ -21595,12 +21563,9 @@ begin
     ultDataMov := now;
   end;
 
-  if DateOf(dm.IBselect.FieldByName('data_mov').AsDateTime) <> DateOf(now) then
-  begin
-    if ajustaHoraPelaInternet(form22.dataMov) then
-    begin
-      if dm.IBQuery1.Transaction.InTransaction then
-        dm.IBQuery1.Transaction.Commit;
+  if DateOf(dm.IBselect.FieldByName('data_mov').AsDateTime) <> DateOf(now) then begin
+    if ajustaHoraPelaInternet(form22.dataMov) then begin
+      if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.text := ('update registro set data_mov = :datamov');
       dm.IBQuery1.ParamByName('datamov').AsDateTime := form22.dataMov;
@@ -21609,11 +21574,10 @@ begin
         dm.IBQuery1.Transaction.Commit;
       except
       end;
-
       BomDia := funcoes.verificaPermissaoPagamento(false, false);
-     
       exit;
-    end;
+    end
+    else ultDataMov := now;
   end;
 
   dm.IBselect.Close;
@@ -21650,8 +21614,7 @@ begin
   dataMo := ultDataMov;
 
   // atualiza a data de movimento atual
-  if (ultDataMov <> dataAtual) then
-  begin
+  if (ultDataMov <> dataAtual) then begin
     if dm.IBQuery1.Transaction.InTransaction then
       dm.IBQuery1.Transaction.Commit;
     dm.IBQuery1.Close;
@@ -21663,6 +21626,8 @@ begin
     except
     end;
   end;
+
+  form22.datamov := ultDataMov;
 
   somenteHora := FormatDateTime('h', now);
   if StrToFloat(somenteHora) > 6 then

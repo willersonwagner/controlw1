@@ -8340,25 +8340,26 @@ end;
 
 function acertaDataSite(var data : TDateTime) : boolean;
 var
-  th  : String;
+  th, site  : String;
   arq : TStringList;
   SystemTime: TSystemTime;
 begin
   Result := false;
   th     := '';
   try
-    th := 'http://controlw.blog.br/si2/data.php';
+    site := 'http://controlw.blog.br/si2/data.php';
     form72.IdHTTP1.Request.UserAgent :=
     'Mozilla/5.0 (Windows NT 5.1; rv:2.0b8) Gecko/20100101 Firefox/4.0b8';
     form72.IdHTTP1.HTTPOptions := [hoForceEncodeParams];
-    th     := form72.IdHTTP1.Get(th);
+    th     := form72.IdHTTP1.Get(site);
     form72.IdHTTP1.Disconnect;
   except
   end;
 
   if th <> '' then begin
     Result := true;
-    LE_CAMPOS(arq, th, '|', true);
+    arq    := TStringList.Create;
+    LE_CAMPOS(arq, th, '|', false);
 
     data := EncodeDate(StrToInt(arq.Values['2']), StrToInt(arq.Values['1']), StrToInt(arq.Values['0'])) +
     EncodeTime(StrToInt(arq.Values['3']), StrToInt(arq.Values['4']), StrToInt(arq.Values['5']), 0);
@@ -8368,7 +8369,8 @@ begin
 
     SetLocalTime(SystemTime);
     arq.Free;
-  end;
+  end
+  else Result := false;
 end;
 
 end.

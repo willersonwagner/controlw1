@@ -4197,7 +4197,9 @@ end;
           end
         else  sub := dm.produto.fieldbyname('preco').AsCurrency;
 
-        if vendeProdutoM2 = true then exit;
+        if vendeProdutoM2 = true then begin
+          exit;
+        end;
 
         //se está habilitado a confirmação de preços
         if (Contido(configUsuarioConfirmarPreco, 'SPX') or (copy(dm.produto.fieldbyname('descricao').AsString, 1, 7) = 'SERVICO'))  then
@@ -4416,11 +4418,10 @@ end;
 
   If (key =#32) and (DBGrid1.SelectedField.DisplayLabel='CODBAR') then
   begin
-    if ConfParamGerais.Strings[5] = 'S' then
-      begin
-        BuscaCodBar_F6_AutoPecas1;
-        exit;
-      end;
+    if ConfParamGerais.Strings[5] = 'S' then begin
+      BuscaCodBar_F6_AutoPecas1;
+      exit;
+    end;
 
     BuscaCodBar_F6_AutoPecas('');
     exit;
@@ -5330,7 +5331,7 @@ end;
 procedure TForm20.DBGrid2KeyUp(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
-if key = 46 then ExcluiItemVenda;
+  if key = 46 then ExcluiItemVenda;
 end;
 
 procedure TForm20.JsEdit3Exit(Sender: TObject);
@@ -5580,7 +5581,13 @@ begin
     end;
 
   res := dm.produtotemp.fieldbyname('cod').AsString;
-  funcoes.ordernaDataSetVenda('codbar', res, sqlVenda, DBGrid1, '', ordenaCampos);
+
+  if trim(ordemCompra) <> '' then begin
+    funcoes.ordernaDataSetVenda('codbar', res, sqlVenda, DBGrid1, '', ordenaCampos);
+    funcoes.OrdenaCamposVenda(ordemCompra, true);
+    DBGrid1.SelectedIndex := funcoes.buscaFieldDBgrid1('codbar', DBGrid1);
+  end
+  else funcoes.ordernaDataSetVenda('codbar', res, sqlVenda, DBGrid1, '', ordenaCampos);
 
   exit;
   dm.produtotemp.Close;
@@ -6421,7 +6428,10 @@ begin
     end;
 
     //if valor <> 0 then v2 := valor;
-    //if valor = 0 then valor := dm.produto.FieldByName('PRECO').AsCurrency;
+    if valor = 0 then begin
+        valor := dm.produto.FieldByName('PRECO').AsCurrency;
+        v2    := valor;
+    end;
 
     if qtd > 50000 then
       begin
@@ -6546,6 +6556,9 @@ procedure tform20.lancaDescontoPorFormaDePagamento(formapagamento : integer);
 var
   ini, fim : integer;
 begin
+  if funcoes.buscaParamGeral(105, 'N') <> 'S' then exit;
+  
+
   avista := StrToCurrDef(ConfParamGerais[28], 0);
   aprazo := StrToCurrDef(ConfParamGerais[29], 0);
 

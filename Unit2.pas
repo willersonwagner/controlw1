@@ -2915,6 +2915,7 @@ begin
   form40.tipo.Add('102=normal');
   form40.tipo.Add('103=normal');
   form40.tipo.Add('104=generico');
+  form40.tipo.Add('105=generico');
 
   form40.troca := TStringList.Create;
   form40.troca.Add('0=S');
@@ -3025,6 +3026,7 @@ begin
   form40.troca.Add('102=S');
   form40.troca.Add('103=S');
   form40.troca.Add('104=S');
+  form40.troca.Add('105=S');
 
   form40.teclas := TStringList.Create;
   form40.teclas.Add('0=FT');
@@ -3134,6 +3136,7 @@ begin
   form40.teclas.Add('102=SN');
   form40.teclas.Add('103=SN');
   form40.teclas.Add('104=SN');
+  form40.teclas.Add('105=SN');
 
 
   form40.ListBox1.Clear;
@@ -3242,6 +3245,7 @@ begin
   form40.ListBox1.Items.Add('102=Mostrar nome do cliente em formas de pagamento ?');
   form40.ListBox1.Items.Add('103=Permitir Exclusao de Produtos em Ordem Serviço por Usuarios bloqueados ?');
   form40.ListBox1.Items.Add('104=Deseja Confirmar Preço ao Vender Produto no PDV ?');
+  form40.ListBox1.Items.Add('105=Usar Desconto Por Forma de Pagamento ?');
 
   Form40.ListBox1.Selected[0] := true;
   form40.showmodal;

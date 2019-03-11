@@ -3425,8 +3425,7 @@ begin
           mat12.Values['2'] := trim(mat12.Values['2']);
           //Retorna_Array_de_Numero_de_Notas(mat12, linha, '|');
 
-          IF MAT12.Values['0'] = 'H010' then
-            begin
+          IF MAT12.Values['0'] = 'H010' then begin
               dm.IBselect.Close;
               dm.IBselect.SQL.Text := 'select unid from produto where cod = :cod';
               dm.IBselect.ParamByName('cod').AsString := StrNum(mat12.Values['1']);
@@ -3436,7 +3435,7 @@ begin
 
               if dm.IBselect.IsEmpty then
                 begin
-		              IF (mat12.Values['2'] = '') then MAT12.Values['2'] := 'UN';
+                  IF (trim(mat12.Values['2']) = '') then MAT12.Values['2'] := 'UN';
 
                   try
 
@@ -3480,10 +3479,11 @@ begin
               UNID := VALIDA_UNID(dm.IBselect.fieldbyname('unid').AsString);
               //VALIDA A UNIDADE
 
+              //if Contido('|003845|', linha) then ShowMessage('UNID=' + UNID + #13 + 'BD=' + dm.IBselect.fieldbyname('unid').AsString + #13 +  #13 + #13 + mat12.GetText);
+
               VE_UNIDADE(UNID);
               IF mat12.Values['2'] <> UNID then
                 begin
-
                   mat12.Values['2'] := UNID;
                   if mat12.Count < 10 then
                     begin
@@ -3498,6 +3498,8 @@ begin
 
                   LINHA := MONTA_REG(MAT12);
                 End;
+
+             //if Contido('|003845|', linha) then ShowMessage('UNID=' + UNID + #13 + 'BD=' + dm.IBselect.fieldbyname('unid').AsString + #13 +  #13 + #13 + mat12.GetText);
 
               ki := ContaChar1(linha, '|');
               IF((mat12.Values['0'] = 'H010') AND (ki < 12)) then

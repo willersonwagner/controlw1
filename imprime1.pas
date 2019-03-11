@@ -646,9 +646,9 @@ begin
 
   ini := 0;
 
-  criaPasta(caminhoEXE_com_barra_no_final + 'impressao\');
+  criaPasta(caminhoEXE_com_barra_no_final + 'IMP\');
   while ini < 4 do begin
-    arq := caminhoEXE_com_barra_no_final + 'impressao\' + 'TEXTO'+IfThen(ini = 0, '', IntToStr(ini))+'.TXT';
+    arq := caminhoEXE_com_barra_no_final + 'IMP\' + 'TEXTO'+IfThen(ini = 0, '', IntToStr(ini))+'.TXT';
     try
       if FileExists(arq) then DeleteFile(arq);
       form19.RichEdit1.Lines.SaveToFile(arq);

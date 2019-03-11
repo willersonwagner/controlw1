@@ -46,7 +46,7 @@ begin
     begin
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Clear;
-      dm.IBQuery1.SQL.Add('select configu, cod from usuario where (usu = :nome) and (senha = :senha) and excluido = 0');
+      dm.IBQuery1.SQL.Add('select configu, cod, nome from usuario where (usu = :nome) and (senha = :senha) and excluido = 0');
       dm.IBQuery1.ParamByName('nome').AsString  := funcoes.Criptografar(nome.Text);
       dm.IBQuery1.ParamByName('senha').AsString := funcoes.Criptografar(senha.Text);
 
@@ -62,6 +62,8 @@ begin
 
       if not dm.IBQuery1.IsEmpty then
         begin
+          funcoes.gravaAlteracao('Usuario Trocado de ' + form22.codusario + '-' + form22.usuario  +' para ' + dm.IBQuery1.FieldByName('cod').AsString + '-' + dm.IBQuery1.FieldByName('nome').AsString);
+
           desc     := funcoes.LerConfig(dm.IBQuery1.fieldbyname('configu').AsString, 0);
           vl       := StrToCurr(desc);
           descUsu  := StrToCurr(funcoes.LerConfig(form22.Pgerais.Values['configu'], 0));
