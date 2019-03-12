@@ -166,6 +166,8 @@ begin
       exit;
     end;
   end;
+
+  ListBox1.Selected[0] := true;
 end;
 
 end.

@@ -115,6 +115,7 @@ begin
   if dm.IBselect.IsEmpty then
     begin
       dm.IBselect.Close;
+      cod_sit.Text := '00';
       exit;
     end;
 

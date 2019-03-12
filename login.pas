@@ -62,8 +62,6 @@ begin
 
       if not dm.IBQuery1.IsEmpty then
         begin
-          funcoes.gravaAlteracao('Usuario Trocado de ' + form22.codusario + '-' + form22.usuario  +' para ' + dm.IBQuery1.FieldByName('cod').AsString + '-' + dm.IBQuery1.FieldByName('nome').AsString);
-
           desc     := funcoes.LerConfig(dm.IBQuery1.fieldbyname('configu').AsString, 0);
           vl       := StrToCurr(desc);
           descUsu  := StrToCurr(funcoes.LerConfig(form22.Pgerais.Values['configu'], 0));
@@ -77,10 +75,15 @@ begin
                 end;
               if StrToCurr(desc) <= vl then break;
             end;
-            
+
           form22.Pgerais.Values['configu'] := dm.IBQuery1.fieldbyname('configu').AsString;
           if desc <> '*' then  form22.Pgerais.Values['configu'] := GravarConfig(form22.Pgerais.Values['configu'], desc, 0);
 
+
+          try
+           funcoes.gravaAlteracao('Usuario Trocado de ' + form22.codusario + '-' + form22.usuario  +' para ' + dm.IBQuery1.FieldByName('cod').AsString + '-' + dm.IBQuery1.FieldByName('nome').AsString);
+          finally
+          end;
           ShowMessage('Venda Liberada para desconto de até ' + formataCurrency(StrToCurr(desc)) + '%');
         end;
 

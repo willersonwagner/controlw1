@@ -616,6 +616,21 @@ var
   campo, cod, nota, tabela, sim, validade, codentrada : string;
   total, qtd :currency;
 begin
+  if (trim(codigo.Text) = '') then begin
+    ShowMessage('Número da Nota Fiscal Inválido');
+    codigo.Enabled := true;
+    codigo.SetFocus;
+    exit;
+  end;
+
+  if (trim(fornec.Text) = '') then begin
+    ShowMessage('Número de Fornecedor Inválido');
+    fornec.Enabled := true;
+    fornec.SetFocus;
+    exit;
+  end;
+
+
   Result := false;
   sim := '';
   qtd := 0;
@@ -678,7 +693,7 @@ begin
 
   dm.IBQuery4.SQL.Clear;
   dm.IBQuery4.SQL.Add('update or insert into entrada(nota, data,chegada,total_nota,fornec) VALUES  (:nota, :data,:chegada,:total_nota,:fornec) matching(nota, fornec) ');
-  dm.IBQuery4.ParamByName('nota').AsString         := nota;
+  dm.IBQuery4.ParamByName('nota').AsString         := codigo.Text;
   dm.IBQuery4.ParamByName('chegada').AsDateTime    := StrToDate(chegada.Text);
   dm.IBQuery4.ParamByName('total_nota').AsCurrency := funcoes.ArredondaFinanceiro((quant.getValor * p_compra.getValor) + total, 2);
   dm.IBQuery4.ParamByName('data').AsDateTime       := StrToDate(data.Text);
