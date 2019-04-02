@@ -23,6 +23,7 @@ type
     ACBrDownload: TACBrDownload;
     lConnectionInfo: TLabel;
     Button1: TButton;
+    IdHTTP2: TIdHTTP;
     procedure FormCreate(Sender: TObject);
     procedure IdFTP1WorkBegin(Sender: TObject; AWorkMode: TWorkMode;
       const AWorkCountMax: Integer);
@@ -43,10 +44,17 @@ type
     procedure HookStatus(Sender: TObject; Reason: THookSocketReason;
       const BytesToDownload, BytesDownloaded: Integer);
     procedure Button1Click(Sender: TObject);
+    procedure IdHTTP2Work(ASender: TObject; AWorkMode: TWorkMode;
+      AWorkCount: Int64);
+    procedure IdHTTP2WorkBegin(ASender: TObject; AWorkMode: TWorkMode;
+      AWorkCountMax: Int64);
+    procedure IdHTTP2WorkEnd(ASender: TObject; AWorkMode: TWorkMode);
 
   private
     tamanho, tentativas : integer;
     pasta : String;
+    procedure CopiarArquivos(Origem, Destino, Filtro: String);
+    Function CountChar(Texto:String ; C:Char) : Integer;
     function buscaNomeExec() : String;
     function ExtractIt(Const FFilename:String;FDir:string) : boolean;
     function PosFinal(substr:string;Texto:string):integer;
@@ -175,6 +183,7 @@ procedure TForm1.BaixaAtualizacao;
 var
   test : integer;
   arquivo1 : TFileStream;
+  site     : string;
 begin
   Label1.Visible          := true;
   lConnectionInfo.Visible := true;
@@ -192,11 +201,28 @@ begin
 
   if FileExists(ExtractFileDir(ParamStr(0)) + '\ControlW.7z') then DeleteFile(ExtractFileDir(ParamStr(0)) + '\ControlW.7z');
 
-  ACBrDownload.DownloadDest    := ExtractFileDir(ParamStr(0)) + '\';
+  {ACBrDownload.DownloadDest    := ExtractFileDir(ParamStr(0)) + '\';
   ACBrDownload.DownloadNomeArq := 'ControlW.7z';
 
   ACBrDownload.DownloadUrl     := 'http://controlw.blog.br/si2/verarqallatu.php';
-  ACBrDownload.StartDownload;
+  ACBrDownload.StartDownload;}
+
+  arquivo1 := TFileStream.Create(ExtractFileDir(ParamStr(0)) + '\' +'ControlW.7z', fmCreate);
+  IdHTTP2.Request.UserAgent := 'Mozilla/5.0 (Windows NT 5.1; rv:2.0b8) Gecko/20100101 Firefox/4.' + '0b8';
+  IdHTTP2.HTTPOptions := [hoForceEncodeParams];
+  site := 'http://controlw.blog.br/si2/verarqallatu.php';
+  try
+    IdHTTP2.Get(site, arquivo1);
+  except
+  end;
+
+  arquivo1.Free;
+  Memo1.Lines.Add('Extraindo Atualização...');
+  ExtraiAtualizacao;
+
+  Memo1.Lines.Add('Processo de extração Completo!');
+  //Application.Terminate;
+
 
   exit;
 
@@ -327,6 +353,24 @@ procedure TForm1.IdHTTP1WorkEnd(Sender: TObject; AWorkMode: TWorkMode);
 begin
   Gauge1.Progress := 0;
 //  fimDownload;
+end;
+
+procedure TForm1.IdHTTP2Work(ASender: TObject; AWorkMode: TWorkMode;
+  AWorkCount: Int64);
+begin
+  Gauge1.Progress := AWorkCount;
+end;
+
+procedure TForm1.IdHTTP2WorkBegin(ASender: TObject; AWorkMode: TWorkMode;
+  AWorkCountMax: Int64);
+begin
+  Gauge1.MaxValue :=  AWorkCountMax;
+  Memo1.Lines.Add('Download Começou...');
+end;
+
+procedure TForm1.IdHTTP2WorkEnd(ASender: TObject; AWorkMode: TWorkMode);
+begin
+  Memo1.Lines.Add('Download Finalizado!');
 end;
 
 procedure TForm1.Timer2Timer(Sender: TObject);
@@ -558,7 +602,8 @@ end;
 
 procedure TForm1.ExtraiAtualizacao;
 var
-  arq : TStringList;
+  arq, config : TStringList;
+  pastaServer : String;
 begin
   if not FileExists(ExtractFileDir(ParamStr(0)) + '\ControlW.7z') then begin
     Memo1.Lines.Add('Arquivo ControlW.7z Não Encontrado!');
@@ -575,14 +620,40 @@ begin
   Memo1.Lines.Add('Descompactando Atualização');
   if not ExtractIt(ExtractFileDir(ParamStr(0)) + '\ControlW.7z', ExtractFileDir(ParamStr(0)) + '\temp\') then exit;
 
-  arq := TStringList.Create;
-  arq.Add('tiemout /t 5 /nobreak');
-  arq.Add('copy '+ ExtractFileDir(ParamStr(0)) + '\temp\*.*'+' '+ ExtractFileDir(ParamStr(0)) + '\'+' /y');
-  arq.Add('rd /S /Q ' + ExtractFileDir(ParamStr(0)) + '\temp\');
-  arq.SaveToFile(ExtractFileDir(ParamStr(0)) + '\cp.bat');
+  if FileExists(ExtractFileDir(ParamStr(0)) + '\copy.bat') then DeleteFile(ExtractFileDir(ParamStr(0)) + '\copy.bat');
+
+  arq     := TStringList.Create;
+  config  := TStringList.Create;
+  pastaServer := '';
+
+  if FileExists(ExtractFileDir(ParamStr(0)) + '\config.dat') then begin
+    config.LoadFromFile(ExtractFileDir(ParamStr(0)) + '\config.dat');
+    if CountChar(config.Values['BDRemoto'], ':') >= 2 then begin
+      pastaServer := '\\'+ copy(config.Values['BDRemoto'], 1, pos(':', config.Values['BDRemoto']) -1) + '\ControlW\';
+      {try
+        CopiarArquivos(ExtractFileDir(ParamStr(0)) + '\temp\', pastaServer + 'temp1\', '*.*');
+        Memo1.Lines.Add('Descompactado com Sucesso: ' + pastaServer);
+      except
+        on e:exception do begin
+          Memo1.Lines.Add('Erro em descompactar para: ' + pastaServer + #13 + e.Message);
+        end;
+      end;}
+    end;
+
+    config.Free;
+  end;
+
+  arq.Add('timeout /t 5 /nobreak');
+  arq.Add('xcopy '+ ExtractFileDir(ParamStr(0)) + '\temp\*.*'+' '+ ExtractFileDir(ParamStr(0)) + '\'+' /y /e');
+
+  if pastaServer <> '' then begin
+    arq.Add('xcopy '+ ExtractFileDir(ParamStr(0)) + '\temp\*.*'+' '+ pastaServer +' /y /e');
+  end;
+  //arq.Add('rd /S /Q ' + ExtractFileDir(ParamStr(0)) + '\temp\');
+  arq.SaveToFile(ExtractFileDir(ParamStr(0)) + '\copy.bat');
   Memo1.Lines.Add('Sistema Atualizado Com Sucesso!');
   sleep(2000);
-  ShellExecute(Handle,nil, PChar(ExtractFileDir(ParamStr(0)) + '\cp.bat'), nil, nil, SW_SHOWNORMAL);
+  ShellExecute(Handle,nil, PChar(ExtractFileDir(ParamStr(0)) + '\copy.bat'), nil, nil, SW_SHOWNORMAL);
   //sleep(2000);
   Application.Terminate;
 end;
@@ -599,6 +670,49 @@ begin
     Result := IdHTTP1.Get(site);
   except
   end;
+end;
+
+Function TForm1.CountChar(Texto:String ; C:Char) : Integer;
+var
+i,vTot : Integer;
+begin
+vTot := 0;
+For i := 1 to Length(Texto) do
+begin
+If (Texto[i] = C) or (LowerCase(Texto[i]) = LowerCase(C)) then
+vTot := vTot + 1;
+end;//For
+Result := vTot;
+end;//Function
+
+
+procedure TForm1.CopiarArquivos(Origem, Destino, Filtro: String);
+var
+  Arquivos: TSearchRec;
+  Encontrou: Integer;
+begin
+   if Origem[Length(Origem)]=  '\' then
+      Origem := Origem+'\'; //Muito importante terminar com "\"
+   if Origem[Length(Destino)]=  '\' then
+      Destino := Destino+'\';
+   SetCurrentDir(Origem);
+   Encontrou := FindFirst('*'+Filtro, faArchive, Arquivos);
+   while Encontrou = 0 do
+   begin
+      CopyFile(Pchar(Origem+'\'+Arquivos.Name),
+                  PChar(Destino+'\'+Arquivos.Name), False);
+//Coloque como True se quiser que se já existir o arquivo ele seja sobrescrito
+      Encontrou := FindNext(Arquivos);
+   end;
+   FindClose(Arquivos);
+   Encontrou :=  FindFirst('*', faDirectory, Arquivos);
+   while Encontrou =0 do
+   begin
+//Faz mais uma vez a verificação se é um Diretório e se ele não é uma pasta anterior a ele (. e ..)
+      if (Arquivos.Attr = faDirectory) and (Arquivos.Name <> '.') and (Arquivos.Name <> '..') then
+         CopiarArquivos(Origem+'\'+Arquivos.Name,Destino,Filtro);
+      Encontrou := FindNext(Arquivos);
+   end;
 end;
 
 end.

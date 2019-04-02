@@ -12465,6 +12465,10 @@ object Form2: TForm2
           Caption = 'Consulta Cadastros Sefaz'
           OnClick = ConsultaCadastros1Click
         end
+        object ConfiguraodeFormulrios1: TMenuItem
+          Caption = 'Configura'#231#227'o de Formul'#225'rios'
+          OnClick = ConfiguraodeFormulrios1Click
+        end
       end
       object ParmetrosGerais1: TMenuItem
         Caption = 'Par'#226'metros Gerais'

@@ -33,6 +33,7 @@ object Form74: TForm74
     Align = alTop
     Caption = 'Produtos'
     TabOrder = 0
+    ExplicitTop = 26
     object Label1: TLabel
       Left = 16
       Top = 64

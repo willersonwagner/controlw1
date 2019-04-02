@@ -504,40 +504,26 @@ object dm: Tdm
     Top = 380
   end
   object DANFE: TACBrNFeDANFCeFortes
-    ACBrNFe = ACBrNFe
     PathPDF = 'C:\Program Files (x86)\Borland\Delphi7\Bin\'
-    MostrarPreview = True
-    MostrarStatus = True
-    TipoDANFE = tiNFCe
-    NumCopias = 1
-    ImprimeNomeFantasia = False
-    ImprimirDescPorc = False
-    ImprimirTotalLiquido = True
+    Sistema = 'Projeto ACBr - www.projetoacbr.com.br'
     MargemInferior = 0.800000000000000000
     MargemSuperior = 0.800000000000000000
     MargemEsquerda = 0.600000000000000000
     MargemDireita = 0.510000000000000000
     CasasDecimais.Formato = tdetInteger
-    CasasDecimais._qCom = 2
-    CasasDecimais._vUnCom = 2
-    CasasDecimais._Mask_qCom = '###,###,###,##0.00'
-    CasasDecimais._Mask_vUnCom = '###,###,###,##0.00'
-    ExibirResumoCanhoto = False
-    FormularioContinuo = False
-    TamanhoFonte_DemaisCampos = 10
-    ProdutosPorPagina = 0
-    ImprimirDetalhamentoEspecifico = True
-    NFeCancelada = False
-    ImprimirItens = True
-    ViaConsumidor = True
+    CasasDecimais.qCom = 2
+    CasasDecimais.vUnCom = 2
+    CasasDecimais.MaskqCom = ',0.00'
+    CasasDecimais.MaskvUnCom = ',0.00'
+    ACBrNFe = ACBrNFe
+    TipoDANFE = tiNFCe
     TamanhoLogoHeight = 0
     TamanhoLogoWidth = 0
-    RecuoEndereco = 0
-    RecuoEmpresa = 0
-    LogoemCima = False
-    TamanhoFonteEndereco = 0
-    RecuoLogo = 0
-    QRCodeLateral = True
+    FonteLinhaItem.Charset = DEFAULT_CHARSET
+    FonteLinhaItem.Color = clWindowText
+    FonteLinhaItem.Height = -9
+    FonteLinhaItem.Name = 'Lucida Console'
+    FonteLinhaItem.Style = []
     Left = 120
     Top = 336
   end
@@ -554,43 +540,19 @@ object dm: Tdm
     Top = 328
   end
   object ACBrNFeDANFeRL1: TACBrNFeDANFeRL
-    MostrarPreview = True
-    MostrarStatus = True
-    TipoDANFE = tiRetrato
-    NumCopias = 1
-    ImprimeNomeFantasia = False
-    ImprimirDescPorc = False
-    ImprimirTotalLiquido = True
+    Sistema = 'Projeto ACBr - www.projetoacbr.com.br'
     MargemInferior = 0.700000000000000000
     MargemSuperior = 0.700000000000000000
     MargemEsquerda = 0.700000000000000000
     MargemDireita = 0.700000000000000000
     CasasDecimais.Formato = tdetInteger
-    CasasDecimais._qCom = 4
-    CasasDecimais._vUnCom = 4
-    CasasDecimais._Mask_qCom = '###,###,###,##0.00'
-    CasasDecimais._Mask_vUnCom = '###,###,###,##0.00'
-    ExibirResumoCanhoto = False
-    FormularioContinuo = False
-    TamanhoFonte_DemaisCampos = 10
-    ProdutosPorPagina = 0
-    ImprimirDetalhamentoEspecifico = True
-    NFeCancelada = False
-    ImprimirItens = True
-    ViaConsumidor = True
+    CasasDecimais.qCom = 2
+    CasasDecimais.vUnCom = 2
+    CasasDecimais.MaskqCom = ',0.00'
+    CasasDecimais.MaskvUnCom = ',0.00'
+    ExibeCampoFatura = False
     TamanhoLogoHeight = 1
     TamanhoLogoWidth = 1
-    RecuoEndereco = 0
-    RecuoEmpresa = 0
-    LogoemCima = False
-    TamanhoFonteEndereco = 0
-    RecuoLogo = 0
-    LarguraCodProd = 54
-    ExibirEAN = False
-    QuebraLinhaEmDetalhamentoEspecifico = True
-    ExibeCampoFatura = False
-    ImprimirUnQtVlComercial = iuComercial
-    ImprimirDadosDocReferenciados = True
     Left = 32
     Top = 336
   end
@@ -613,55 +575,6 @@ object dm: Tdm
     Left = 264
     Top = 384
   end
-  object ACBrNFeDANFEFR1: TACBrNFeDANFEFR
-    Sistema = 'ControlW Sistemas'
-    MostrarPreview = True
-    MostrarStatus = True
-    TipoDANFE = tiSemGeracao
-    NumCopias = 1
-    ImprimeNomeFantasia = False
-    ImprimirDescPorc = False
-    ImprimirTotalLiquido = True
-    MargemInferior = 0.800000000000000000
-    MargemSuperior = 0.800000000000000000
-    MargemEsquerda = 0.600000000000000000
-    MargemDireita = 0.510000000000000000
-    CasasDecimais.Formato = tdetInteger
-    CasasDecimais._qCom = 2
-    CasasDecimais._vUnCom = 2
-    CasasDecimais._Mask_qCom = ',0.00'
-    CasasDecimais._Mask_vUnCom = ',0.00'
-    ExibirResumoCanhoto = False
-    FormularioContinuo = False
-    TamanhoFonte_DemaisCampos = 10
-    ProdutosPorPagina = 0
-    ImprimirDetalhamentoEspecifico = True
-    NFeCancelada = False
-    ImprimirItens = True
-    ViaConsumidor = True
-    TamanhoLogoHeight = 0
-    TamanhoLogoWidth = 0
-    RecuoEndereco = 0
-    RecuoEmpresa = 0
-    LogoemCima = False
-    TamanhoFonteEndereco = 0
-    RecuoLogo = 0
-    EspessuraBorda = 1
-    ExibirTotalTributosItem = False
-    ExibeCampoFatura = True
-    TributosPercentual = ptValorProdutos
-    ImprimirUnQtVlComercial = iuComercial
-    Detalhado = False
-    DescricaoViaEstabelec = 'Via do Consumidor'
-    ExpandirDadosAdicionaisAuto = False
-    ImprimirDadosArma = True
-    QuebraLinhaEmDetalhamentoEspecifico = True
-    IncorporarBackgroundPdf = True
-    IncorporarFontesPdf = True
-    ImprimirDadosDocReferenciados = True
-    Left = 264
-    Top = 336
-  end
   object ACBrMail1: TACBrMail
     Host = '127.0.0.1'
     Port = '25'
@@ -678,40 +591,18 @@ object dm: Tdm
     Top = 384
   end
   object ACBrNFeDANFeESCPOS1: TACBrNFeDANFeESCPOS
-    MostrarPreview = True
-    MostrarStatus = False
-    TipoDANFE = tiSemGeracao
-    NumCopias = 1
-    ImprimeNomeFantasia = False
-    ImprimirDescPorc = False
-    ImprimirTotalLiquido = True
+    Sistema = 'Projeto ACBr - www.projetoacbr.com.br'
     MargemInferior = 0.800000000000000000
     MargemSuperior = 0.800000000000000000
     MargemEsquerda = 0.600000000000000000
     MargemDireita = 0.510000000000000000
     CasasDecimais.Formato = tdetInteger
-    CasasDecimais._qCom = 2
-    CasasDecimais._vUnCom = 2
-    CasasDecimais._Mask_qCom = '###,###,###,##0.00'
-    CasasDecimais._Mask_vUnCom = '###,###,###,##0.00'
-    ExibirResumoCanhoto = False
-    FormularioContinuo = False
-    TamanhoFonte_DemaisCampos = 10
-    ProdutosPorPagina = 0
-    ImprimirDetalhamentoEspecifico = True
-    NFeCancelada = False
-    ImprimirItens = True
-    ViaConsumidor = True
-    TamanhoLogoHeight = 0
-    TamanhoLogoWidth = 0
-    RecuoEndereco = 0
-    RecuoEmpresa = 0
-    LogoemCima = False
-    TamanhoFonteEndereco = 0
-    RecuoLogo = 0
-    ImprimeEmUmaLinha = False
+    CasasDecimais.qCom = 2
+    CasasDecimais.vUnCom = 2
+    CasasDecimais.MaskqCom = ',0.00'
+    CasasDecimais.MaskvUnCom = ',0.00'
+    TipoDANFE = tiSemGeracao
     ImprimeDescAcrescItem = False
-    QRCodeLateral = True
     PosPrinter = ACBrPosPrinter1
     Left = 432
     Top = 384
@@ -723,7 +614,6 @@ object dm: Tdm
     Configuracoes.Geral.SSLXmlSignLib = xsLibXml2
     Configuracoes.Geral.FormatoAlerta = 'TAG:%TAGNIVEL% ID:%ID%/%TAG%(%DESCRICAO%) - %MSG%.'
     Configuracoes.Geral.ModeloDF = moNFCe
-    Configuracoes.Geral.VersaoDF = ve400
     Configuracoes.Geral.AtualizarXMLCancelado = True
     Configuracoes.Geral.VersaoQRCode = veqr000
     Configuracoes.Arquivos.OrdenacaoPath = <>
@@ -732,7 +622,7 @@ object dm: Tdm
     Configuracoes.WebServices.Tentativas = 10
     Configuracoes.WebServices.QuebradeLinha = '|'
     Configuracoes.WebServices.SSLType = LT_SSLv3
-    DANFE = DANFE
+    Configuracoes.RespTec.IdCSRT = 0
     Left = 432
     Top = 336
   end
@@ -846,5 +736,24 @@ object dm: Tdm
       'wait')
     Left = 104
     Top = 271
+  end
+  object ACBrNFeDANFEFR1: TACBrNFeDANFEFR
+    Sistema = 'Projeto ACBr - www.projetoacbr.com.br'
+    MargemInferior = 0.800000000000000000
+    MargemSuperior = 0.800000000000000000
+    MargemEsquerda = 0.600000000000000000
+    MargemDireita = 0.510000000000000000
+    CasasDecimais.Formato = tdetInteger
+    CasasDecimais.qCom = 2
+    CasasDecimais.vUnCom = 2
+    CasasDecimais.MaskqCom = ',0.00'
+    CasasDecimais.MaskvUnCom = ',0.00'
+    EspessuraBorda = 1
+    ExpandirDadosAdicionaisAuto = False
+    IncorporarBackgroundPdf = True
+    IncorporarFontesPdf = True
+    BorderIcon = [biSystemMenu, biMinimize, biMaximize]
+    Left = 264
+    Top = 328
   end
 end

@@ -123,6 +123,7 @@ begin
       form22.Pgerais.Values['conf_ter'] := padraoSeNaoExistir;
     end
     else padraoSeNaoExistir := form22.Pgerais.Values['conf_ter'];
+    ListBox1.Selected[0] := true;
   end;
 
   if conf = 5 then begin

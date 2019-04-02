@@ -386,6 +386,7 @@ type
     AcertosdeEstoque1: TMenuItem;
     AlfabticaGeralGrfico1: TMenuItem;
     Button3: TButton;
+    ConfiguraodeFormulrios1: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure CadastrarUsurio1Click(Sender: TObject);
     procedure FormKeyPress(Sender: TObject; var Key: Char);
@@ -655,6 +656,7 @@ type
     procedure AcertosdeEstoque1Click(Sender: TObject);
     procedure AlfabticaGeralGrfico1Click(Sender: TObject);
     procedure Servios2Click(Sender: TObject);
+    procedure ConfiguraodeFormulrios1Click(Sender: TObject);
   private
     b, cont : integer;
     ini : Smallint;
@@ -692,7 +694,7 @@ uses  CadUsuario,StrUtils,Math, dialog, cadfrabricante, cadfornecedor, cadgrupop
   configImpressora, batepapo, CadServ, consultaOrdem, cadECF,
   cadReducaoZ, untMovto, acerto1, Unit56, envicupom, Unit59, cadCestNCM,
   PROMOC, cadNotasFiscais, U_Principal, ConsultaCPF, Unit67, Unit68, param1,
-  Unit71, uConsultaCNPJ;
+  Unit71, uConsultaCNPJ, Unit74, Unit77;
 
 {$R *.dfm}
 procedure calcula_comissao(var mattDiferenciados : TStringList; const total, porc : currency; var valorAvista, valorAprazo : currency);
@@ -1027,7 +1029,7 @@ begin
        setQueryNFCe(lista);
 
        LerConfiguracaoNFCe();
-       dm.ACBrNFeDANFeRL1.MostrarPreview := preview;
+       dm.ACBrNFeDANFeRL1.MostraPreview := preview;
 
        lerPathSalvar(caminhoEXE_com_barra_no_final);
        ini := 0;
@@ -2917,6 +2919,7 @@ begin
   form40.tipo.Add('104=generico');
   form40.tipo.Add('105=generico');
   form40.tipo.Add('106=generico');
+  form40.tipo.Add('107=generico');
 
   form40.troca := TStringList.Create;
   form40.troca.Add('0=S');
@@ -3029,6 +3032,7 @@ begin
   form40.troca.Add('104=S');
   form40.troca.Add('105=S');
   form40.troca.Add('106=S');
+  form40.troca.Add('107=S');
 
   form40.teclas := TStringList.Create;
   form40.teclas.Add('0=FT');
@@ -3140,6 +3144,7 @@ begin
   form40.teclas.Add('104=SN');
   form40.teclas.Add('105=SN');
   form40.teclas.Add('106=SN');
+  form40.teclas.Add('107=SN');
 
 
   form40.ListBox1.Clear;
@@ -3250,6 +3255,7 @@ begin
   form40.ListBox1.Items.Add('104=Deseja Confirmar Preço ao Vender Produto no PDV ?');
   form40.ListBox1.Items.Add('105=Usar Desconto Por Forma de Pagamento ?');
   form40.ListBox1.Items.Add('106=Buscar Preço Atual Quando Recuperar um Orçamento ?');
+  form40.ListBox1.Items.Add('107=Usar Desconto Por Quantidades ?');
 
   Form40.ListBox1.Selected[0] := true;
   form40.showmodal;
@@ -6046,7 +6052,9 @@ begin
  form39.conf := 1;
  form39.ShowModal;
  form39.Free;
+
 if funcoes.lista1 = '*' then exit;
+
 //configuração do usuario
 if funcoes.lista1 = '0' then
  begin
@@ -7966,8 +7974,7 @@ procedure TForm2.CancelarNFe1Click(Sender: TObject);
 begin
   NfeVenda := TNfeVenda.Create(self);
   try
-    if ConfParamGerais[36] <> 'N' then NfeVenda.CancelamentoNFe
-      else NfeVenda.CancelamentoNFe1;
+    NfeVenda.CancelamentoNFe1;
   except
     on e:exception do
       begin
@@ -10848,6 +10855,13 @@ begin
   NfeVenda := TNfeVenda.Create(self);
   NfeVenda.ShowModal;
   NfeVenda.Free;
+end;
+
+procedure TForm2.ConfiguraodeFormulrios1Click(Sender: TObject);
+begin
+  form77 := TForm77.Create(self);
+  form77.ShowModal;
+  form77.Free;
 end;
 
 procedure TForm2.RecalcularEstoque1Click(Sender: TObject);
@@ -14554,7 +14568,7 @@ begin
   PRINTER.Create;
 
   dm.ACBrNFe.DANFE := dm.ACBrNFeDANFeRL1;
-  dm.ACBrNFe.DANFE.MostrarPreview := true;
+  dm.ACBrNFe.DANFE.MostraPreview := true;
   dm.ACBrNFe.NotasFiscais.Clear;
   dm.ACBrNFe.NotasFiscais.LoadFromFile(nota);
   dm.ACBrNFe.NotasFiscais.Imprimir;

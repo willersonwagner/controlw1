@@ -691,16 +691,26 @@ begin
 
   total := lertotal;
 
-  dm.IBQuery4.SQL.Clear;
-  dm.IBQuery4.SQL.Add('update or insert into entrada(nota, data,chegada,total_nota,fornec) VALUES  (:nota, :data,:chegada,:total_nota,:fornec) matching(nota, fornec) ');
+  dm.IBQuery4.Close;
+  dm.IBQuery4.SQL.Text := 'select * from entrada where nota = :nota and fornec = :fornec';
   dm.IBQuery4.ParamByName('nota').AsString         := codigo.Text;
-  dm.IBQuery4.ParamByName('chegada').AsDateTime    := StrToDate(chegada.Text);
-  dm.IBQuery4.ParamByName('total_nota').AsCurrency := funcoes.ArredondaFinanceiro((quant.getValor * p_compra.getValor) + total, 2);
-  dm.IBQuery4.ParamByName('data').AsDateTime       := StrToDate(data.Text);
   dm.IBQuery4.ParamByName('fornec').AsString       := fornec.Text;
-  try
-    dm.IBQuery4.ExecSQL;
-  except
+  dm.IBQuery4.Open;
+  dm.IBQuery4.FetchAll;
+
+  if dm.IBQuery4.IsEmpty then begin
+    dm.IBQuery4.Close;
+    dm.IBQuery4.SQL.Clear;
+    dm.IBQuery4.SQL.Add('update or insert into entrada(nota, data,chegada,total_nota,fornec) VALUES  (:nota, :data,:chegada,:total_nota,:fornec) matching(nota, fornec) ');
+    dm.IBQuery4.ParamByName('nota').AsString         := codigo.Text;
+    dm.IBQuery4.ParamByName('chegada').AsDateTime    := StrToDate(chegada.Text);
+    dm.IBQuery4.ParamByName('total_nota').AsCurrency := funcoes.ArredondaFinanceiro((quant.getValor * p_compra.getValor) + total, 2);
+    dm.IBQuery4.ParamByName('data').AsDateTime       := StrToDate(data.Text);
+    dm.IBQuery4.ParamByName('fornec').AsString       := fornec.Text;
+    try
+      dm.IBQuery4.ExecSQL;
+    except
+    end;
   end;
 
   dm.IBQuery4.Close;

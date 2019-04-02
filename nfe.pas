@@ -684,11 +684,11 @@ begin
         cce.SaveToFile(pastaNFE_ControlW + 'NFE\CCE\CCE' + cod_nota + '.txt');
         cce.Free;
         dm.DANFE.PathPDF := caminhoEXE_com_barra_no_final + 'NFE\PDF\';
-        previ := DANFE.MostrarPreview;
-        DANFE.MostrarPreview := true;
+        previ := DANFE.MostraPreview;
+        DANFE.MostraPreview := true;
         ACBrNFe.ImprimirEvento;
         ACBrNFe.ImprimirEventoPDF;
-        DANFE.MostrarPreview := previ;
+        DANFE.MostraPreview := previ;
 end;
 
 function TNfeVenda.tiraDoCaminhoDaNota_Option_1_numero_Option_2_chave(const caminho : String; const option : smallint) : String;
@@ -1352,7 +1352,7 @@ begin
 
       dm.ACBrMail1.AddAddress(email, email);
 
-      DANFE_Rave.MostrarStatus := false;
+      DANFE_Rave.MostraStatus := false;
       DANFE_Rave.PathPDF := caminhoEXE_com_barra_no_final + 'NFe\PDF\';
       ACBrNFe.NotasFiscais[0].ImprimirPDF;
 
@@ -2105,13 +2105,13 @@ begin
           nnf   := IntToStr(ACBrNFe.NotasFiscais[0].NFe.Ide.nNF);
           data  := ACBrNFe.NotasFiscais[0].NFe.Ide.dEmi;
 
-          dm.ACBrNFeDANFeRL1.NFeCancelada := true;
-          ACBrNFe.DANFE.NFeCancelada := true;
+          dm.ACBrNFeDANFeRL1.Cancelada := true;
+          ACBrNFe.DANFE.Cancelada := true;
           imprimirNFe();
 
-          dm.ACBrNFeDANFeRL1.NFeCancelada := false;
+          dm.ACBrNFeDANFeRL1.Cancelada := false;
 
-          ACBrNFe.DANFE.NFeCancelada := false;
+          ACBrNFe.DANFE.Cancelada := false;
 
           insereRegistroDaNotaNaTabelaNFE(nnf, nf, 'C', data, pastaNFE_ControlW + 'NFE\EMIT\' + nf + '-nfe.xml');
 
@@ -4754,8 +4754,9 @@ end;
 
 function TNfeVenda.ManifestarNFe(chave, tipo, just : string) : string;
 var
-  CNPJ, cstat, tpstring : String;
+  CNPJ, cstat, tpstring, xJust : String;
 begin
+  xJust := '';
   dm.IBQuery2.Close;
   dm.IBQuery2.SQL.Text := 'select cnpj from registro';
   dm.IBQuery2.Open;
@@ -4782,9 +4783,23 @@ begin
       infEvento.tpEvento := teManifDestDesconhecimento;
       tpstring           := 'Desconhecimento da operação';
     end;
+
+    if Contido('-' + tipo + '-', '-2-3-') then begin
+      while length(xJust) < 16 do begin
+        xJust := funcoes.dialogo('normal',0,'',200,false,'',Application.Title,'Qual a Justificativa?',xjust);
+        if xJust = '*' then Break;
+      end;
+
+      if xJust = '*' then begin
+        ShowMessage('Neste tipo de Evento é Necessário Informar uma Justificativa!');
+        exit;
+      end;
+    end;
+
     InfEvento.cOrgao   := 91;
     infEvento.chNFe    := Chave;
     infEvento.CNPJ     := CNPJ;
+    infEvento.detEvento.xJust := xjust;
   end;
 
   //ACBrNFe.Configuracoes.WebServices.Visualizar := true;
@@ -4817,6 +4832,11 @@ begin
         ACBrNFe.DANFE := DANFE_Rave;
         ACBrNFe.ImprimirEvento;
       end;
+    end
+    else begin
+      ShowMessage('Ocorreu um Erro: ' + #13 + 'cStat: ' + cstat + #13 +
+      'xMotivo: ' + ACBrNFe.WebServices.EnvEvento.EventoRetorno.retEvento.Items[0].RetInfEvento.xMotivo + #13 +
+      'Tipo: ' + tpstring);
     end;
 end;
 

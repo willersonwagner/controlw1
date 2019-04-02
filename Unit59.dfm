@@ -441,6 +441,7 @@ object lancContasPagar: TlancContasPagar
       TitleFont.Height = -11
       TitleFont.Name = 'MS Sans Serif'
       TitleFont.Style = []
+      OnKeyDown = DBGrid1KeyDown
       OnKeyPress = DBGrid1KeyPress
     end
     object DATA: JsEditData

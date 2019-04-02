@@ -424,17 +424,17 @@ begin
       DANFE_Fast.FastFile := ExtractFileDir(ParamStr(0)) +
         '\Report\DANFeRetrato.fr3';
 
-    DANFE_Fast.MostrarPreview := DANFE_Rave.MostrarPreview;
-    DANFE_Fast.ShowDialog := true;
+    DANFE_Fast.MostraPreview := DANFE_Rave.MostraPreview;
+    DANFE_Fast.MostraSetup := true;
     ACBrNFe.DANFE.Impressora := setPrinter(indxImpressoraNFE, impreNFE);
   end
   else
   begin
-    DANFE_Fast.ShowDialog := false;
+    DANFE_Fast.MostraSetup := false;
     DANFE_Fast.FastFile := ExtractFileDir(ParamStr(0)) +
       '\Report\DANFeNFCe.fr3';
     DANFE_Fast.margemEsquerda := StrToCurrDef(margemEsquerda, 0.1);
-    DANFE_Fast.MostrarPreview := DANFE.MostrarPreview;
+    DANFE_Fast.MostraPreview := DANFE.MostraPreview;
     ACBrNFe.DANFE.Impressora := setPrinter(indxImpressora, impreNFCE);
   end;
 
@@ -455,7 +455,7 @@ begin
     end;
   end;
 
-  ACBrNFe.DANFE.NFeCancelada := false;
+  ACBrNFe.DANFE.Cancelada := false;
 end;
 
 procedure imprimirNFe(impLogo: boolean = true);
@@ -477,7 +477,7 @@ begin
   query1.Open;
 
   if trim(query1.fieldbyname('ESTADO').AsString) = 'C' then
-    DANFE_Rave.NFeCancelada := true;
+    DANFE_Rave.Cancelada := true;
 
   ACBrNFe.DANFE := DANFE_Rave;
   expLogo := false;
@@ -488,7 +488,7 @@ begin
   begin
     logo := DANFE_Rave.logo;
     DANFE_Rave.logo := '';
-    DANFE_Rave.ExpandirLogoMarca := false;
+    DANFE_Rave.ExpandeLogoMarca := false;
   end;
 
   try
@@ -515,7 +515,7 @@ begin
     LerConfiguracaoNFCe;
   end;
 
-  ACBrNFe.DANFE.NFeCancelada := false;
+  ACBrNFe.DANFE.Cancelada := false;
 end;
 
 procedure imprimirNfce();
@@ -533,13 +533,13 @@ begin
     exit;
   end;
 
-  DANFE.MostrarStatus := false;
+  DANFE.MostraStatus := false;
   DANFE.tipoDanfe := tiNFCe;
   ACBrNFe.DANFE := DANFE;
   DANFE.ImprimeNomeFantasia := true;
 
   try
-    if DANFE.MostrarPreview then
+    if DANFE.MostraPreview then
       form65.Close;
   except
 
@@ -2507,7 +2507,7 @@ begin
 
     tipoDanfe := ini.ReadInteger('SERVER', 'tipoNFe', 0);
     DANFE_Rave.tipoDanfe := TpcnTipoImpressao(tipoDanfe);
-    DANFE.ImprimirDescPorc := ini.ReadBool('SERVER', 'impDescProduto', true);
+    DANFE.ImprimeDescAcrescItem := ini.ReadBool('SERVER', 'impDescProduto', true);
     DANFE_Rave.ImprimeNomeFantasia := ini.ReadBool('SERVER',
       'imprimirNomeFantasia', false);
 
@@ -2528,6 +2528,8 @@ begin
     end;
 
     tipoImp := ini.ReadInteger('Geral', 'impIndex', 0);
+
+    danfe.ImprimeQRCodeLateral := true;
 
     ArquivoPDF := ini.ReadString('Geral', 'ArquivosPDF', '');
     ArquivoNFE := ini.ReadString('Geral', 'ArquivosNFE', '');
@@ -2652,7 +2654,7 @@ begin
 
     previewNFCe1 := ini.ReadBool('Geral', 'previewNFCe', false);
     try
-      DANFE.MostrarPreview := previewNFCe1;
+      DANFE.MostraPreview := previewNFCe1;
     except
     end;
     preview := ini.ReadBool('Geral', 'preview', false);
@@ -2695,18 +2697,18 @@ begin
       DANFE_Rave.logo := DANFELogomarca;
       if FileExists(DANFELogomarca) then
       begin
-        DANFE_Rave.ExpandirLogoMarca :=
+        DANFE_Rave.ExpandeLogoMarca :=
           ini.ReadBool('SERVER', 'expandirLogo', false);
         expLogoMarca := ini.ReadBool('SERVER', 'expandirLogo', false);
         DANFE_Rave.TamanhoLogoHeight := ini.ReadInteger('SERVER',
           'FonteOutCampos', 10);
-        DANFE_Rave.TamanhoFonteEndereco := ini.ReadInteger('SERVER',
+        DANFE_Rave.fonte.TamanhoFonteEndereco := ini.ReadInteger('SERVER',
           'fonteEnde', 0);
         DANFE_Rave.TamanhoLogoHeight := ini.ReadInteger('SERVER',
           'logoheigth', 1);
         DANFE_Rave.TamanhoLogoWidth := ini.ReadInteger('SERVER',
           'LOGOWIDTH', 1);
-        DANFE_Rave.Fonte.TamanhoFonte_RazaoSocial :=
+        DANFE_Rave.Fonte.TamanhoFonteRazaoSocial :=
           ini.ReadInteger('SERVER', 'fonteRazao', 8);
 
       end;
@@ -2755,7 +2757,7 @@ begin
     StreamMemo.Free;
 
     // ACBrNFe.Configuracoes.Geral.AtualizarXMLCancelado := true;
-    DANFE_Rave.MostrarPreview := preview;
+    DANFE_Rave.MostraPreview := preview;
 
     ACBrNFe.Configuracoes.Geral.ModeloDF := moNFCe;
   finally
@@ -2798,7 +2800,7 @@ var
 begin
 
   ACBrNFe.DANFE := DANFE;
-  DANFE.NFeCancelada := false;
+  DANFE.Cancelada := false;
 
   if FileExists(ExtractFileDir(ParamStr(0)) + '\ControlW.ini') then
   begin
@@ -2937,7 +2939,7 @@ begin
     // ACBrNFe.Configuracoes.Geral.AtualizarXMLCancelado := true;
     // ACBrNFe.Configuracoes.Geral.VersaoDF := ve310;
     ACBrNFe.DANFE := DANFE;
-    ACBrNFe.DANFE.MostrarPreview := preview;
+    ACBrNFe.DANFE.MostraPreview := preview;
     ACBrNFe.Configuracoes.Geral.ModeloDF := moNFe;
   finally
     ini.Free;
@@ -3137,7 +3139,7 @@ begin
     inicializaVariaveis();
     TipoEmissao := tipo;
     enviou := true;
-    DANFE.NFeCancelada := false;
+    DANFE.Cancelada := false;
 
     ACBrNFe.NotasFiscais.Clear;
     ACBrNFe.WebServices.Consulta.Clear;
@@ -4147,7 +4149,7 @@ begin
   canc := query1.fieldbyname('adic').AsString;
 
   if canc = 'CANC' then
-    DANFE.NFeCancelada := true;
+    DANFE.Cancelada := true;
 
   DANFE.vTroco := query1.fieldbyname('recebido').AsCurrency;
   ACBrNFe.NotasFiscais.Clear;
@@ -4160,7 +4162,7 @@ begin
   else
     imprimirNfceESCPOS;
 
-  DANFE.NFeCancelada := false;
+  DANFE.Cancelada := false;
 end;
 
 function Cancelamento_NFe(numeroNota: String; MemoResp: TMemo;
@@ -4357,7 +4359,7 @@ begin
     CopyFile(pchar(buscaPastaNFCe(chave) + chave + '-nfe.xml'),
       pchar(pastaControlW + 'NFCe\CANC\' + chave + '-nfe.xml'), true);
 
-    DANFE.NFeCancelada := true;
+    DANFE.Cancelada := true;
 
     setPrinter(indxImpressora, impreNFCE);
 
@@ -4379,7 +4381,7 @@ begin
 
     // imprimirNfce;
 
-    DANFE.NFeCancelada := false;
+    DANFE.Cancelada := false;
 
     { ACBrNFe.DANFE := DANFE;
       ACBrNFe.ImprimirEvento; }
@@ -5028,7 +5030,7 @@ begin
       .RetInfEvento.cstat), mtError, [mbOK], 0);
   end;
 
-  ACBrNFe.DownloadNFe.Download.Chaves.Clear;
+  {ACBrNFe.DownloadNFe.Download.Chaves.Clear;
   ACBrNFe.DownloadNFe.Download.Chaves.Add.chNFe := chave;
   ACBrNFe.DownloadNFe.Download.CNPJ := cnpj1;
 
@@ -5046,7 +5048,7 @@ begin
       pchar(caminhoControlWBarra + 'ENTRADAXML\' +
       ACBrNFe.WebServices.DownloadNFe.ArqResp), true);
   ShowMessage('Download Efetuado com Sucesso');
-  ACBrNFe.Configuracoes.Geral.Salvar := false;
+  ACBrNFe.Configuracoes.Geral.Salvar := false;}
 end;
 
 function validaDadosDestinatario(): String;

@@ -85,7 +85,6 @@ uses
   Unit57 in 'Unit57.pas' {Form57},
   envicupom in 'envicupom.pas' {Form58},
   Unit59 in 'Unit59.pas' {lancContasPagar},
-  //cadCli in 'cadCli.pas' {cadCliNFCe},
   cadCli in 'cadCli.pas' {CadClienteSimplificado},
   Unit60 in 'Unit60.pas' {Form60},
   cadCestNCM in 'cadCestNCM.pas' {Form61},
@@ -112,7 +111,8 @@ uses
   uConsultaCNPJ in 'uConsultaCNPJ.pas' {consultaCNPJ},
   Unit73 in 'Unit73.pas' {Form73},
   Unit74 in 'Unit74.pas' {Form74},
-  Unit75 in 'Unit75.pas' {Form75};
+  Unit75 in 'Unit75.pas' {Form75},
+  Unit77 in 'Unit77.pas' {Form77};
 
 {$R *.res}
 
@@ -132,6 +132,7 @@ begin
   Application.CreateForm(TForm73, Form73);
   Application.CreateForm(TForm74, Form74);
   Application.CreateForm(TForm75, Form75);
+  //Application.CreateForm(TForm77, Form77);
   //Application.CreateForm(TconsultaCNPJ, consultaCNPJ);
   //Application.CreateForm(TForm71, Form71);
   //Application.CreateForm(TForm69, Form69);

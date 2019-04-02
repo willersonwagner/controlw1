@@ -53,6 +53,8 @@ type
     procedure codEnter(Sender: TObject);
     procedure historicoEnter(Sender: TObject);
     procedure DBGrid1KeyPress(Sender: TObject; var Key: Char);
+    procedure DBGrid1KeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
   private
     localizaGrupo:string;
     localizaHis, fornece : string;
@@ -155,6 +157,16 @@ begin
   if key = #27 then close;
 end;
 
+procedure TlancContasPagar.DBGrid1KeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if key = 46 then begin
+    cod.Text := DBGrid1.DataSource.DataSet.FieldByName('cod').AsString;
+    jsedit.ExcluiDoBD(self.Name);
+    abreDataSet;
+  end;
+end;
+
 procedure TlancContasPagar.DBGrid1KeyPress(Sender: TObject; var Key: Char);
 begin
   if key = #27 then begin
@@ -215,7 +227,7 @@ if key = #13 then
          // if StrNum(fornece) <> '0' then
            // begin
               fornec.Text := fornece;
-              historico.Text := funcoes.localizar1('Localizar Fornecedores','fornecedor','cod, nome','nome','','nome','nome',false,false,false,'cod', StrNum(fornece),0,sender);
+              historico.Text := funcoes.localizar1('Localizar Fornecedores','fornecedor','cod, nome','nome','','nome','nome',true,false,false,'cod', StrNum(fornece),0,sender);
               self.Caption := 'Lançamento de Contas a Pagar - Fornecedor: ' + historico.Text;
             //end;
         end;

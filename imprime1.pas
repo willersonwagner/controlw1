@@ -246,13 +246,14 @@ begin
 
     TRY
       setPrinter(StrToIntDef(funcoes.LerConfig(form22.Pgerais.Values['imp'], 0), 0), funcoes.LerConfig(form22.Pgerais.Values['imp'], 15));
-      //printer.PrinterIndex      := StrToIntDef(funcoes.LerConfig(form22.Pgerais.Values['imp'], 0), 0);
     except
+      on e:exception do begin
+        ShowMessage('Erro 252: ' + e.Message);
+      end;
     END;
 
     //if printer.Printing = false then break;
     try
-      //printer.PrinterIndex      := StrToIntDef(funcoes.LerConfig(form22.Pgerais.Values['imp'], 0), 0);
       Printer.Canvas.Font.Name := 'Courier New';
       printer.Canvas.Font.Size  := StrToIntDef(funcoes.LerConfig(form22.Pgerais.Values['imp'], 4), 11);
       if funcoes.LerConfig(form22.Pgerais.Values['imp'], 5) = 'S' then printer.Canvas.Font.Style := [fsbold];
@@ -324,9 +325,7 @@ begin
         printer.EndDoc;
       finally
       funcoes.informacao(0, MaxLen, 'Aguarde, Imprimindo...', false, true, 5 );
-     { SendMessage(RichEdt.Handle, EM_FORMATRANGE, 0, 0);
-      SetMapMode(hdc, OldMap);
-    }end;
+   end;
   end;
 end;
 
@@ -368,7 +367,6 @@ begin
   if tipo <> 33 then
     begin
       setPrinter(StrToIntDef(funcoes.LerConfig(form22.Pgerais.Values['imp'], 0), 0), funcoes.LerConfig(form22.Pgerais.Values['imp'], 15));
-      //printer.PrinterIndex      := StrToIntDef(funcoes.LerConfig(tmp, 0), 0);
     end;
 
   printer.Canvas.Font.Size  := StrToIntDef(funcoes.LerConfig(tmp, 4), 11);
@@ -476,12 +474,20 @@ begin
           ShowMessage('Não existe impressora neste computador');
           exit;
         end;
-      AssignPrn(PrintText);
+
+       try
+         AssignPrn(PrintText);
+       except
+         on e:exception do begin
+           ShowMessage('erro 487 AssignPrn(PrintText): '+e.Message);
+           exit;
+         end;
+       end;
     end;
 
-  tamFontePadrao := Printer.Canvas.Font.Size;
+  tamFontePadrao           := Printer.Canvas.Font.Size;
   Printer.Canvas.Font.Name := 'Courier New';
-  printer.title := 'Impressão Relatório: ' + arq;
+  printer.title            := 'Impressão Relatório: ' + arq;
 
   try
     Rewrite(PrintText);
@@ -567,6 +573,8 @@ begin
    //faz isso se escolheu a impressora
    // ai nao seta impressora na impressao
 
+
+
    if funcoes.LerConfig(form22.Pgerais.Values['imp'], 1) = '7' then
     begin
       imprimeRLReport;
@@ -638,11 +646,9 @@ begin
     begin
       if funcoes.LerConfig(tmp, 5) <> '' then begin
          setPrinter(StrToIntDef(funcoes.LerConfig(form22.Pgerais.Values['imp'], 0), 0), funcoes.LerConfig(form22.Pgerais.Values['imp'], 15));
-        //printer.PrinterIndex := StrToIntDef(funcoes.LerConfig(tmp, 0), 0); //seta o indice da impressora, so se estiver preenchido
       end;
     end;
 
-  //setCofiguracoesImpressora;
 
   ini := 0;
 
@@ -652,6 +658,7 @@ begin
     try
       if FileExists(arq) then DeleteFile(arq);
       form19.RichEdit1.Lines.SaveToFile(arq);
+
       AssignPrn(PrintText);
       AssignFile(F, arq);
       break;

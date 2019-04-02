@@ -384,21 +384,28 @@ begin
 end;
 
 class procedure JsEdit.LiberaMemoria(form : tform);
-var i : integer;
+var
+  i, a : integer;
+  listatemp  : TObjectList;
+  botoestemp : TObjectList;
 begin
-  if not Assigned(lista) then lista := TObjectList.Create;
+  if not Assigned(lista)  then  lista := TObjectList.Create;
   if not Assigned(botoes) then botoes := TObjectList.Create;
   //varre a lista de traz pra frente excluindo os componentes
 
+  a := 0;
   try
   if lista <> nil then
     begin
       for i := lista.Count-1 downto 0 do begin
         try
-          if tform(lista.Items[i]).Owner.Name = form.Name then begin
-            lista.Delete(i);
-          end;
+            if tform(lista.Items[i]).Owner.Name = form.Name then begin
+              lista.Delete(i);
+            end;
         except
+          on e:exception do begin
+              //ShowMessage('erro1:' + e.Message + #13 + 'idx=' + IntToStr(i));
+            end;
         end;
       end;
 
@@ -406,26 +413,16 @@ begin
       for i := botoes.Count-1 downto 0 do
         begin
           try
-          if assigned(botoes.Items[i]) then begin
             if TBitBtn(botoes.Items[i]).Owner.Name = form.Name then begin
               botoes.Delete(i);
             end;
-          end
-          else botoes.Delete(i);
-          finally
-
+          except
+            on e:exception do begin
+              //ShowMessage('erro2:' + e.Message);
+            end;
           end;
         end;
-
-      if botoes.Count = 0 then begin
-        botoes.Clear;
-      end;
   end;
-
-  if lista.Count = 0 then begin
-    lista.Clear;
-  end;
-
  end;
   finally
   end;

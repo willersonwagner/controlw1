@@ -1145,18 +1145,27 @@ function setPrinter(const indx : integer; ImpressoraNome : String = '') : String
 var
   ini : integer;
 begin
+  try
+    Printers.SetPrinter(TPrinter.Create).Free;
+  except
+  end;
+
   if printer.Printers.Count = 0 then exit;
 
   if ImpressoraNome <> '' then begin
     for ini := 0 to printer.Printers.Count -1 do begin
       if ImpressoraNome = printer.Printers.Strings[ini] then begin
-        printer.PrinterIndex := ini;
+        if printer.PrinterIndex <> ini then begin
+          printer.PrinterIndex := ini;
+        end;
         exit;
       end;
     end;
   end;
 
-  printer.PrinterIndex := indx;
+  if printer.PrinterIndex <> indx then begin
+   printer.PrinterIndex := indx;
+  end;
 
   Result := printer.Printers.Strings[indx];
 end;

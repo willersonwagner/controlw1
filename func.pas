@@ -2942,8 +2942,7 @@ begin
     Result := th;
     IdHTTP1.Disconnect;
 
-    if Contido('DESBLOQUEADO', th) then
-    begin
+    if Contido('DESBLOQUEADO', th) then begin
       LE_CAMPOS(arq, th, '|', true);
       dm.IBselect.Close;
       dm.IBselect.SQL.text := 'select * from email';
@@ -2957,6 +2956,12 @@ begin
         buscaConfigEmail;
       end;
 
+      if arq.Values['3'] = '1' then begin
+        if MessageDlg('O Sistema Precisa ser Atualizado! Deseja Atualizar Agora ?', mtInformation, [mbYes, mbNo], 1) = idyes then begin
+           WinExec(pansichar(ansistring(caminhoEXE_com_barra_no_final + 'atualiza.exe')),SW_SHOWNORMAL);
+           Application.Terminate;
+        end;
+      end;
     end;
   except
     on e: exception do
@@ -4139,7 +4144,6 @@ begin
     dm.IBselect.Next;
   end;
 
-  //GravarTexto('d:\texto.txt', lista.getText);
    //ShowMessage('venda=' + #13 + lista.getText);
 
   // loja :=
@@ -4259,7 +4263,6 @@ begin
     dm.IBselect.Next;
   end;
 
-  //GravarTexto('d:\texto.txt', lista.getText);
   // ShowMessage('entrada=' + #13 + lista.getText);
 
 
@@ -4298,7 +4301,6 @@ begin
     dm.IBselect.Next;
   end;
 
-  //GravarTexto('d:\texto.txt', lista.getText);
 
   // ShowMessage('acerto=' + #13 + lista.getText);
 
@@ -10570,6 +10572,14 @@ begin
       dm.IBQuery1.SQL.Clear;
       dm.IBQuery1.SQL.Add('update SPEDDADOSADIC set cod_sit = '''' where cod_sit is null ');
       dm.IBQuery1.ExecSQL;
+    end;
+
+    if not VerificaCampoTabela('datamov', 'venda') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('ALTER TABLE venda ADD datamov TIMESTAMP');
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
     end;
 
     //VerificaVersao_do_bd
@@ -20121,12 +20131,6 @@ begin
     else if funcoes.Contido(StrNum(DOC_REF), '23') then
     begin
 
-      { NFE_REF := funcoes.dialogo('mask', 300,
-        '!0000.0000.0000.0000.0000.0000.0000.0000.0000.0000.0000;1;_', 300,
-        false, '', 'ControlW', 'Informe a Chave:', '');
-        if NFE_REF = '*' then
-        exit; }
-
       NFE_REF := funcoes.MensagemTextoInput
         ('Nota de Devolução. É Obrigatório informar as chaves das NFes que Deseja Devolver.', 'XX');
       nfeRefLista := tstringList.Create;
@@ -24429,36 +24433,34 @@ begin
 
   for i := 0 to fim do
   begin
-    if ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[i]
-      .resNFe.chNFe <> '' then
+    if ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[i].resDFe.chDFe <> '' then
     begin
       UltNSU := ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.
         Items[i].NSU;
-      sChave := ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items
-        [i].resNFe.chNFe;
+      sChave := ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[i].resDFe.chDFe;
 
       dataset.Append;
       dataset.FieldByName('nome').AsString :=
         LeftStr(ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items
-        [i].resNFe.xNome, 50);
+        [i].resDFe.xNome, 50);
       dataset.FieldByName('CPFCNPJ').AsString :=
         (ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[i]
-        .resNFe.CNPJCPF);
+        .resDFe.CNPJCPF);
       dataset.FieldByName('EMISSAO').AsDateTime :=
         (ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[i]
-        .resNFe.dhEmi);
+        .resDFe.dhEmi);
       dataset.FieldByName('CHAVE').AsString := sChave;
       dataset.FieldByName('VALOR').AsCurrency :=
         ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[i]
-        .resNFe.vNF;
+        .resDFe.vNF;
       dataset.FieldByName('NOTA').AsInteger := StrToInt(copy(sChave, 26, 9));
       dataset.FieldByName('SERIE').AsInteger := StrToInt(copy(sChave, 23, 3));
       dataset.FieldByName('IE').AsString :=
         (ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[i]
-        .resNFe.IE);
+        .resDFe.IE);
 
       case ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[i]
-        .resNFe.tpNF of
+        .resDFe.tpNF of
         tnEntrada:
           dataset.FieldByName('TIPONF').AsString := 'ENTRADA';
         tnSaida:
@@ -24466,19 +24468,19 @@ begin
       end;
 
       if ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[i]
-        .resNFe.cSitNFe = snAutorizado then
+        .resDFe.cSitDFe = snAutorizado then
       begin
         Impresso := 'A';
         dataset.FieldByName('SIT').AsString := 'AUTORIZADO';
       end
       else if ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[i]
-        .resNFe.cSitNFe = snDenegado then
+        .resDFe.cSitDFe = snDenegado then
       begin
         Impresso := 'D';
         dataset.FieldByName('SIT').AsString := 'DENEGADO';
       end
       else if ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[i]
-        .resNFe.cSitNFe = snCancelado then
+        .resDFe.cSitDFe = snCancelado then
       begin
         Impresso := 'C';
         dataset.FieldByName('SIT').AsString := 'CANCELADO';
@@ -24510,7 +24512,7 @@ begin
           dataset.FieldByName('IE').AsString;
 
         case ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[i]
-          .resNFe.tpNF of
+          .resDFe.tpNF of
           tnEntrada:
             dm.IBQuery1.ParamByName('tpnf').AsString := 'E';
           tnSaida:
@@ -26584,6 +26586,9 @@ begin
       form33.ClientDataSet1.Insert;
       form33.ClientDataSet1.FieldByName('CHAVE').AsString  := dm.IBselect.FieldByName('chave').AsString;
       data := LeftStr(Le_Nodo('dhEmi', xml), 10);
+      if trim(data) = '' then begin
+        data := LeftStr(Le_Nodo('dEmi', xml), 10);
+      end;
       data := funcoes.dataInglesToBrasil(data);
       form33.ClientDataSet1.FieldByName('data').AsDateTime := StrToDate(data);
       form33.ClientDataSet1.FieldByName('valor').AsCurrency := StrToCurr(StringReplace(NfeVenda.Le_Nodo('vNF', xml), '.', ',',[rfReplaceAll, rfIgnoreCase]));

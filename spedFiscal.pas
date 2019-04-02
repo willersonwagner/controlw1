@@ -3455,8 +3455,9 @@ begin
 
                   if not dm.IBQuery1.IsEmpty then
                     begin
-                      ka := MessageDlg('Foi Encontrado um Produto no código ' + StrNum(mat12.Values['1']) + ' - ' + dm.IBQuery1.fieldbyname('nome').AsString  + #13 +
-                      'Deseja Substituir por: ' + mat12.Values['8'] + ' ?', mtConfirmation, [mbYes, mbNo], 1);
+                      ka := IDNO;
+                      //ka := MessageDlg('Foi Encontrado um Produto no código ' + StrNum(mat12.Values['1']) + ' - ' + dm.IBQuery1.fieldbyname('nome').AsString  + #13 +
+                      //'Deseja Substituir por: ' + mat12.Values['8'] + ' ?', mtConfirmation, [mbYes, mbNo], 1);
                     end
                   else ka := idyes;
 
