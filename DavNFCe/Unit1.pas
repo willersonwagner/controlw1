@@ -1,4 +1,169 @@
-ão Conectado!139');
+unit Unit1;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, ComCtrls, ExtCtrls, ShellApi, AppEvnts, Contnrs,
+  IBDatabase, DB, IBCustomDataSet, IBQuery, untnfceForm, ACBrNFe, funcoesdav,
+  ACBrBase, ACBrSocket, ACBrIBPTax, ACBrDFe, IniFiles, Gauges, func,
+  IdBaseComponent, IdComponent, IdUDPBase, IdUDPClient, IdSNTP,
+  ACBrNFeDANFEClass, ACBrNFeDANFeRLClass, IdAntiFreezeBase, IdAntiFreeze,
+  ACBrNFeDANFeESCPOS, ACBrDANFCeFortesFr, Vcl.Menus, RxShell, sEdit, acPNG, vcl.imaging.jpeg,
+  TLHelp32, pcnConversaoNFe, IdTCPConnection, IdTCPClient, IdDayTime;
+
+const
+  WM_ICONTRAY = WM_USER + 1;
+
+type
+  TForm1 = class(TForm)
+    RichEdit1: TRichEdit;
+    Label1: TLabel;
+    Timer1: TTimer;
+    Timer2: TTimer;
+    BDControl: TIBDatabase;
+    IBTransaction2: TIBTransaction;
+    QueryControlProd: TIBQuery;
+    QueryControlVenda: TIBQuery;
+    QueryControlDivs: TIBQuery;
+    IBTransaction1: TIBTransaction;
+    Button1: TButton;
+    ACBrIBPTax1: TACBrIBPTax;
+    BD_Servidor: TIBDatabase;
+    IBQueryServer1: TIBQuery;
+    IBTransaction3: TIBTransaction;
+    IBQueryServer2: TIBQuery;
+    IBQuery1: TIBQuery;
+    IBQuery2: TIBQuery;
+    Gauge1: TGauge;
+    ACBrNFeDANFeRL1: TACBrNFeDANFeRL;
+    ACBrNFe1: TACBrNFe;
+    Panel1: TPanel;
+    Label2: TLabel;
+    ACBrNFeDANFCeFortes1: TACBrNFeDANFCeFortes;
+    ACBrNFeDANFeESCPOS1: TACBrNFeDANFeESCPOS;
+    TrayIcon1: TTrayIcon;
+    PopupMenu1: TPopupMenu;
+    Abrir1: TMenuItem;
+    Fechar1: TMenuItem;
+    IBQuery3: TIBQuery;
+    IBTransaction4: TIBTransaction;
+    Timer3: TTimer;
+    IdAntiFreeze1: TIdAntiFreeze;
+    FinalizaTimer: TTimer;
+    Label3: TLabel;
+    IdSNTP1: TIdSNTP;
+    procedure FormCreate(Sender: TObject);
+    procedure Timer2Timer(Sender: TObject);
+    procedure FormClick(Sender: TObject);
+    procedure Timer1Timer(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
+    procedure TrayIcon1Click(Sender: TObject);
+    procedure FormHide(Sender: TObject);
+    procedure Abrir1Click(Sender: TObject);
+    procedure Fechar1Click(Sender: TObject);
+    procedure Timer3Timer(Sender: TObject);
+    procedure ACBrNFe1GerarLog(const ALogLine: string; var Tratado: Boolean);
+    procedure FinalizaTimerTimer(Sender: TObject);
+  private
+    inicio, inicioPgerais: Smallint;
+    totEnvia, contAtualizacao: integer;
+    bancoControl, erro12: String;
+    bdPronto, emitNFe, emitNFCe, CAMPO_EXPORTADO_FOI_CRIADO: boolean;
+    pastaControlW_Servidor: String;
+    pastanfe: String;
+    usaMinimize, baixarEstoque: boolean;
+    procedure assinaNotas();
+    function ProcessExists(exeFileName: string): Boolean;
+    procedure VerificaXMLS_XX();
+    function verificaCstatXML(chaveXML : String) : boolean;
+    function buscaConfigNaPastaDoControlW1(Const config_name: String;
+      gravaVazio: boolean = false): String;
+    function verSeExisteTabela(nome: String; var query: TIBQuery): boolean;
+    function procuraProdutoNaLista(cod: integer;
+      var lista1: TStringList): integer;
+    procedure testaNFe();
+    function VerificaCampoTabela(NomeCampo, tabela: string;
+      var query: TIBQuery): boolean;
+    function listaArquivos(const pasta: String): TStringList;
+    procedure sinal(const num: integer);
+    function conectaBD_Local(): boolean;
+    function verSeOcorreuMudancaEstoque(): boolean;
+    procedure ajustaHoraPelaInternet();
+    procedure LerDadosArquivo();
+    procedure TrayMessage(var Msg: TMessage); message WM_ICONTRAY;
+    procedure enviaCuponsPendentes();
+    function conectaBD_Servidor(): boolean;
+    function sincronizaParamGerais(): boolean;
+    function sincronizaEstoque(): boolean;
+    function sincronizaUsuarios(): boolean;
+    function sincronizaCEST(): boolean;
+    function sincronizaNFCe(): boolean;
+    function sincronizaPromoc(): boolean;
+    procedure le_estoque(var listaprod: TStringList);
+    procedure copiaProduto(cod: integer);
+    procedure copiaProdutoDataSet(var queryServer: TIBQuery);
+    function copiaVendas(nota: integer; var notaNova: integer; chave: String;
+      Cancelado: integer = 0) : boolean;
+    function copiaNFCes(chave: String; nota, notaNova: integer;
+      somenteCopiaXML: boolean = false): boolean;
+    procedure copiaNFes();
+    function Incrementa_Generator(Gen_name: string; valor_incremento: integer;
+      var query: TIBQuery): string;
+    function verificaNFCeNovo(dataIni: String = ''; DataFim: String = '';
+      sped: boolean = False): boolean;
+    procedure progresso(ini, fim: integer);
+    function adicionaNFCeNaoEncontrada(num, ser : String) :boolean;
+    { Private declarations }
+  public
+    caminhoComBarraNoFinal: String;
+    pgerais1: TStringList;
+    arquivo : TStringList;
+    erroConectaServidor : integer;
+    function ObterDataHoraInternet: TDateTime;
+    { Public declarations }
+  end;
+
+var
+  Form1: TForm1;
+  Nid: TNotifyIconData;
+procedure TrimAppMemorySize;
+
+const
+  { sqlSinc : String = 'select p.cod, hash(nome || codbar || cast(p_venda as varchar(20
+  ))'+
+    ' ||unid||classif||aliquota||is_pis||p.cod_ispis) as hash from produto p order by p.cod';
+    sqlSincServer : String = 'select p.cod,nome, codbar, quant, p_venda, unid, classif, aliquota, is_pis, cod_ispis, hash(nome || codbar || cast(p_venda as varchar(20))'+
+    ' ||unid||classif||aliquota||is_pis||p.cod_ispis) as hash from produto p order by p.cod'; }
+
+  sqlSinc: String =
+    'select p.cod, hash(nome || codbar || cast(p_venda as varchar(20))' +
+    ' ||unid||classif||aliquota||is_pis||p.cod_ispis  || quant) as hash from produto p order by p.cod';
+
+  sqlSincServer
+    : String =
+    'select p.cod,nome, codbar, quant, p_venda, unid, classif, aliquota, is_pis, cod_ispis, hash(nome || codbar || cast(p_venda as varchar(20))'
+    + ' ||unid||classif||aliquota||is_pis||p.cod_ispis  || quant) as hash from produto p order by p.cod';
+
+implementation
+
+uses DateUtils, Math, StrUtils;
+
+{$R *.dfm}
+
+procedure TForm1.enviaCuponsPendentes();
+var
+  esta: string;
+  envi: boolean;
+  ok: integer;
+  img : tjpegimage;
+  arq1 : TStringList;
+begin
+  erro12 := '0';
+  if not conectaBD_Local then
+  begin
+    RichEdit1.Lines.Add('Não Conectado!139');
     exit;
   end;
 

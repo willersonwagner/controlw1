@@ -174,7 +174,7 @@ FUNCTION NODO_EMIT(CNPJ, RAZAO, FANTASIA, ENDE, BAIRRO, COD_MUN, NOM_MUN, UF,
   CEP, FONE, IE, CRT: string): string;
 function GeraXml: String;
 function insereNotaBD(var dados: Tvenda) : boolean;
-Function ProcuraItemNaLista(var lista: TList; cod1: integer; p_venda : currency = 0): integer;
+Function ProcuraItemNaLista(var lista: TList; cod1: integer): integer;
 function setPrinter(const indx: integer; ImpressoraNome: String = ''): String;
 procedure lerConfigBalanca();
 // FUNCTION CAMPO_VAZIO(ENT : STRING) : Smallint;
@@ -264,13 +264,11 @@ procedure Carrega_NotaFiscal_ArquivoXML(OpenDialog: TOpenDialog;
   var ListaProdutos: TStrings);
 
 var
-  listaPagamentos : TItensPISCOFINS;
   minhaThreadTeste: TIdThreadComponent;
   EmailMsg: TStringList;
   arqNCM_UNID: TStringList;
   preview: boolean;
   enviouNFE: Char;
-  totalNotaORIGI : currency;
   gProxHost, gProxPorta, gProxUser, gProxSenha, DigiVerifi, CHAVENF, natOp,
     ERRO_dados, infAdic, dHAtual, tpEmis, obs2, margemEsquerda, versaoNFe,
     versaoNFCe, codUlt, chaveRecria, ssChaveVelha: string;
@@ -375,27 +373,24 @@ begin
 end;
 
 procedure lerVenda(const nota1: String);
-var
-  i : integer;
-  total, entrada : currency;
 begin
   query1.Close;
   query1.SQL.Clear;
   // query1.SQL.Add('select v.nota, v.desconto, v.total, v.codhis, v.cliente, (select nome, codhis from formpagto f where f.cod = v.codhis) as nome from venda v where v.nota = :nota');
   query1.SQL.Add
-    ('select v.nota, v.desconto, v.entrada, v.total, v.codhis, v.cliente, f.nome, f.codgru as codform, v.data from venda v left join formpagto f on (f.cod = v.codhis) where v.nota = :nota');
+    ('select v.nota, v.desconto, v.total, v.codhis, v.cliente, f.nome, f.codgru as codform, v.data from venda v left join formpagto f on (f.cod = v.codhis) where v.nota = :nota');
   query1.ParamByName('nota').AsString := nota1;
   query1.Open;
 
-  venda := Tvenda.Create;
-  venda.total := query1.fieldbyname('total').AsCurrency;
+  venda          := Tvenda.Create;
+  venda.total    := query1.fieldbyname('total').AsCurrency;
   venda.desconto := (query1.fieldbyname('desconto').AsCurrency);
-  venda.cliente := StrToIntDef(cliente, 1);
+  venda.cliente  := StrToIntDef(cliente, 1);
   venda.codForma := query1.fieldbyname('codhis').AsString;
-  venda._FORMPG := query1.fieldbyname('nome').AsString;
-  venda.nota := query1.fieldbyname('nota').AsInteger;
-  venda.Data := query1.fieldbyname('data').AsDateTime;
-  venda.adic := IfThen(contOFFLINE, 'OFF', '');
+  venda._FORMPG  := query1.fieldbyname('nome').AsString;
+  venda.nota     := query1.fieldbyname('nota').AsInteger;
+  venda.Data     := query1.fieldbyname('data').AsDateTime;
+  venda.adic         := IfThen(contOFFLINE, 'OFF', '');
   venda.codFormaNFCE := query1.fieldbyname('codform').AsString;
   venda.codFormaNFCE := strnum(venda.codFormaNFCE);
 
@@ -403,49 +398,7 @@ begin
     = false then
     venda.codFormaNFCE := '01';
 
-  entrada := query1.fieldbyname('entrada').AsCurrency;
   query1.Close;
-
-
-  try
-    total := venda.total;
-    //se tem entrada e se a forma de pagamento é diferente de A VISTA
-    if ((entrada > 0) and (venda.codFormaNFCE <> '01')) then begin
-      i := listaPagamentos.Find('01');
-      if i = -1 then begin
-        i := listaPagamentos.Add(TacumPis.Create);
-        listaPagamentos[i].cod   := '01';
-        listaPagamentos[i].total := listaPagamentos[i].total + entrada;
-      end
-      else begin
-        listaPagamentos[i].total := listaPagamentos[i].total + entrada;
-      end;
-
-      total := total - entrada;
-      i :=  listaPagamentos.Find(venda.codFormaNFCE);
-      if i = -1 then begin
-        i := listaPagamentos.Add(TacumPis.Create);
-        listaPagamentos[i].cod   := venda.codFormaNFCE;
-        listaPagamentos[i].total := listaPagamentos[i].total + total;
-      end
-      else begin
-        listaPagamentos[i].total := listaPagamentos[i].total + total;
-      end;
-    end
-    else begin //se nao tem entrada vem pra cá
-      i := listaPagamentos.Find(venda.codFormaNFCE);
-      if i = -1 then begin
-        i := listaPagamentos.Add(TacumPis.Create);
-        listaPagamentos[i].cod := venda.codFormaNFCE;
-        listaPagamentos[i].total := listaPagamentos[i].total + total;
-      end
-      else begin
-        listaPagamentos[i].total := listaPagamentos[i].total + total;
-      end;
-    end;
-  except
-
-  end;
 end;
 
 procedure imprimirNFeFast(nfe: boolean = true);
@@ -648,7 +601,7 @@ begin
   DANFE.Impressora := Result;
 end;
 
-Function ProcuraItemNaLista(var lista: TList; cod1: integer; p_venda : currency = 0): integer;
+Function ProcuraItemNaLista(var lista: TList; cod1: integer): integer;
 var
   fim, i: integer;
   item1: Item_venda;
@@ -659,17 +612,10 @@ begin
   for i := 0 to fim do
   begin
     item1 := lista.Items[i];
-    if p_venda > 0 then begin
-      if ((item1.cod = cod1) and (item1.p_venda = p_venda)) then begin
-        Result := i;
-        break;
-      end;
-    end
-    else begin
-      if item1.cod = cod1 then begin
-        Result := i;
-        break;
-      end;
+    if item1.cod = cod1 then
+    begin
+      Result := i;
+      break;
     end;
   end;
 end;
@@ -949,7 +895,6 @@ begin
   PIS_ST := 0;
   PIS_NT := 0;
   tot_Geral := 0;
-  listaPagamentos := TItensPISCOFINS.Create;
 end;
 
 FUNCTION NODO_EMIT(CNPJ, RAZAO, FANTASIA, ENDE, BAIRRO, COD_MUN, NOM_MUN, UF,
@@ -2051,7 +1996,7 @@ var
   notatemp: String;
   CB: boolean;
   item: Item_venda;
-  quant, tot2, p_venda: currency;
+  totalNotaORIGI, quant, tot2, p_venda: currency;
   notas: TStringList;
 begin
   // venda := Tvenda.Create;
@@ -2145,7 +2090,8 @@ begin
               tot2 := tot2 + query1.fieldbyname('desconto').AsCurrency;
               end; }
 
-            tem := ProcuraItemNaLista(lista, query1.fieldbyname('cod').AsInteger, p_venda);
+            tem := ProcuraItemNaLista(lista, query1.fieldbyname('cod')
+              .AsInteger);
             if tem <> -1 then
             begin
               tot2 := Arredonda(quant * item.p_venda, 2);
@@ -2276,8 +2222,6 @@ begin
     item.total := Arredonda(item.p_venda * item.quant, 2);
     totalNota := totalNota + item.total;
   end;
-
-
 
   { ShowMessage('totalNota=' + CurrToStr(totalNota) + #13 +
     'totDesc='+ CurrToStr(totDesc)); }
@@ -2914,237 +2858,7 @@ begin
     ACBrNFe.Configuracoes.Geral.FormaEmissao :=
       StrToTpEmis(ok, IntToStr(DANFEFormaEmissao + 1));
     ACBrNFe.Configuracoes.Arquivos.PathSalvar := pastaControlW + 'NFe\RESP\';
-    ACBrNFe.Configuracoes.Arquivos.PathNFe := pastaControlW + 'NFe\EMIT\';
-    // ACBrNFe.Configuracoes.Arquivos.PathCan       := pastaControlW + 'NFe\CANC\';
-
-    ACBrNFe.Configuracoes.Geral.Salvar := false;
-    // ACBrNFe.Configuracoes.Geral.AtualizarXMLCancelado := true;
-    ACBrNFe.Configuracoes.WebServices.Salvar := false;
-    ACBrNFe.Configuracoes.Arquivos.Salvar := true;
-    ACBrNFe.Configuracoes.Arquivos.EmissaoPathNFe := true;
-    ACBrNFe.Configuracoes.Arquivos.SalvarApenasNFeProcessadas := true;
-    ACBrNFe.Configuracoes.Arquivos.PathSchemas := pastaControlW + 'Schemas';
-    //
-    WebUF := ini.ReadString('WebService', 'UF', 'RR');
-    WebAmbiente := ini.ReadInteger('WebService', 'Ambiente', 1);
-
-    UFComerciante := WebUF;
-    FinalidadeNFE := '0';
-    TipoAmbiente := IntToStr(WebAmbiente);
-    WebVisualiza := ini.ReadBool('WebService', 'Visualizar', false);
-    ACBrNFe.Configuracoes.WebServices.UF := WebUF;
-    ACBrNFe.Configuracoes.WebServices.Ambiente :=
-      StrToTpAmb(ok, IntToStr(WebAmbiente));
-    ACBrNFe.Configuracoes.WebServices.Visualizar := WebVisualiza;
-    gTipoEmissao := TipoEmissao;
-    gTipoAmbiente := TipoAmbiente;
-    gUFComerciante := UFComerciante;
-    gFinalidadeNFe := FinalidadeNFE;
-
-    //
-    ProxHost := ini.ReadString('Proxy', 'Host', '');
-    ProxPorta := ini.ReadString('Proxy', 'Porta', '');
-    ProxUser := ini.ReadString('Proxy', 'User', '');
-    ProxSenha := ini.ReadString('Proxy', 'Pass', '');
-    //
-    gProxHost := ini.ReadString('Proxy', 'Host', '');
-    gProxPorta := ini.ReadString('Proxy', 'Porta', '');
-    gProxUser := ini.ReadString('Proxy', 'User', '');
-    gProxSenha := ini.ReadString('Proxy', 'Pass', '');
-
-    indxImpressora := ini.ReadInteger('Geral', 'idxImpressora', 0);
-    indxImpressoraNFE := ini.ReadInteger('Geral', 'idxImpressoraNFe', 0);
-    tipoIMPRESSAO := ini.ReadInteger('Geral', 'TipoImpressao', 0);
-    preview := ini.ReadBool('Geral', 'preview', false);
-
-    // setPrinter(indxImpressora);
-    // seta a impressora padrao de nfe
-    //
-    ACBrNFe.Configuracoes.WebServices.ProxyHost := ProxHost;
-    ACBrNFe.Configuracoes.WebServices.ProxyPort := ProxPorta;
-    ACBrNFe.Configuracoes.WebServices.ProxyUser := ProxUser;
-    ACBrNFe.Configuracoes.WebServices.ProxyPass := ProxSenha;
-    //
-    { ACBrNFe.Configuracoes.Arquivos.PathNFe  := ExtractFilePath(Application.ExeName);
-      ACBrNFe.Configuracoes.Arquivos.PathCan  := ExtractFilePath(Application.ExeName);
-      ACBrNFe.Configuracoes.Arquivos.PathInu  := ExtractFilePath(Application.ExeName);
-      ACBrNFe.Configuracoes.Arquivos.PathDPEC := ExtractFilePath(Application.ExeName);
-      ACBrNFe.Configuracoes.Geral.PathSalvar  := ExtractFilePath(Application.ExeName);
-    }
-    //
-    DANFETipo := ini.ReadInteger('Geral', 'DANFE', 0);
-    DANFELogomarca := ini.ReadString('Geral', 'LogoMarca', '');
-    //
-    if ACBrNFe.DANFE <> nil then
-    begin
-      ACBrNFe.DANFE.tipoDanfe := tiRetrato;
-      ACBrNFe.DANFE.logo := DANFELogomarca;
-    end;
-    //
-    EmailHost := ini.ReadString('Email', 'Host', '');
-    EmailPorta := ini.ReadString('Email', 'Port', '');
-    EmailUsuario := ini.ReadString('Email', 'User', '');
-    EmailSenha := ini.ReadString('Email', 'Pass', '');
-    EmailAssunto := ini.ReadString('Email', 'Assunto', '');
-    EmailSSL := ini.ReadBool('Email', 'SSL', false);
-    StreamMemo := TMemoryStream.Create;
-    ini.ReadBinaryStream('Email', 'Mensagem', StreamMemo);
-    mmEmailMsg.Lines.LoadFromStream(StreamMemo);
-    StreamMemo.Free;
-
-    // ACBrNFe.Configuracoes.Geral.AtualizarXMLCancelado := true;
-    // ACBrNFe.Configuracoes.Geral.VersaoDF := ve310;
-    ACBrNFe.DANFE := DANFE;
-    ACBrNFe.DANFE.MostraPreview := preview;
-    ACBrNFe.Configuracoes.Geral.ModeloDF := moNFe;
-  finally
-    ini.Free;
-    FreeAndNil(mmEmailMsg);
-  end;
-end;
-
-procedure CarregarConfiguracao();
-var
-  IniFile: String;
-  ini: TIniFile;
-  ok: boolean;
-  StreamMemo: TMemoryStream;
-  mmEmailMsg: TMemo;
-  //
-  certificadoCaminho, certificadoSenha, certificadoNumeroSerie: String;
-  Finalidade: integer;
-  DANFETipo: integer;
-  DANFEFormaEmissao: integer;
-  DANFELogomarca: String;
-  ArqLog: boolean;
-  CaminhoLog: String;
-  WebUF: String;
-  WebAmbiente: integer;
-  WebVisualiza: boolean;
-  ProxHost: String;
-  ProxPorta: String;
-  ProxUser: String;
-  ProxSenha: String;
-  EmailHost: String;
-  EmailPorta: String;
-  EmailUsuario: String;
-  EmailSenha: String;
-  EmailAssunto: String;
-  EmailSSL: boolean;
-begin
-  IniFile := ChangeFileExt(application.ExeName, '.ini');
-  ini := TIniFile.Create(IniFile);
-  mmEmailMsg := TMemo.Create(nil);
-  try
-{$IFDEF ACBrNFeOpenSSL}
-    certificadoCaminho := ini.ReadString('Certificado', 'Caminho', '');
-    certificadoSenha := ini.ReadString('Certificado', 'Senha', '');
-    ACBrNFe.Configuracoes.Certificados.Certificado := certificadoCaminho;
-    ACBrNFe.Configuracoes.Certificados.Senha := certificadoSenha;
-{$ELSE}
-    certificadoNumeroSerie := ini.ReadString('Certificado', 'NumSerie', '');
-    ACBrNFe.Configuracoes.Certificados.NumeroSerie := certificadoNumeroSerie;
-    certificadoNumeroSerie := ACBrNFe.Configuracoes.Certificados.NumeroSerie;
-{$ENDIF}
-    ACBrNFe.Configuracoes.Geral.CSC := ini.ReadString('Geral', 'Token', '');
-    ACBrNFe.Configuracoes.Geral.IdCSC := ini.ReadString('Geral', 'IDToken', '');
-
-    // ShowMessage(ACBrNFe.Configuracoes.Geral.Token + #13 + ACBrNFe.Configuracoes.Geral.IdToken);
-
-    DANFEFormaEmissao := ini.ReadInteger('Geral', 'FormaEmissao', 0);
-    ArqLog := ini.ReadBool('Geral', 'Salvar', true);
-    CaminhoLog := ini.ReadString('Geral', 'PathSalvar', '');
-    ACBrNFe.Configuracoes.Geral.FormaEmissao :=
-      StrToTpEmis(ok, IntToStr(DANFEFormaEmissao + 1));
-    ACBrNFe.Configuracoes.Geral.Salvar := ArqLog;
-    ACBrNFe.Configuracoes.Arquivos.PathSalvar := CaminhoLog;
-    //
-    WebUF := ini.ReadString('WebService', 'UF', 'MG');
-    WebAmbiente := ini.ReadInteger('WebService', 'Ambiente', 0);
-
-    pgerais.Values['tpamb'] := IntToStr(WebAmbiente);
-
-    WebVisualiza := ini.ReadBool('WebService', 'Visualizar', false);
-    ACBrNFe.Configuracoes.WebServices.UF := WebUF;
-    ACBrNFe.Configuracoes.WebServices.Ambiente :=
-      StrToTpAmb(ok, IntToStr(WebAmbiente));
-    ACBrNFe.Configuracoes.WebServices.Visualizar := WebVisualiza;
-
-    //
-    ProxHost := ini.ReadString('Proxy', 'Host', '');
-    ProxPorta := ini.ReadString('Proxy', 'Porta', '');
-    ProxUser := ini.ReadString('Proxy', 'User', '');
-    ProxSenha := ini.ReadString('Proxy', 'Pass', '');
-    //
-    ACBrNFe.Configuracoes.WebServices.ProxyHost := ProxHost;
-    ACBrNFe.Configuracoes.WebServices.ProxyPort := ProxPorta;
-    ACBrNFe.Configuracoes.WebServices.ProxyUser := ProxUser;
-    ACBrNFe.Configuracoes.WebServices.ProxyPass := ProxSenha;
-    //
-    DANFETipo := ini.ReadInteger('Geral', 'DANFE', 0);
-    DANFELogomarca := ini.ReadString('Geral', 'LogoMarca', '');
-    if ACBrNFe.DANFE <> nil then
-    begin
-      ACBrNFe.DANFE.tipoDanfe := StrToTpImp(ok, IntToStr(DANFETipo + 1));
-      ACBrNFe.DANFE.logo := DANFELogomarca;
-    end;
-    //
-    EmailHost := ini.ReadString('Email', 'Host', '');
-    EmailPorta := ini.ReadString('Email', 'Port', '');
-    EmailUsuario := ini.ReadString('Email', 'User', '');
-    EmailSenha := ini.ReadString('Email', 'Pass', '');
-    EmailAssunto := ini.ReadString('Email', 'Assunto', '');
-    EmailSSL := ini.ReadBool('Email', 'SSL', false);
-    StreamMemo := TMemoryStream.Create;
-    ini.ReadBinaryStream('Email', 'Mensagem', StreamMemo);
-    mmEmailMsg.Lines.LoadFromStream(StreamMemo);
-    StreamMemo.Free;
-  finally
-    ini.Free;
-    FreeAndNil(mmEmailMsg);
-  end;
-end;
-
-function EnviarCupomEletronicoTitular(nota: String; var Status, xmotivo: string;
-  const tipo: integer; const enviar: boolean; const cliente1: String;
-  obs1: String = ''; serie1: String = '1'; nnf: STRING = '';
-  imp: boolean = true; recebido: currency = 0; EscPos: boolean = false)
-  : boolean;
-var
-  SQL, qUsuario, para, erro1, NumeroRecibo, ser, erroTemp: string;
-  Mensagememail: TStrings;
-  csta, i, a: integer;
-  enviou: boolean;
-  xml: AnsiString;
-  arq: TStringList;
-  TOTNOTA: currency;
-begin
-  setVersaoNFCe;
-  // ACBrNFe.Configuracoes.Geral.v
-  if verificarValidadeCertificado(false) = false then
-    exit;
-
-  //ShowMessage(CurrToStr(recebido));
-  TOTNOTA := 0;
-  { query1.Close;
-    query1.SQL.Text := 'select total from venda where nota = :nota';
-    query1.ParamByName('nota').AsString := nota;
-    query1.Open;
-
-    totNota := query1.FieldByName('total').AsCurrency; }
-
-  try
-    Result := false;
-    if not Contido(' ', nota) then
-    begin
-      query1.Close;
-      query1.SQL.text := 'select total from venda where nota = :nota';
-      query1.ParamByName('nota').AsString := nota;
-      query1.Open;
-
-      if query1.fieldbyname('total').AsCurrency <= 0 then
-      begin
-        ShowMessage('Não Pode Ser Emitido Uma NFCe desta Venda!' + #13 +
+    ACBrNFeão Pode Ser Emitido Uma NFCe desta Venda!' + #13 +
           'Venda Com Valor R$ ' + formataCurrency(query1.fieldbyname('total')
           .AsCurrency));
         query1.Close;
@@ -3170,10 +2884,23 @@ begin
 
     if RightStr(trim(pastaControlW), 1) <> '\' then
       pastaControlW := pastaControlW + '\';
-
     carregaConfigsNFCe;
 
     NomeGeneratorSerie := 'nfce';
+
+    // LerConfiguracaoNFCe();
+
+    DANFE.vTroco := recebido;
+    if DANFE.vTroco < 0 then
+      DANFE.vTroco := 0;
+
+    { danfe.vTroco := recebido - totNota;
+      if danfe.vTroco < 0 then danfe.vTroco := 0;
+
+      if tipoIMPRESSAO = 1 then begin
+      DANFEEscPos.vTroco := recebido - totNota;
+      if DANFEEscPos.vTroco < 0 then DANFEEscPos.vTroco := 0;
+      end; }
 
     obs2 := obs1;
     Status := '';
@@ -3219,14 +2946,6 @@ begin
     xml := GerarNFCeTexto(nota, cliente1);
     GravarTexto(buscaPastaNFCe(CHAVENF, false) + CHAVENF + '-nfe.xml', xml);
     xml := '';
-
-    DANFE.vTroco := recebido - totalNotaORIGI;
-    if DANFE.vTroco < 0 then DANFE.vTroco := 0;
-
-    if tipoIMPRESSAO = 1 then begin
-      DANFEEscPos.vTroco := DANFE.vTroco;
-      if DANFEEscPos.vTroco < 0 then DANFEEscPos.vTroco := 0;
-    end;
 
     query1.Close;
     ACBrNFe.NotasFiscais.Clear;
@@ -3372,7 +3091,7 @@ begin
           finally
 
           end;
-
+         
           if Contido('Rejeicao: ', e.Message) then
           begin
             if Contido('Duplicidade', e.Message) = false then
@@ -3405,7 +3124,7 @@ begin
           end;
         end;
       end; // try enviar
-
+  
     if csta = 999 then
     begin
       LimpaVariaveis;
@@ -6458,23 +6177,12 @@ begin
 end;
 
 FUNCTION NODO_PAG(): STRING;
-var
-  i : integer;
 begin
-  Result := '<pag>';
   if usaNFe4ouMaior then
   begin
-
-    for i := 0 to listaPagamentos.Count -1 do begin
-      Result := Result +  '<detPag>' + '<tpag>' + listaPagamentos[i].cod + '</tpag>' +
-      '<vpag>' + Format_num(listaPagamentos[i].total) + '</vpag>' + '</detPag>';
-    end;
-
-    Result := Result + '</pag>';
-
-    {Result := '<pag>' + '<detPag>' + '<tpag>' + venda.codFormaNFCE + '</tpag>' +
+    Result := '<pag>' + '<detPag>' + '<tpag>' + venda.codFormaNFCE + '</tpag>' +
       '<vpag>' + Format_num(totalNota - TOTDESC) + '</vpag>' + '</detPag>'
-      + '</pag>';}
+      + '</pag>';
     exit;
   end;
 
@@ -6810,7 +6518,6 @@ begin
   dadosEmitente.Free;
   dadosDest.Free;
   ACBrNFe.NotasFiscais.Clear;
-  listaPagamentos.Free;
 end;
 
 function verificaExisteNFCe(const nota2: String;
@@ -8440,4 +8147,3 @@ begin
 end;
 
 end.
-

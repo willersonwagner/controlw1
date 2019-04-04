@@ -11,7 +11,7 @@ uses
   ACBrECFVirtual, ACBrECFVirtualBuffer, ACBrECFVirtualPrinter,
   ACBrECFVirtualNFCe, ACBrPosPrinter, ACBrDevice, ACBrNFeDANFeRLClass,
   ACBrDANFCeFortesFr, ACBrNFe, ACBrNFeDANFEFRDM, ACBrNFeDANFEFR,
-  IdTCPConnection, IdTCPClient;
+  IdTCPConnection, IdTCPClient, ACBrDFeReport, ACBrDFeDANFeReport;
 
 type
   TdtmMain = class(TDataModule)

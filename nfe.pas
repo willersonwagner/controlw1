@@ -123,7 +123,6 @@ type
     function CampoString(ent : string) : string;
     procedure Fechar_Datasets_limpar_Listas_e_variaveis;
     Function ValidarNfe(Caminho : string) : string;
-    Function ProcuraItemNaLista(var lista : TList; cod1 : integer) : integer;
     function NODO_ICMS_UF_DEST(var item1 : Item_venda) : string;
     FUNCTION NODO_RAIZ() : string;
     FUNCTION NODO_NFE() : string;
@@ -1472,23 +1471,6 @@ begin
   end;
 end;
 
-Function TNfeVenda.ProcuraItemNaLista(var lista : TList; cod1 : integer) : integer;
-var fim, i : integer;
- item1 : Item_venda;
-begin
-  fim := lista.Count - 1;
-  Result := -1;
-
-  for i := 0 to fim do
-   begin
-     item1 := lista.Items[i];
-     if item1.cod = cod1 then
-       begin
-         Result := i;
-         break;
-       end;
-   end;
-end;
 
 function TNfeVenda.Dados_do_Frete : TStringList;
 begin
@@ -3424,7 +3406,7 @@ end;
 
 procedure TNfeVenda.CriaLista_De_itens_Venda(var lista : Tlist);
 var
-   desc,temp, tot, TOT1, temp1 : currency;
+   desc,temp, tot, TOT1, temp1, p_venda : currency;
    i, fim, tem : integer;
    aliq : string[3];
    CB : Boolean;
@@ -3478,7 +3460,9 @@ begin
 
          if not query2.IsEmpty then
            begin
-             tem := ProcuraItemNaLista(lista, query1.fieldbyname('cod').AsInteger );
+             p_venda := (IfThen(tipo = 'T', query2.fieldbyname('p_compra').AsCurrency, query1.fieldbyname('p_venda').AsCurrency));
+
+             tem := ProcuraItemNaLista(lista, query1.fieldbyname('cod').AsInteger, p_venda);
              if tem <> -1 then
                begin
                  item := lista.Items[tem];
@@ -3513,7 +3497,7 @@ begin
 
                  //if tipo = 'T' then item.p_venda := abs(query2.fieldbyname('p_compra').AsCurrency);
                  ///else item.p_venda := abs(query1.fieldbyname('p_venda').AsCurrency);
-                 item.p_venda := abs(IfThen(tipo = 'T', query2.fieldbyname('p_compra').AsCurrency, query1.fieldbyname('p_venda').AsCurrency));
+                 item.p_venda := p_venda;
                  item.total   := abs(arrendondaNFe(query1.fieldbyname('total').AsCurrency, 2));
                  totalNota    := totalNota + abs(item.total);
 

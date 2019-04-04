@@ -83,11 +83,9 @@
         <DCCReference Include="..\funcoesDAV.pas"/>
         <DCCReference Include="..\untnfceForm.pas">
             <Form>Form72</Form>
-            <FormType>dfm</FormType>
         </DCCReference>
         <DCCReference Include="..\gifAguarde.pas">
             <Form>Form65</Form>
-            <FormType>dfm</FormType>
         </DCCReference>
         <BuildConfiguration Include="Debug">
             <Key>Cfg_2</Key>

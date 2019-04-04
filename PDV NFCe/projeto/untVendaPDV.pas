@@ -1913,25 +1913,14 @@ function TForm3.lerReceido() :boolean;
 var
   totTemp1, totTemp2 : currency;
 begin
-  //mostraMensagem('Aguarde...', true);
-  recebido := 0;
   Result := false;
   formasPagamento.EmptyDataSet;
-  {totTemp2 := ecf.Subtotal + desconto;
 
-  {if tot_ge < totTemp2 then
-    begin
-      totTemp1 := totTemp2;
-    end
-  else totTemp1 := tot_ge;}
-  //totTemp1 := tot_ge + desconto;
   totTemp1 := tot_ge;
-
-  //mostraMensagem('Aguarde...', false);
+  recebido := 0;
 
   while true do
     begin
-      //receb := dialogoG('numero', 0, '', 2, false, '', 'PDV - ControlW', 'Informe o Valor Pago:', formataCurrency(tot_ge), true);
       receb := dialogoG('numero', 0, '', 2, false, '', 'PDV - ControlW', 'Informe o Valor Pago:', formataCurrency(totTemp1), true);
       if receb = '*' then
         begin
@@ -1939,7 +1928,6 @@ begin
           exit;
         end;
 
-      //recebido := recebido + StrToCurr(receb);
       totTemp1 := totTemp1 - StrToCurr(receb);
       recebido := recebido + StrToCurr(receb);
 
@@ -1966,7 +1954,7 @@ begin
           formasPagamento.Post;
         end;
 
-      if ((recebido >= totTemp1) or (Arredonda(totTemp1 - recebido, 2) <= 0)) then
+      if ((recebido >= tot_ge) or (totTemp1 <= 0)) then
         begin
           Result := true;
           break;
@@ -2210,7 +2198,7 @@ var
   envi, enviarOFFlineAgora, imp   : boolean;
   totTrib, tot1 : currency;
 begin
-  DANFE.NFeCancelada := false;
+  DANFE.Cancelada := false;
 
   if not verificaSePodeEmitirContigencia then exit;
 
