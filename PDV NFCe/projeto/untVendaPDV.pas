@@ -2420,7 +2420,7 @@ function TForm3.vercCountContigencia() : String;
 begin
   Result := '';
   dtmMain.IBQuery1.Close;
-  dtmMain.IBQuery1.SQL.Text := 'select count(*) as qtd from nfce where adic = ''OFF'' and substring(chave from 23 for 3) = :serie';
+  dtmMain.IBQuery1.SQL.Text := 'select count(*) as qtd from nfce where (adic = ''OFF'') and (right(extract(YEAR from current_date), 2) = substring(chave from 3 for 2)) and substring(chave from 23 for 3) = :serie';
   dtmMain.IBQuery1.ParamByName('serie').AsString := strzero(getSerieNFCe, 3);
   dtmMain.IBQuery1.Open;
 

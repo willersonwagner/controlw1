@@ -3420,6 +3420,10 @@ begin
   lista := TList.Create;
 
   fim := notas.Count - 1 ;
+
+  if not assigned(listaPagamentos) then listaPagamentos := TItensPISCOFINS.Create;
+  listaPagamentos.Clear;
+
   for i := 0 to fim do
     begin
       nota := notas.Strings[i];
@@ -4665,9 +4669,9 @@ end;
 function TNfeVenda.NODO_PAG(MAT : TList) : String;
 var
   tpag, detBoleto : string;
-  ini : integer;
+  ini, i : integer;
   parc : Tparcela;
-  TOTAL : CURRENCY;
+  TOTAL, tmp : CURRENCY;
 begin
   Result    := '';
   detBoleto := '';
@@ -4684,6 +4688,13 @@ begin
   if FIN_NFE1 <> '1' then begin
     tpag  := '90';
     TOTAL := 0;
+    Result := '<pag>'+
+                '<detPag>'+
+                  '<tpag>'+tpag+'</tpag>'+
+                  '<vpag>' + Format_num(TOTAL) +  '</vpag>' +
+                '</detPag>' +
+                '</pag>';
+     exit;
   end;
 
   //ACBrNFe.NotasFiscais[1].NFe.Cobr.Dup.
@@ -4706,14 +4717,27 @@ begin
     exit;
   end;                                        }
 
+  tmp := 0;
+  Result := '<pag>';
+  for i := 0 to listaPagamentos.Count -1 do begin
+      Result := Result +  '<detPag>' + '<tpag>' + listaPagamentos[i].cod + '</tpag>' +
+      '<vpag>' + Format_num(listaPagamentos[i].total) + '</vpag>' + '</detPag>';
+      tmp := tmp + listaPagamentos[i].total;
+  end;
+
+  if tmp > total then begin
+    Result := Result + '<vTroco>'+ Format_num(tmp - total) +'</vTroco>';
+  end;
+
+  Result := Result + '</pag>';
 
 
-      Result := '<pag>'+
+    {  Result := '<pag>'+
                 '<detPag>'+
                   '<tpag>'+tpag+'</tpag>'+
                   '<vpag>' + Format_num(TOTAL) +  '</vpag>' +
                 '</detPag>' +
-                '</pag>';
+                '</pag>';}
 
 end;
 

@@ -210,7 +210,7 @@ type
     function FiltraNota(var nota, fornec: string;
       inicio: boolean = False): boolean;
     procedure le_promoc1(var text: string);
-    procedure criaSerieBD();
+    procedure criaSerieBD(msg : boolean);
     procedure fetchDataSet(var querysql: TIBQuery);
     function GeraCargaTXTBalanca(): boolean;
     function excluiTransferencia(cod, doc: integer): boolean;
@@ -22391,7 +22391,7 @@ begin
     Mensagem('', '', 25, 'Courier New',False, 0, clRed, true);
 end;
 
-procedure Tfuncoes.criaSerieBD();
+procedure Tfuncoes.criaSerieBD(msg : boolean);
 var
   nomeGenerator: String;
 begin
@@ -22406,13 +22406,13 @@ begin
       dm.IBQuery1.SQL.Add('CREATE SEQUENCE ' + nomeGenerator);
       dm.IBQuery1.ExecSQL;
       dm.IBQuery1.Transaction.Commit;
-      MessageDlg('Sequência ' + nomeGenerator + ' Criada Com Sucesso!',
+      if msg then MessageDlg('Sequência ' + nomeGenerator + ' Criada Com Sucesso!',
         mtInformation, [mbok], 1);
     end;
   end
   else
   begin
-    ShowMessage('A Serie ' + IntToStr(serie2) + ' Não Pôde ser Criada!');
+    if msg then ShowMessage('A Serie ' + IntToStr(serie2) + ' Não Pôde ser Criada!');
   end;
 
 end;

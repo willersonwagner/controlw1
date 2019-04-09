@@ -481,6 +481,8 @@ begin
 
    if not verificaSePodeEmitirContigencia then exit;
 
+   funcoes.criaSerieBD(false);
+
    try
     funcoes.Mensagem(Application.Title,'Aguarde Conectando com o servidor...',12,'Courier New',false,0, clRed, false);
     th := funcoes.verificaPermissaoPagamento;

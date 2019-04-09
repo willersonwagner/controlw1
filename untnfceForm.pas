@@ -70,6 +70,7 @@ procedure atualizaRegistroNFCe(chaveVelha1, chaveNova1: String);
 function CodificaDataPelaChave(chave: String): TDateTime;
 function manifestoDestinatarioNFe(chave: string): boolean;
 procedure validaNCM_NaNFCe(chave1: String);
+procedure validaTroco_NaNFCe(chave1: String);
 function GravaConfigNaPastaDoControlW(Const config_name: String;
   const default: string): String;
 function buscaConfigNaPastaDoControlW(Const config_name: String;
@@ -3120,6 +3121,9 @@ var
   TOTNOTA: currency;
 begin
   setVersaoNFCe;
+
+
+
   // ACBrNFe.Configuracoes.Geral.v
   if verificarValidadeCertificado(false) = false then
     exit;
@@ -3218,6 +3222,7 @@ begin
 
     xml := GerarNFCeTexto(nota, cliente1);
     GravarTexto(buscaPastaNFCe(CHAVENF, false) + CHAVENF + '-nfe.xml', xml);
+
     xml := '';
 
     DANFE.vTroco := recebido - totalNotaORIGI;
@@ -3244,18 +3249,33 @@ begin
   if enviar then
   begin
     try
-      ACBrNFe.NotasFiscais.Assinar;
-
       ACBrNFe.NotasFiscais[0].GravarXML(CHAVENF + '-nfe.xml',
         buscaPastaNFCe(CHAVENF, false));
 
+      ACBrNFe.NotasFiscais.Assinar;
+
+    except
+      on e: Exception do
+      begin
+        erro1 := e.Message;
+        gravaERRO_LOG1('', e.Message, 'Validação dos Dados');
+        MessageDlg('Falha 3257 na Assinatura da Nota: ' + #13 + e.Message + #13,
+          mtError, [mbOK], 1);
+
+        Status := 'vali';
+        Result := false;
+        exit;
+      end;
+    end;
+
+    try
       ACBrNFe.NotasFiscais.Validar;
     except
       on e: Exception do
       begin
         erro1 := e.Message;
         gravaERRO_LOG1('', e.Message, 'Validação dos Dados');
-        MessageDlg('Falha na Validação da Nota: ' + #13 + e.Message + #13,
+        MessageDlg('Falha 3273 na Validação da Nota: ' + #13 + e.Message + #13,
           mtError, [mbOK], 1);
 
         Status := 'vali';
@@ -3865,6 +3885,12 @@ begin
 
           if Contido('(5)-Requisição não', ERRO_dados) and (csta <> 100) then
             exit;
+
+          if (csta = 866) then begin
+            validaTroco_NaNFCe('');
+            exit;
+          end;
+
 
           if ((csta = 778) or (false)) then
           begin
@@ -6460,14 +6486,22 @@ end;
 FUNCTION NODO_PAG(): STRING;
 var
   i : integer;
+  tmp, total : currency;
 begin
   Result := '<pag>';
+  total := totalNota - TOTDESC;
+  tmp   := 0;
   if usaNFe4ouMaior then
   begin
 
     for i := 0 to listaPagamentos.Count -1 do begin
       Result := Result +  '<detPag>' + '<tpag>' + listaPagamentos[i].cod + '</tpag>' +
       '<vpag>' + Format_num(listaPagamentos[i].total) + '</vpag>' + '</detPag>';
+      tmp := tmp + listaPagamentos[i].total;
+    end;
+
+     if tmp > total then begin
+       Result := Result + '<vTroco>'+ Format_num(tmp - total) +'</vTroco>';
     end;
 
     Result := Result + '</pag>';
@@ -7325,7 +7359,7 @@ begin
   Result := false;
   query1.Close;
   query1.SQL.text :=
-    'select chave,data from nfce where adic = ''OFF'' and (substring(chave from 23 for 3) = :serie) order by data';
+    'select chave,data from nfce where (adic = ''OFF'') and (right(extract(YEAR from current_date), 2) = substring(chave from 3 for 2)) and (substring(chave from 23 for 3) = :serie) order by data';
   query1.ParamByName('serie').AsString := strzero(getSerieNFCe, 3);
   query1.Open;
 
@@ -7960,6 +7994,28 @@ begin
   Result := arq.Values[config_name];
   arq.SaveToFile(caminhoEXE_com_barra_no_final + 'CONFIG.DAT');
   arq.Free;
+end;
+
+procedure validaTroco_NaNFCe(chave1: String);
+var
+  ini, fim: integer;
+  pag : String;
+  total : currency;
+  teste :boolean;
+begin
+  fim   := ACBrNFe.NotasFiscais[0].nfe.pag.Count -1;
+  total := 0;
+  for ini := 0 to fim do begin
+    pag := FormaPagamentoToStr(ACBrNFe.NotasFiscais[0].nfe.pag[ini].tPag);
+  end;
+
+  ACBrNFe.NotasFiscais[0].nfe.pag.Clear;
+  with ACBrNFe.NotasFiscais[0].nfe.pag.New do begin
+    tPag := StrToFormaPagamento(teste, pag);
+    vPag := ACBrNFe.NotasFiscais[0].nfe.Total.ICMSTot.vNF;
+  end;
+
+  GravarTexto(buscaPastaNFCe(CHAVENF) + CHAVENF + '-nfe.xml', ACBrNFe.NotasFiscais[0].GerarXML);
 end;
 
 procedure validaNCM_NaNFCe(chave1: String);

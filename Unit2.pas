@@ -12996,7 +12996,7 @@ end;
 
 procedure TForm2.CriarSrie1Click(Sender: TObject);
 begin
-  funcoes.criaSerieBD;
+  funcoes.criaSerieBD(true);
 end;
 
 procedure TForm2.NFePorCliente1Click(Sender: TObject);
@@ -13525,18 +13525,18 @@ var
   cont : integer;
 begin
   dm.IBselect.Close;
-  dm.IBselect.sql.Text := 'select chave from nfce where tentativa > 9';
+  dm.IBselect.sql.Text := 'select chave from nfce where (right(extract(YEAR from current_date), 2) = substring(chave from 3 for 2)) and tentativa > 9';
   dm.IBselect.Open;
   dm.IBselect.FetchAll;
   cont := dm.IBselect.RecordCount;
 
   dm.IBQuery1.Close;
-  dm.IBQuery1.SQL.Text := 'update nfce set tentativa = 0 where tentativa > 9';
+  dm.IBQuery1.SQL.Text := 'update nfce set tentativa = 0 where right(extract(YEAR from data), 2) = substring(chave from 3 for 2) and tentativa > 9';
   dm.IBQuery1.ExecSQL;
   dm.IBQuery1.Transaction.Commit;
 
   dm.IBselect.Close;
-  dm.IBselect.SQL.Text := 'select chave from nfce where (adic = ''OFF'') and (substring(chave from 23 for 3) = :serie) ';
+  dm.IBselect.SQL.Text := 'select chave from nfce where right(extract(YEAR from current_date), 2) = substring(chave from 3 for 2) and (adic = ''OFF'') and (substring(chave from 23 for 3) = :serie) ';
   dm.IBselect.ParamByName('serie').AsString := strzero(getSerieNFCe, 3);
   dm.IBselect.Open;
   dm.IBselect.FetchAll;
