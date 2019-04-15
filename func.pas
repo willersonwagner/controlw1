@@ -138,6 +138,7 @@ type
     enviandoCupom, enviandoBackup: boolean;
     fonteRelatorioForm19: integer;
     NegritoRelatorioForm19, saiComEnter: boolean;
+    function aliquotaToCST(aliq : integer; regime : String) : String;
     function retiraZerosEsquerda(const valor : string) : String;
     function buscaNFEsPorCPF_CNPJ(cpf : String) : String;
     procedure verificaProdutosDuplicados();
@@ -606,7 +607,7 @@ function ValidaCPF(sCPF: string): boolean;
 function iif(lTest: boolean; vExpr1, vExpr2: variant): variant;
 function VerificaCampoTabela(nomeCampo, tabela: string): boolean;
 procedure Retorna_Array_de_Numero_de_Notas(var mat: tstringList; notas: string;
-  const separador: String = ' ');
+  const separador: String = ' '; criaMat : boolean = true);
 FUNCTION STR_ALFA(PAR: string): string;
 function RetornaValorStringList(var ent: tstringList; estring: string): string;
 function Incrementa_Generator(Gen_name: string;
@@ -7730,11 +7731,12 @@ begin
 end;
 
 procedure Retorna_Array_de_Numero_de_Notas(var mat: tstringList; notas: string;
-  const separador: String = ' ');
+  const separador: String = ' '; criaMat : boolean = true);
 var
   ini, fim, posi: integer;
 begin
-  mat := tstringList.Create;
+  if criaMat then mat := tstringList.Create;
+  mat.clear;
   fim := length(trim(notas));
   notas := trim(notas);
   posi := 1;
@@ -8386,8 +8388,7 @@ begin
       alt := true;
       end; }
 
-    if not VerSeExisteGeneratorPeloNome('SMALL') then
-    begin
+    if not VerSeExisteGeneratorPeloNome('SMALL') then begin
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Clear;
       dm.IBQuery1.SQL.Add('CREATE SEQUENCE SMALL');
@@ -10483,7 +10484,14 @@ begin
       dm.IBScript1.ExecuteScript;
     end;
 
-    try
+    if not VerSeExisteTRIGGERPeloNome('DELETA_PRODUTO_OS') then begin
+      dm.IBScript1.Script.Text := ('CREATE TRIGGER DELETA_PRODUTO_OS FOR OS_ITENS ' +
+      ' ACTIVE BEFORE DELETE POSITION 0 AS BEGIN ' +
+      ' update produto set quant = quant + old.quant where cod = old.cod; ' +
+      ' END;');
+      dm.IBScript1.ExecuteScript;
+    end;
+
     if not VerSeExisteTRIGGERPeloNome('ALTERA_PRODUTO') then begin
       //dm.IBScript1.Close;
       dm.IBScript1.Script.Text := ('CREATE TRIGGER altera_produto FOR item_venda ' +
@@ -10498,9 +10506,6 @@ begin
       dm.IBScript1.ExecuteScript;
       //dm.IBQuery1.Transaction.Commit;
     end;
-    finally
-
-    end;
 
     if not VerSeExisteTRIGGERPeloNome('ALTERA_PRODUTO_ENTRADA') then begin
       //dm.IBScript1.Close;
@@ -10511,6 +10516,16 @@ begin
       ' end else begin ' +
       ' update produto set deposito = deposito + new.QTD_ENT where cod = new.cod; ' +
       ' END '+
+      ' END;');
+      dm.IBScript1.ExecuteScript;
+      //dm.IBQuery1.Transaction.Commit;
+    end;
+
+     if not VerSeExisteTRIGGERPeloNome('INSERE_PRODUTO_OS') then begin
+      //dm.IBScript1.Close;
+      dm.IBScript1.Script.Text := ('CREATE TRIGGER INSERE_PRODUTO_OS FOR OS_ITENS ' +
+      ' ACTIVE BEFORE INSERT POSITION 0 AS BEGIN ' +
+      ' update produto set quant = quant - new.quant where cod = new.cod; ' +
       ' END;');
       dm.IBScript1.ExecuteScript;
       //dm.IBQuery1.Transaction.Commit;
@@ -10580,6 +10595,13 @@ begin
       dm.IBQuery1.SQL.Add('ALTER TABLE venda ADD datamov TIMESTAMP');
       dm.IBQuery1.ExecSQL;
       dm.IBQuery1.Transaction.Commit;
+    end;
+
+    if not VerSeExisteGeneratorPeloNome('NFEHOMOLOGA') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('CREATE SEQUENCE NFEHOMOLOGA');
+      dm.IBQuery1.ExecSQL;
     end;
 
     //VerificaVersao_do_bd
@@ -11869,8 +11891,12 @@ begin
 
   dm.IBselect.Close;
   dm.IBselect.SQL.Clear;
-  dm.IBselect.SQL.Add('select empresa, versao from registro');
+  dm.IBselect.SQL.Add('select empresa, versao, cnpj, substring(cod_mun from 1 for 2) as codest from registro');
   dm.IBselect.Open;
+  arr.Add('cnpj=' + trim(UpperCase(dm.IBselect.FieldByName('cnpj')
+    .AsString)));
+  arr.Add('codest=' + trim(UpperCase(dm.IBselect.FieldByName('codest')
+    .AsString)));
   arr.Add('empresa=' + trim(UpperCase(dm.IBselect.FieldByName('empresa')
     .AsString)));
   arr.Values['codigo_seq'] := dm.IBselect.FieldByName('versao').AsString;
@@ -20525,11 +20551,6 @@ begin
     // dm.IBQuery2.Close;
   end;
 
-  if estorno = 'S' then
-  begin
-    natOP1 := '999 - Estorno de NF-e não cancelada no prazo legal';
-  end;
-
   if cOp = '*' then
     exit;
 
@@ -20662,10 +20683,8 @@ begin
   NfeVenda.NFE_REF := StrNum(NFE_REF);
 
   try
-    if ConfParamGerais[36] <> 'N' then
-      NfeVenda.GeraXml
-    else
-      NfeVenda.GeraXml1;
+    nfevenda.ambienteProducao1homologacao2 := '0';
+    NfeVenda.GeraXml1;
   except
     on e: exception do
     begin
@@ -24336,6 +24355,7 @@ begin
   dataset.IndexFieldNames := 'EMISSAO';
 
   ACBrNFe.Configuracoes.geral.ModeloDF := moNFe;
+  ACBrNFe.Configuracoes.WebServices.TimeOut := 30000;
   // ACBrNFe.Configuracoes.WebServices.Ambiente := taProducao;
   // ACBrNFe.Configuracoes.Arquivos.PathSalvar := caminhoEXE_com_barra_no_final+'NFe\ent\';
   // ACBrNFe.Configuracoes.Geral.Salvar := true;
@@ -26616,6 +26636,22 @@ end;
 function Tfuncoes.retiraZerosEsquerda(const valor : string) : String;
 begin
   Result := IntToStr(StrToIntDef(valor, 0));
+end;
+
+function Tfuncoes.aliquotaToCST(aliq : integer; regime : String) : String;
+begin
+  if regime = '3' then begin
+    if      aliq = 10 then Result := '60'
+    else if aliq = 11 then Result := '40'
+    else if aliq = 12 then Result := '41'
+    else Result := '00';
+    exit;
+  end;
+
+  if      aliq = 10 then Result := '500'
+  else if aliq = 11 then Result := '400'
+  else if aliq = 12 then Result := '300'
+  else                   Result := '101/102/103';
 end;
 
 

@@ -350,8 +350,7 @@ begin
        if GetPrimeiroBotao(self.Owner.Name)<>nil then  GetPrimeiroBotao(self.Owner.Name).SetFocus;
      end;
     //seta acima - sobe até o primeiro componente
-    if (Key = 38) then
-       begin
+    if (Key = 38) then begin
          if TEdit(lista.Items[RetornaIndiceDoPrimeiroCampo(self.Owner.Name)]).Enabled then primeiroCampo := lista.Items[RetornaIndiceDoPrimeiroCampo(self.Owner.Name)] else
            primeiroCampo := lista.Items[Retorna_Indice_Do_PrimeiroCampo_Ativado(self.Owner.Name)];
          if (TComponent(self) <> TComponent(primeiroCampo)) then

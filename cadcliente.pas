@@ -123,7 +123,6 @@ type
   private
     codEstado : string;
     componente_a_retornar : JsEdit;
-    valor_a_retornar : string;
     procedure verificaCadastroExiste();
     procedure defaultCampos();
     procedure setMask();
@@ -132,6 +131,7 @@ type
     procedure abreDataSet(codestado1 : String);
     { Private declarations }
   public
+    valor_a_retornar : string;
     procedure setComponente_a_Retornar(componente : jsedit);
     procedure buscaCep(cep1 : String);
     { Public declarations }
@@ -339,7 +339,6 @@ begin
 
   if (Key = 116) then
     begin
-
       tedit(sender).Text := funcoes.localizar('Localizar Cliente','cliente','cod,nome,telres,telcom,cnpj as cpfcnpj,bairro','cod','','nome','nome',false,false,false,'',450,NIL);
       key := 0;
     end;

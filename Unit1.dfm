@@ -615,7 +615,7 @@ object dm: Tdm
     Configuracoes.Geral.FormatoAlerta = 'TAG:%TAGNIVEL% ID:%ID%/%TAG%(%DESCRICAO%) - %MSG%.'
     Configuracoes.Geral.ModeloDF = moNFCe
     Configuracoes.Geral.AtualizarXMLCancelado = True
-    Configuracoes.Geral.VersaoQRCode = veqr000
+    Configuracoes.Geral.VersaoQRCode = veqr200
     Configuracoes.Arquivos.OrdenacaoPath = <>
     Configuracoes.WebServices.UF = 'RR'
     Configuracoes.WebServices.AguardarConsultaRet = 0
@@ -623,6 +623,7 @@ object dm: Tdm
     Configuracoes.WebServices.QuebradeLinha = '|'
     Configuracoes.WebServices.SSLType = LT_SSLv3
     Configuracoes.RespTec.IdCSRT = 0
+    DANFE = DANFE
     Left = 432
     Top = 336
   end

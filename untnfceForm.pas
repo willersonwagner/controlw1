@@ -234,7 +234,7 @@ function Cancelamento_NFe(numeroNota: String; MemoResp: TMemo;
   WBResposta: TWebBrowser): boolean; Overload;
 function Cancelamento_NFe1(numeroNota, Justificativa: String;
   cancelamento: integer = 0; chaveENT: String = ''): boolean;
-function Cancelamento_NFePorNNF(numeroNota, Justificativa: String): boolean;
+function Cancelamento_NFePorNNF(numeroNota, Justificativa, ser1: String): boolean;
 procedure ConsultarNFe(numeroNota: String; visuali: boolean = true);
 function getSerieNFCe(): String;
 function getUltimoNumero(): String;
@@ -4476,14 +4476,14 @@ begin
   end
   else
   begin
-    ShowMessage('Ocorreu um Erro no Cancelamento:' + #13 + tmp +
+    ShowMessage('Ocorreu um Erro no Cancelamento:' + #13 + tmp + #13 + 'cStat: ' + IntToStr(cstat) +
       IfThen(POS('Duplicidade', tmp) > 0,
       #13 + #13 + 'Esta Nota já pode ter Sido Cancelada', ''));
   end;
 
 end;
 
-function Cancelamento_NFePorNNF(numeroNota, Justificativa: String): boolean;
+function Cancelamento_NFePorNNF(numeroNota, Justificativa, ser1: String): boolean;
 var
   chave, idLote, CNPJ, Protocolo, tmp, tmp1: string;
   arq1: TStringList;
@@ -4491,8 +4491,9 @@ begin
   Result := false;
   query1.Close;
   query1.SQL.text :=
-    'select nota, chave from nfce where substring(chave from 26 for 9) = :nota';
-  query1.ParamByName('nota').AsString := strzero(numeroNota, 9);
+    'select nota, chave from nfce where (substring(chave from 26 for 9) = :nota) and (substring(chave from 23 for 3) = :serie)';
+  query1.ParamByName('nota').AsString  := strzero(numeroNota, 9);
+  query1.ParamByName('serie').AsString := strzero(ser1, 3);
   query1.Open;
 
   if query1.IsEmpty then
@@ -4501,6 +4502,8 @@ begin
     ShowMessage('NFCe de Número ' + numeroNota + ' Não Encontrado.');
     exit;
   end;
+
+  //if MessageDlg('NFCe Encontrada:' + #13 + #13  + 'Chave: ' + query1.FieldByName('chave').AsString + #13 + 'Deseja Realmente Cancelar ?', mtInformation, [mbok], 1) = idno then exit;
 
   Result := Cancelamento_NFe1(query1.fieldbyname('nota').AsString,
     Justificativa, 0, query1.fieldbyname('chave').AsString);
@@ -7197,7 +7200,8 @@ end;
 
 procedure carregaConfigsNFCe;
 begin
-  ACBrNFe.Configuracoes.Geral.ModeloDF := moNFCe;
+  ACBrNFe.Configuracoes.Geral.ModeloDF      := moNFCe;
+  ACBrNFe.Configuracoes.WebServices.TimeOut := 5000;
 end;
 
 procedure atualizaProtocoloXML(const caminhoxml: String);

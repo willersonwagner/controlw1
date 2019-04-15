@@ -3,9 +3,11 @@ unit funcoesDAV;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes,
+  Windows, Messages, SysUtils, Classes, ACBrUtil,
   Graphics, Controls, Forms, Dialogs, StdCtrls, IBQuery, classes1, math, printers, System.Zip;
 
+  function Trunca(const nValor: currency; const iCasas: integer): currency;
+  function le_codbar1(var query : TIBQuery; const codbar, paramGe38 : String; arredon : String = '') : TprodutoVendaCodBar;
   function NomedoComputador: String;
   function listaArquivos(const pasta: String): tstringList;
   function achaXML_NFCePeloNumero(numero, serie : String) : string;
@@ -1275,6 +1277,78 @@ begin
     Result := '';
 end;
 
+function le_codbar1(var query : TIBQuery; const codbar, paramGe38 : String; arredon : String = '') : TprodutoVendaCodBar;
+var
+  _ptot, quanti, ptotCodbar, qtt : currency;
+begin
+  if arredon = '' then arredon := 'T';
+  Result        := TprodutoVendaCodBar.Create;
+  Result.preco  := 0;
+  Result.precoTemp := 0;
+  Result.codbar := LeftStr(trim(codbar), 5);
+
+  query.Close;
+  query.SQL.Text := 'select cod, p_venda, nome, codbar from produto where (substring(codbar from 1 for 5) = '+ QuotedStr(Result.codbar)+')';
+  query.Open;
+  query.FetchAll;
+
+  if query.RecordCount = 0 then
+    begin
+      Result.codbar := '*';
+      query.Close;
+      exit;
+    end;
+
+  Result.cod    := query.fieldbyname('cod').AsInteger;
+  Result.codbar := query.fieldbyname('codbar').AsString;
+  Result.preco  := query.fieldbyname('p_venda').AsCurrency;
+  query.Close;
+
+  quanti := StrToCurrDef(copy(codbar, 6, 7), 0);
+  qtt := quanti;
+
+  if paramGe38 = '2' then
+    begin
+      Result.precoTemp := (quanti /100);
+
+      Result.quant := Trunca((quanti /100) / Result.preco, 2);
+      quanti := Result.quant; // quanti tem  a quantidade aprox
+
+      while true do
+        begin
+          _ptot := Trunca(quanti * Result.preco, 2);//valor aprox
+          if _PTOT >= Result.precoTemp then break;
+
+          quanti := quanti + 0.0001;
+        end;
+
+      Result.quant := quanti;
+    end
+  else
+    begin
+      Result.quant := (quanti / 1000);
+      Result.precoTemp := Trunca(Result.quant * Result.preco, 2);
+    end;
+end;
+
+
+
+function Trunca(const nValor: currency; const iCasas: integer)
+  : currency;
+begin
+  Result := nValor;
+
+  if iCasas <= 0 then
+    Result := trunc(nValor)
+  else if iCasas = 1 then
+    Result := trunc(nValor * 10) / 10
+  else if iCasas = 2 then
+    Result := trunc(nValor * 100) / 100
+  else if iCasas = 3 then
+    Result := trunc(nValor * 1000) / 1000
+  else if iCasas = 4 then
+    Result := trunc(nValor * 10000) / 10000;
+end;
 
 
 end.

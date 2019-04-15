@@ -694,7 +694,7 @@ uses  CadUsuario,StrUtils,Math, dialog, cadfrabricante, cadfornecedor, cadgrupop
   configImpressora, batepapo, CadServ, consultaOrdem, cadECF,
   cadReducaoZ, untMovto, acerto1, Unit56, envicupom, Unit59, cadCestNCM,
   PROMOC, cadNotasFiscais, U_Principal, ConsultaCPF, Unit67, Unit68, param1,
-  Unit71, uConsultaCNPJ, Unit74, Unit77;
+  Unit71, uConsultaCNPJ, Unit74, Unit77, Unit78, dadosnfe;
 
 {$R *.dfm}
 procedure calcula_comissao(var mattDiferenciados : TStringList; const total, porc : currency; var valorAvista, valorAprazo : currency);
@@ -2635,6 +2635,10 @@ end;
 
 procedure TForm2.Button2Click(Sender: TObject);
 begin
+  form79 := tform79.Create(self);
+  form79.ShowModal;
+  form79.free;
+
   //ShowMessage(funcoes.LerConfig(form22.Pgerais.Values['configu'], 12));
   exit;
   form71 := TForm71.Create(self);
@@ -2920,6 +2924,7 @@ begin
   form40.tipo.Add('105=generico');
   form40.tipo.Add('106=generico');
   form40.tipo.Add('107=generico');
+  form40.tipo.Add('108=generico');
 
   form40.troca := TStringList.Create;
   form40.troca.Add('0=S');
@@ -3033,6 +3038,7 @@ begin
   form40.troca.Add('105=S');
   form40.troca.Add('106=S');
   form40.troca.Add('107=S');
+  form40.troca.Add('108=S');
 
   form40.teclas := TStringList.Create;
   form40.teclas.Add('0=FT');
@@ -3145,6 +3151,7 @@ begin
   form40.teclas.Add('105=SN');
   form40.teclas.Add('106=SN');
   form40.teclas.Add('107=SN');
+  form40.teclas.Add('108=SN');
 
 
   form40.ListBox1.Clear;
@@ -3256,6 +3263,7 @@ begin
   form40.ListBox1.Items.Add('105=Usar Desconto Por Forma de Pagamento ?');
   form40.ListBox1.Items.Add('106=Buscar Preço Atual Quando Recuperar um Orçamento ?');
   form40.ListBox1.Items.Add('107=Usar Desconto Por Quantidades ?');
+  form40.ListBox1.Items.Add('108=Usar Leitura de Etiqueta de Pesagem no ControlW ?');
 
   Form40.ListBox1.Selected[0] := true;
   form40.showmodal;
@@ -7943,8 +7951,29 @@ begin
 end;
 
 procedure TForm2.NotaFiscalEletrnica1Click(Sender: TObject);
+var
+  th : String;
 begin
-  funcoes.emiteNfe('', false);
+  try
+    funcoes.Mensagem(Application.Title, 'Aguarde Conectando com o servidor...',
+      12, 'Courier New', False, 0, clRed);
+    th := funcoes.verificaPermissaoPagamento;
+    if th = '4' then
+    begin
+      funcoes.Mensagem(Application.Title, '', 15, '',False, 0, clBlack, true);
+      ShowMessage('Sistema Não Liberado para Emissao de Notas Fiscais');
+      exit;
+    end;
+    funcoes.Mensagem(Application.Title, '', 15, '',False, 0, clBlack, true);
+  except
+    funcoes.Mensagem(Application.Title, '', 15, '',False, 0, clBlack, true);
+  end;
+
+  form79 := tform79.Create(self);
+  form79.ShowModal;
+  form79.free;
+
+  //funcoes.emiteNfe('', false);
 end;
 
 procedure TForm2.StatusdoServoo1Click(Sender: TObject);
@@ -12553,7 +12582,7 @@ begin
     end;
 
   fornec := dm.IBselect.fieldbyname('venda').AsString;
-  funcoes.cancelamentoDeNota(fornec);
+  //funcoes.cancelamentoDeNota(fornec);
 
   sim := funcoes.dialogo('generico',0,'SN'+#8,0,false,'S','Control For Windows','Confirma Cancelamento da Entrada da Ordem de Servico ?','S') ;
   if ((sim = '*') or (sim = 'N')) then exit;
@@ -13920,10 +13949,13 @@ end;
 
 procedure TForm2.CancelarPorNmerodeNFCe1Click(Sender: TObject);
 var
-  Justificativa : String;
+  Justificativa, serie1 : String;
 begin
-  nota := funcoes.dialogo('not',0,'1234567890'+#8+#32,50,true,'',Application.Title,'Qual o Número da NFCe?','');
+  nota := funcoes.dialogo('not',0,'1234567890'+#8+#32,100,true,'',Application.Title,'Qual o Número da NFCe?','');
   if nota = '*' then exit;
+
+   serie1 := funcoes.dialogo('not',0,'1234567890'+#8+#32,50,true,'',Application.Title,'Qual a Série ?', IntToStr(serie2));
+  if serie1 = '*' then exit;
 
   Justificativa := '';
 
@@ -13940,7 +13972,7 @@ begin
     funcoes.Mensagem(Application.Title ,'Aguarde, Cancelando NFCe...',15,'Courier New',false,2,clred, false);
     Application.ProcessMessages;
    try
-     Cancelamento_NFePorNNF(nota, Justificativa);
+     Cancelamento_NFePorNNF(nota, Justificativa, serie1);
    except
      on e:exception do
        begin

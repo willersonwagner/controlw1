@@ -267,11 +267,13 @@ end;
 procedure Tacerto.abreDataSet(const cod : string = '');
 begin
   dm.IBQuery4.Close;
-  dm.IBQuery4.SQL.Text := 'select a.CODIGO, p.nome, a.QUANT as estoque, a.DEPOSITO, u.nome as usuario from acerto a left join produto p on (a.codigo = p.cod) left join  ' +
+  dm.IBQuery4.SQL.Text := 'select a.CODIGO, p.nome, a.QUANT as estoque, a.DEPOSITO, u.nome as usuario, a.ACERTO_SEQ from acerto a left join produto p on (a.codigo = p.cod) left join  ' +
   ' usuario u on (u.cod = a.usuario) where a.documento = :cod';
   dm.IBQuery4.ParamByName('cod').AsString := IfThen(cod <> '', cod, DOCUMENTO.Text);
   dm.IBQuery4.Open;
   dm.IBQuery4.Last;
+
+  dm.IBQuery4.FieldByName('ACERTO_SEQ').Visible := false;
 
   funcoes.FormataCampos(dm.IBQuery4, 3, '', 3);
 
@@ -311,7 +313,7 @@ procedure Tacerto.deletaAcerto();
 var
   quant2, depo1 : currency;
   sim           : string;
-  codig1        : integer;
+  codig1, codseq        : integer;
 begin
   sim := funcoes.dialogo('generico',0,'SN'+#8,0,false,'S','Control For Windows','Deseja Excluir Este Lançamento ? S/N:' + #13 + dm.IBQuery4.fieldbyname('codigo').AsString + ' - ' + dm.IBQuery4.fieldbyname('nome').AsString,'N') ;
   if ((sim = '*') or (sim = 'N')) then exit;
@@ -319,6 +321,7 @@ begin
   quant2   := dm.IBQuery4.fieldbyname('estoque').AsCurrency;
   depo1    := dm.IBQuery4.fieldbyname('deposito').AsCurrency;
   codig1   := dm.IBQuery4.fieldbyname('codigo').AsInteger ;
+  codseq   := dm.IBQuery4.fieldbyname('ACERTO_SEQ').AsInteger ;
 
   dm.IBQuery1.Close;
   dm.IBQuery1.SQL.Text := 'update produto set quant = quant - :quant, deposito = deposito - :depo where cod = :cod';
@@ -328,9 +331,8 @@ begin
   dm.IBQuery1.ExecSQL;
 
   dm.IBQuery1.Close;
-  dm.IBQuery1.SQL.Text := 'delete from acerto where (documento = :doc) and (codigo = :cod)';
-  dm.IBQuery1.ParamByName('doc').AsString     := DOCUMENTO.Text;
-  dm.IBQuery1.ParamByName('cod').AsInteger    := codig1;
+  dm.IBQuery1.SQL.Text := 'delete from acerto where (ACERTO_SEQ = :cod)';
+  dm.IBQuery1.ParamByName('cod').AsInteger    := codseq;
   dm.IBQuery1.ExecSQL;
   dm.IBQuery1.Transaction.Commit;
   abreDataSet();

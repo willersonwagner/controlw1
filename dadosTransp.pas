@@ -49,11 +49,13 @@ type
     procedure brutoKeyPress(Sender: TObject; var Key: Char);
     procedure liqKeyPress(Sender: TObject; var Key: Char);
     procedure nVolKeyPress(Sender: TObject; var Key: Char);
+    procedure FormCreate(Sender: TObject);
   private
     lista : TStringList;
     procedure preencheDados();
     { Private declarations }
   public
+    frete : TStringList;
     { Public declarations }
   end;
 
@@ -198,6 +200,11 @@ begin
   jsedit.LiberaMemoria(self);
 end;
 
+procedure TForm43.FormCreate(Sender: TObject);
+begin
+  frete := TStringList.Create;
+end;
+
 procedure TForm43.preencheDados();
 begin
 {if codtransp.Text = '' then
@@ -212,15 +219,33 @@ begin
       dm.IBQuery1.ParamByName('cod').AsString := strnum(codtransp.Text);
       dm.IBQuery1.Open;
 
-      {if dm.IBQuery1.IsEmpty then
-        begin
-          dm.IBQuery1.Close;
-          ShowMessage('A Transportadora '+ codtransp.Text + ' Não foi Encontrado');
-          exit;
-        end;}
+      //1
+      frete.Values['1'] := (trim(dm.IBQuery1.fieldbyname('nome').AsString));
+      frete.Values['2'] := (dm.IBQuery1.fieldbyname('tipo').AsString);
+      frete.Values['3'] := (funcoes.StrNum(dm.IBQuery1.fieldbyname('cnpj').AsString));
+      frete.Values['4'] := (funcoes.StrNum(dm.IBQuery1.fieldbyname('cpf').AsString));
+      frete.Values['5'] := (funcoes.StrNum(dm.IBQuery1.fieldbyname('ies').AsString));
+      frete.Values['6'] := (dm.IBQuery1.fieldbyname('endereco').AsString);
+      frete.Values['7'] := (dm.IBQuery1.fieldbyname('cid').AsString);
+      frete.Values['8'] := (dm.IBQuery1.fieldbyname('est').AsString);
+      frete.Values['9'] := (copy(dm.IBQuery1.fieldbyname('fone').AsString,1,12));
+      //9
+
+
+      frete.Values['10'] := (antt.Text);
+      frete.Values['11'] := (placa.Text);
+      frete.Values['12'] := (estado.Text);
+      frete.Values['13'] := (qtd.Text);
+      frete.Values['14'] := (especie.Text);
+      frete.Values['15'] := (marca.Text);
+      frete.Values['16'] := (funcoes.ConverteNumerico(liq.Text));
+      frete.Values['17'] := (funcoes.ConverteNumerico(bruto.Text));
+      frete.Values['18'] := (nVol.Text);
+
 
       //ja adicionou o tipo do frete e criou a lista
 
+      try
       //1
       nfevenda.frete.Values['1'] := (trim(dm.IBQuery1.fieldbyname('nome').AsString));
       nfevenda.frete.Values['2'] := (dm.IBQuery1.fieldbyname('tipo').AsString);
@@ -243,6 +268,9 @@ begin
       nfevenda.frete.Values['16'] := (funcoes.ConverteNumerico(liq.Text));
       nfevenda.frete.Values['17'] := (funcoes.ConverteNumerico(bruto.Text));
       nfevenda.frete.Values['18'] := (nVol.Text);
+      except
+
+      end;
       //nfevenda.temp.Add(codtransp.Text);
       dm.IBQuery1.Close;
       close;

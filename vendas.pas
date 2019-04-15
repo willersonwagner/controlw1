@@ -7,7 +7,7 @@ uses
   Dialogs, Mask, JsEditData1, StdCtrls, JsEdit1, ExtCtrls, Buttons, Grids,
   DBGrids, DB, IBQuery, IBCustomDataSet, ComCtrls, JsEditNumero1,
   JsEditInteiro1,
-  DBClient, funcoesdav, provider, classes1, untnfceForm;
+  DBClient, funcoesdav, provider, classes1, untnfceForm, ACBrUtil;
 
 type
   Ptr_Item = ^Item_venda;
@@ -160,6 +160,7 @@ type
     procedure gravaCompra;
     procedure RecuperaCompra(numCompra: string);
     procedure AddProdutoCDS_Compra(quanti, valor: currency);
+    procedure AddProdutoCDS_Generico(cod : integer;quanti, valor: currency);
     function somaDescontoVendaCDS: currency;
     function AdicionaListaSmall: boolean;
     procedure ordenaDatasetPorCampoBdgrid(campo, valor: String);
@@ -331,7 +332,7 @@ begin
     dm.IBQuery1.Transaction.commit;
   dm.IBQuery1.Transaction.StartTransaction;
 
-  baixaProdutosDeOrdemDeServicos(false);
+  //baixaProdutosDeOrdemDeServicos(false);
   // primeiro baixa os produtos do estoque
 
   vende := '';
@@ -1145,6 +1146,46 @@ begin
     ClientDataSet1.First;
     ClientDataSet1.EnableControls;
   end;
+end;
+
+procedure TForm20.AddProdutoCDS_Generico(cod : integer;quanti, valor: currency);
+begin
+  if DBGrid1.DataSource.DataSet.Locate('cod', cod, []) = false then begin
+    MessageDlg('Produto Código ' + IntToStr(cod) + ' Não Foi Encontrado!', mtInformation, [mbok], 1);
+    exit;
+  end;
+
+  if buscaProdutoCDS(IntToStr(cod),valor, '', 0) then begin
+    ClientDataSet1.Open;
+    ClientDataSet1.Edit;
+    ClientDataSet1QUANT.AsCurrency := ClientDataSet1QUANT.AsCurrency + quanti;
+    ClientDataSet1TOTAL.AsCurrency := ClientDataSet1TOTAL.AsCurrency + trunca(quanti * valor, 2);
+    ClientDataSet1TOT_ORIGI2.AsCurrency := ClientDataSet1TOT_ORIGI2.AsCurrency + trunca(quanti * dm.produto.FieldByName('preco').AsCurrency, 2);
+    ClientDataSet1.Post;
+
+    ClientDataSet1.IndexFieldNames := 'cod_seq';
+  end
+  else begin
+    ClientDataSet1.Open;
+    ClientDataSet1.Insert;
+    ClientDataSet1minimo.AsCurrency  := valor;
+    ClientDataSet1CODIGO.AsInteger   := dm.produto.FieldByName('cod').AsInteger;
+    ClientDataSet1DESCRICAO.AsString := dm.produto.FieldByName('descricao').AsString;
+    ClientDataSet1Refori.AsString    := dm.produto.FieldByName('codbar').AsString;
+    ClientDataSet1QUANT.AsCurrency   := quanti;
+    ClientDataSet1PRECO.AsCurrency   := valor;
+    ClientDataSet1TOTAL.AsCurrency   := trunca(quanti * valor, 2);
+    ClientDataSet1PRECO_ORIGI.AsCurrency := dm.produto.FieldByName('preco').AsCurrency;
+    ClientDataSet1TOT_ORIGI2.AsCurrency  := trunca(quanti * dm.produto.FieldByName('preco').AsCurrency, 2);
+    ClientDataSet1cod_seq.AsInteger      := numReg;
+    ClientDataSet1vendedor.AsInteger     := StrToInt(strnum(JsEdit2.Text));
+    ClientDataSet1estado.AsString        := 'N';
+    ClientDataSet1.Post;
+  end;
+
+  ClientDataSet1.Close;
+  ClientDataSet1.Open;
+  ClientDataSet1.Last;
 end;
 
 procedure TForm20.AddProdutoCDS_Compra(quanti, valor: currency);
@@ -4914,14 +4955,28 @@ procedure TForm20.BuscaCodBar_F6_AutoPecas(busc4: String;
   tipoBusca1: String = '');
 var
   busca, metodo: string;
+  prodcodbar : TprodutoVendaCodBar;
 begin
   if busc4 = '' then
     busca := funcoes.dialogo('normal', 3, '', 60, true, '', 'ControlW',
       'Informe um Código:', '')
   else
     busca := busc4;
+
   if ((busca = '*') or (busca = '')) then
     exit;
+
+  if funcoes.buscaParamGeral(108, 'N') = 'S' then begin
+      if ((LeftStr(busca, 1) = '2') and (Length(busca) = 13) and (funcoes.buscaParamGeral(38, '3') <> '3')) then begin
+        prodcodbar     := le_codbar1(dm.IBQuery2, busca, funcoes.buscaParamGeral(38, '3'));
+
+        if prodcodbar.codbar <> '*' then begin
+          AddProdutoCDS_Generico(prodcodbar.cod, prodcodbar.quant, prodcodbar.preco);
+          exit;
+        end
+    end;
+  end;
+
 
   dm.produtotemp.Close;
   dm.produtotemp.SQL.Clear;
@@ -6526,7 +6581,7 @@ begin
     begin
       cliente := funcoes.localizar('Localizar Cliente', 'cliente',
         'cod,nome,telres,telcom,cnpj,bairro', 'cod,nome', '', 'nome', 'nome',
-        false, false, false, '', 0, Sender);
+        false, false, false, '', 0, nil);
       buscaNomeCliente;
       tedit(Sender).Text := copy(cliente, 0, pos('-', cliente) - 1);
       cliente := copy(cliente, pos('-', cliente) + 1, length(cliente));
@@ -8320,7 +8375,7 @@ end;
 procedure TForm20.AddSegundaClienteDataSet_antigo(quanti, valor: currency;
   nome: String = ''; m2: integer = 0);
 var
-  cod, busca: string;
+  cod, busca, cbar: string;
   v2, qtd, vtot, totProd, tmp: currency;
   fla, grupo, tam, cont: Smallint;
 begin

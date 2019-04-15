@@ -119,7 +119,6 @@ type
     FUNCTION IND_PRES(FIN_NFE2 : String) : String;
     function GerarNFeTexto(var arq : String) : AnsiString;
     function arrendondaNFe(valor : currency; deci : integer) : currency;
-    procedure CriaLista_De_itens_Venda(var lista : Tlist);
     function CampoString(ent : string) : string;
     procedure Fechar_Datasets_limpar_Listas_e_variaveis;
     Function ValidarNfe(Caminho : string) : string;
@@ -158,18 +157,19 @@ type
     dest,nota,cod_OP,natOp,cUF_Emit,chaveNF
     , DigiVerifi,tipo, cstIcmCfop,cstpisCfop
     , infAdic, codNFe, nfeTemp, codPaisDest
-    , DEST_NFE, _ORIGEM, FIN_NFE1, NFE_REF, TAG_DOCREF : string;
+    , DEST_NFE, _ORIGEM, FIN_NFE1, NFE_REF, TAG_DOCREF, situacao : string;
     ICMSSN : currency;
     notas, frete, temp : TStringList;
     espera : boolean;
     tipo_frete, cupom : integer;
     TotalFrete, VLR_DESP : currency;
-    pasta_Acbr, UF_EMI, UF_DEST, IND_FINAL, indIEDest, nodoFAT : String;
+    pasta_Acbr, UF_EMI, UF_DEST, IND_FINAL, indIEDest, nodoFAT, ambienteProducao1homologacao2,
+    generator : String;
     //versao : String;
+    procedure CriaLista_De_itens_Venda(var lista : Tlist);
     function abreDataSetIBselectPelaChave(chave : String) : boolean;
     function achaQTD(const preco, total : currency) : currency;
-    function GeraXml1
-     : String;
+    function GeraXml1 : String;
     procedure enviarPorEmail(chave : String = '');
     function ExportarNotasEmitidas(nfe : string) : string;
     function ExportarNotasEmitidas1(nfe : string; email : boolean = false; ini : string = ''; fim : string = '') : string;
@@ -192,7 +192,7 @@ type
     function StatusServico1 : string;
     function CancelamentoNFe : string;
     function CancelamentoNFe1 : string;
-    function ManifestarNFe(chave, tipo, just : string) : string;
+    function ManifestarNFe(chave, tipo, just : string; msg : boolean = true) : string;
     function ConsultarNFe : string;
     function ConsultarNFe1(nf1 : String = '') : string;
     function cartaDeCorrecao : string;
@@ -3008,7 +3008,8 @@ begin
 end;
 
 Procedure TNfeVenda.LerDados_Emit_Dest(codDest : string);
- var i : integer;
+ var
+   i : integer;
 begin
   dm.IBselect.Close;
   dm.IBselect.SQL.Clear;
@@ -3018,7 +3019,10 @@ begin
   dadosEmitente := TStringList.Create;
   dadosDest := TStringList.Create;
 
-  if recuperando = true then codNFe := Incrementa_Generator('nfe', 0);
+  if dm.ACBrNFe.Configuracoes.WebServices.Ambiente = taProducao then generator := 'NFE'
+  else generator := 'NFEHOMOLOGA';
+
+  if recuperando = true then codNFe := Incrementa_Generator(generator, 0);
 
   dadosEmitente.Values['cod_mun'] := dm.IBselect.fieldbyname('cod_mun').AsString;
   dadosEmitente.Values['ies']     := funcoes.StrNum(dm.IBselect.fieldbyname('ies').AsString);
@@ -3594,8 +3598,7 @@ begin
                         'Aliquota: ' + query1.fieldbyname('aliquota').AsString + #13 +
                         'Unid    : ' + query1.fieldbyname('unid').AsString+ #13 + #13 +
                         'Deseja Abrir Cadastro de Produtos ?', mtConfirmation, [mbYes, mbNo], 1);
-             if tem = idyes then
-               begin
+             if tem = idyes then begin
                  form9 := TForm9.Create(self);
                  form9.RecuperarCadastro := true;
                  form9.cod.Text      := query1.fieldbyname('cod').AsString;
@@ -3875,6 +3878,17 @@ begin
       end;
   end;
 
+  situacao := '';
+
+    if      ambienteProducao1homologacao2 = '1' then dm.ACBrNFe.Configuracoes.WebServices.Ambiente := taProducao
+    else if ambienteProducao1homologacao2 = '2' then dm.ACBrNFe.Configuracoes.WebServices.Ambiente := taHomologacao;
+
+  { if dm.ACBrNFe.Configuracoes.WebServices.Ambiente = taProducao then begin
+     ShowMessage('producao exit');
+     exit;
+   end;}
+
+
    carregaConfigsNFe;
    recuperando := false;
 
@@ -4012,6 +4026,7 @@ begin
                   begin
                     if Contido(' [chNFe:', e.Message) then
                       begin
+                        ShowMessage('cStat=' + IntToStr(csta) + #13 + 'generator=' + generator);
                         trataDuplicidadeNFe(e.Message, true);
 
                         erro_dados := '';
@@ -4055,12 +4070,13 @@ begin
 
     if Contido('-' + IntToStr(csta) + '-', '-100-110-205-301-302-') then//((csta = 301) or (csta = 302) or (csta = 110)) then
       begin
-        ci := 'E';
+        ci       := 'E';
+        situacao := 'E';
         if Contido('-' + IntToStr(csta) + '-', '-110-205-301-302-') then ci := 'D';
 
         ACBrNFe.NotasFiscais[0].GravarXML(ExtractFileName(arq),ExtractFileDir(arq) + '\');
 
-        reStartGenerator('NFE', ACBrNFe.NotasFiscais[0].NFe.Ide.nNF + 1);
+        reStartGenerator(generator, ACBrNFe.NotasFiscais[0].NFe.Ide.nNF + 1);
         insereRegistroDaNotaNaTabelaNFE(IntToStr(ACBrNFe.NotasFiscais[0].NFe.Ide.nNF), chaveNF, ci, ACBrNFe.NotasFiscais[0].NFe.Ide.dEmi, arq);
         AtualizaCfop(cod_op);
 
@@ -4089,6 +4105,7 @@ begin
         if funcoes.buscaParamGeral(85, 'S') = 'S' then begin
           enviarPorEmail(chaveNF);
         end;
+
         csta := 0;
       end;
 
@@ -4524,8 +4541,7 @@ begin
       exit;
     end;}
 
-  if chavb.nnf = strtoint(Incrementa_Generator('nfe', 0)) then Incrementa_Generator('nfe', 1);
-  //reStartGenerator('nfe', chavb.nnf + 1);
+  if chavb.nnf = strtoint(Incrementa_Generator(generator, 0)) then Incrementa_Generator(generator, 1);
 
   if FileExists(pastaControlW+ 'nfe\emit\' + chavb.chave + '-nfe.xml') then begin
 
@@ -4715,7 +4731,12 @@ begin
   if dm.ACBrNFe.Configuracoes.WebServices.Ambiente = taHomologacao then begin
     Result := detBoleto;
     exit;
-  end;                                        }
+  end;
+
+                                        }
+
+  if True then
+
 
   tmp := 0;
   Result := '<pag>';
@@ -4731,13 +4752,14 @@ begin
 
   Result := Result + '</pag>';
 
-
-    {  Result := '<pag>'+
+  if tmp <= 0 then begin
+     Result := '<pag>'+
                 '<detPag>'+
                   '<tpag>'+tpag+'</tpag>'+
                   '<vpag>' + Format_num(TOTAL) +  '</vpag>' +
                 '</detPag>' +
-                '</pag>';}
+                '</pag>';
+  end;
 
 end;
 
@@ -4760,11 +4782,12 @@ begin
   end;
 end;
 
-function TNfeVenda.ManifestarNFe(chave, tipo, just : string) : string;
+function TNfeVenda.ManifestarNFe(chave, tipo, just : string; msg : boolean = true) : string;
 var
   CNPJ, cstat, tpstring, xJust : String;
 begin
-  xJust := '';
+  xJust  := '';
+  Result := '*';
   dm.IBQuery2.Close;
   dm.IBQuery2.SQL.Text := 'select cnpj from registro';
   dm.IBQuery2.Open;
@@ -4817,7 +4840,8 @@ begin
       except
         on e:exception do
           begin
-            ShowMessage(e.Message);
+            if msg then ShowMessage(e.Message);
+            Result := 'Erro: ' + e.Message;
             exit;
           end;
       end;
@@ -4831,18 +4855,21 @@ begin
       dm.IBQuery1.ExecSQL;
       dm.IBQuery1.Transaction.Commit;
 
-      ShowMessage('NFe Manifestada Com Sucesso!' + #13 + 'cStat: ' + cstat + #13 +
+      Result := 'OK';
+      if msg then ShowMessage('NFe Manifestada Com Sucesso!' + #13 + 'cStat: ' + cstat + #13 +
       'xMotivo: ' + ACBrNFe.WebServices.EnvEvento.EventoRetorno.retEvento.Items[0].RetInfEvento.xMotivo + #13 +
       'Tipo: ' + tpstring);
 
-      cstat := funcoes.dialogo('generico',0,'SN'+#8,0,false,'S','Control For Windows','Deseja Imprimir o Evento de Manifestação ?S/N:','N') ;
+      if msg then cstat := funcoes.dialogo('generico',0,'SN'+#8,0,false,'S','Control For Windows','Deseja Imprimir o Evento de Manifestação ?S/N:','N') ;
       if cstat = 'S' then begin
         ACBrNFe.DANFE := DANFE_Rave;
         ACBrNFe.ImprimirEvento;
       end;
     end
     else begin
-      ShowMessage('Ocorreu um Erro: ' + #13 + 'cStat: ' + cstat + #13 +
+      Result := 'Erro: ' + ACBrNFe.WebServices.EnvEvento.EventoRetorno.retEvento.Items[0].RetInfEvento.xMotivo + #13 +
+      'cStat: ' + cstat + #13 + 'Tipo: ' + tpstring;
+      if msg then ShowMessage('Ocorreu um Erro: ' + #13 + 'cStat: ' + cstat + #13 +
       'xMotivo: ' + ACBrNFe.WebServices.EnvEvento.EventoRetorno.retEvento.Items[0].RetInfEvento.xMotivo + #13 +
       'Tipo: ' + tpstring);
     end;

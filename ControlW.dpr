@@ -112,7 +112,9 @@ uses
   Unit73 in 'Unit73.pas' {Form73},
   Unit74 in 'Unit74.pas' {Form74},
   Unit75 in 'Unit75.pas' {Form75},
-  Unit77 in 'Unit77.pas' {Form77};
+  Unit77 in 'Unit77.pas' {Form77},
+  Unit78 in 'Unit78.pas' {Form78},
+  dadosnfe in 'dadosnfe.pas' {Form79};
 
 {$R *.res}
 
@@ -132,6 +134,8 @@ begin
   Application.CreateForm(TForm73, Form73);
   Application.CreateForm(TForm74, Form74);
   Application.CreateForm(TForm75, Form75);
+  //Application.CreateForm(TForm79, Form79);
+  //Application.CreateForm(TForm78, Form78);
   //Application.CreateForm(TForm77, Form77);
   //Application.CreateForm(TconsultaCNPJ, consultaCNPJ);
   //Application.CreateForm(TForm71, Form71);

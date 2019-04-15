@@ -13,7 +13,7 @@ uses
   FireDAC.Stan.Option, FireDAC.Stan.Error, FireDAC.Phys.Intf, FireDAC.Stan.Def,
   FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys, FireDAC.Phys.FB,
   FireDAC.Phys.PG, FireDAC.Phys.Oracle, FireDAC.Comp.Client, StdCtrls, Controls, Windows, Messages, Variants,
-  Graphics, IBX.IBScript;
+  Graphics, IBX.IBScript, ACBrDFeReport, ACBrDFeDANFeReport;
 
 
 type
