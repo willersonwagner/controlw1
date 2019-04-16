@@ -42,6 +42,7 @@ type
     GroupBox7: TGroupBox;
     Label13: TLabel;
     tipoEmissao: TEdit;
+    Label8: TLabel;
     procedure notaKeyPress(Sender: TObject; var Key: Char);
     procedure numnfKeyPress(Sender: TObject; var Key: Char);
     procedure clienteKeyPress(Sender: TObject; var Key: Char);
@@ -118,9 +119,22 @@ procedure TForm79.ButBaixarClick(Sender: TObject);
 var
   situacao : String;
 begin
-  if verificaSeExisteVendaValidaComNumeracao = false then exit;
+  try
+    if verificaSeExisteVendaValidaComNumeracao = false then exit;
+  except
+    on e:exception do begin
+      ShowMessage('erro126: ' + e.Message);
+      exit;
+    end;
+  end;
 
-  atualizaNumeracaoGeneratorTela;
+  try
+     atualizaNumeracaoGeneratorTela;
+    except
+    on e:exception do begin
+      ShowMessage('erro134: ' + e.Message);
+    end;
+  end;
 
   dm.IBQuery2.Close;
   dm.IBQuery2.SQL.Clear;
@@ -134,35 +148,47 @@ begin
     natOP1 := '999 - Estorno de NF-e não cancelada no prazo legal';
   end;
 
-  NfeVenda := tnfevenda.Create(self);
-  NfeVenda.cstIcmCfop  := dm.IBQuery2.FieldByName('icms').AsString;
-  NfeVenda.cstpisCfop  := dm.IBQuery2.FieldByName('pis').AsString;
-  NfeVenda.natOp       := natOP1;
+  try
+    NfeVenda := tnfevenda.Create(self);
+    NfeVenda.cstIcmCfop  := dm.IBQuery2.FieldByName('icms').AsString;
+    NfeVenda.cstpisCfop  := dm.IBQuery2.FieldByName('pis').AsString;
+    NfeVenda.natOp       := natOP1;
 
-  NfeVenda.cupom := cupom;
-  NfeVenda.DEST  := Cliente.Text;
-  NfeVenda.frete := frete;
+    NfeVenda.cupom := cupom;
+    NfeVenda.DEST  := Cliente.Text;
+    NfeVenda.frete := frete;
 
-  NfeVenda.frete.Values['0'] := funcoes.StrNum(FretePorConta.Text);
-  NfeVenda.tipo_frete := StrToInt(funcoes.StrNum(FretePorConta.Text));
-  NfeVenda.TotalFrete := 0;
-  if FretePorConta.Text <> '9' then NfeVenda.TotalFrete := StrToCurr(funcoes.ConverteNumerico(vFrete));
+    NfeVenda.frete.Values['0'] := funcoes.StrNum(FretePorConta.Text);
+    NfeVenda.tipo_frete := StrToInt(funcoes.StrNum(FretePorConta.Text));
+    NfeVenda.TotalFrete := 0;
+    if FretePorConta.Text <> '9' then NfeVenda.TotalFrete := StrToCurr(funcoes.ConverteNumerico(vFrete));
+   except
+    on e:exception do begin
+      ShowMessage('erro166: ' + e.Message);
+    end;
+  end;
 
-  NfeVenda.UF_EMI      := UF_EMI;
-  NfeVenda.UF_DEST     := UF_DEST;
-  NfeVenda.VLR_DESP    := despAcessorias.getValor;
-  NfeVenda.codNFe      := numnf.Text;
-  NfeVenda.cod_OP      := cfop.Text;
-  NfeVenda.codPaisDest := COD_PAIS;
+  try
+    NfeVenda.UF_EMI      := UF_EMI;
+    NfeVenda.UF_DEST     := UF_DEST;
+    NfeVenda.VLR_DESP    := despAcessorias.getValor;
+    NfeVenda.codNFe      := numnf.Text;
+    NfeVenda.cod_OP      := cfop.Text;
+    NfeVenda.codPaisDest := COD_PAIS;
 
-  NfeVenda.tipo        := tiponfe.Text;
-  NfeVenda.DEST_NFE    := destMercadoria.Text;
-  NfeVenda.infAdic     := dadosAdic.Text;
-  NfeVenda.notas       := notas;
-  NfeVenda._ORIGEM     := origemmercadoria.Text;
-  NfeVenda.FIN_NFE1    := finnfe.Text;
-  NfeVenda.TAG_DOCREF  := TAG_DOCREF;
-  NfeVenda.NFE_REF     := StrNum(NFE_REF);
+    NfeVenda.tipo        := tiponfe.Text;
+    NfeVenda.DEST_NFE    := destMercadoria.Text;
+    NfeVenda.infAdic     := dadosAdic.Text;
+    NfeVenda.notas       := notas;
+    NfeVenda._ORIGEM     := origemmercadoria.Text;
+    NfeVenda.FIN_NFE1    := finnfe.Text;
+    NfeVenda.TAG_DOCREF  := TAG_DOCREF;
+    NfeVenda.NFE_REF     := StrNum(NFE_REF);
+   except
+    on e:exception do begin
+      ShowMessage('erro188: ' + e.Message);
+    end;
+  end;
 
   try
     nfevenda.ambienteProducao1homologacao2 := tipoEmissao.Text;
@@ -517,12 +543,34 @@ var
   ini, fim, i : integer;
   item : Item_venda;
 begin
-  if verificaSeExisteVendaValidaComNumeracao = false then exit;
+  try
+    if verificaSeExisteVendaValidaComNumeracao = false then exit;
+  except
+    on e:exception do begin
+      ShowMessage('erro 552: ' + e.Message);
+      exit;
+    end;
+  end;
 
-  NfeVenda := TNfeVenda.Create(self);
-  NfeVenda.notas := notas;
+  try
+    NfeVenda := TNfeVenda.Create(self);
+    NfeVenda.notas := notas;
+  except
+    on e:exception do begin
+      ShowMessage('erro 552: ' + e.Message);
+      exit;
+    end;
+  end;
 
-  NfeVenda.CriaLista_De_itens_Venda(lista);
+
+  try
+    NfeVenda.CriaLista_De_itens_Venda(lista);
+  except
+    on e:exception do begin
+      ShowMessage('erro 562: ' + e.Message);
+      exit;
+    end;
+  end;
 
   dsproduto := TClientDataSet.Create(self);
   dsproduto.FieldDefs.Add('cod', ftInteger);
@@ -880,7 +928,7 @@ begin
 
   if i = 0 then begin
     ShowMessage('Não Existe Vendas Com essa Numeração!');
-    notas.Free;
+    notas.Clear;
     exit;
   end
   else begin

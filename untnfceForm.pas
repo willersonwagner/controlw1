@@ -6847,7 +6847,7 @@ begin
   dadosEmitente.Free;
   dadosDest.Free;
   ACBrNFe.NotasFiscais.Clear;
-  listaPagamentos.Free;
+  //listaPagamentos.Free;
 end;
 
 function verificaExisteNFCe(const nota2: String;

@@ -84,6 +84,19 @@ object Form79: TForm79
     Font.Style = [fsBold]
     ParentFont = False
   end
+  object Label8: TLabel
+    Left = 150
+    Top = 359
+    Width = 116
+    Height = 16
+    Caption = 'F3-Salva F4-Limpa'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentFont = False
+  end
   object nota: TEdit
     Left = 5
     Top = 20
@@ -136,10 +149,10 @@ object Form79: TForm79
     TabOrder = 12
     object Label12: TLabel
       Left = 198
-      Top = 15
-      Width = 234
+      Top = 10
+      Width = 114
       Height = 16
-      Caption = 'F2 - Ver Produtos F3-Salva F4-Limpa'
+      Caption = 'F2 - Ver Produtos'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -13

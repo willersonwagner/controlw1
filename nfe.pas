@@ -3423,10 +3423,24 @@ begin
   totalNotaORIGI := 0;
   lista := TList.Create;
 
-  fim := notas.Count - 1 ;
+  try
+    fim := notas.Count - 1 ;
+  except
+    on e:exception do begin
+      ShowMessage('erro 3429: ' + e.Message);
+      exit;
+    end;
+  end;
 
-  if not assigned(listaPagamentos) then listaPagamentos := TItensPISCOFINS.Create;
-  listaPagamentos.Clear;
+  try
+    if not assigned(listaPagamentos) then listaPagamentos := TItensPISCOFINS.Create;
+    listaPagamentos.Clear;
+  except
+    on e:exception do begin
+      ShowMessage('erro 3433: ' + e.Message);
+      exit;
+    end;
+  end;
 
   for i := 0 to fim do
     begin
@@ -4026,7 +4040,7 @@ begin
                   begin
                     if Contido(' [chNFe:', e.Message) then
                       begin
-                        ShowMessage('cStat=' + IntToStr(csta) + #13 + 'generator=' + generator);
+                        //ShowMessage('cStat=' + IntToStr(csta) + #13 + 'generator=' + generator);
                         trataDuplicidadeNFe(e.Message, true);
 
                         erro_dados := '';
@@ -4038,6 +4052,7 @@ begin
                             MessageDlg('O Sistema Recuperou a NFe com Sucesso!', mtInformation, [mbOK], 1);
                             exit;
                           end;
+
 
                         Fechar_Datasets_limpar_Listas_e_variaveis;
                         xml1 := GerarNFeTexto(arq);
