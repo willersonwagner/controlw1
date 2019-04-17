@@ -3483,6 +3483,7 @@ begin
          if not query2.IsEmpty then
            begin
              p_venda := (IfThen(tipo = 'T', query2.fieldbyname('p_compra').AsCurrency, query1.fieldbyname('p_venda').AsCurrency));
+             p_venda := abs(p_venda);
 
              tem := ProcuraItemNaLista(lista, query1.fieldbyname('cod').AsInteger, p_venda);
              if tem <> -1 then

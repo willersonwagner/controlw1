@@ -64,6 +64,7 @@ type
     componente_a_retornar : JsEdit;
     procedure setmask();
     function validaDados() : boolean;
+    function buscaFornecedor() : boolean;
     { Private declarations }
   public
     valor_a_retornar : string;
@@ -263,6 +264,9 @@ procedure TForm8.cnpjKeyPress(Sender: TObject; var Key: Char);
 begin
   if key = #13 then
     begin
+      buscaFornecedor;
+
+
       ies.SetFocus;
     end;
 end;
@@ -335,6 +339,30 @@ begin
    end;
 
   Result := true;
+end;
+
+function TForm8.buscaFornecedor() : boolean;
+begin
+  Result := false;
+  if cod.Text <> '0' then exit;
+  if strnum(cnpj.Text) = '0' then exit;
+
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select * from FORNECEDOR where cnpj = :cnpj';
+  dm.IBselect.ParamByName('cnpj').AsString := cnpj.Text;
+  dm.IBselect.Open;
+
+  if dm.IBselect.IsEmpty then begin
+    dm.IBselect.Close;
+    exit;
+  end;
+
+  ShowMessage('Foi Encontrado um Fornecedor com o CNPJ ' + cnpj.Text + ' e o Sistema irá Recuperar o Cadastro!');
+  cod.Text := dm.IBselect.FieldByName('cod').AsString;
+
+  Result := true;
+  JsEdit.SelecionaDoBD(self.Name);
+  dm.IBselect.Close;
 end;
 
 end.

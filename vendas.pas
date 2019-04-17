@@ -160,7 +160,7 @@ type
     procedure gravaCompra;
     procedure RecuperaCompra(numCompra: string);
     procedure AddProdutoCDS_Compra(quanti, valor: currency);
-    procedure AddProdutoCDS_Generico(cod : integer;quanti, valor: currency);
+    procedure AddProdutoCDS_Generico(cod: integer; quanti, valor: currency);
     function somaDescontoVendaCDS: currency;
     function AdicionaListaSmall: boolean;
     procedure ordenaDatasetPorCampoBdgrid(campo, valor: String);
@@ -332,7 +332,7 @@ begin
     dm.IBQuery1.Transaction.commit;
   dm.IBQuery1.Transaction.StartTransaction;
 
-  //baixaProdutosDeOrdemDeServicos(false);
+  // baixaProdutosDeOrdemDeServicos(false);
   // primeiro baixa os produtos do estoque
 
   vende := '';
@@ -730,8 +730,7 @@ begin
     end;
 
     // fim := '-999999';
-    while true do
-    begin
+    while true do begin
       fim := funcoes.dialogo('numero', 3, '1234567890,.' + #8, 3, false, 'ok',
         'Control for Windows:', 'Confirme o Preço(Minimo: R$ ' +
         FormatCurr('#,###,###0.00', minimo) + ':', FormatCurr('###,##0.000',
@@ -749,14 +748,14 @@ begin
         break;
       end;
 
-      if (((temp1 >= minimo) and (temp1 <= p_venda)) or
+      if (((temp1 >= minimo) and (temp1 <= p_venda) and (temp1 > 0)) or
         ((temp1 > p_venda) and
         VerificaAcesso_Se_Nao_tiver_Nenhum_bloqueio_true_senao_false)) then
       begin
         break;
       end;
 
-      if ((temp1 < minimo) and
+      if ((temp1 < minimo) and (temp1 > 0) and
         (VerificaAcesso_Se_Nao_tiver_Nenhum_bloqueio_true_senao_false)) then
       begin
         break;
@@ -845,7 +844,26 @@ begin
       // ShowMessage('minimo=' + CurrToStr(minimo) + #13 + 'p_vendatemp=' +  CurrToStr(p_vendatemp) + 'p_venda=' + CurrToStr(p_venda) +
       // #13 + 'temp1=' + CurrToStr(temp1));
 
+
       if ((podeDarAcrescimo = 'S') and (temp1 > p_venda)) then
+      begin
+        break;
+      end;
+
+      if (((temp1 >= minimo) and (temp1 <= p_venda) and (temp1 > 0)) or
+        ((temp1 > p_venda) and
+        VerificaAcesso_Se_Nao_tiver_Nenhum_bloqueio_true_senao_false)) then
+      begin
+        break;
+      end;
+
+      if ((temp1 < minimo) and (temp1 > 0) and
+        (VerificaAcesso_Se_Nao_tiver_Nenhum_bloqueio_true_senao_false)) then
+      begin
+        break;
+      end;
+
+      {if ((podeDarAcrescimo = 'S') and (temp1 > p_venda)) then
         break;
       if (((temp1 >= minimo) and (temp1 <= p_venda)) or
         ((temp1 > p_venda) and
@@ -855,7 +873,7 @@ begin
       end;
       if ((temp1 < minimo) and
         (VerificaAcesso_Se_Nao_tiver_Nenhum_bloqueio_true_senao_false)) then
-        break;
+        break; }
 
     end;
 
@@ -1148,38 +1166,47 @@ begin
   end;
 end;
 
-procedure TForm20.AddProdutoCDS_Generico(cod : integer;quanti, valor: currency);
+procedure TForm20.AddProdutoCDS_Generico(cod: integer; quanti, valor: currency);
 begin
-  if DBGrid1.DataSource.DataSet.Locate('cod', cod, []) = false then begin
-    MessageDlg('Produto Código ' + IntToStr(cod) + ' Não Foi Encontrado!', mtInformation, [mbok], 1);
+  if DBGrid1.DataSource.DataSet.Locate('cod', cod, []) = false then
+  begin
+    MessageDlg('Produto Código ' + IntToStr(cod) + ' Não Foi Encontrado!',
+      mtInformation, [mbok], 1);
     exit;
   end;
 
-  if buscaProdutoCDS(IntToStr(cod),valor, '', 0) then begin
+  if buscaProdutoCDS(IntToStr(cod), valor, '', 0) then
+  begin
     ClientDataSet1.Open;
     ClientDataSet1.Edit;
     ClientDataSet1QUANT.AsCurrency := ClientDataSet1QUANT.AsCurrency + quanti;
-    ClientDataSet1TOTAL.AsCurrency := ClientDataSet1TOTAL.AsCurrency + trunca(quanti * valor, 2);
-    ClientDataSet1TOT_ORIGI2.AsCurrency := ClientDataSet1TOT_ORIGI2.AsCurrency + trunca(quanti * dm.produto.FieldByName('preco').AsCurrency, 2);
+    ClientDataSet1TOTAL.AsCurrency := ClientDataSet1TOTAL.AsCurrency +
+      trunca(quanti * valor, 2);
+    ClientDataSet1TOT_ORIGI2.AsCurrency := ClientDataSet1TOT_ORIGI2.AsCurrency +
+      trunca(quanti * dm.produto.FieldByName('preco').AsCurrency, 2);
     ClientDataSet1.Post;
 
     ClientDataSet1.IndexFieldNames := 'cod_seq';
   end
-  else begin
+  else
+  begin
     ClientDataSet1.Open;
     ClientDataSet1.Insert;
-    ClientDataSet1minimo.AsCurrency  := valor;
-    ClientDataSet1CODIGO.AsInteger   := dm.produto.FieldByName('cod').AsInteger;
-    ClientDataSet1DESCRICAO.AsString := dm.produto.FieldByName('descricao').AsString;
-    ClientDataSet1Refori.AsString    := dm.produto.FieldByName('codbar').AsString;
-    ClientDataSet1QUANT.AsCurrency   := quanti;
-    ClientDataSet1PRECO.AsCurrency   := valor;
-    ClientDataSet1TOTAL.AsCurrency   := trunca(quanti * valor, 2);
-    ClientDataSet1PRECO_ORIGI.AsCurrency := dm.produto.FieldByName('preco').AsCurrency;
-    ClientDataSet1TOT_ORIGI2.AsCurrency  := trunca(quanti * dm.produto.FieldByName('preco').AsCurrency, 2);
-    ClientDataSet1cod_seq.AsInteger      := numReg;
-    ClientDataSet1vendedor.AsInteger     := StrToInt(strnum(JsEdit2.Text));
-    ClientDataSet1estado.AsString        := 'N';
+    ClientDataSet1minimo.AsCurrency := valor;
+    ClientDataSet1CODIGO.AsInteger := dm.produto.FieldByName('cod').AsInteger;
+    ClientDataSet1DESCRICAO.AsString :=
+      dm.produto.FieldByName('descricao').AsString;
+    ClientDataSet1Refori.AsString := dm.produto.FieldByName('codbar').AsString;
+    ClientDataSet1QUANT.AsCurrency := quanti;
+    ClientDataSet1PRECO.AsCurrency := valor;
+    ClientDataSet1TOTAL.AsCurrency := trunca(quanti * valor, 2);
+    ClientDataSet1PRECO_ORIGI.AsCurrency := dm.produto.FieldByName('preco')
+      .AsCurrency;
+    ClientDataSet1TOT_ORIGI2.AsCurrency :=
+      trunca(quanti * dm.produto.FieldByName('preco').AsCurrency, 2);
+    ClientDataSet1cod_seq.AsInteger := numReg;
+    ClientDataSet1vendedor.AsInteger := StrToInt(strnum(JsEdit2.Text));
+    ClientDataSet1estado.AsString := 'N';
     ClientDataSet1.Post;
   end;
 
@@ -1298,7 +1325,7 @@ begin
     if dm.IBselect.FieldByName('quanti').AsCurrency - dm.IBselect.FieldByName
       ('quant').AsCurrency < 1 then
     begin
-      if messageDlg('Atenção! ' + dm.IBselect.FieldByName('nome').AsString +
+      if MessageDlg('Atenção! ' + dm.IBselect.FieldByName('nome').AsString +
         ' Sem Estoque, Recuperar?', mtConfirmation, [mbyes, mbNo], 0) = mrYes
       then
       begin
@@ -1388,7 +1415,7 @@ begin
 
     if funcoes.LerConfig(form22.Pgerais.Values['configu'], 9) = 'X' then
     begin
-      if messageDlg('Deseja Imprimir o Orçamento ?', mtConfirmation,
+      if MessageDlg('Deseja Imprimir o Orçamento ?', mtConfirmation,
         [mbyes, mbNo], 1) = idno then
         exit;
     end;
@@ -4955,7 +4982,7 @@ procedure TForm20.BuscaCodBar_F6_AutoPecas(busc4: String;
   tipoBusca1: String = '');
 var
   busca, metodo: string;
-  prodcodbar : TprodutoVendaCodBar;
+  prodcodbar: TprodutoVendaCodBar;
 begin
   if busc4 = '' then
     busca := funcoes.dialogo('normal', 3, '', 60, true, '', 'ControlW',
@@ -4966,17 +4993,22 @@ begin
   if ((busca = '*') or (busca = '')) then
     exit;
 
-  if funcoes.buscaParamGeral(108, 'N') = 'S' then begin
-      if ((LeftStr(busca, 1) = '2') and (Length(busca) = 13) and (funcoes.buscaParamGeral(38, '3') <> '3')) then begin
-        prodcodbar     := le_codbar1(dm.IBQuery2, busca, funcoes.buscaParamGeral(38, '3'));
+  if funcoes.buscaParamGeral(108, 'N') = 'S' then
+  begin
+    if ((LeftStr(busca, 1) = '2') and (length(busca) = 13) and
+      (funcoes.buscaParamGeral(38, '3') <> '3')) then
+    begin
+      prodcodbar := le_codbar1(dm.IBQuery2, busca,
+        funcoes.buscaParamGeral(38, '3'));
 
-        if prodcodbar.codbar <> '*' then begin
-          AddProdutoCDS_Generico(prodcodbar.cod, prodcodbar.quant, prodcodbar.preco);
-          exit;
-        end
+      if prodcodbar.codbar <> '*' then
+      begin
+        AddProdutoCDS_Generico(prodcodbar.cod, prodcodbar.quant,
+          prodcodbar.Preco);
+        exit;
+      end
     end;
   end;
-
 
   dm.produtotemp.Close;
   dm.produtotemp.SQL.Clear;
@@ -5274,29 +5306,30 @@ begin
     exit;
   end;
 
-  if lim_compra > 0 then begin
-    if lim_compra > total_devendo then begin
+  if lim_compra > 0 then
+  begin
+    if lim_compra > total_devendo then
+    begin
       WWMessage(
-            'Este cliente tem um restante de limite para Compra de apenas R$ ' +
-            FormatCurr('#,###,###0.00', lim_compra - total_devendo) + '.' + #13
-            + #13 + 'Limite Compra:' + funcoes.CompletaOuRepete('',
-            FormatCurr('#,###,###0.00', lim_compra), ' ', 10) + #13 +
-            'Limite Atraso:' + funcoes.CompletaOuRepete('',
-            FormatCurr('#,###,###0.00', lim_atraso), ' ', 10) + #13 +
-            'Total Compras:' + funcoes.CompletaOuRepete('',
-            FormatCurr('#,###,###0.00', total_devendo), ' ', 10) + #13 +
-            'Total Atrasos:' + funcoes.CompletaOuRepete('',
-            FormatCurr('#,###,###0.00', total_atraso), ' ', 10), mtInformation,
-            [mbok], HexToTColor('FFD700'), true, false, HexToTColor('B22222'));
-          WWMessage('Esta Venda está Sendo Autorizada com Valor Até: R$ ' +
-            FormatCurr('#,###,###0.00', lim_compra - total_devendo),
-            mtInformation, [mbok], HexToTColor('FFD700'), true, false,
-            HexToTColor('B22222'));
-          Result := lim_compra - total_devendo;
-          Form20.Caption := Form20.Caption + ' ' + '(Venda Limitada R$ ' +
-            FormatCurr('#,###,###0.00', Result) + ')';
-          exit;
-      end;
+        'Este cliente tem um restante de limite para Compra de apenas R$ ' +
+        FormatCurr('#,###,###0.00', lim_compra - total_devendo) + '.' + #13 +
+        #13 + 'Limite Compra:' + funcoes.CompletaOuRepete('',
+        FormatCurr('#,###,###0.00', lim_compra), ' ', 10) + #13 +
+        'Limite Atraso:' + funcoes.CompletaOuRepete('',
+        FormatCurr('#,###,###0.00', lim_atraso), ' ', 10) + #13 +
+        'Total Compras:' + funcoes.CompletaOuRepete('',
+        FormatCurr('#,###,###0.00', total_devendo), ' ', 10) + #13 +
+        'Total Atrasos:' + funcoes.CompletaOuRepete('',
+        FormatCurr('#,###,###0.00', total_atraso), ' ', 10), mtInformation,
+        [mbok], HexToTColor('FFD700'), true, false, HexToTColor('B22222'));
+      WWMessage('Esta Venda está Sendo Autorizada com Valor Até: R$ ' +
+        FormatCurr('#,###,###0.00', lim_compra - total_devendo), mtInformation,
+        [mbok], HexToTColor('FFD700'), true, false, HexToTColor('B22222'));
+      Result := lim_compra - total_devendo;
+      Form20.Caption := Form20.Caption + ' ' + '(Venda Limitada R$ ' +
+        FormatCurr('#,###,###0.00', Result) + ')';
+      exit;
+    end;
   end;
 
   if total_atraso > 0 then
@@ -5321,42 +5354,41 @@ begin
       exit;
     end;
 
-    //ShowMessage('lim_atraso=' + CurrToStr(lim_atraso) + #13 + 'total_atraso=' + CurrToStr(total_atraso));
+    // ShowMessage('lim_atraso=' + CurrToStr(lim_atraso) + #13 + 'total_atraso=' + CurrToStr(total_atraso));
     if lim_atraso + lim_compra <> 0 then
     begin
       Result := lim_atraso - total_atraso;
       // se o restante do limite em atraso vai ser  maior que o limite de compra
-      if lim_atraso > total_atraso then begin
-          WWMessage(
-            'Este cliente tem um restante de limite para COMPRA de apenas R$ ' +
-            FormatCurr('#,###,###0.00', lim_atraso - total_atraso) + '.' + #13
-            + #13 + 'Limite Compra:' + funcoes.CompletaOuRepete('',
-            FormatCurr('#,###,###0.00', lim_compra), ' ', 10) + #13 +
-            'Limite Atraso:' + funcoes.CompletaOuRepete('',
-            FormatCurr('#,###,###0.00', lim_atraso), ' ', 10) + #13 +
-            'Total Compras:' + funcoes.CompletaOuRepete('',
-            FormatCurr('#,###,###0.00', total_devendo), ' ', 10) + #13 +
-            'Total Atrasos:' + funcoes.CompletaOuRepete('',
-            FormatCurr('#,###,###0.00', total_atraso), ' ', 10), mtInformation,
-            [mbok], HexToTColor('FFD700'), true, false, HexToTColor('B22222'));
-          WWMessage('Esta Venda está Sendo Autorizada com Valor Até: R$ ' +
-            FormatCurr('#,###,###0.00', lim_atraso - total_atraso),
-            mtInformation, [mbok], HexToTColor('FFD700'), true, false,
-            HexToTColor('B22222'));
-          Result := lim_atraso - total_atraso;
-          Form20.Caption := Form20.Caption + ' ' + '(Venda Limitada R$ ' +
-            FormatCurr('#,###,###0.00', Result) + ')';
-          exit;
-        end
-        else
-        begin
-          WWMessage('Este Cliente Excedeu Seu Limite de Crédito.',
-            mtInformation, [mbok], HexToTColor('FFD700'), true, false,
-            HexToTColor('B22222'));
-          Result := 0;
-          exit;
-        end;
-      //end;
+      if lim_atraso > total_atraso then
+      begin
+        WWMessage(
+          'Este cliente tem um restante de limite para COMPRA de apenas R$ ' +
+          FormatCurr('#,###,###0.00', lim_atraso - total_atraso) + '.' + #13 +
+          #13 + 'Limite Compra:' + funcoes.CompletaOuRepete('',
+          FormatCurr('#,###,###0.00', lim_compra), ' ', 10) + #13 +
+          'Limite Atraso:' + funcoes.CompletaOuRepete('',
+          FormatCurr('#,###,###0.00', lim_atraso), ' ', 10) + #13 +
+          'Total Compras:' + funcoes.CompletaOuRepete('',
+          FormatCurr('#,###,###0.00', total_devendo), ' ', 10) + #13 +
+          'Total Atrasos:' + funcoes.CompletaOuRepete('',
+          FormatCurr('#,###,###0.00', total_atraso), ' ', 10), mtInformation,
+          [mbok], HexToTColor('FFD700'), true, false, HexToTColor('B22222'));
+        WWMessage('Esta Venda está Sendo Autorizada com Valor Até: R$ ' +
+          FormatCurr('#,###,###0.00', lim_atraso - total_atraso), mtInformation,
+          [mbok], HexToTColor('FFD700'), true, false, HexToTColor('B22222'));
+        Result := lim_atraso - total_atraso;
+        Form20.Caption := Form20.Caption + ' ' + '(Venda Limitada R$ ' +
+          FormatCurr('#,###,###0.00', Result) + ')';
+        exit;
+      end
+      else
+      begin
+        WWMessage('Este Cliente Excedeu Seu Limite de Crédito.', mtInformation,
+          [mbok], HexToTColor('FFD700'), true, false, HexToTColor('B22222'));
+        Result := 0;
+        exit;
+      end;
+      // end;
 
       if Result < AserAdicionadoNaContaDoClitente then
       begin
@@ -6684,7 +6716,7 @@ procedure TForm20.ExcluiItemVenda();
 begin
   if not ClientDataSet1.IsEmpty then
   begin
-    if messageDlg('Deseja Excluir?', mtConfirmation, [mbyes, mbNo], 0) = mrYes
+    if MessageDlg('Deseja Excluir?', mtConfirmation, [mbyes, mbNo], 0) = mrYes
     then
     begin
       if ClientDataSet1estado.AsString = 'N' then
@@ -6849,7 +6881,7 @@ begin
     begin
       if form2.Oramento1.Visible = false then
       begin
-        messageDlg('Este Recurso Está Bloqueado!', mtWarning, [mbok], 1);
+        MessageDlg('Este Recurso Está Bloqueado!', mtWarning, [mbok], 1);
         exit;
       end;
 
@@ -6866,7 +6898,7 @@ begin
 
     if form2.Vendas1.Visible = false then
     begin
-      messageDlg('Este Recurso Está Bloqueado!', mtWarning, [mbok], 1);
+      MessageDlg('Este Recurso Está Bloqueado!', mtWarning, [mbok], 1);
       exit;
     end;
 
@@ -7070,8 +7102,8 @@ begin
       subTot := funcoes.dialogo('numero', 0, '1234567890,.' + #8, 3, false, '',
         'Control For Windows', 'Quantidade:', FormatCurr('#,###,###0.000',
         ClientDataSet1.FieldByName('quant').AsCurrency));
-      if (subTot = '*') or (StrToCurrDef(funcoes.ConverteNumerico(subTot), 0)
-        = 0) then
+      if (subTot = '*') or (StrToCurrDef(funcoes.ConverteNumerico(subTot),
+        0) = 0) then
         exit;
 
       seq := ClientDataSet1cod_seq.AsInteger;
