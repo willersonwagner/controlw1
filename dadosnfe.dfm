@@ -515,9 +515,9 @@ object Form79: TForm79
     object Label13: TLabel
       Left = 11
       Top = 15
-      Width = 100
+      Width = 148
       Height = 32
-      Caption = '1-Produ'#231#227'o'#13#10'2-Homologa'#231#227'o'
+      Caption = '1-Produ'#231#227'o(Normal)'#13#10'2-Homologa'#231#227'o(Teste)'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -13

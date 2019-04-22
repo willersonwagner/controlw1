@@ -12120,6 +12120,10 @@ object Form2: TForm2
         Caption = 'Bloquear Usu'#225'rio'
         OnClick = BloquearUsurio1Click
       end
+      object AtualizaodoSistema1: TMenuItem
+        Caption = 'Atualiza'#231#227'o do Sistema'
+        OnClick = AtualizaodoSistema1Click
+      end
       object Registrar1: TMenuItem
         Caption = 'Registrar'
         OnClick = Registrar1Click

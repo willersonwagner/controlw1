@@ -97,6 +97,7 @@ type
     function salvaDadosAdic(opcao : integer = 0) : string;
     function buscaDadosAdic() : string;
     procedure atualizaNumeracaoGeneratorTela;
+    function buscaCliente() : string;
     { Private declarations }
   public
     FIN_NFE, nomeFIN_NFE, DOC_REF, NFE_REF, estorno, TAG_DOCREF, NUM_ECF, natOP1,
@@ -441,6 +442,7 @@ procedure TForm79.notaKeyPress(Sender: TObject; var Key: Char);
 begin
   if key = #13 then begin
     if tedit(sender).Text <> '' then begin
+      if verificaSeExisteVendaValidaComNumeracao = false then exit;
       if numnf.Enabled then numnf.SetFocus
         else cliente.SetFocus;
     end
@@ -922,6 +924,8 @@ begin
 
       if not dm.IBselect.IsEmpty then begin
         i := i + 1;
+
+        if dm.IBselect.FieldByName('cliente').AsInteger > 0 then cliente.Text := dm.IBselect.FieldByName('cliente').AsString;
       end;
     end;
   end;
@@ -972,6 +976,11 @@ begin
     if numnf.Text = '0' then begin
       numnf.Text := Incrementa_Generator(generator, 1);
     end;
+end;
+
+function TForm79.buscaCliente() : string;
+begin
+
 end;
 
 end.

@@ -387,6 +387,7 @@ type
     AlfabticaGeralGrfico1: TMenuItem;
     Button3: TButton;
     ConfiguraodeFormulrios1: TMenuItem;
+    AtualizaodoSistema1: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure CadastrarUsurio1Click(Sender: TObject);
     procedure FormKeyPress(Sender: TObject; var Key: Char);
@@ -657,6 +658,7 @@ type
     procedure AlfabticaGeralGrfico1Click(Sender: TObject);
     procedure Servios2Click(Sender: TObject);
     procedure ConfiguraodeFormulrios1Click(Sender: TObject);
+    procedure AtualizaodoSistema1Click(Sender: TObject);
   private
     b, cont : integer;
     ini : Smallint;
@@ -9387,6 +9389,19 @@ begin
   NfeVenda := TNfeVenda.Create(self);
   NfeVenda.Reimpressao1;
   NfeVenda.Free;
+end;
+
+procedure TForm2.AtualizaodoSistema1Click(Sender: TObject);
+begin
+  if not FileExists(caminhoEXE_com_barra_no_final + 'atualiza.exe') then
+    begin
+      ShowMessage('Arquivo (atualiza.exe) não foi encontrado na pasta do sistema.');
+      exit;
+    end;
+
+  //fornec := copy(ParamStr(0),1, funcoes.PosFinal('\', ParamStr(0))) + 'atualiza.exe';
+  WinExec(pansichar(ansistring(caminhoEXE_com_barra_no_final + 'atualiza.exe')),SW_SHOWNORMAL);
+  Application.Terminate;
 end;
 
 procedure TForm2.AtualizarAliquotasSmallSoft2Click(Sender: TObject);
