@@ -245,7 +245,10 @@ if key=#27 then
        end;
 
        try
-         funcoes.validaDataHora(datamov, usuario);
+         if funcoes.validaDataHora(datamov, usuario) = false then begin
+           self.Show;
+           exit;
+         end;
        except
        end;
 

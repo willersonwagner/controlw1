@@ -8483,6 +8483,8 @@ begin
   end;
 
   if th <> '' then begin
+    if StrToIntDef(ContaChar(th, '|'), 0) < 6  then exit;
+
     Result := true;
     arq    := TStringList.Create;
     LE_CAMPOS(arq, th, '|', false);

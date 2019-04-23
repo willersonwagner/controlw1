@@ -217,7 +217,7 @@ type
     function excluiTransferencia(cod, doc: integer): boolean;
     function verificaNFCe(dataIni: String = ''; DataFim: String = '';
       sped: boolean = False): boolean;
-    procedure validaDataHora(var dataMo: TDateTime; USUARIO: STRING);
+    function validaDataHora(var dataMo: TDateTime; USUARIO: STRING) : boolean;
     function listaUnidades: String;
     function ajustaHoraPelaInternet(var dataMov: TDateTime): boolean;
     function listaUnidadesComDescricoes: TStrings;
@@ -21576,12 +21576,13 @@ begin
   SetLocalTime(SystemTime);
 end;
 
-procedure Tfuncoes.validaDataHora(var dataMo: TDateTime; USUARIO: STRING);
+function Tfuncoes.validaDataHora(var dataMo: TDateTime; USUARIO: STRING) : boolean;
 var
-  ultDataMov, dataAtual, dataBd: TDateTime;
+  ultDataMov, dataAtual, dataBd, dataUltimaVenda: TDateTime;
   temp, somenteHora, BomDia: String;
   hora: TTime;
 begin
+  Result := false;
   // pega a data atual de movimento
   dm.IBselect.Close;
   dm.IBselect.SQL.Clear;
@@ -21607,10 +21608,14 @@ begin
         dm.IBQuery1.Transaction.Commit;
       except
       end;
+
       BomDia := funcoes.verificaPermissaoPagamento(false, false);
+      Result := true;
       exit;
     end
-    else ultDataMov := now;
+    else begin
+      ultDataMov := now;
+    end;
   end;
 
   dm.IBselect.Close;
@@ -21618,7 +21623,7 @@ begin
   // salva a ultDataMov em dataAtual
   dataAtual := ultDataMov;
 
-  // pega a data atual do BD
+  // pega a data atual do BD do servidor
   dm.IBselect.Close;
   dm.IBselect.SQL.text := ('select current_date as data from rdb$database');
   dm.IBselect.Open;
@@ -21634,17 +21639,37 @@ begin
   if ((now > ultDataMov) and ((now - ultDataMov) <= 5)) then
     ultDataMov := now;
 
+
+  dm.IBselect.Close;
+  dm.IBselect.SQL.text := ('select nota,data from venda where nota = gen_id(venda, 0)');
+  dm.IBselect.Open;
+
+  if not dm.IBselect.IsEmpty then begin
+    dataUltimaVenda := dm.IBselect.FieldByName('data').AsDateTime;
+    if ultDataMov < dataUltimaVenda then begin
+      MessageDlg('Data Inválida ' + DateToStr(ultDataMov) + '. O sistema Não pode Ser Executado!', mtError, [mbOK], 1);
+      Result := false;
+      exit;
+    end;
+  end;
+
+
+
   // somente o usuário admin vai poder alterar a data de movimento
   if (form22.USUARIO = 'ADMIN') then
   begin
     temp := funcoes.dialogo('data', 0, '', 0, true, '', Application.Title,
       'Confirme a Data de Movimento:', FormatDateTime('dd/mm/yy', ultDataMov));
-    if temp <> '*' then
+    if temp <> '*' then begin
       ultDataMov := StrToDateDef(temp, ultDataMov);
+      Result := true;
+    end;
+
   end;
 
   // atualiza a data do sistema
   dataMo := ultDataMov;
+  Result := true;
 
   // atualiza a data de movimento atual
   if (ultDataMov <> dataAtual) then begin
@@ -21659,8 +21684,7 @@ begin
     except
     end;
   end;
-
-  form22.datamov := ultDataMov;
+  //form22.datamov := ultDataMov;
 
   somenteHora := FormatDateTime('h', now);
   if StrToFloat(somenteHora) > 6 then
