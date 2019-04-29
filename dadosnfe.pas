@@ -120,6 +120,12 @@ procedure TForm79.ButBaixarClick(Sender: TObject);
 var
   situacao : String;
 begin
+  if cfop.Text = '' then begin
+    cfop.SetFocus;
+    ShowMessage('CFOP inválido, preencha corretamente!');
+  end;
+
+
   try
     if verificaSeExisteVendaValidaComNumeracao = false then exit;
   except

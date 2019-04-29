@@ -111,7 +111,6 @@ type
     cdsEquiva: TClientDataSet;
     buscaTimer: String;
     listaProdutos: Tprodutos;
-
     procedure corrigeUnidades();
     procedure SOMA_EST(const cod: integer; const qtd, DEP: currency;
       var lista: TItensAcumProd);
@@ -138,6 +137,8 @@ type
     enviandoCupom, enviandoBackup: boolean;
     fonteRelatorioForm19: integer;
     NegritoRelatorioForm19, saiComEnter: boolean;
+
+    procedure insereNFEDISTRIBUICAO(idx : integer);
     function aliquotaToCST(aliq : integer; regime : String) : String;
     function retiraZerosEsquerda(const valor : string) : String;
     function buscaNFEsPorCPF_CNPJ(cpf : String) : String;
@@ -12555,6 +12556,8 @@ begin
     dm.IBQuery2.First;
     sub := 0;
     total := 0;
+
+    TOT_PIS := 0;
     while not dm.IBQuery2.Eof do
     begin
       dm.IBQuery1.Close;
@@ -12641,6 +12644,8 @@ begin
         total := total + Arredonda(dm.IBQuery1.FieldByName('p_compra')
           .AsCurrency * dm.IBQuery2.FieldByName('quant').AsCurrency, 2);
       end;
+
+      TOT_PIS := TOT_PIS + dm.IBQuery2.FieldByName('quant').AsCurrency;
       dm.IBQuery2.Next;
     end;
     dm.IBQuery1.Close;
@@ -12673,6 +12678,7 @@ begin
     form19.RichEdit1.Perform(EM_REPLACESEL, 1,
       Longint(PChar((funcoes.CompletaOuRepete('+', '+', '-', tam) + #13
       + #10))));
+
     form19.RichEdit1.Perform(EM_REPLACESEL, 1,
       Longint(PChar((funcoes.CompletaOuRepete('|',
       funcoes.CompletaOuRepete('Sub-Total:', FormatCurr('#,###,###0.00', total),
@@ -14821,6 +14827,8 @@ begin
     dm.IBQuery2.Open;
     dm.IBQuery2.First;
 
+    TOT_PIS := 0;
+
     while not dm.IBQuery2.Eof do
     begin
       tot_item := 0;
@@ -14897,6 +14905,9 @@ begin
           13) + funcoes.CompletaOuRepete('', FormatCurr('0.00', tot_item), ' ',
           12) + #13 + #10))));
       end;
+
+
+      TOT_PIS := TOT_PIS + dm.IBQuery2.FieldByName('quant').AsCurrency;
       dm.IBQuery2.Next;
     end;
 
@@ -14913,10 +14924,13 @@ begin
           + #10))));
       end;
       addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 40) + #13 + #10);
+      addRelatorioForm19(funcoes.CompletaOuRepete('VOLUMES:', formataCurrency(TOT_PIS), '.', 40) + CRLF);
     end
     else
     begin
       addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 40) + #13 + #10);
+      addRelatorioForm19(funcoes.CompletaOuRepete('VOLUMES:', formataCurrency(TOT_PIS), '.', 40) + CRLF);
+
       addRelatorioForm19(funcoes.CompletaOuRepete('SUBTOTAL:',
         FormatCurr('#,##,###0.00', dm.IBselect.FieldByName('total').AsCurrency -
         dm.IBselect.FieldByName('desconto').AsCurrency), '.', 40) + CRLF);
@@ -26676,6 +26690,59 @@ begin
   else if aliq = 11 then Result := '400'
   else if aliq = 12 then Result := '300'
   else                   Result := '101/102/103';
+end;
+
+
+procedure Tfuncoes.insereNFEDISTRIBUICAO(idx : integer);
+var
+ dest, Impresso : String;
+begin
+  dm.IBQuery1.Close;
+  dm.IBQuery1.SQL.Text := 'select chave, manifestada from NFEDISTRIBUICAO where chave = :chave';
+  dm.IBQuery1.ParamByName('chave').AsString := ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[idx].resDFe.chDFe;
+  dm.IBQuery1.Open;
+
+  if dm.IBQuery1.IsEmpty then begin
+    dm.IBQuery1.Close;
+    dm.IBQuery1.SQL.text := 'insert into NFEDISTRIBUICAO(chave, CNPJ, DATA, NOME, valor, ie, tpnf, NSU, SIT, manifestada)'
+    + 'values(:chave, :CNPJ, :DATA, :NOME, :valor, :ie, :tpnf, :NSU, :SIT, ''1'')';
+    dm.IBQuery1.ParamByName('chave').AsString := ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[idx].resDFe.chDFe;
+    dm.IBQuery1.ParamByName('CNPJ').AsString  := ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[idx].resDFe.CNPJCPF;
+    dm.IBQuery1.ParamByName('DATA').AsDate := ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[idx].resDFe.dhEmi;
+    dm.IBQuery1.ParamByName('NOME').AsString := LeftStr(ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[idx].resDFe.xNome, 50);
+    dm.IBQuery1.ParamByName('valor').AsCurrency := ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[idx].resDFe.vNF;
+    dm.IBQuery1.ParamByName('ie').AsString := ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[idx].resDFe.IE;
+
+    case ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[idx].resDFe.tpNF of
+      tnEntrada: dm.IBQuery1.ParamByName('tpnf').AsString := 'E';
+      tnSaida  : dm.IBQuery1.ParamByName('tpnf').AsString := 'S';
+    end;
+
+    Impresso := '';
+    if ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[idx].resDFe.cSitDFe = snAutorizado then begin
+      Impresso := 'A';
+    end
+    else if ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[idx].resDFe.cSitDFe = snDenegado then begin
+      Impresso := 'D';
+    end
+    else if ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[idx].resDFe.cSitDFe = snCancelado then begin
+      Impresso := 'C';
+    end;
+
+    dm.IBQuery1.ParamByName('NSU').AsString := ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[idx].NSU;
+    dm.IBQuery1.ParamByName('SIT').AsString := Impresso;
+    dm.IBQuery1.ExecSQL;
+    dm.IBQuery1.Transaction.Commit;
+  end
+  else begin
+    if trim(dm.IBQuery1.FieldByName('manifestada').AsString) = '' then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := 'update NFEDISTRIBUICAO set manifestada = ''1'' where chave = :chave';
+      dm.IBQuery1.ParamByName('chave').AsString := ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[idx].resDFe.chDFe;
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+  end;
 end;
 
 

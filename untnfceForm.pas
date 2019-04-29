@@ -2752,6 +2752,9 @@ begin
       DANFE_Rave.Sistema := 'Controlw Sistemas';
       DANFE_Rave.ExibeCampoFatura := true;
       DANFE_Rave.logo := DANFELogomarca;
+
+      DANFE_Rave.CasasDecimais.qCom := Ini.ReadInteger('SERVER','casasDecimais', 2);
+
       if FileExists(DANFELogomarca) then
       begin
         DANFE_Rave.ExpandeLogoMarca :=
@@ -3875,6 +3878,32 @@ begin
             + #13 + ACBrNFe.WebServices.enviar.xmotivo);
           Result := false;
 
+           if (Contido('Duplicidade de NF-e', e.Message)) or (csta = 539) or
+            (csta = 204) THEN
+          begin
+            try
+              richED.Lines.Add('(Tratando a Duplicidade) linha 3443');
+              estado := '|ii| ' + e.Message + #13 +
+                ACBrNFe.WebServices.enviar.xmotivo + '| cStat: ' +
+                IntToStr(ACBrNFe.WebServices.enviar.cstat);
+
+              gravaERRO_LOG1('', estado + ssChaveVelha + ' ' +
+                FormatDateTime('dd/mm/yyyy', now) + FormatDateTime('hh:mm:ss',
+                now), 'trataDuplicidade1');
+
+              erro2 := ACBrNFe.WebServices.enviar.xmotivo;
+              if not Contido('Duplicidade de', erro2) then
+                erro2 := e.Message;
+
+              trataDuplicidade1(erro2, false, false, false, CHAVENF);
+              gravaERRO_LOG1('', 'Fim trataDuplicidade1' +
+                FormatDateTime('dd/mm/yyyy', now) + FormatDateTime('hh:mm:ss',
+                now), 'trataDuplicidade1');
+              exit;
+            except
+            end;
+          end;
+
           try
             SendPostDataMensagem(Form72.IdHTTP1,
               trim(e.Message + ' | ' + 'cstat: ' + IntToStr(csta) + ' ' +
@@ -4008,32 +4037,6 @@ begin
               FormatDateTime('dd/mm/yyyy', now) + FormatDateTime('hh:mm:ss',
               now), 'trataDuplicidade1');
           end;
-
-          if (Contido('Duplicidade de NF-e', e.Message)) or (csta = 539) or
-            (csta = 204) THEN
-          begin
-            try
-              richED.Lines.Add('(Tratando a Duplicidade) linha 3443');
-              estado := '|ii| ' + e.Message + #13 +
-                ACBrNFe.WebServices.enviar.xmotivo + '| cStat: ' +
-                IntToStr(ACBrNFe.WebServices.enviar.cstat);
-
-              gravaERRO_LOG1('', estado + ssChaveVelha + ' ' +
-                FormatDateTime('dd/mm/yyyy', now) + FormatDateTime('hh:mm:ss',
-                now), 'trataDuplicidade1');
-
-              erro2 := ACBrNFe.WebServices.enviar.xmotivo;
-              if not Contido('Duplicidade de', erro2) then
-                erro2 := e.Message;
-
-              trataDuplicidade1(erro2, false, false, false, CHAVENF);
-              gravaERRO_LOG1('', 'Fim trataDuplicidade1' +
-                FormatDateTime('dd/mm/yyyy', now) + FormatDateTime('hh:mm:ss',
-                now), 'trataDuplicidade1');
-              exit;
-            except
-            end;
-          end
 
           { if Contido('Duplicidade de NF-e [chNFe:', e.Message) THEN
             begin

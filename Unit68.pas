@@ -40,7 +40,7 @@ implementation
 
 {$R *.dfm}
 
-uses Unit1, Unit63, email, Unit71;
+uses Unit1, Unit63, email, Unit71, Unit78;
 
 procedure TForm68.DBGrid1DrawDataCell(Sender: TObject; const Rect: TRect;
   Field: TField; State: TGridDrawState);
@@ -77,9 +77,13 @@ begin
       exit;
     end;
 
-    form63.imprimir := false;
+    form78 := TForm78.Create(self);
+    form78.EditChave.Text := DBGrid1.DataSource.DataSet.FieldByName('chave').AsString;
+    form78.ShowModal;
+    form78.Free;
+    {form63.imprimir := false;
     form63.EditChave.Text := DBGrid1.DataSource.DataSet.FieldByName('chave').AsString;
-    form63.ShowModal;
+    form63.ShowModal;}
   end;
 
   if key = 114 then begin //F3
@@ -88,9 +92,15 @@ begin
       exit;
     end;
 
+    form78 := TForm78.Create(self);
+    form78.EditChave.Text := DBGrid1.DataSource.DataSet.FieldByName('chave').AsString;
+    form78.imprimir := true;
+    form78.ShowModal;
+    form78.Free;
+    {
     form63.imprimir := true;
     form63.EditChave.Text := DBGrid1.DataSource.DataSet.FieldByName('chave').AsString;
-    form63.ShowModal;
+    form63.ShowModal;}
   end;
 
   if key = 115 then begin //F4

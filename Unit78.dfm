@@ -12,6 +12,7 @@ object Form78: TForm78
   Font.Style = []
   OldCreateOrder = False
   Position = poScreenCenter
+  OnCreate = FormCreate
   PixelsPerInch = 96
   TextHeight = 13
   object Label9: TLabel

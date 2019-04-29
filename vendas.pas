@@ -4024,6 +4024,8 @@ begin
     ClientDataSet1.DisableControls;
     ClientDataSet1.First;
     subtotal := 0;
+
+    totVolumes := 0;
     while not ClientDataSet1.Eof do
     begin
       if ImpSepara then
@@ -4125,6 +4127,8 @@ begin
           ClientDataSet1PRECO.AsCurrency), ' ', 12) + funcoes.CompletaOuRepete
           ('', FormatCurr('0.00', total_item), ' ', 13) + #13 + #10))));
       end;
+
+      totVolumes := totVolumes + ClientDataSet1.FieldByName('quant').AsCurrency;
       ClientDataSet1.Next;
     end;
 
@@ -4142,12 +4146,16 @@ begin
       form19.RichEdit1.Perform(EM_REPLACESEL, 1,
         Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 40) + #13
         + #10))));
+
+      addRelatorioForm19(funcoes.CompletaOuRepete('VOLUMES:', formataCurrency(totVolumes), '.', 40) + CRLF);
     end
     else
     begin
       form19.RichEdit1.Perform(EM_REPLACESEL, 1,
         Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 40) + #13
         + #10))));
+
+      addRelatorioForm19(funcoes.CompletaOuRepete('VOLUMES:', formataCurrency(totVolumes), '.', 40) + CRLF);
       addRelatorioForm19(funcoes.CompletaOuRepete('SUBTOTAL:',
         FormatCurr('#,##,###0.00', total1 - Desconto), '.', 40) + CRLF);
       addRelatorioForm19(funcoes.CompletaOuRepete('DESCONTO(' +
@@ -4171,6 +4179,7 @@ begin
     end
     else if Modo_Venda then
     begin
+
       if (funcoes.LerConfig(form22.Pgerais.Values['configu'], 3) = 'S') then
       begin
         txt := funcoes.dialogo('not', 70, '', 200, false, '',
@@ -7099,6 +7108,8 @@ begin
 
     if (DBGrid2.SelectedField.DisplayName = 'QUANT') then
     begin
+      if separaPecas then exit;
+       
       subTot := funcoes.dialogo('numero', 0, '1234567890,.' + #8, 3, false, '',
         'Control For Windows', 'Quantidade:', FormatCurr('#,###,###0.000',
         ClientDataSet1.FieldByName('quant').AsCurrency));

@@ -4863,13 +4863,16 @@ begin
       end;
 
     cStat := IntToStr(ACBrNFe.WebServices.EnvEvento.EventoRetorno.retEvento.Items[0].RetInfEvento.cStat);
-    if funcoes.Contido(cstat, '101-135-151-573') then begin
-      dm.IBQuery1.Close;
-      dm.IBQuery1.SQL.Text := 'update NFEDISTRIBUICAO set manifestada = :mani where chave = :chave';
-      dm.IBQuery1.ParamByName('mani').AsString  := tipo;
-      dm.IBQuery1.ParamByName('chave').AsString := chave;
-      dm.IBQuery1.ExecSQL;
-      dm.IBQuery1.Transaction.Commit;
+    if funcoes.Contido(cstat, '101-135-151-573-655') then begin
+
+      if cstat <> '655' then begin
+        dm.IBQuery1.Close;
+        dm.IBQuery1.SQL.Text := 'update NFEDISTRIBUICAO set manifestada = :mani where chave = :chave';
+        dm.IBQuery1.ParamByName('mani').AsString  := tipo;
+        dm.IBQuery1.ParamByName('chave').AsString := chave;
+        dm.IBQuery1.ExecSQL;
+        dm.IBQuery1.Transaction.Commit;
+      end;
 
       Result := 'OK';
       if msg then ShowMessage('NFe Manifestada Com Sucesso!' + #13 + 'cStat: ' + cstat + #13 +

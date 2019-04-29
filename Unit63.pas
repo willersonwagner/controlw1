@@ -142,6 +142,8 @@ begin
 
 
     //********** BAIXANDO NO MODO SEM CERTIFICADO DIGITAL **********************
+
+
       if BaixarXMLNFe.BaixarXMLNFeSemCert(StrNumeros(EditChave.Text), EditCaptcha.Text, Arquivo) then begin
         F_Carregando.Close;
 

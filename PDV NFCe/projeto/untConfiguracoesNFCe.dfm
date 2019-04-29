@@ -967,6 +967,13 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
           Height = 13
           Caption = 'Margem Esquerda NFCe:'
         end
+        object Label32: TLabel
+          Left = 156
+          Top = 141
+          Width = 127
+          Height = 13
+          Caption = 'Casas Decimais QTD NFe:'
+        end
         object LOGOWIDTH: TEdit
           Left = 16
           Top = 40
@@ -1028,6 +1035,13 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
           Indice = 0
           TipoDeDado = teNumero
           CasasDecimais = 2
+        end
+        object casasDecimais: TEdit
+          Left = 156
+          Top = 160
+          Width = 121
+          Height = 21
+          TabOrder = 7
         end
       end
       object impDescontoNFCe: TCheckBox

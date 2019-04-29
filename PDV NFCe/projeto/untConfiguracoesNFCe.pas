@@ -132,6 +132,8 @@ type
     imprimirNomeFantasia: TCheckBox;
     usarTLS: TCheckBox;
     usarnfe40: TCheckBox;
+    Label32: TLabel;
+    casasDecimais: TEdit;
     procedure sbtnCaminhoCertClick(Sender: TObject);
     procedure sbtnGetCertClick(Sender: TObject);
     procedure BtnOKClick(Sender: TObject);
@@ -429,6 +431,7 @@ begin
    LOGOWIDTH.Text      := Ini.ReadString('SERVER','LOGOWIDTH', '1');
    fonteRazao.Text     := Ini.ReadString('SERVER','fonteRazao', '8');
    espacoEntreLinhas.Text := Ini.ReadString('SERVER','espacoEntreLinhas', '50');
+   casasDecimais.Text  := Ini.ReadString('SERVER','casasDecimais', '2');
 
    MargemEsquerda.Text := Ini.ReadString('SERVER','MargemEsquerda', CurrToStr(DANFE_Fast.MargemEsquerda));
    velocidade.Text     := Ini.ReadString('SERVER','velocidade', '9600');
@@ -532,6 +535,7 @@ begin
   Ini.WriteInteger('SERVER', 'logoheigth', StrToIntDef(logoheigth.Text, 1));
   Ini.WriteInteger('SERVER', 'LOGOWIDTH'   , StrToIntDef(LOGOWIDTH.Text, 1));
   Ini.WriteInteger('SERVER', 'fonteRazao'   , StrToIntDef(fonteRazao.Text, 8));
+  Ini.WriteInteger('SERVER', 'casasDecimais'   , StrToIntDef(casasDecimais.Text, 2));
   Ini.WriteString('SERVER', 'ImpNFCe'   , IndxImpCupom.Text);
   Ini.WriteString('SERVER', 'ImpNFe'    , IndxImpNfe.Text);
   Ini.WriteBool('SERVER', 'impDescProduto' , impDescontoNFCe.Checked);

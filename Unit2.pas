@@ -6323,7 +6323,7 @@ var
   imp_ent, h2, h3, data, tipoRegCaixa:string;
   sepUsu, codigoUsu, h4, usuario : String;
   totais, caixa : TStringList;
-  TotalGeral, pendentes, ent, sai : currency;
+  TotalGeral, pendentes, ent, sai, TotalGeralFormas : currency;
   b,ContaNota,i, tam, fi:integer;
 begin
   ini := funcoes.dialogo('data',0,'',2,true,'',Application.Title,'Qual a Data Inicial?',formatadataddmmyy(form22.datamov));
@@ -6709,8 +6709,13 @@ begin
      end
        else addRelatorioForm19(funcoes.CompletaOuRepete('','','-', tam)+#13+#10);
 
+     TotalGeralFormas := 0;
      for b := 0 to totais.Count - 1 do
        begin
+         if totais.names[b] <> 'out' then begin
+           TotalGeralFormas := TotalGeralFormas + StrToCurr(totais.Values[totais.Names[b]]);
+         end;
+
          if totais.Names[b] <> '2'  then TotalGeral := TotalGeral + StrToCurr(totais.Values[totais.Names[b]]);
          if totais.names[b] = 'out' then
            begin
@@ -6730,7 +6735,8 @@ begin
          form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete('TOTAL PEDIDOS PENDENTES','',' ',27) + funcoes.CompletaOuRepete('-',FormatCurr('#,###,###0.00',pendentes),' ',14)+#13+#10))));
        end;
      form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((#13+#10))));
-     form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar(('TOTAL GERAL: '+funcoes.CompletaOuRepete('',FormatCurr('#,###,###0.00',TotalGeral),' ',15)+funcoes.CompletaOuRepete(' (SEM VENDAS A PRAZO)','',' ',32)+#13+#10))));
+     form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar(('TOTAL GERAL: '+funcoes.CompletaOuRepete('',FormatCurr('#,###,###0.00',TotalGeralFormas),' ',15)+funcoes.CompletaOuRepete(' ( SOMENTE   VENDAS )','',' ',32)+#13+#10))));
+     form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar(('TOTAL GERAL: '+funcoes.CompletaOuRepete('',FormatCurr('#,###,###0.00',TotalGeral),' ',15)+      funcoes.CompletaOuRepete(' (SEM VENDAS A PRAZO)','',' ',32)+#13+#10))));
      if imprimirtotaldia = 'S' then form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete('','','-',60)+#13+#10))))
        else form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete('','','-', 80)+#13+#10))));
 
