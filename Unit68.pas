@@ -81,9 +81,6 @@ begin
     form78.EditChave.Text := DBGrid1.DataSource.DataSet.FieldByName('chave').AsString;
     form78.ShowModal;
     form78.Free;
-    {form63.imprimir := false;
-    form63.EditChave.Text := DBGrid1.DataSource.DataSet.FieldByName('chave').AsString;
-    form63.ShowModal;}
   end;
 
   if key = 114 then begin //F3

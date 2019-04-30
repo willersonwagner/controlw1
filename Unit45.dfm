@@ -29,8 +29,6 @@ object dadosAdicSped: TdadosAdicSped
     Align = alClient
     BorderWidth = 3
     TabOrder = 0
-    ExplicitLeft = -8
-    ExplicitTop = 16
     object Label3: TLabel
       Left = 24
       Top = 40
@@ -285,7 +283,6 @@ object dadosAdicSped: TdadosAdicSped
       Height = 41
       Align = alBottom
       TabOrder = 0
-      ExplicitTop = 440
       object Label16: TLabel
         Left = 184
         Top = 12

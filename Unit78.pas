@@ -20,7 +20,8 @@ type
   private
     { Private declarations }
   public
-    imprimir : boolean;
+    imprimir, spedDadosAdic : boolean;
+    arquivo : String;
     { Public declarations }
   end;
 
@@ -106,6 +107,12 @@ begin
         GravarTexto(camArq + ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[i].resDFe.chDFe + '-nfe.xml',  ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[i].XML);
 
         funcoes.insereNFEDISTRIBUICAO(i);
+        arquivo := camArq + ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[i].resDFe.chDFe + '-nfe.xml';
+
+        if spedDadosAdic then begin
+          close;
+        end;
+
         if imprimir = false then begin
            ShowMessage('Download de XML ' +ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[i].resDFe.chDFe + ' Foi Concluído!');
         end
@@ -143,6 +150,8 @@ end;
 procedure TForm78.FormCreate(Sender: TObject);
 begin
   imprimir := false;
+  arquivo  := '';
+  spedDadosAdic := false;
 end;
 
 end.

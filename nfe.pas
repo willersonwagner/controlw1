@@ -4877,7 +4877,12 @@ begin
       Result := 'OK';
       if msg then ShowMessage('NFe Manifestada Com Sucesso!' + #13 + 'cStat: ' + cstat + #13 +
       'xMotivo: ' + ACBrNFe.WebServices.EnvEvento.EventoRetorno.retEvento.Items[0].RetInfEvento.xMotivo + #13 +
-      'Tipo: ' + tpstring);
+      'Tipo: ' + tpstring);{
+      else begin
+        ShowMessage('NFe Manifestada Com Sucesso!' + #13 + 'cStat: ' + cstat + #13 +
+      'xMotivo: ' + ACBrNFe.WebServices.EnvEvento.EventoRetorno.retEvento.Items[0].RetInfEvento.xMotivo + #13 +
+      'Tipo: ' + tpstring)
+      end;         }
 
       if msg then cstat := funcoes.dialogo('generico',0,'SN'+#8,0,false,'S','Control For Windows','Deseja Imprimir o Evento de Manifestação ?S/N:','N') ;
       if cstat = 'S' then begin

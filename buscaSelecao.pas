@@ -388,9 +388,6 @@ begin
           form78.ShowModal;
           form78.Free;
 
-          //form63 := TForm63.Create(self);
-          //form63.imprimir := false;
-          //form63.ShowModal;
           funcoes.buscaXMl(caminhoEXE_com_barra_no_final + 'ENTRADAXML\', false);
           //form63.Free; 
           {codbar := funcoes.dialogo('mask',300, '!0000.0000.0000.0000.0000.0000.0000.0000.0000.0000.0000;1;_', 300, false, '', 'ControlW', 'Informe a Chave:', '');

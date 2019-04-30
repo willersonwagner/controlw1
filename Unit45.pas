@@ -89,7 +89,7 @@ var
 
 implementation
 
-uses Unit1, func, caixaLista, DB, principal, Unit63;
+uses Unit1, func, caixaLista, DB, principal, Unit63, Unit78;
 
 {$R *.dfm}
 function TdadosAdicSped.preencheDados() : boolean;
@@ -302,18 +302,23 @@ var
   op  : TOpenDialog;
   arq :TStringList;
   ret : smallint;
+  arquivo : String;
 begin
   if key = 119 then begin//F8 DOWNLOAD XML
-    form63.imprimir := false;
-    form63.ShowModal;
-    if FileExists(form63.Arquivo) = false then
+    form78 := TForm78.Create(self);
+    form78.spedDadosAdic := true;
+    form78.ShowModal;
+    arquivo := form78.arquivo;
+    form78.free;
+
+    if FileExists(Arquivo) = false then
       begin
-        ShowMessage('O Arquivo ' + form63.Arquivo + ' Não Existe!');
+        ShowMessage('O Arquivo ' + Arquivo + ' Não Existe!');
         exit;
       end;
 
     arq := TStringList.Create;
-    arq.LoadFromFile(form63.Arquivo);
+    arq.LoadFromFile(Arquivo);
     ret := funcoes.insereDadosAdic(arq.GetText);
     chavenfe.Text := '    .    .    .    .    .    .    .    .    .    .    ';
     chavenfe.SelectAll;
