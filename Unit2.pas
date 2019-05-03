@@ -12611,6 +12611,26 @@ begin
   if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
   dm.IBQuery1.Transaction.StartTransaction;
 
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select * from os_itens where nota = :cod';
+  dm.IBselect.ParamByName('cod').AsString := grupo;
+  dm.IBselect.Open;
+
+  while not dm.IBselect.Eof do begin
+    dm.IBQuery1.Close;
+    dm.IBQuery1.SQL.Text := 'insert into EXCSERV(COD_SEQ, cod, quant, usuario, datahora, SERV)'
+    + ' values(gen_id(EXCSERV, 1), :cod, :quant, :usuario, :datahora, :SERV)';
+    dm.IBQuery1.ParamByName('cod').AsInteger     := dm.IBselect.FieldByName('cod').AsInteger;
+    dm.IBQuery1.ParamByName('quant').AsCurrency  := dm.IBselect.FieldByName('quant').AsCurrency;
+    dm.IBQuery1.ParamByName('usuario').AsInteger := StrToIntDef(form22.codusario, 0);
+    dm.IBQuery1.ParamByName('datahora').AsDateTime := DateOf(form22.datamov) + TimeOf(NOW);
+    dm.IBQuery1.ParamByName('serv').AsInteger      := dm.IBselect.FieldByName('nota').AsInteger;
+    dm.IBQuery1.ExecSQL;
+    dm.IBQuery1.Transaction.commit;
+
+    dm.IBselect.Next;
+  end;
+
   dm.IBQuery1.Close;
   dm.IBQuery1.SQL.Text := 'delete from servico where cod = :cod';
   dm.IBQuery1.ParamByName('cod').AsString := grupo;

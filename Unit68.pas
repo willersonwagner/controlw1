@@ -79,6 +79,7 @@ begin
 
     form78 := TForm78.Create(self);
     form78.EditChave.Text := DBGrid1.DataSource.DataSet.FieldByName('chave').AsString;
+    form78.nsu            := DBGrid1.DataSource.DataSet.FieldByName('nsu').AsString;
     form78.ShowModal;
     form78.Free;
   end;
@@ -91,6 +92,7 @@ begin
 
     form78 := TForm78.Create(self);
     form78.EditChave.Text := DBGrid1.DataSource.DataSet.FieldByName('chave').AsString;
+    form78.nsu            := DBGrid1.DataSource.DataSet.FieldByName('nsu').AsString;
     form78.imprimir := true;
     form78.ShowModal;
     form78.Free;
@@ -163,8 +165,8 @@ begin
   dm.IBselect.SQL.Text := 'select NOME, CNPJ, DATA,cast(substring(chave from 26 for 9) as integer) as nnf, CHAVE, VALOR, IE, IIF(TPNF = ''S'', ''SAIDA'', ''ENTRADA'' ) AS TIPO,' +
   ' CASE SIT when ''A'' then ''AUTORIZADA'' when ''D'' then ''DENEGADA'' when ''C'' then ''CANCELADA'' end as SITUACAO, ' +
   ' CASE MANIFESTADA when ''0'' then ''Confirmação da operação'' when ''1'' then ''Ciência da emissão'' when ' +
-  ' ''2'' then ''Operação não realizada'' when ''3'' then ''Desconhecimento da operação'' end as MANIFESTACAO,  MANIFESTADA '+
-  ' FROM nfedistribuicao order by data desc';
+  ' ''2'' then ''Operação não realizada'' when ''3'' then ''Desconhecimento da operação'' end as MANIFESTACAO,  MANIFESTADA, nsu '+
+  ' FROM nfedistribuicao order by cast(nsu as integer) desc';
   dm.IBselect.Open;
 
   DataSource1.DataSet := dm.IBselect;

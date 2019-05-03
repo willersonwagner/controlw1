@@ -3718,9 +3718,7 @@ begin
       end;
     end;
 
-    if (FormatDateTime('yymm', now) <> chaveDetalhe.anoMesYYMM) and (csta <> 100)
-    then
-    begin
+    if (FormatDateTime('yymm', now) <> chaveDetalhe.anoMesYYMM) and (csta <> 100) and (false) then begin
       csta := 0;
 
       // if csta = 0 then

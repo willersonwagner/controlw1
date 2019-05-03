@@ -113,26 +113,7 @@ begin
   dm.IBQuery1.ParamByName('depo').AsCurrency     := DEPOSITO.getValor;
   dm.IBQuery1.ParamByName('cod').AsInteger       := StrToIntDef(COD, -1);
   dm.IBQuery1.ExecSQL;
-
-  //funcoes.baixaEstoque(COD, quant.getValor, 1, false);
-  //funcoes.baixaEstoque(COD, DEPOSITO.getValor, 2, false);
-
-
   dm.IBQuery1.Transaction.Commit;
-
-
-  //funcoes.VER_ESTOQUE('ACERTA', 'Lançando Acertos de Estoque', 'Acert', StrToIntDef(COD, -1));
-
-
-  {dm.IBQuery1.Close;
-  dm.IBQuery1.SQL.Text := 'update produto set quant = :quant, deposito = :depo, sal = :sal, sad = :sad where cod = :cod';
-  dm.IBQuery1.ParamByName('QUANT').AsCurrency    := quant.getValor;
-  dm.IBQuery1.ParamByName('depo').AsCurrency     := DEPOSITO.getValor;
-  dm.IBQuery1.ParamByName('sal').AsCurrency      := quant1;
-  dm.IBQuery1.ParamByName('sad').AsCurrency      := deposito1;
-  dm.IBQuery1.ParamByName('cod').AsInteger       := StrToIntDef(COD, -1);
-  dm.IBQuery1.ExecSQL;
-  dm.IBQuery1.Transaction.Commit; }
 end;
 
 procedure Tacerto.FormClose(Sender: TObject; var Action: TCloseAction);

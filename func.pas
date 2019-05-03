@@ -1296,7 +1296,7 @@ begin
   form33 := tform33.Create(self);
 
   form33.caption := 'Ficha do Produto: ' + te + '-' +
-    funcoes.BuscaNomeBD(dm.IBQuery2, 'nome', 'produto', 'where cod = ' + te);
+    funcoes.BuscaNomeBD(dm.IBQuery2, 'nome', 'produto', 'where cod = ' + te) + ' F1 - Acertar Estoque';
 
   form33.ClientDataSet1.FieldDefs.Add('DATA', ftDate);
   form33.ClientDataSet1.FieldDefs.Add('HISTORICO', ftString, 40);

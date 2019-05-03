@@ -26,7 +26,7 @@ type
   public
     campobusca:string;
     campolocalizaca:string;
-    campos, LinhasMarcadas: string;
+    campos, LinhasMarcadas, captionficha: string;
     ficha : boolean;
     saldo : currency;
     cod1   : integer;
@@ -293,8 +293,6 @@ var
   cod, codbar : string;
 begin
   if ficha then begin
-    if form22.usuario <> 'ADMIN' then exit;
-
     if key = 112 then begin
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Text := 'update produto set quant = :quant where cod = :cod';

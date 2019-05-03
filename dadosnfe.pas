@@ -82,6 +82,8 @@ type
     procedure FormCreate(Sender: TObject);
     procedure clienteKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure cfopEnter(Sender: TObject);
+    procedure notaExit(Sender: TObject);
   private
     generator : String;
     nfeRefLista : tstringList;
@@ -93,11 +95,12 @@ type
     function buscaNFCE() : String;
     procedure acertaCFOP_Automatico;
     function buscafrete() : string;
-    function verificaSeExisteVendaValidaComNumeracao() : boolean;
+    function verificaSeExisteVendaValidaComNumeracao(trocaCliente : boolean) : boolean;
     function salvaDadosAdic(opcao : integer = 0) : string;
     function buscaDadosAdic() : string;
     procedure atualizaNumeracaoGeneratorTela;
     function buscaCliente() : string;
+    function buscaFornecedor() : string;
     { Private declarations }
   public
     FIN_NFE, nomeFIN_NFE, DOC_REF, NFE_REF, estorno, TAG_DOCREF, NUM_ECF, natOP1,
@@ -121,13 +124,17 @@ var
   situacao : String;
 begin
   if cfop.Text = '' then begin
+    acertaCFOP_Automatico;
+  end;
+
+
+  if cfop.Text = '' then begin
     cfop.SetFocus;
     ShowMessage('CFOP inválido, preencha corretamente!');
   end;
 
-
   try
-    if verificaSeExisteVendaValidaComNumeracao = false then exit;
+    if verificaSeExisteVendaValidaComNumeracao(false) = false then exit;
   except
     on e:exception do begin
       ShowMessage('erro126: ' + e.Message);
@@ -225,6 +232,11 @@ end;
 procedure TForm79.ButBaixarKeyPress(Sender: TObject; var Key: Char);
 begin
   if key = #27 then teclaEsc;
+end;
+
+procedure TForm79.cfopEnter(Sender: TObject);
+begin
+  acertaCFOP_Automatico;
 end;
 
 procedure TForm79.cfopKeyDown(Sender: TObject; var Key: Word;
@@ -400,7 +412,9 @@ begin
   if key = 113 then geraListaProdutos;
   if key = 114 then salvaDadosAdic(0); //salva dados adicionais
   if key = 115 then salvaDadosAdic(1); //limpa dados adicionais
-
+  if key = 117 then begin
+    buscaFornecedor;
+  end;
 end;
 
 procedure TForm79.FormShow(Sender: TObject);
@@ -436,6 +450,14 @@ begin
   else tedit(sender).Text := '';
 end;
 
+procedure TForm79.notaExit(Sender: TObject);
+begin
+  if verificaSeExisteVendaValidaComNumeracao(true) = false then begin
+    nota.SetFocus;
+    exit;
+  end;
+end;
+
 procedure TForm79.notaKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
@@ -448,7 +470,6 @@ procedure TForm79.notaKeyPress(Sender: TObject; var Key: Char);
 begin
   if key = #13 then begin
     if tedit(sender).Text <> '' then begin
-      if verificaSeExisteVendaValidaComNumeracao = false then exit;
       if numnf.Enabled then numnf.SetFocus
         else cliente.SetFocus;
     end
@@ -552,7 +573,7 @@ var
   item : Item_venda;
 begin
   try
-    if verificaSeExisteVendaValidaComNumeracao = false then exit;
+    if verificaSeExisteVendaValidaComNumeracao(false) = false then exit;
   except
     on e:exception do begin
       ShowMessage('erro 552: ' + e.Message);
@@ -911,7 +932,7 @@ begin
     end;
 end;
 
-function TForm79.verificaSeExisteVendaValidaComNumeracao() : boolean;
+function TForm79.verificaSeExisteVendaValidaComNumeracao(trocaCliente : boolean) : boolean;
 var
   fim, i, ini : integer;
 begin
@@ -920,7 +941,11 @@ begin
 
   fim := notas.count - 1;
   i := 0;
+
+  try
+  funcoes.mensagemEnviandoNFCE('Aguarde, Lendo Vendas...', true, false);
   for ini := 0 to fim do begin
+    Application.ProcessMessages;
     if strnum(notas.Strings[ini]) <> '0' then begin
       dm.IBselect.Close;
       dm.IBselect.SQL.Clear;
@@ -931,9 +956,13 @@ begin
       if not dm.IBselect.IsEmpty then begin
         i := i + 1;
 
-        if dm.IBselect.FieldByName('cliente').AsInteger > 0 then cliente.Text := dm.IBselect.FieldByName('cliente').AsString;
+        if ((dm.IBselect.FieldByName('cliente').AsInteger > 0) and (trocaCliente)) then cliente.Text := dm.IBselect.FieldByName('cliente').AsString;
       end;
     end;
+  end;
+
+  finally
+    funcoes.mensagemEnviandoNFCE('Aguarde, Lendo Vendas...', false, true);
   end;
 
   if i = 0 then begin
@@ -986,6 +1015,80 @@ end;
 
 function TForm79.buscaCliente() : string;
 begin
+
+end;
+
+function TForm79.buscaFornecedor() : string;
+var
+ sim : String;
+begin
+  Result := funcoes.localizar('Localizar Fornecedor','fornecedor','cod,nome, cnpj, estado','cod','','nome','nome',true,false,false,'',300, nil);
+  if ((trim(Result) = '') or (Result = '*')) then begin
+    Result := '';
+    exit;
+  end;
+
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select * from fornecedor where cod = :cod';
+  dm.IBselect.ParamByName('cod').AsInteger := StrToIntDef(Result, -1);
+  dm.IBselect.Open;
+
+  if dm.IBselect.IsEmpty then begin
+    dm.IBselect.Close;
+    exit;
+  end;
+
+  if length(StrNum(dm.IBselect.FieldByName('cnpj').AsString)) < 11 then begin
+    ShowMessage('Fornecedor com CNPJ/CPF Inválido!');
+    dm.IBselect.Close;
+    exit;
+  end;
+
+
+  dm.IBQuery1.Close;
+  dm.IBQuery1.SQL.Text := 'select cod, cnpj from cliente where cnpj = :cnpj';
+  dm.IBQuery1.ParamByName('cnpj').AsString := dm.IBselect.FieldByName('cnpj').AsString;
+  dm.IBQuery1.Open;
+
+  if not dm.IBQuery1.IsEmpty then begin
+    ShowMessage('Foi Encontrado um Cliente Cód. '+ dm.IBQuery1.FieldByName('cod').AsString+' com o CNPJ ' + dm.IBQuery1.FieldByName('cnpj').AsString);
+    cliente.Text := dm.IBQuery1.FieldByName('cod').AsString;
+    Result       := cliente.Text;
+    dm.IBQuery1.Close;
+    dm.IBselect.Close;
+    exit;
+  end;
+
+  Result := Incrementa_Generator('cliente', 1);
+
+  dm.IBQuery1.Close;
+  dm.IBQuery1.SQL.Text := 'insert into cliente(cod, nome, tipo, ende, bairro, cep, telres, telcom, cid,est, ies, cod_mun, cnpj)' +
+  ' values(:cod, :nome, :tipo, :ende, :bairro, :cep, :telres, :telcom, :cid,:est, :ies, :cod_mun, :cnpj)';
+  dm.IBQuery1.ParamByName('cod').AsString  := Result;
+  dm.IBQuery1.ParamByName('nome').AsString := dm.IBselect.FieldByName('nome').AsString;
+  dm.IBQuery1.ParamByName('tipo').AsString := dm.IBselect.FieldByName('tipo').AsString;
+  dm.IBQuery1.ParamByName('ende').AsString := dm.IBselect.FieldByName('endereco').AsString;
+  dm.IBQuery1.ParamByName('bairro').AsString  := dm.IBselect.FieldByName('bairro').AsString;
+  dm.IBQuery1.ParamByName('cep').AsString     := dm.IBselect.FieldByName('cep').AsString;
+  dm.IBQuery1.ParamByName('telres').AsString  := dm.IBselect.FieldByName('fone').AsString;
+  dm.IBQuery1.ParamByName('telcom').AsString  := dm.IBselect.FieldByName('fax').AsString;
+  dm.IBQuery1.ParamByName('cid').AsString     := dm.IBselect.FieldByName('cidade').AsString;
+  dm.IBQuery1.ParamByName('est').AsString     := dm.IBselect.FieldByName('estado').AsString;
+  dm.IBQuery1.ParamByName('ies').AsString     := dm.IBselect.FieldByName('ies').AsString;
+  dm.IBQuery1.ParamByName('cod_mun').AsString := dm.IBselect.FieldByName('cod_mun').AsString;
+  dm.IBQuery1.ParamByName('cnpj').AsString    := dm.IBselect.FieldByName('cnpj').AsString;
+  try
+    dm.IBQuery1.ExecSQL;
+    dm.IBQuery1.Transaction.Commit;
+
+    ShowMessage('Fornecedor foi Cadastrado com Sucesso! Cód: ' + Result );
+    cliente.Text := Result;
+  except
+    on e:exception do begin
+      Result := '';
+      MessageDlg('Erro 1081:' + e.Message, mtError, [mbOK], 1);
+    end;
+  end;
 
 end;
 

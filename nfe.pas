@@ -4864,7 +4864,6 @@ begin
 
     cStat := IntToStr(ACBrNFe.WebServices.EnvEvento.EventoRetorno.retEvento.Items[0].RetInfEvento.cStat);
     if funcoes.Contido(cstat, '101-135-151-573-655') then begin
-
       if cstat <> '655' then begin
         dm.IBQuery1.Close;
         dm.IBQuery1.SQL.Text := 'update NFEDISTRIBUICAO set manifestada = :mani where chave = :chave';

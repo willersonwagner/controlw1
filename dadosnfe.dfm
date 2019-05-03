@@ -109,6 +109,7 @@ object Form79: TForm79
     Font.Style = []
     ParentFont = False
     TabOrder = 0
+    OnExit = notaExit
     OnKeyDown = notaKeyDown
     OnKeyPress = notaKeyPress
   end
@@ -150,9 +151,9 @@ object Form79: TForm79
     object Label12: TLabel
       Left = 198
       Top = 10
-      Width = 114
+      Width = 253
       Height = 16
-      Caption = 'F2 - Ver Produtos'
+      Caption = 'F2 - Ver Produtos F6-Busca Fornecedor'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -13
@@ -498,6 +499,7 @@ object Form79: TForm79
     Font.Style = []
     ParentFont = False
     TabOrder = 10
+    OnEnter = cfopEnter
     OnKeyDown = cfopKeyDown
     OnKeyPress = cfopKeyPress
     AddLista = False
