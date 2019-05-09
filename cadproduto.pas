@@ -1697,29 +1697,6 @@ begin
     JsEdit.SelecionaDoBD(self.Name);
   end;
 
-  if Key = 112 then
-  begin
-    if StrToIntDef(cod.Text, 0) <= 0 then
-      exit;
-    if form22.usuario <> 'ADMIN' then
-      exit;
-
-    te := funcoes.dialogo('numero', 0, '', 2, false, 'X', Application.Title,
-      'Qual a Quantidade ?', '0,00');
-    if te = '*' then
-      exit;
-
-    dm.IBQuery1.Close;
-    dm.IBQuery1.SQL.Text :=
-      'update produto set quant = :quant where cod = :cod';
-    dm.IBQuery1.ParamByName('quant').AsCurrency := StrToCurr(te);
-    dm.IBQuery1.ParamByName('cod').AsInteger := cod.getValor;
-    dm.IBQuery1.ExecSQL;
-    dm.IBQuery1.Transaction.Commit;
-
-    ShowMessage('Quantidade Alterada!');
-  end;
-
   if Key = 113 then
   begin
     if funcoes.buscaParamGeral(17, 'N') = 'N' then

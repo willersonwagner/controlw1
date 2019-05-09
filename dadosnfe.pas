@@ -471,7 +471,11 @@ begin
   if key = #13 then begin
     if tedit(sender).Text <> '' then begin
       if numnf.Enabled then numnf.SetFocus
-        else cliente.SetFocus;
+        else begin
+          cliente.SetFocus;
+          cliente.Update;
+          exit;
+        end;
     end
     else begin
       if buscaNFCE = '*' then exit;
@@ -845,7 +849,9 @@ end;
 
 function TForm79.buscaNFCE() : String;
 var
-  nCF, nCaixa, nota1 : String;
+  nCF, nCaixa, nota1, chaves : String;
+  notasnfces : TStringList;
+  i : integer;
 begin
   nCF := funcoes.dialogo('not', 300, '1234567890' + #8 + #32, 300, true, '',Application.Title, 'Qual o Número do Cupom Fiscal ?', '');
   if nCF = '*' then begin
@@ -859,15 +865,28 @@ begin
     exit;
   end;
 
+  notasnfces := TStringList.Create;
+  Retorna_Array_de_Numero_de_Notas(notasnfces, nCF, ' ', false);
+
   STRZERO(nCF, 6);
   if length(nCaixa) <> 3 then nCaixa := STRZERO(nCaixa, 3);
+  chaves := '(';
 
-  nota.Text := funcoes.buscaVendaNFCe(nCF, nCaixa, NFE_REF);
-  if length(NFE_REF) = 44 then begin
-    TAG_DOCREF := '<NFref><refNFe>' + StrNum(NFE_REF) + '</refNFe></NFref>';
-    cupom := 1;
-    dadosAdic.Text := 'NF-e emitida de mercadorias que ja sairam do documento fiscal: ' + StrNum(NFE_REF) + ';';
+  for i := 0 to notasnfces.Count -1 do begin
+    nCF := notasnfces[i];
+    nota.Text := nota.Text + funcoes.buscaVendaNFCe(nCF, nCaixa, NFE_REF) + ' ';
+    if length(NFE_REF) = 44 then begin
+      chaves :=  chaves + StrNum(NFE_REF) + ') ';
+      TAG_DOCREF := TAG_DOCREF + '<NFref><refNFe>' + StrNum(NFE_REF) + '</refNFe></NFref>';
+      cupom := 1;
+    end;
   end;
+
+  if cupom = 1 then begin
+    dadosAdic.Text := 'NF-e emitida de mercadorias que ja sairam do documento(s): ' + chaves + ';';
+  end;
+
+  nota.Text := trim(nota.Text);
 end;
 
 procedure TForm79.acertaCFOP_Automatico;

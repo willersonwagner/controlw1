@@ -96,8 +96,12 @@ begin
   dm.IBselect.Close;
 
   dm.IBQuery1.Close;
-  dm.IBQuery1.SQL.Text := 'insert into acerto(ACERTO_SEQ, DOCUMENTO, DATA, CODIGO, NOME, QUANT,' +
-  ' DEPOSITO, USUARIO) values('+ Incrementa_Generator('ACERTO_SEQ', 1) +',:DOCUMENTO, :DATA, :CODIGO, :NOME, :QUANT,:DEPOSITO, :USUARIO)';
+  dm.IBQuery1.SQL.Text := 'insert into acerto(QTD_ACERTO, DEPOSITO_ACERTO, ESTOQUE_ATUAL, DEPOSITO_ATUAL, ACERTO_SEQ, DOCUMENTO, DATA, CODIGO, NOME, QUANT,' +
+  ' DEPOSITO, USUARIO) values(:QTD_ACERTO,:DEPOSITO_ACERTO, :ESTOQUE_ATUAL, :DEPOSITO_ATUAL, '+ Incrementa_Generator('ACERTO_SEQ', 1) +',:DOCUMENTO, :DATA, :CODIGO, :NOME, :QUANT,:DEPOSITO, :USUARIO)';
+  dm.IBQuery1.ParamByName('QTD_ACERTO').AsCurrency       := quant.getValor;
+  dm.IBQuery1.ParamByName('DEPOSITO_ACERTO').AsCurrency  := DEPOSITO.getValor;
+  dm.IBQuery1.ParamByName('ESTOQUE_ATUAL').AsCurrency    := quant1;
+  dm.IBQuery1.ParamByName('DEPOSITO_ATUAL').AsCurrency   := deposito1;
   dm.IBQuery1.ParamByName('DOCUMENTO').AsString  := DOCUMENTO.Text;
   dm.IBQuery1.ParamByName('DATA').AsDate         := form22.datamov;
   dm.IBQuery1.ParamByName('CODIGO').AsInteger     := StrToIntDef(COD, -1);
@@ -107,12 +111,6 @@ begin
   dm.IBQuery1.ParamByName('USUARIO').AsString    := form22.codusario;
   dm.IBQuery1.ExecSQL;
 
-  dm.IBQuery1.Close;
-  dm.IBQuery1.SQL.Text := 'update produto set quant = :quant, deposito = :depo where cod = :cod';
-  dm.IBQuery1.ParamByName('QUANT').AsCurrency    := quant.getValor;
-  dm.IBQuery1.ParamByName('depo').AsCurrency     := DEPOSITO.getValor;
-  dm.IBQuery1.ParamByName('cod').AsInteger       := StrToIntDef(COD, -1);
-  dm.IBQuery1.ExecSQL;
   dm.IBQuery1.Transaction.Commit;
 end;
 
@@ -303,13 +301,6 @@ begin
   depo1    := dm.IBQuery4.fieldbyname('deposito').AsCurrency;
   codig1   := dm.IBQuery4.fieldbyname('codigo').AsInteger ;
   codseq   := dm.IBQuery4.fieldbyname('ACERTO_SEQ').AsInteger ;
-
-  dm.IBQuery1.Close;
-  dm.IBQuery1.SQL.Text := 'update produto set quant = quant - :quant, deposito = deposito - :depo where cod = :cod';
-  dm.IBQuery1.ParamByName('QUANT').AsCurrency    := quant2;
-  dm.IBQuery1.ParamByName('depo').AsCurrency     := depo1;
-  dm.IBQuery1.ParamByName('cod').AsInteger       := codig1;
-  dm.IBQuery1.ExecSQL;
 
   dm.IBQuery1.Close;
   dm.IBQuery1.SQL.Text := 'delete from acerto where (ACERTO_SEQ = :cod)';

@@ -10605,29 +10605,94 @@ begin
       dm.IBQuery1.ExecSQL;
     end;
 
+    if funcoes.retornaTamanhoDoCampoBD('NOME', 'REGISTRO') = 60 then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add
+        ('alter table REGISTRO alter NOME type VARCHAR(100)');
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
+    if not VerificaCampoTabela('TENTATIVA', 'NFCE') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := ('ALTER TABLE NFCE ADD TENTATIVA SMALLINT DEFAULT 0');
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := ('update nfce set TENTATIVA = 0 WHERE ADIC = ''OFF''');
+      dm.IBQuery1.ExecSQL;
+    end;
+
+    if not VerificaCampoTabela('USUARIO', 'NFCE') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := ('ALTER TABLE NFCE ADD USUARIO SMALLINT DEFAULT 0');
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := ('update nfce set USUARIO = 0 WHERE ADIC = ''OFF''');
+      dm.IBQuery1.ExecSQL;
+    end;
+
+    if not VerificaCampoTabela('QTD_ACERTO', 'acerto') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('ALTER TABLE acerto ADD QTD_ACERTO NUMERIC(10, 4)');
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
+    if not VerificaCampoTabela('DEPOSITO_ACERTO', 'acerto') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('ALTER TABLE acerto ADD DEPOSITO_ACERTO NUMERIC(10, 4)');
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
+    if not VerificaCampoTabela('ESTOQUE_ATUAL', 'acerto') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('ALTER TABLE acerto ADD ESTOQUE_ATUAL NUMERIC(10, 4)');
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
+    if not VerificaCampoTabela('DEPOSITO_ATUAL', 'acerto') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('ALTER TABLE acerto ADD DEPOSITO_ATUAL NUMERIC(10, 4)');
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
+    if not VerSeExisteTRIGGERPeloNome('INSERE_PRODUTO_ACERTO') then begin
+      dm.IBScript1.Script.Text := ('CREATE TRIGGER INSERE_PRODUTO_ACERTO FOR ACERTO ' +
+      ' ACTIVE BEFORE INSERT POSITION 0 AS BEGIN ' +
+      ' if (NEW.QTD_ACERTO <> (select QUANT FROM PRODUTO WHERE COD = NEW.CODIGO)) then begin '+
+      ' new.quant = NEW.QTD_ACERTO - (select QUANT FROM PRODUTO WHERE COD = NEW.CODIGO);'+
+      ' update produto set quant = new.QTD_ACERTO where cod = new.codigo; end' +
+      ' if (NEW.DEPOSITO_ACERTO <> (select deposito FROM PRODUTO WHERE COD = NEW.CODIGO)) then begin'+
+      ' new.DEPOSITO = NEW.DEPOSITO_ACERTO - (select deposito FROM PRODUTO WHERE COD = NEW.CODIGO); '+
+      ' update produto set deposito = NEW.DEPOSITO_ACERTO where cod = new.codigo; END ' +
+      ' END;');
+      dm.IBScript1.ExecuteScript;
+    end;
+
+    if not VerSeExisteTRIGGERPeloNome('EXCLUI_PRODUTO_ACERTO') then begin
+      dm.IBScript1.Script.Text := ('CREATE TRIGGER EXCLUI_PRODUTO_ACERTO FOR ACERTO ' +
+      ' ACTIVE BEFORE DELETE POSITION 0 AS BEGIN ' +
+      ' update produto set quant = quant - OLD.QUANT, deposito = deposito - OLD.DEPOSITO where cod = OLD.codigo; ' +
+      ' END;');
+      dm.IBScript1.ExecuteScript;
+    end;
+
+
+
+
     //VerificaVersao_do_bd
-  end;
-
-  if not VerificaCampoTabela('TENTATIVA', 'NFCE') then begin
-    dm.IBQuery1.Close;
-    dm.IBQuery1.SQL.Text := ('ALTER TABLE NFCE ADD TENTATIVA SMALLINT DEFAULT 0');
-    dm.IBQuery1.ExecSQL;
-    dm.IBQuery1.Transaction.Commit;
-
-    dm.IBQuery1.Close;
-    dm.IBQuery1.SQL.Text := ('update nfce set TENTATIVA = 0 WHERE ADIC = ''OFF''');
-    dm.IBQuery1.ExecSQL;
-  end;
-
-  if not VerificaCampoTabela('USUARIO', 'NFCE') then begin
-    dm.IBQuery1.Close;
-    dm.IBQuery1.SQL.Text := ('ALTER TABLE NFCE ADD USUARIO SMALLINT DEFAULT 0');
-    dm.IBQuery1.ExecSQL;
-    dm.IBQuery1.Transaction.Commit;
-
-    dm.IBQuery1.Close;
-    dm.IBQuery1.SQL.Text := ('update nfce set USUARIO = 0 WHERE ADIC = ''OFF''');
-    dm.IBQuery1.ExecSQL;
   end;
 
   if versao <= 0.2 then

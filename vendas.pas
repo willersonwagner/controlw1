@@ -5087,7 +5087,8 @@ begin
     qery.Locate('cod', cod, []);
   end;
 
-  m2 := 1;
+  m2 :=
+   1;
   if nome1 = '' then
   begin
     nome1 := qery.FieldByName('descricao').AsString;
