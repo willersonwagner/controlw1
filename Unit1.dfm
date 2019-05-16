@@ -613,6 +613,7 @@ object dm: Tdm
     Configuracoes.Geral.SSLHttpLib = httpWinHttp
     Configuracoes.Geral.SSLXmlSignLib = xsLibXml2
     Configuracoes.Geral.FormatoAlerta = 'TAG:%TAGNIVEL% ID:%ID%/%TAG%(%DESCRICAO%) - %MSG%.'
+    Configuracoes.Geral.ValidarDigest = False
     Configuracoes.Geral.ModeloDF = moNFCe
     Configuracoes.Geral.AtualizarXMLCancelado = True
     Configuracoes.Geral.VersaoQRCode = veqr200

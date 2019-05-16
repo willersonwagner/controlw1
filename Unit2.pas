@@ -6741,6 +6741,9 @@ begin
        else form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete('','','-', 80)+#13+#10))));
 
 
+     funcoes.acertaVendaDoDiaAVistaNoCaixa(ini, fim, StrToCurr(totais.Values['1']));
+
+
      addRelatorioForm19('EMISSAO: ' + FormatDateTime('DD/MM/YY', NOW) + ' ' + DATA + CRLF + CRLF);
 
    if h4 = '' then begin
@@ -8028,8 +8031,7 @@ procedure TForm2.ConsultarNFe1Click(Sender: TObject);
 begin
   NfeVenda := TNfeVenda.Create(self);
   try
-    if ConfParamGerais[36] <> 'N' then NfeVenda.ConsultarNFe
-      else NfeVenda.ConsultarNFe1;
+    NfeVenda.ConsultarNFe1;
   except
     on e:exception do
       begin

@@ -217,9 +217,11 @@ begin
 
   if Justificativa = '*' then exit;
 
-  canc := StrToIntDef(StrNum(form1.codUsuario), 1);
-  if Cancelamento_NFe1(vend, Justificativa, canc) then
-    begin
+  mostraMensagem('Aguarde, Cancelando NFCe...', true);
+
+  try
+    canc := StrToIntDef(StrNum(form1.codUsuario), 1);
+    if Cancelamento_NFe1(vend, Justificativa, canc) then begin
       canc := StrToIntDef(StrNum(form1.codUsuario), 1);
       if canc = 0 then canc := 1;
 
@@ -229,6 +231,9 @@ begin
       dtmMain.IBQuery1.ParamByName('nota').AsInteger := StrToIntDef(nota, 0);
       dtmMain.IBQuery1.ExecSQL;
     end;
+  finally
+    mostraMensagem('Aguarde, Cancelando NFCe...', false);
+  end;
 end;
 
 procedure TForm9.Button4Click(Sender: TObject);

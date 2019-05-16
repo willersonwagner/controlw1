@@ -2,11 +2,13 @@ object mensagem: Tmensagem
   Left = 192
   Top = 103
   BorderIcons = []
-  BorderStyle = bsDialog
+  BorderStyle = bsNone
   Caption = 'PDV - ControlW'
-  ClientHeight = 121
-  ClientWidth = 433
-  Color = clBtnFace
+  ClientHeight = 412
+  ClientWidth = 768
+  Color = clWhite
+  TransparentColor = True
+  TransparentColorValue = clWhite
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
@@ -14,19 +16,34 @@ object mensagem: Tmensagem
   Font.Style = []
   OldCreateOrder = False
   Position = poScreenCenter
+  WindowState = wsMaximized
   PixelsPerInch = 96
   TextHeight = 13
-  object Label1: TLabel
-    Left = 8
-    Top = 32
-    Width = 414
-    Height = 41
-    Caption = 'Aguarde, Lendo Balan'#231'a...'
-    Font.Charset = ANSI_CHARSET
-    Font.Color = clRed
-    Font.Height = -29
-    Font.Name = 'Arial Black'
-    Font.Style = [fsBold]
-    ParentFont = False
+  object Panel1: TPanel
+    Left = 168
+    Top = 120
+    Width = 433
+    Height = 121
+    BevelOuter = bvNone
+    BiDiMode = bdRightToLeftReadingOnly
+    BorderWidth = 2
+    BorderStyle = bsSingle
+    Ctl3D = False
+    ParentBiDiMode = False
+    ParentCtl3D = False
+    TabOrder = 0
+    object Label1: TLabel
+      Left = 7
+      Top = 32
+      Width = 414
+      Height = 41
+      Caption = 'Aguarde, Lendo Balan'#231'a...'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clRed
+      Font.Height = -29
+      Font.Name = 'Arial Black'
+      Font.Style = [fsBold]
+      ParentFont = False
+    end
   end
 end

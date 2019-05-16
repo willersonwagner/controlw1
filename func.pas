@@ -138,6 +138,7 @@ type
     fonteRelatorioForm19: integer;
     NegritoRelatorioForm19, saiComEnter: boolean;
 
+    procedure acertaVendaDoDiaAVistaNoCaixa(ini, fim : String; avista : currency);
     procedure insereNFEDISTRIBUICAO(idx : integer);
     function aliquotaToCST(aliq : integer; regime : String) : String;
     function retiraZerosEsquerda(const valor : string) : String;
@@ -7538,6 +7539,7 @@ end;
 function Incrementa_Generator(Gen_name: string;
   valor_incremento: integer): string;
 begin
+
   dm.IBQuery1.Close;
   dm.IBQuery1.SQL.Clear;
   dm.IBQuery1.SQL.Add('select gen_id(' + Gen_name + ',' +
@@ -20762,7 +20764,10 @@ begin
   NfeVenda.NFE_REF := StrNum(NFE_REF);
 
   try
-    nfevenda.ambienteProducao1homologacao2 := '0';
+    //if gTipoAmbiente =  then
+
+    if gTipoAmbiente = '2' then nfevenda.ambienteProducao1homologacao2 := '2'
+    else nfevenda.ambienteProducao1homologacao2 := '0';
     NfeVenda.GeraXml1;
   except
     on e: exception do
@@ -26808,6 +26813,33 @@ begin
       dm.IBQuery1.Transaction.Commit;
     end;
   end;
+end;
+
+procedure Tfuncoes.acertaVendaDoDiaAVistaNoCaixa(ini, fim : String; avista : currency);
+begin
+  if ini <> fim then begin
+    exit;
+  end;
+
+  dm.IBQuery1.Close;
+  dm.IBQuery1.SQL.Text := 'select codmov, entrada from caixa where (historico like ''VENDAS DO DIA A VISTA%'') and (cast(data as date) = :data)';
+  dm.IBQuery1.ParamByName('data').AsDate := StrToDate(ini);
+  dm.IBQuery1.Open;
+
+  //ShowMessage('caixa=' + dm.IBQuery1.FieldByName('entrada').AsString + #13 +
+    //          'venda=' + CurrToStr(avista));
+
+  if (dm.IBQuery1.FieldByName('entrada').AsCurrency <> avista) then begin
+    fim := dm.IBQuery1.FieldByName('codmov').AsString;
+    dm.IBQuery1.Close;
+    dm.IBQuery1.SQL.Text := 'update caixa set entrada = :ent where codmov = :codmov';
+    dm.IBQuery1.ParamByName('ent').AsCurrency  := avista;
+    dm.IBQuery1.ParamByName('codmov').AsString := fim;
+    dm.IBQuery1.ExecSQL;
+    dm.IBQuery1.Transaction.Commit;
+  end;
+
+
 end;
 
 

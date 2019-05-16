@@ -48,4 +48,10 @@ object Form72: TForm72
     Left = 328
     Top = 56
   end
+  object BMDThread2: TBMDThread
+    UpdateEnabled = False
+    OnExecute = BMDThread2Execute
+    Left = 256
+    Top = 104
+  end
 end

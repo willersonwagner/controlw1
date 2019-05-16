@@ -576,7 +576,7 @@ begin
       Application.ProcessMessages;
       mensagem := Tmensagem.Create(Application);
       mensagem.Label1.Caption := mensagem1;
-      mensagem.Width := mensagem.Label1.Left + mensagem.Label1.Width + 20;
+      mensagem.Panel1.Width  := mensagem.Label1.Left + mensagem.Label1.Width + 20;
       mensagem.Show;
       Application.ProcessMessages;
     end

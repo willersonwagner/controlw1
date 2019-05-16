@@ -45,10 +45,13 @@ type
     IdThreadComponent1: TIdThreadComponent;
     BMDThread1: TBMDThread;
     IdHTTP1: TIdHTTP;
+    BMDThread2: TBMDThread;
     procedure IdThreadComponent2Run(Sender: TIdThreadComponent);
     procedure IdThreadComponent1Exception(Sender: TIdThreadComponent;
       AException: Exception);
     procedure BMDThread1Execute(Sender: TObject; Thread: TBMDExecuteThread;
+      var Data: Pointer);
+    procedure BMDThread2Execute(Sender: TObject; Thread: TBMDExecuteThread;
       var Data: Pointer);
   private
     { Private declarations }
@@ -84,6 +87,7 @@ procedure insereInutilizacao(inicio, fim: integer; tipo, serie: string;
   Data: tdate);
 function acbrNFeConsultarThread(P: Pointer): LongInt;
 function acbrNFeConsultar(segundos: integer = 20): boolean;
+function acbrNFeConsultarBMD(segundos: integer = 20): boolean;
 function existeProxNumero(chave: String): boolean;
 function buscaPastaNFe(const chave: String; abrir: boolean = true): String;
 function buscaPastaNFCe(const chave: String; abrir: boolean = true): String;
@@ -3829,6 +3833,7 @@ begin
           a := 0;
           while true do begin
             a := a + 1;
+            csta := 0;
             form65.Label1.Caption := 'Aguarde, Consultando '+IntToStr(a)+'...';
             form65.Label1.Update;
             if acbrNFeConsultar(10) then begin
@@ -7724,6 +7729,53 @@ begin
   end;
 end;
 
+function acbrNFeConsultarBMD(segundos: integer = 20): boolean;
+var
+  cont: integer;
+begin
+  cont := 0;
+  Result := false;
+  ERRO_dados := '';
+
+  form72.BMDThread2.Start;
+
+  while true do begin
+    application.ProcessMessages;
+    sleep(500);
+    cont := cont + 1;
+    if trunc(cont / 2) > segundos then begin // se acabou o tempo de espera
+      ERRO_dados := '(5)-' + ERRO_dados;
+      Form72.BMDThread2.Suspend;
+      Form72.BMDThread2.Stop;
+      exit;
+    end;
+
+    if enviouNFE = 'E' then
+    begin // Se ocorreu algum ERRO no Envio
+      ERRO_dados := '(1)-' + ERRO_dados;
+      Form72.BMDThread2.Suspend;
+      Form72.BMDThread2.Stop;
+      exit;
+    end;
+
+    if ERRO_dados <> '' then
+    begin // ERRO_dados recebeu o e.message do erro
+      ERRO_dados := '(2)-' + ERRO_dados;
+      Form72.BMDThread2.Suspend;
+      Form72.BMDThread2.Stop;
+      exit;
+    end;
+
+    if enviouNFE = 'S' then
+    begin // Se o metodo Enviar foi executado sem erros
+      Result := true;
+      Form72.BMDThread2.Suspend;
+      Form72.BMDThread2.Stop;
+      exit;
+    end;
+  end;
+end;
+
 function acbrNFeConsultar(segundos: integer = 20): boolean;
 var
   cont: integer;
@@ -8125,6 +8177,29 @@ begin
   sleep(1);
 end;
 
+procedure TForm72.BMDThread2Execute(Sender: TObject; Thread: TBMDExecuteThread;
+  var Data: Pointer);
+begin
+  enviouNFE := 'N';
+  try
+    try
+      ACBrNFe.Consultar();
+      enviouNFE := 'S';
+    except
+      on e: Exception do
+      begin
+        ERRO_dados := e.Message;
+        enviouNFE := 'E';
+      end;
+    end;
+  finally
+  end;
+
+  if enviouNFE = 'N' then
+    enviouNFE := 'S';
+  sleep(1);
+end;
+
 procedure TForm72.IdThreadComponent1Exception(Sender: TIdThreadComponent;
   AException: Exception);
 begin
@@ -8156,6 +8231,7 @@ begin
   sleep(1);
 end;
 
+
 function CodificaDataPelaChave(chave: String): TDateTime;
 var
   dia, mes, ano: Word;
@@ -8182,8 +8258,6 @@ end;
 
 procedure setVersaoNFe();
 begin
-  // ACBrNFe.Configuracoes.Geral.VersaoDF := ve310;
-
   ACBrNFe.Configuracoes.Geral.ModeloDF := moNFe;
 end;
 

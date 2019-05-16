@@ -221,7 +221,7 @@ implementation
 
 uses func, principal, Unit1, DB, Math, relatorio, dialog, imprime1,
   StrUtils, pcnEnvEventoNFe, ACBrNFeWebServices, pcnEventoNFe,
-  pcnRetEnvEventoNFe, pcnNFe, pcnProcNFe, Unit2, cadproduto;
+  pcnRetEnvEventoNFe, pcnNFe, pcnProcNFe, Unit2, cadproduto, gifAguarde;
 
 {$R *.dfm}
 function TNfeVenda.verNCM11(const cod : integer) : String;
@@ -2207,7 +2207,7 @@ end;
 
 function TNfeVenda.ConsultarNFe1(nf1 : String = '') : string;
 var
-  texto, nf, just : string;
+  texto, nf, just, erro : string;
 begin
   carregaConfigsNFe;
   if nf1 <> '' then begin
@@ -2221,42 +2221,43 @@ begin
     nf := funcoes.recuperaChaveNFe(nf);
   end;
 
-  {dm.IBselect.Close;
-  dm.IBselect.SQL.Clear;
-  dm.IBselect.SQL.Add('select * from nfe where nota = :nota');
-  dm.IBselect.ParamByName('nota').AsString := nf;
-  dm.IBselect.Open;
-
-
-  if dm.IBselect.IsEmpty then
-    begin
-      ShowMessage('Não foi Encontrado NFe com este Número de Nota');
-      dm.IBselect.Close;
-      exit;
-    end
-  else
-    begin
-      nf := dm.IBselect.fieldbyname('chave').AsString;
-    end;
-  dm.IBselect.Close;}
-
   contador := 0;
   funcoes.Mensagem(Application.Title ,'Aguarde, Consultando NFe...',15,'Courier New',false,0,clred);
   Application.ProcessMessages;
 
-  try
-    ACBrNFe.NotasFiscais.Clear;
-    ACBrNFe.NotasFiscais.LoadFromFile(pastaNFE_ControlW + 'NFE\EMIT\' + IfThen(Contido('-nfe', nf), nf, nf + '-nfe') + '.xml');
+  ACBrNFe.NotasFiscais.Clear;
+  ACBrNFe.NotasFiscais.LoadFromFile(pastaNFE_ControlW + 'NFE\EMIT\' + IfThen(Contido('-nfe', nf), nf, nf + '-nfe') + '.xml');
+  ACBrNFe.NotasFiscais.GerarNFe;
+
+  while true do begin
+    contador := contador + 1;
 
     ACBrNFe.Configuracoes.WebServices.Visualizar := true;
     try
       ACBrNFe.Consultar;
+      break;
     except
-      ACBrNFe.Configuracoes.WebServices.Visualizar := false;
-      exit;
+      on e:exception do begin
+        erro := e.Message;
+
+        if Contido('DigestValue', erro) = false then begin
+          ShowMessage('Erro2257:' +e.Message);
+          exit;
+        end;
+      end;
     end;
 
+    if Contido('DigestValue', erro) then begin
+      ACBrNFe.Configuracoes.WebServices.Visualizar := false;
+      if ACBrNFe.Consultar(nf) then begin
+        ACBrNFe.NotasFiscais[0].NFe.procNFe.digVal := ACBrNFe.WebServices.Consulta.protNFe.digVal;
+      end;
+    end;
+  end;
 
+
+
+  try
     ACBrNFe.NotasFiscais[0].GravarXML(pastaNFE_ControlW + 'NFE\EMIT\' + IfThen(Contido('-nfe', nf), nf, nf + '-nfe') + '.xml');
     ACBrNFe.Configuracoes.WebServices.Visualizar := false;
 
@@ -3022,7 +3023,8 @@ begin
   if dm.ACBrNFe.Configuracoes.WebServices.Ambiente = taProducao then generator := 'NFE'
   else generator := 'NFEHOMOLOGA';
 
-  if recuperando = true then codNFe := Incrementa_Generator(generator, 0);
+  //if recuperando = true then
+   codNFe := Incrementa_Generator(generator, 0);
 
   dadosEmitente.Values['cod_mun'] := dm.IBselect.fieldbyname('cod_mun').AsString;
   dadosEmitente.Values['ies']     := funcoes.StrNum(dm.IBselect.fieldbyname('ies').AsString);
@@ -3895,8 +3897,12 @@ begin
 
   situacao := '';
 
-    if      ambienteProducao1homologacao2 = '1' then dm.ACBrNFe.Configuracoes.WebServices.Ambiente := taProducao
-    else if ambienteProducao1homologacao2 = '2' then dm.ACBrNFe.Configuracoes.WebServices.Ambiente := taHomologacao;
+    if      ambienteProducao1homologacao2 = '1' then begin
+     dm.ACBrNFe.Configuracoes.WebServices.Ambiente := taProducao;
+    end
+    else if ambienteProducao1homologacao2 = '2' then begin
+      dm.ACBrNFe.Configuracoes.WebServices.Ambiente := taHomologacao;
+    end;
 
   { if dm.ACBrNFe.Configuracoes.WebServices.Ambiente = taProducao then begin
      ShowMessage('producao exit');
@@ -3933,32 +3939,6 @@ begin
       exit;
     end;
 
-    if FileExists(Caminho + chaveNF + '-nfe'+'.xml') then
-      begin
-        ACBrNFe.NotasFiscais.Clear;
-        ACBrNFe.NotasFiscais.LoadFromFile(Caminho + chaveNF + '-nfe'+'.xml');
-        dadosEmitente := TStringList.Create;
-        dadosEmitente.LoadFromFile(Caminho + chaveNF + '-nfe'+'.xml');
-        erro_dados := dadosEmitente.Text;
-        test := Le_Nodo('nProt', erro_dados);
-        ce   := Le_Nodo('cStat', erro_dados);
-        if funcoes.Contido(ce,'100-101') AND (Length(ce) = 3) AND (Length(test) >= 13) AND (Length(test) <= 15) then begin
-            ShowMessage('A nota '+ chaveNF +' já foi emitida.'+ #13 + #10 + #13 + #10 +
-            'Numero de Protocolo: ' + test + ' ' + #13 + #10 +
-            'Data e Hora de Autorização: ' + Le_Nodo('dhRecbto', ERRO_DADOS) + ' ' + #13 + #10 +
-            'Status: ' + Le_Nodo('xMotivo', ERRO_DADOS) + ' ' + #13 + #10 +
-            'Use a rotina Utilitários > Nfe > Reimpressão para ' +
-            'imprimi-la, se necessário. Para emitir uma nova NF-e entre com um numero ' +
-            'diferente deste.');
-
-            insereNumeracaoNFE_Banco_de_dados(nfeTemp, chaveNF);
-
-            if StrToIntDef(funcoes.StrNum(Incrementa_Generator('nfe', 0)), 0) = StrToIntDef(nfeTemp, 0)  then Incrementa_Generator('nfe', 1);
-            ACBrNFe.NotasFiscais[0].Imprimir;
-            exit;
-          end;
-      end;
-
     erro_dados := '';
 
     try
@@ -3994,98 +3974,129 @@ begin
       i := 0;
       csta := 999;
 
-      funcoes.Mensagem(Application.Title ,'Aguarde, Enviando NFe...',15,'Courier New',false,0,clred);
+      //funcoes.Mensagem(Application.Title ,'Aguarde, Enviando NFe...',15,'Courier New',false,0,clred);
       Application.ProcessMessages;
       Application.ProcessMessages;
-      while true do begin
-          if (i >= 5) then
-            begin
-              MessageDlg('Tentativas de Envio Esgotadas, Verifique a Internet ou outros Problemas que estão Evitando o Envio da NFe' + #13 +
-              #13 + erro_dados,mtError,[mbOK],0);
-              pergunta1.Visible := false;
-              Fechar_Datasets_limpar_Listas_e_variaveis;
-              exit;
-              //break;
-            end;
+      funcoes.mensagemEnviandoNFCE('Aguarde, Enviando 0...', true, false);
 
-          try
-            dm.ACBrNFe.Enviar(0, false);
-
-            csta := ACBrNFe.WebServices.Retorno.cStat;
-            pergunta1.Visible := false;
-            break;
-          except
-            on e:exception do
-              begin
-                erro_dados := e.Message;
-                csta := ACBrNFe.WebServices.Retorno.cStat;
-
-                //ShowMessage('erro=' + e.Message + #13 + 'cStat=' + IntToStr(csta));
-
-                if (Contido('Rejeicao:', e.Message) and (Contido('Duplicidade', e.Message) = false)) then
-                  begin
-
-                    MessageDlg('Erro: ' + e.Message + #13 + 'xMotivo= ' + ACBrNFe.WebServices.Retorno.xMotivo + #13 + 'Cstat=' + IntToStr(ACBrNFe.WebServices.Retorno.cStat) + #13 + 'Esta NFe não pode ser transmitida.' + #13 + #13 +'Por Favor Tente Novamente',
-                    mtError,[mbOK],0);
-                    pergunta1.Visible := false;
-                    Fechar_Datasets_limpar_Listas_e_variaveis;
-                    exit;
-                  end;
-
-                if funcoes.Contido('USO DENEGADO', UpperCase(erro_dados)) THEN
-                  begin
-                    csta := 301;
-                    break;
-                  end
-                else if funcoes.Contido('DUPLICIDADE DE NF-E', UpperCase(erro_dados)) THEN
-                  begin
-                    if Contido(' [chNFe:', e.Message) then
-                      begin
-                        //ShowMessage('cStat=' + IntToStr(csta) + #13 + 'generator=' + generator);
-                        trataDuplicidadeNFe(e.Message, true);
-
-                        erro_dados := '';
-
-                        if chaveNF = chaveRecuperada then
-                          begin
-                            pergunta1.Visible := false;
-                            Fechar_Datasets_limpar_Listas_e_variaveis;
-                            MessageDlg('O Sistema Recuperou a NFe com Sucesso!', mtInformation, [mbOK], 1);
-                            exit;
-                          end;
-
-
-                        Fechar_Datasets_limpar_Listas_e_variaveis;
-                        xml1 := GerarNFeTexto(arq);
-
-                        ACBrNFe.NotasFiscais.Clear;
-                        ACBrNFe.NotasFiscais.LoadFromFile(arq);
-                      end;
-                  end
-                else
-                  begin
-                    //pergunta1.Visible := false;
-                    //MessageDlg('Erro: ' + e.Message + #13 + 'xMotivo= ' + ACBrNFe.WebServices.Retorno.xMotivo + #13 + 'Cstat=' + IntToStr(ACBrNFe.WebServices.Retorno.cStat) + #13 + 'Esta NFe não pode ser transmitida.' + #13 + #13 +'Por Favor Tente Novamente',
-                    //mtError,[mbOK],0);
-
-                    if Contido('Rejeicao:', e.Message) then
-                      begin
-                        MessageDlg('Erro: ' + e.Message + #13 + 'xMotivo= ' + ACBrNFe.WebServices.Retorno.xMotivo + #13 + 'Cstat=' + IntToStr(ACBrNFe.WebServices.Retorno.cStat) + #13 + 'Esta NFe não pode ser transmitida.' + #13 + #13 +'Por Favor Tente Novamente',
-                        mtError,[mbOK],0);
-                        pergunta1.Visible := false;
-                        Fechar_Datasets_limpar_Listas_e_variaveis;
-                        exit;
-                      end;
-                    //exit;
-                  end;
-              end;
-          end;
-
+      //tenta enviar 2 vezes em intervalo de 10s de espera, caso venha retorno entao sai do while
+        while true do begin
           i := i + 1;
+
+          form65.Label1.Caption := 'Aguarde, Enviando '+IntToStr(i)+'...';
+          form65.Label1.Update;
+          if acbrNFeEnviar(20) then begin
+            //se entrou aqui é pq passou do metodo acbr.Enviar
+            ACBrNFe.WebServices.Retorno.Recibo := ACBrNFe.WebServices.enviar.Recibo;
+            ACBrNFe.WebServices.Retorno.Executar;
+            csta := ACBrNFe.WebServices.Retorno.cstat;
+           end
+           else begin
+             //as vezes acbrNFeEnviar função retorna FALSE mas tem numero de recibo
+             if ACBrNFe.WebServices.enviar.Recibo <> '' then begin
+               ACBrNFe.WebServices.Retorno.Executar;
+             end;
+
+             csta := ACBrNFe.WebServices.Retorno.cstat;
+           end;
+
+          if (((csta > 0) and (csta < 999)) or (i >= 4)) then break;
+          sleep(1500);
         end;
 
-    if Contido('-' + IntToStr(csta) + '-', '-100-110-205-301-302-') then//((csta = 301) or (csta = 302) or (csta = 110)) then
+
+        //se nao veio resposta entao consulta 3x pra ver se foi emitida ou o cstat veio com valor 999
+        //como foi iniciado a variavel, caso venha um cstat entao sai do while
+        if (Contido('(5)-', ERRO_dados) or (csta = 999) or (csta = 0))  then begin
+          i := 0;
+          while true do begin
+            i := i + 1;
+
+            csta := 0;
+            form65.Label1.Caption := 'Aguarde, Consultando '+IntToStr(i)+'...';
+            form65.Label1.Update;
+
+            if acbrNFeConsultarBMD(20) then begin
+              csta := ACBrNFe.NotasFiscais[0].nfe.procNFe.cstat;
+              ACBrNFe.NotasFiscais[0].GravarXML(CHAVENF + '-nfe.xml', ExtractFileDir(arq) + '\');
+            end;
+
+            ACBrNFe.NotasFiscais[0].GravarXML(CHAVENF + '-nfe11.xml', ExtractFileDir(arq) + '\');
+            if (((csta > 0) and (csta < 999)) or (i >= 3)) then break;
+            sleep(1500);
+          end;
+        end;
+
+
+      if csta = 217 then begin
+        ERRO_dados := 'Rejeição (217): NF-e não consta na base de dados da SEFAZ';
+        MessageDlg(erro_dados, mtError, [mbOK], 1);
+        funcoes.mensagemEnviandoNFCE('', false, true);
+        exit;
+      end;
+
+      if ((csta = 0) and  (ERRO_dados = '')) then begin
+        ERRO_dados := 'Requisicao nao Enviada';
+        MessageDlg(erro_dados, mtError, [mbOK], 1);
+        funcoes.mensagemEnviandoNFCE('', false, true);
+        exit;
+      end;
+
+        if (i >= 5) then begin
+          MessageDlg('Tentativas de Envio Esgotadas, Verifique a Internet ou outros Problemas que estão Evitando o Envio da NFe' + #13 +
+          #13 + erro_dados,mtError,[mbOK],0);
+          funcoes.mensagemEnviandoNFCE('', false, true);
+          Fechar_Datasets_limpar_Listas_e_variaveis;
+          exit;
+        end;
+
+        if (Contido('Rejeicao:', erro_dados) and (Contido('Duplicidade', erro_dados) = false)) then begin
+          MessageDlg('Erro: ' + erro_dados + #13 + 'xMotivo= ' + ACBrNFe.WebServices.Retorno.xMotivo + #13 + 'Cstat=' + IntToStr(ACBrNFe.WebServices.Retorno.cStat) + #13 + 'Esta NFe não pode ser transmitida.' + #13 + #13 +'Por Favor Tente Novamente',
+          mtError,[mbOK],0);
+          funcoes.mensagemEnviandoNFCE('', false, true);
+          Fechar_Datasets_limpar_Listas_e_variaveis;
+          exit;
+        end;
+
+        if funcoes.Contido('USO DENEGADO', UpperCase(erro_dados)) THEN begin
+          csta := 301;
+        end;
+
+        if ((funcoes.Contido('DUPLICIDADE DE NF-E', UpperCase(erro_dados))) or (csta = 204) or (csta = 539)) THEN begin
+            trataDuplicidadeNFe(dm.ACBrNFe.WebServices.Retorno.xMotivo, true);
+
+            erro_dados := '';
+
+            if chaveNF = chaveRecuperada then begin
+              funcoes.mensagemEnviandoNFCE('', false, true);
+              Fechar_Datasets_limpar_Listas_e_variaveis;
+              MessageDlg('O Sistema Recuperou a NFe com Sucesso!', mtInformation, [mbOK], 1);
+              exit;
+            end;
+
+
+            Fechar_Datasets_limpar_Listas_e_variaveis;
+            xml1 := GerarNFeTexto(arq);
+
+            ACBrNFe.NotasFiscais.Clear;
+            ACBrNFe.NotasFiscais.LoadFromFile(arq);
+         { end
+          else begin
+            if Contido('Rejeicao:', erro_dados) then begin
+              MessageDlg('Erro: ' + erro_dados + #13 + 'xMotivo= ' + ACBrNFe.WebServices.Retorno.xMotivo + #13 + 'Cstat=' + IntToStr(ACBrNFe.WebServices.Retorno.cStat) + #13 + 'Esta NFe não pode ser transmitida.' + #13 + #13 +'Por Favor Tente Novamente',
+              mtError,[mbOK],0);
+              funcoes.mensagemEnviandoNFCE('', false, true);
+              Fechar_Datasets_limpar_Listas_e_variaveis;
+              exit;
+
+
+            end;
+          end;       }
+      end;
+  
+    if Contido('-' + IntToStr(csta) + '-', '-100-204-110-205-301-302-') then//((csta = 301) or (csta = 302) or (csta = 110)) then
       begin
+        funcoes.mensagemEnviandoNFCE('', false, true);
         ci       := 'E';
         situacao := 'E';
         if Contido('-' + IntToStr(csta) + '-', '-110-205-301-302-') then ci := 'D';
@@ -4127,6 +4138,7 @@ begin
 
     if csta > 200 then
       begin
+        funcoes.mensagemEnviandoNFCE('', false, true);
         ShowMessage('NF-e '+ ' Houve uma falha na Validação!'+#13+#10+#13+#10+
                   'Favor Corrigir: ' + dm.ACBrNFe.WebServices.Retorno.xMotivo + #13 +
                   'cStat=' + IntToStr(csta));//+qry.FieldByName('RECIBO_DESCSTATUS').AsString);
