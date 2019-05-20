@@ -423,6 +423,7 @@ object Form79: TForm79
     Font.Style = []
     ParentFont = False
     TabOrder = 2
+    OnEnter = clienteEnter
     OnKeyDown = clienteKeyDown
     OnKeyPress = clienteKeyPress
     OnKeyUp = clienteKeyUp

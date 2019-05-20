@@ -631,7 +631,7 @@ begin
   
   BD_Servidor.Connected := false;
   try
-    BD_Servidor.Connected := true;
+    conectaBD2(BD_Servidor);
     Result := true;
   except
     on e: exception do
@@ -1904,7 +1904,7 @@ begin
       exit;
     end;   }
 
-    BDControl.Connected := true;
+    conectaBD2(BDControl);
     Result := true;
     sinal(3);
 

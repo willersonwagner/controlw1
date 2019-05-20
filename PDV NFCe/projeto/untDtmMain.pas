@@ -11,7 +11,7 @@ uses
   ACBrECFVirtual, ACBrECFVirtualBuffer, ACBrECFVirtualPrinter,
   ACBrECFVirtualNFCe, ACBrPosPrinter, ACBrDevice, ACBrNFeDANFeRLClass,
   ACBrDANFCeFortesFr, ACBrNFe, ACBrNFeDANFEFRDM, ACBrNFeDANFEFR,
-  IdTCPConnection, IdTCPClient, ACBrDFeReport, ACBrDFeDANFeReport;
+  IdTCPConnection, IdTCPClient, ACBrDFeReport, ACBrDFeDANFeReport, untnfceForm;
 
 type
   TdtmMain = class(TDataModule)
@@ -160,8 +160,6 @@ begin
      end;
  end;
 
- BD_Servidor.Connected := false;
- //ACBrNFe.Configuracoes.WebServices.TimeOut := 100;
  Ini.Free;
 end;
 
@@ -189,8 +187,7 @@ begin
   end;
 
   try
-    if BD_Servidor.Connected = false then BD_Servidor.Connected := true;
-    Result := true;
+    Result := conectaBD2(BD_Servidor, true);
   except
   end;
 end;

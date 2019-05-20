@@ -11921,7 +11921,7 @@ object form22: Tform22
       OnKeyPress = senhaKeyPress
     end
     object Button1: TButton
-      Left = 72
+      Left = 80
       Top = 72
       Width = 75
       Height = 25

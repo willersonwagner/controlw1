@@ -5,7 +5,7 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ComCtrls, Vcl.StdCtrls, Vcl.Buttons,
-  JsBotao1, Vcl.ExtCtrls;
+  JsBotao1, Vcl.ExtCtrls, principal;
 
 type
   TForm77 = class(TForm)
@@ -43,7 +43,7 @@ end;
 procedure TForm77.JsBotao1Click(Sender: TObject);
 begin
   dm.IBQuery1.Close;
-  dm.IBQuery1.SQL.Text := 'update OBS_VENDA set obs = :obs where nota = -1';
+  dm.IBQuery1.SQL.Text := 'update or insert into OBS_VENDA(obs, nota) values (:obs, -1)';
   dm.IBQuery1.ParamByName('obs').AsString := Memo1.Text;
   dm.IBQuery1.ExecSQL;
   dm.IBQuery1.Transaction.Commit;
@@ -59,6 +59,10 @@ begin
     dm.IBselect.Open;
 
     Memo1.Lines.Text := dm.IBselect.FieldByName('obs').AsString;
+
+    if ((trim(Memo1.Lines.Text) = '') and (FileExists(caminhoEXE_com_barra_no_final + 'serv.dat'))) then begin
+      Memo1.Lines.LoadFromFile(caminhoEXE_com_barra_no_final + 'serv.dat');
+    end;
   end;
 end;
 

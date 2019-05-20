@@ -15,7 +15,7 @@ uses
   IdExplicitTLSClientServerBase, ACBrETQ, Vcl.FileCtrl,
   TLHelp32, PsAPI, ACBrCargaBal, pcnConversaoNFe,
   pcnConversao, System.Zip, ACBrMail
-  , IdMultipartFormData, cadClicompleto;
+  , IdMultipartFormData, cadClicompleto, IBX.IBServices;
 
 const
   OffsetMemoryStream: Int64 = 0;
@@ -137,7 +137,8 @@ type
     enviandoCupom, enviandoBackup: boolean;
     fonteRelatorioForm19: integer;
     NegritoRelatorioForm19, saiComEnter: boolean;
-
+    function apagarCadastrarNovoUsuarioBD :boolean;
+    function senhaAdmin : String;
     procedure acertaVendaDoDiaAVistaNoCaixa(ini, fim : String; avista : currency);
     procedure insereNFEDISTRIBUICAO(idx : integer);
     function aliquotaToCST(aliq : integer; regime : String) : String;
@@ -10691,15 +10692,22 @@ begin
       dm.IBScript1.ExecuteScript;
     end;
 
+    dm.IBQuery1.Close;
+    dm.IBQuery1.SQL.Clear;
+    dm.IBQuery1.SQL.Add('alter user sysdba password ''SYSTEMA1'' ');
+    dm.IBQuery1.ExecSQL;
+    
 
+    dm.IBQuery1.Close;
+    dm.IBQuery1.SQL.text := 'update registro set versao1 = 0.2';
+    dm.IBQuery1.ExecSQL;
+    versao := 0.2;
 
-
-    //VerificaVersao_do_bd
   end;
 
-  if versao <= 0.2 then
-  begin
+  if versao <= 0.2 then begin
 
+    //VerificaVersao_do_bd
   end;
 
   if dm.IBQuery1.Transaction.InTransaction then
@@ -25263,6 +25271,7 @@ VAR
   _CB, _REF, linha, qtd, _PV, _COD, imp: String;
   LIDO, posi, ini, fim, tam, tam1: integer;
   hand, arqTXT: tstringList;
+  codbarValido : boolean;
 begin
   qtd := funcoes.dialogo('generico', 0, '1234567890' + #8, 0, False, '',
     'Control For Windows', 'Quantas Etiquetas Imprimir ?', '3');
@@ -25324,9 +25333,14 @@ begin
   else
   begin
     _CB := StrNum(dm.IBselect.FieldByName('codbar').AsString);
-    if _CB = '0' then
+    if (_CB = '0') then
       _CB := funcoes.buscaPorCodigotornaCodigoBarrasValido(cod);
   end;
+
+  //essa parte valida o codigo de barras
+  //codbarValido    := checaCodbar(StrNum(_CB));
+  //if codbarValido = false then _CB := DIGEAN('789000' + CompletaOuRepete('', _cod ,'0',6));
+
 
   { SET PRINTER TO TEXTO.TXT
     SET DEVICE TO PRINT
@@ -26841,6 +26855,66 @@ begin
 
 
 end;
+
+function Tfuncoes.senhaAdmin : String;
+begin
+  Result := strzero(StrToInt(FormatDateTime('HH', now)) + 2, 2) +
+  strzero(StrToInt(FormatDateTime('dd', now)) + StrToInt(FormatDateTime('MM',now)), 2) +
+  FormatDateTime('YY',now);
+end;
+
+function Tfuncoes.apagarCadastrarNovoUsuarioBD :boolean;
+var
+  servico : TIBSecurityService;
+  i : integer;
+
+begin
+  Result := false;
+  servico := TIBSecurityService.Create(self);
+
+  if ParamStr(1) <> '' then servico.ServerName := ParamStr(1)
+  else servico.ServerName := 'localhost';
+  servico.Params.Add('user_name=sysdba');
+  servico.Params.Add('password=masterkey');
+  servico.LoginPrompt := false;
+  servico.Active := true;
+  servico.DisplayUsers;
+
+  servico.UserName     := 'SYSDBA';
+  servico.UserName     := 'controlwsistemas';
+  servico.ModifyUser;
+
+  ShowMessage('atualizado com Sucesso!');
+
+  {for I := 0 to servico.UserInfoCount -1 do begin
+    ShowMessage(UpperCase(servico.UserInfo[i].UserName));
+    if UpperCase(servico.UserInfo[i].UserName) = 'CONTROLW' then begin
+      Result := true;
+      //exit;
+    end;
+  end;
+
+  if Result = false then begin
+    servico.UserName := 'CONTROLW';
+    servico.Password := 'CONTROLWSISTEMAS';
+    servico.AddUser;
+  end;
+
+  servico.DisplayUsers;
+
+  if servico.UserInfoCount = 2 then begin
+    servico.UserName     := 'SYSDBA';
+    servico.UserDatabase := 'SYSDBA';
+    servico.UserDatabase := 'SYSDBA';
+    servico.UserName := 'masterkey';
+    servico.Attach;
+    servico.DeleteUser;
+  end;    }
+
+
+
+end;
+
 
 
 end.

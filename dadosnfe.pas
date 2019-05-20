@@ -84,6 +84,7 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure cfopEnter(Sender: TObject);
     procedure notaExit(Sender: TObject);
+    procedure clienteEnter(Sender: TObject);
   private
     generator : String;
     nfeRefLista : tstringList;
@@ -249,6 +250,13 @@ procedure TForm79.cfopKeyPress(Sender: TObject; var Key: Char);
 begin
   if key = #13 then despAcessorias.SetFocus;
   if key = #27 then teclaEsc;
+end;
+
+procedure TForm79.clienteEnter(Sender: TObject);
+begin
+  cliente.SetFocus;
+  cliente.SelectAll;
+  showcursor(true);
 end;
 
 procedure TForm79.clienteKeyDown(Sender: TObject; var Key: Word;
@@ -453,8 +461,9 @@ end;
 procedure TForm79.notaExit(Sender: TObject);
 begin
   if verificaSeExisteVendaValidaComNumeracao(true) = false then begin
-    nota.SetFocus;
-    exit;
+    //nota.SetFocus;
+    //exit;
+    abort;
   end;
 end;
 
@@ -910,7 +919,6 @@ begin
     end;
   end
   else begin
-
     if Contido(tiponfe.Text, 'ST') then begin
       cfop.Text := '6102';
       if cupom = 1 then cfop.Text := '6929';
@@ -962,7 +970,7 @@ begin
   i := 0;
 
   try
-  funcoes.mensagemEnviandoNFCE('Aguarde, Lendo Vendas...', true, false);
+  //funcoes.mensagemEnviandoNFCE('Aguarde, Lendo Vendas...', true, false);
   for ini := 0 to fim do begin
     Application.ProcessMessages;
     if strnum(notas.Strings[ini]) <> '0' then begin
@@ -981,7 +989,7 @@ begin
   end;
 
   finally
-    funcoes.mensagemEnviandoNFCE('Aguarde, Lendo Vendas...', false, true);
+    //funcoes.mensagemEnviandoNFCE('Aguarde, Lendo Vendas...', false, true);
   end;
 
   if i = 0 then begin

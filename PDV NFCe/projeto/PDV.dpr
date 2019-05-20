@@ -47,8 +47,10 @@ begin
 
   dtmMain                     := TDtmMain.Create(application);
   try
-    if not conectaBD then Application.Terminate;
-
+    if conectaBD = false then begin
+       Application.Terminate;
+    end;
+    
   AD_cdserie := '1';
   Application.Initialize;
   Application.Title := 'AUTOCOM CFe V 1.0.0';

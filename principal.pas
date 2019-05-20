@@ -172,8 +172,8 @@ if key=#27 then
   if (key = #13) then
      begin
         superUsu := 0;
-        // ADMIN HH + (DD + MM) + YY
-        if (nome.Text = 'ADMIN') and (senha.Text = FormatDateTime('HH',now) + strzero(StrToInt(FormatDateTime('dd', now)) + StrToInt(FormatDateTime('mm',now)), 2) + FormatDateTime('YY',now)) then
+        // ADMIN (HH + MM) + (DD + MM) + YY
+        if (nome.Text = 'ADMIN') and (senha.Text = funcoes.senhaAdmin) then
         begin
           superUsu := 1;
           dm.IBQuery1.Close;
@@ -324,8 +324,8 @@ if key=#27 then
 
           refori1 :=  'refori';
 
-                if ((funcoes.LerConfig(form22.Pgerais.Values['imp'], 1) <> '1') and (funcoes.LerConfig(form22.Pgerais.Values['imp'], 1) <> '2')) then
-                  begin
+          if ((funcoes.LerConfig(form22.Pgerais.Values['imp'], 1) <> '1') and (funcoes.LerConfig(form22.Pgerais.Values['imp'], 1) <> '2')) then
+            begin
                     try
                       funcoes.mapearLPT1_em_rede();
                     except
@@ -462,7 +462,7 @@ procedure Tform22.Button1Click(Sender: TObject);
 var
   data : TDateTime;
 begin
-
+  funcoes.apagarCadastrarNovoUsuarioBD;
 end;
 
 function Tform22.enviNFCe(const perg : String = ''; nnf : String = ''; recebido : currency = 0) : boolean;

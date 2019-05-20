@@ -158,13 +158,14 @@ begin
      end;
 
    try
-     dm.bd.Connected := true;
+     conectaBD2(dm.bd);
    except
      ShowMessage('Não foi Possivel a Conexão com o Banco de Dados.' + #10 + #13 + 'Verifique:' + #10 + #13 + #10 + #13 + '1. Se o Banco de Dados existe na pasta do EXECUTÁVEL; ' + #10 + #13 + #10 + #13 + '2. Verifique se o Servidor Firebird está instalado adquadamente neste computador.' + #10 + #13 + #10 + #13 + '3.Se este Computador estiver sendo configurado em rede, verifique se o caminho do banco de dados foi posto corretamente, altere a Propriedade do Atalho no campo DESTINO para "c:\controlw\controlw.exe' + '<NOME_DO_SERVIDOR> <PASTA_NO_SERVIDOR_QUE_CONTEM_O_BD>" Exemplo: "c:\controlw\controlw.exe \\Servidor c:\controlw\bd.fdb'  + #10 + #13 + #10 + #13 + '4. Se o problema persistir entre em contato com o SUPORTE.' );
      funcoes.adicionarExcecao;
      Application.Terminate;
      exit;
    end;
+   
 
   try
     funcoes.geraPgerais(); //gera Configurações de Parametros Gerais

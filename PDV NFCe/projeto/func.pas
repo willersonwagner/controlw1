@@ -2,7 +2,7 @@ unit func;
 
 interface
 
-uses controls, windows, forms, Types , messages, ibquery, untDtmMain, classes1, classes,StdCtrls,Dialogs, db,
+uses controls, windows, forms, Types , messages, ibquery, classes1, classes,StdCtrls,Dialogs, db,
 SysUtils, ExtCtrls, JsEditInteiro1, JsEditNumero1, ComCtrls, dialog, graphics, acbrECF,acbrbal, dbgrids, jsedit1, acbrutil,
 gifAguarde, IdTCPConnection, IdTCPClient;
 
@@ -84,7 +84,7 @@ const
 
 implementation
 
-uses login, Math, protetor, buscaselecao, localizar, mens, StrUtils;
+uses login, Math, protetor, buscaselecao, localizar, mens, StrUtils, untDtmMain, untnfceForm;
 
 function DesCriptografar(wStri: String): String;
 var
@@ -1238,13 +1238,11 @@ begin
     else dtmMain.bd.DatabaseName := ExtractFileDir(ParamStr(0)) + '\bd.fdb';
 
   try
-    dtmMain.bd.Connected := true;
-    result := true;
+    result := conectaBD2(dtmMain.bd);
   except
-    on e:exception do
-      begin
-        ShowMessage('Ocorreu um Erro na Conexão do Banco de dados:' + #13 + e.Message + #13 + 'Verifique se o caminho está correto');
-      end;
+    on e:exception do begin
+      MessageDlg('Ocorreu um Erro ao Conectar no BD: ' + e.Message, mtError, [mbOK],  1);
+    end;
   end;
 end;
 
