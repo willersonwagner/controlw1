@@ -570,7 +570,7 @@ begin
   Result := '';
   for ini := 0 to Count -1 do
     begin
-      Result := Result +'|'+ IntToStr(Items[ini].cod) + '|' + CurrToStr(Items[ini].quant)+ '|' + CurrToStr(Items[ini].dep)+'|' + #13;
+      Result := Result +'|'+ IntToStr(Items[ini].cod) + '|' + CurrToStr(Items[ini].quant)+ '|' + CurrToStr(Items[ini].dep)+'|' + #13#10;
     end;
 end;
 {Classe TItensAcumProd}

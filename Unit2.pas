@@ -388,6 +388,7 @@ type
     Button3: TButton;
     ConfiguraodeFormulrios1: TMenuItem;
     AtualizaodoSistema1: TMenuItem;
+    CorrigirDataErradanaVenda1: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure CadastrarUsurio1Click(Sender: TObject);
     procedure FormKeyPress(Sender: TObject; var Key: Char);
@@ -659,6 +660,7 @@ type
     procedure Servios2Click(Sender: TObject);
     procedure ConfiguraodeFormulrios1Click(Sender: TObject);
     procedure AtualizaodoSistema1Click(Sender: TObject);
+    procedure CorrigirDataErradanaVenda1Click(Sender: TObject);
   private
     b, cont : integer;
     ini : Smallint;
@@ -911,6 +913,30 @@ begin
    funcoes.CtrlResize(tform(form10));
    Form10.ShowModal;
    form10.Free;
+end;
+
+procedure TForm2.CorrigirDataErradanaVenda1Click(Sender: TObject);
+var
+  ini, fim : String;
+begin
+  fim := funcoes.dialogo('normal',0,'1234567890'+#8,40,false,'','Control For Windows','Qual o Código Final?', Incrementa_Generator('venda', 0));
+  if fim = '*' then exit;
+
+  ini := funcoes.dialogo('normal',0,'1234567890'+#8,40,false,'','Control For Windows','Qual o Código de Venda Inicial?',IntToStr(StrToInt(Incrementa_Generator('venda', 0)) - 100));
+  if ini = '*' then exit;
+
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select nota, data, cliente, desconto, total from venda where nota >= :ini and nota <= :fim order by nota desc';
+  dm.IBselect.ParamByName('ini').AsString := ini;
+  dm.IBselect.ParamByName('fim').AsString := fim;
+  dm.IBselect.Open;
+
+  form33 := TForm33.Create(self);
+  form33.Caption := 'Manutenção de Datas';
+  form33.campobusca := 'dataVenda';
+  form33.DataSource1.DataSet := dm.IBselect;
+  form33.DBGrid1.DataSource := form33.DataSource1;
+  form33.ShowModal;
 end;
 
 procedure TForm2.GruposdeCaixa1Click(Sender: TObject);

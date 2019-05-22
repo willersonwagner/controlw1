@@ -15,7 +15,7 @@ uses
   IdExplicitTLSClientServerBase, ACBrETQ, Vcl.FileCtrl,
   TLHelp32, PsAPI, ACBrCargaBal, pcnConversaoNFe,
   pcnConversao, System.Zip, ACBrMail
-  , IdMultipartFormData, cadClicompleto, IBX.IBServices;
+  , IdMultipartFormData, cadClicompleto, IBX.IBServices, mmsystem;
 
 const
   OffsetMemoryStream: Int64 = 0;
@@ -137,6 +137,8 @@ type
     enviandoCupom, enviandoBackup: boolean;
     fonteRelatorioForm19: integer;
     NegritoRelatorioForm19, saiComEnter: boolean;
+    procedure apagaMovimento();
+    procedure enxugaEstoque();
     function apagarCadastrarNovoUsuarioBD :boolean;
     function senhaAdmin : String;
     procedure acertaVendaDoDiaAVistaNoCaixa(ini, fim : String; avista : currency);
@@ -15541,13 +15543,15 @@ begin
 
   if form22.USUARIO = 'ADMIN' then
   begin
-    form2.ExecutarComando1.Visible := true;
-    form2.ManutenoNFCe1.Visible := true;
+    form2.ExecutarComando1.Visible           := true;
+    form2.ManutenoNFCe1.Visible              := true;
+    form2.CorrigirDataErradanaVenda1.Visible := true;
   end
   else
   begin
-    form2.ExecutarComando1.Visible := False;
-    form2.ManutenoNFCe1.Visible := False;
+    form2.ExecutarComando1.Visible           := False;
+    form2.ManutenoNFCe1.Visible              := False;
+    form2.CorrigirDataErradanaVenda1.Visible := false;
   end;
 
   for i := 0 to form2.MainMenu1.Items.count - 1 do
@@ -21741,6 +21745,7 @@ begin
     if ultDataMov < dataUltimaVenda then begin
       MessageDlg('Data Inválida ' + DateToStr(ultDataMov) + '. O sistema Não pode Ser Executado!', mtError, [mbOK], 1);
       Result := false;
+      dataMo := now;
       exit;
     end;
   end;
@@ -26910,8 +26915,384 @@ begin
     servico.Attach;
     servico.DeleteUser;
   end;    }
+end;
 
 
+
+procedure Tfuncoes.enxugaEstoque();
+var
+  sim, cods : String;
+  listaProdutos : TItensProduto;
+  i, fim : integer;
+  quant : currency;
+  arq : TStringList;
+begin
+  sim := funcoes.dialogo('generico', 0, 'SN' + #8, 30, False, 'S', Application.Title, 'Confirma Enxugamento de Estoque para Eliminar Mercadorias Antigas ?', '');
+  if ((sim = '*') or (sim = 'N')) then exit;
+
+  funcoes.informacao(0,0, 'Aguarde, Lendo Produtos...', true, false, 0);
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select cod, nome, quant, p_compra, p_venda, refori, codbar, deposito from produto where (quant + deposito) = 0';
+  dm.IBselect.Open;
+  Application.ProcessMessages;
+  dm.IBselect.FetchAll;
+  fim := dm.IBselect.RecordCount;
+
+  listaProdutos := TItensProduto.Create;
+  cods          := '-';
+  cont          := 0;
+
+  while not dm.IBselect.Eof do begin
+
+    funcoes.informacao(dm.IBselect.RecNo, fim, 'Aguarde, Lendo Produtos...', false, false, 5);
+    i := listaProdutos.Add(TregProd.Create);
+    listaProdutos[i].cod    := dm.IBselect.FieldByName('cod').AsInteger;
+    listaProdutos[i].nome   := dm.IBselect.FieldByName('nome').AsString;
+    listaProdutos[i].codbar := dm.IBselect.FieldByName('codbar').AsString;
+    listaProdutos[i].temp   := dm.IBselect.FieldByName('refori').AsString;
+    listaProdutos[i].preco    := dm.IBselect.FieldByName('p_venda').AsCurrency;
+    listaProdutos[i].total    := dm.IBselect.FieldByName('p_compra').AsCurrency;
+    listaProdutos[i].quant    := 0;
+    listaProdutos[i].aliqCred := 0; //deposito
+
+    cods := cods + dm.IBselect.FieldByName('cod').AsString + '-';
+
+    dm.IBselect.Next;
+  end;
+
+
+  //GravarTexto('texto2.txt', cods);
+
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select cod, quant, destino, qtd_ent, unid from item_entrada'  ;
+  dm.IBselect.Open;
+  dm.IBselect.FetchAll;
+  fim := dm.IBselect.RecordCount;
+
+  funcoes.informacao(0, 0, 'Aguarde, Lendo Entradas...', true, false, 5);
+
+  while not dm.IBselect.Eof do begin
+    funcoes.informacao(dm.IBselect.RecNo, fim, 'Aguarde, Lendo Entradas...', false, false, 5);
+    if Contido('-'+dm.IBselect.FieldByName('cod').AsString +'-', cods) then begin
+      i := listaProdutos.Find(dm.IBselect.FieldByName('cod').AsInteger);
+
+      quant := dm.IBselect.fieldbyname('quant').AsCurrency * funcoes.verValorUnidade(dm.IBselect.fieldbyname('UNID').AsString);
+      quant := IfThen(dm.IBselect.FieldByName('qtd_ent').IsNull, quant, dm.IBselect.fieldbyname('qtd_ent').AsCurrency);
+
+      if dm.IBselect.FieldByName('destino').AsInteger <= 1 then listaProdutos[i].quant := listaProdutos[i].quant + quant
+       else listaProdutos[i].aliqCred := listaProdutos[i].aliqCred + quant;
+    end;
+
+    dm.IBselect.Next;
+  end;
+
+
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select cod, quant, origem from item_venda'  ;
+  dm.IBselect.Open;
+  dm.IBselect.FetchAll;
+  fim := dm.IBselect.RecordCount;
+
+  funcoes.informacao(0, 0, 'Aguarde, Lendo Vendas...', true, false, 5);
+
+  while not dm.IBselect.Eof do begin
+    funcoes.informacao(dm.IBselect.RecNo, fim, 'Aguarde, Lendo Vendas...', false, false, 5);
+    if Contido('-'+dm.IBselect.FieldByName('cod').AsString +'-', cods) then begin
+      i := listaProdutos.Find(dm.IBselect.FieldByName('cod').AsInteger);
+
+      quant := dm.IBselect.fieldbyname('quant').AsCurrency;
+
+      if dm.IBselect.FieldByName('origem').AsInteger <= 1 then listaProdutos[i].quant := listaProdutos[i].quant - quant
+       else listaProdutos[i].aliqCred := listaProdutos[i].aliqCred - quant;
+    end;
+
+    dm.IBselect.Next;
+  end;
+
+  funcoes.informacao(dm.IBselect.RecNo, fim, 'Aguarde, Lendo Entradas...', false, true, 5);
+
+  form19.RichEdit1.Clear;
+
+  //addRelatorioForm19('#15' +funcoes.RelatorioCabecalho(form22.pgerais.Values['empresa'], 'RELATORIO DE PRODUTOS EXCLUIDOS', 79));
+  addRelatorioForm19('#15' +funcoes.RelatorioCabecalho('empresa', 'RELATORIO DE PRODUTOS EXCLUIDOS', 79));
+  addRelatorioForm19('CODIGO DESCRICAO                                    LOJA DEPOSITO      CUSTO      VENDA  REFERENCIA     COD. DE BARRAS' + CRLF);
+
+  arq := TStringList.Create;
+  funcoes.informacao(0, 0, 'Imprimindo Relatório...', true, false, 5);
+  for I := 0 to listaProdutos.Count -1 do begin
+    funcoes.informacao(0, 0, 'Imprimindo Relatório...', false, false, 5);
+    if ((listaProdutos[i].quant + listaProdutos[i].aliqCred) = 0)  then begin
+      addRelatorioForm19(CompletaOuRepete('', IntToStr(listaProdutos[i].cod), '0', 6) + '-' + CompletaOuRepete(LeftStr(listaProdutos[i].nome, 40), '', ' ', 40) + ' '+
+      CompletaOuRepete('', formataCurrency(listaProdutos[i].quant), ' ', 8) +  CompletaOuRepete('', formataCurrency(listaProdutos[i].aliqCred), ' ', 8) +
+      CompletaOuRepete('', formataCurrency(listaProdutos[i].total), ' ', 12) + CompletaOuRepete('', formataCurrency(listaProdutos[i].preco), ' ', 13) +
+      CompletaOuRepete(LeftStr(listaProdutos[i].temp, 12), '', ' ', 13) + ' ' + CompletaOuRepete(LeftStr(listaProdutos[i].codbar, 15), '', ' ', 15) +CRLF);
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := 'delete from produto where cod = :cod';
+      dm.IBQuery1.ParamByName('cod').AsInteger := listaProdutos[i].cod;
+      dm.IBQuery1.ExecSQL;
+    end;
+  end;
+
+  if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+  
+ funcoes.informacao(0, 0, 'Imprimindo Relatório...', false, true, 5);
+ addRelatorioForm19(CompletaOuRepete('', '', '-', 122) + CRLF);
+ form19.ShowModal;
+
+ ShowMessage('Estoque Enxugado com Sucesso. ' +  IntToStr(listaProdutos.Count) + ' Produtos excluidos do estoque!');
+ listaProdutos.Free;
+ arq.Free;
+ //GravarTexto('texto1.txt', listaProdutos.getText);
+end;
+
+procedure Tfuncoes.apagaMovimento();
+var
+  sim, cods : String;
+  listaProdutos : TItensProduto;
+  i, fim, tempInicial : integer;
+  quant : currency;
+  ent, sai, transf, acert : TStringList;
+  data : TDateTime;
+begin
+  //data := StartOfTheMonth(IncMonth(now, -8));
+  data := StartOfTheMonth(IncMonth(now, -2));
+  sim := funcoes.dialogo('generico', 0, 'SN' + #8, 30, False, 'S', Application.Title, 'Deseja apagar o Movimento anterior a '+FormatDateTime('dd/mm/yy', data)+' ?', 'N');
+  if ((sim = '*') or (sim = 'N')) then exit;
+
+  ent    := TStringList.Create;
+  sai    := TStringList.Create;
+  transf := TStringList.Create;
+  acert  := TStringList.Create;
+  listaProdutos := TItensProduto.Create;
+
+
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select cod, quant, origem, nota from item_venda where data < :data'  ;
+  dm.IBselect.ParamByName('data').AsDate := data;
+  dm.IBselect.Open;
+  dm.IBselect.FetchAll;
+  fim := dm.IBselect.RecordCount;
+
+  funcoes.informacao(0, 0, 'Aguarde, Lendo Vendas...', true, false, 5);
+  form23.Label2.Visible := true;
+  tempInicial           := TimeGetTime;
+  while not dm.IBselect.Eof do begin
+    funcoes.informacao(dm.IBselect.RecNo, fim, 'Aguarde, Lendo Vendas...', false, false, 5);
+    form23.Label2.Caption := 'Tempo Restante: ' + CurrToStr(((TimeGetTime - tempInicial) / dm.IBselect.RecNo) * (fim - dm.IBselect.RecNo)) + #13 + 'Inicial: ' + IntToStr(tempInicial);
+      i := listaProdutos.Find(dm.IBselect.FieldByName('cod').AsInteger);
+      if i = -1 then begin
+        i := listaProdutos.Add(TregProd.Create);
+        listaProdutos[i].cod      := dm.IBselect.FieldByName('cod').AsInteger;
+        listaProdutos[i].quant    := 0;
+        listaProdutos[i].aliqCred := 0;
+      end;
+
+      sai.Values[dm.IBselect.FieldByName('nota').AsString] := 'X';
+
+      quant := dm.IBselect.fieldbyname('quant').AsCurrency;
+
+      if dm.IBselect.FieldByName('origem').AsInteger <= 1 then listaProdutos[i].quant := listaProdutos[i].quant - quant
+       else listaProdutos[i].aliqCred := listaProdutos[i].aliqCred - quant;
+
+    dm.IBselect.Next;
+  end;
+  funcoes.informacao(dm.IBselect.RecNo, fim, 'Aguarde, Lendo Entradas...', false, true, 5);
+  form23.Label2.Visible := false;
+
+
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select nota, fornec,cod, quant, destino, qtd_ent, unid from item_entrada where data < :data';
+  dm.IBselect.ParamByName('data').AsDate := data;
+  dm.IBselect.Open;
+  dm.IBselect.FetchAll;
+  fim := dm.IBselect.RecordCount;
+
+  funcoes.informacao(0, 0, 'Aguarde, Lendo Entradas...', true, false, 5);
+  while not dm.IBselect.Eof do begin
+    funcoes.informacao(dm.IBselect.RecNo, fim, 'Aguarde, Lendo Entradas...', false, false, 5);
+      i := listaProdutos.Find(dm.IBselect.FieldByName('cod').AsInteger);
+      if i = -1 then begin
+        i := listaProdutos.Add(TregProd.Create);
+        listaProdutos[i].cod      := dm.IBselect.FieldByName('cod').AsInteger;
+        listaProdutos[i].quant    := 0;
+        listaProdutos[i].aliqCred := 0;
+      end;
+
+      ent.Values[dm.IBselect.FieldByName('nota').AsString] := dm.IBselect.FieldByName('fornec').AsString;
+
+      quant := dm.IBselect.fieldbyname('quant').AsCurrency * funcoes.verValorUnidade(dm.IBselect.fieldbyname('UNID').AsString);
+      quant := IfThen(dm.IBselect.FieldByName('qtd_ent').IsNull, quant, dm.IBselect.fieldbyname('qtd_ent').AsCurrency);
+
+      if dm.IBselect.FieldByName('destino').AsInteger <= 1 then listaProdutos[i].quant := listaProdutos[i].quant + quant
+       else listaProdutos[i].aliqCred := listaProdutos[i].aliqCred + quant;
+ 
+    dm.IBselect.Next;
+  end;
+
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select cod, quant, destino, documento from TRANSFERENCIA where data < :data'  ;
+  dm.IBselect.ParamByName('data').AsDate := data;
+  dm.IBselect.Open;
+  dm.IBselect.FetchAll;
+  fim := dm.IBselect.RecordCount;
+
+  funcoes.informacao(0, 0, 'Aguarde, Lendo Transferências...', true, false, 5);
+  while not dm.IBselect.Eof do begin
+    funcoes.informacao(dm.IBselect.RecNo, fim, 'Aguarde, Lendo Transferências...', false, false, 5);
+      i := listaProdutos.Find(dm.IBselect.FieldByName('cod').AsInteger);
+      if i = -1 then begin
+        i := listaProdutos.Add(TregProd.Create);
+        listaProdutos[i].cod      := dm.IBselect.FieldByName('cod').AsInteger;
+        listaProdutos[i].quant    := 0;
+        listaProdutos[i].aliqCred := 0;
+      end;
+
+      transf.Values[dm.IBselect.FieldByName('documento').AsString] := 'X';
+
+      quant := dm.IBselect.fieldbyname('quant').AsCurrency;
+
+      if dm.IBselect.FieldByName('destino').AsInteger <= 1 then begin
+        listaProdutos[i].quant := listaProdutos[i].quant + quant;
+        listaProdutos[i].aliqCred := listaProdutos[i].aliqCred - quant;
+      end
+       else begin
+         listaProdutos[i].aliqCred := listaProdutos[i].aliqCred + quant;
+         listaProdutos[i].quant := listaProdutos[i].quant - quant;
+       end;
+
+    dm.IBselect.Next;
+  end;
+
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select codigo, quant, deposito, ACERTO_SEQ from ACERTO where data < :data'  ;
+  dm.IBselect.ParamByName('data').AsDate := data;
+  dm.IBselect.Open;
+  dm.IBselect.FetchAll;
+  fim := dm.IBselect.RecordCount;
+
+  funcoes.informacao(0, 0, 'Aguarde, Lendo Acertos...', true, false, 5);
+  while not dm.IBselect.Eof do begin
+    funcoes.informacao(dm.IBselect.RecNo, fim, 'Aguarde, Lendo Acertos...', false, false, 5);
+    i := listaProdutos.Find(dm.IBselect.FieldByName('codigo').AsInteger);
+    if i = -1 then begin
+      i := listaProdutos.Add(TregProd.Create);
+      listaProdutos[i].cod      := dm.IBselect.FieldByName('codigo').AsInteger;
+      listaProdutos[i].quant    := 0;
+      listaProdutos[i].aliqCred := 0;
+    end;
+
+    acert.Values[dm.IBselect.FieldByName('ACERTO_SEQ').AsString] := 'X';
+
+    listaProdutos[i].quant    := listaProdutos[i].quant + dm.IBselect.fieldbyname('quant').AsCurrency;;
+    listaProdutos[i].aliqCred := listaProdutos[i].aliqCred + dm.IBselect.fieldbyname('deposito').AsCurrency;;
+
+    dm.IBselect.Next;
+  end;
+
+  funcoes.informacao(0, 0, 'Acertando Estoque...', true, false, 5);
+  fim := listaProdutos.Count - 1;
+  //atualizando o saldo anterior para a ficha bater
+  for I := 0 to fim do begin
+    funcoes.informacao(i, fim, 'Acertando Estoque...', false, false, 5);
+    dm.IBQuery1.Close;
+    dm.IBQuery1.SQL.Text := 'update produto set sal = sal + :sal, sad = sad + :sad where cod = :cod';
+    dm.IBQuery1.ParamByName('sal').AsCurrency  := listaProdutos[i].quant;
+    dm.IBQuery1.ParamByName('sad').AsCurrency  := listaProdutos[i].aliqCred;
+    dm.IBQuery1.ParamByName('cod').AsInteger   := listaProdutos[i].cod;
+    dm.IBQuery1.ExecSQL;
+  end;
+  if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+
+  funcoes.informacao(0, 0, 'Excluindo Entradas...', true, false, 5);
+  fim := ent.Count -1;
+  //apagando entradas
+  for I := 0 to fim do begin
+    funcoes.informacao(i, fim, 'Excluindo Entradas...', false, false, 5);
+    dm.IBQuery1.Close;
+    dm.IBQuery1.SQL.Text := 'delete from entrada where (nota = :nota) and (fornec = :fornec)';
+    dm.IBQuery1.ParamByName('nota').AsString   := ent.Names[i];
+    dm.IBQuery1.ParamByName('fornec').AsString := ent.ValueFromIndex[i];
+    dm.IBQuery1.ExecSQL;
+
+    dm.IBQuery1.Close;
+    dm.IBQuery1.SQL.Text := 'delete from item_entrada where (nota = :nota) and (fornec = :fornec)';
+    dm.IBQuery1.ParamByName('nota').AsString   := ent.Names[i];
+    dm.IBQuery1.ParamByName('fornec').AsString := ent.ValueFromIndex[i];
+    dm.IBQuery1.ExecSQL;
+  end;
+  if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+
+  funcoes.informacao(0, 0, 'Excluindo Vendas...', true, false, 5);
+  fim  := sai.Count -1;
+  cont := 0;
+  cods := '-';
+  //apagando vendas
+  for I := 0 to fim do begin
+    cont := cont + 1;
+    cods := cods + sai.Names[i] + '-';
+    funcoes.informacao(i, fim, 'Excluindo Vendas...', false, false, 5);
+
+    if ((cont = 700) or (i = fim)) then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := 'delete from venda where '+QuotedStr(cods)+' like ''%-''|| nota||''-%'' ';
+      dm.IBQuery1.ParamByName('nota').AsString   := sai.Names[i];
+      dm.IBQuery1.ExecSQL;
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := 'delete from item_venda where '+QuotedStr(cods)+' like ''%-''|| nota||''-%'' ';
+      dm.IBQuery1.ParamByName('nota').AsString   := sai.Names[i];
+      dm.IBQuery1.ExecSQL;
+      {dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := 'delete from venda where (nota = :nota) ';
+      dm.IBQuery1.ParamByName('nota').AsString   := sai.Names[i];
+      dm.IBQuery1.ExecSQL;
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := 'delete from item_venda where (nota = :nota)';
+      dm.IBQuery1.ParamByName('nota').AsString   := sai.Names[i];
+      dm.IBQuery1.ExecSQL;}
+    end;
+  end;
+  if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+
+  funcoes.informacao(0, 0, 'Excluindo Transferências...', true, false, 5);
+  fim := transf.Count -1;
+  //apagando transferencias
+  for I := 0 to fim do begin
+    funcoes.informacao(i, fim, 'Excluindo Vendas...', false, false, 5);
+    dm.IBQuery1.Close;
+    dm.IBQuery1.SQL.Text := 'delete from TRANSFERENCIA where (documento = :nota) ';
+    dm.IBQuery1.ParamByName('nota').AsString   := transf.Names[i];
+    dm.IBQuery1.ExecSQL;
+  end;
+  if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+
+
+  funcoes.informacao(0, 0, 'Excluindo Acertos...', true, false, 5);
+  fim := acert.Count -1;
+  //apagando acertos
+  for I := 0 to fim do begin
+    dm.IBQuery1.Close;
+    dm.IBQuery1.SQL.Text := 'delete from ACERTO where (ACERTO_SEQ = :nota) ';
+    dm.IBQuery1.ParamByName('nota').AsString   := acert.Names[i];
+    dm.IBQuery1.ExecSQL;
+  end;
+  if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+
+
+ funcoes.informacao(0, 0, 'Imprimindo Relatório...', false, true, 5);
+ addRelatorioForm19(CompletaOuRepete('', '', '-', 122) + CRLF);
+ form19.ShowModal;
+
+ ShowMessage('Estoque Enxugado com Sucesso. ' +  IntToStr(listaProdutos.Count) + ' Produtos excluidos do estoque!');
+ listaProdutos.Free;
+ sai.Free;
+ ent.Free;
+ transf.Free;
+ acert.Free;
+
+ //GravarTexto('texto1.txt', listaProdutos.getText);
 
 end;
 

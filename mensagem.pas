@@ -13,6 +13,7 @@ type
     Panel1: TPanel;
     ProgressBar1: TProgressBar;
     Label1: TLabel;
+    Label2: TLabel;
     procedure FormShow(Sender: TObject);
   private
      i:integer;

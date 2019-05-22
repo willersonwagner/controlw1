@@ -245,7 +245,7 @@ if key=#27 then
        end;
 
        try
-         if funcoes.validaDataHora(datamov, usuario) = false then begin
+         if ((funcoes.validaDataHora(datamov, usuario) = false) and (usuario <> 'ADMIN')) then begin
            self.Show;
            exit;
          end;
@@ -462,7 +462,7 @@ procedure Tform22.Button1Click(Sender: TObject);
 var
   data : TDateTime;
 begin
-  funcoes.apagarCadastrarNovoUsuarioBD;
+  funcoes.apagaMovimento;
 end;
 
 function Tform22.enviNFCe(const perg : String = ''; nnf : String = ''; recebido : currency = 0) : boolean;

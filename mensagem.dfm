@@ -38,6 +38,14 @@ object Form23: TForm23
       Font.Style = [fsBold]
       ParentFont = False
     end
+    object Label2: TLabel
+      Left = 16
+      Top = 88
+      Width = 114
+      Height = 13
+      Caption = 'Tempo Restante: 60seg'
+      Visible = False
+    end
     object ProgressBar1: TProgressBar
       Left = 16
       Top = 64
@@ -48,12 +56,12 @@ object Form23: TForm23
   end
   object Timer1: TTimer
     Enabled = False
-    Left = 176
-    Top = 72
+    Left = 208
+    Top = 8
   end
   object Timer2: TTimer
     Enabled = False
-    Left = 216
-    Top = 72
+    Left = 240
+    Top = 8
   end
 end

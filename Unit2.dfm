@@ -12235,6 +12235,10 @@ object Form2: TForm2
           Caption = 'Apagar Lan'#231'amentos de caixa Duplicados'
           OnClick = ApagarLanamentosdecaixaDuplicados1Click
         end
+        object CorrigirDataErradanaVenda1: TMenuItem
+          Caption = 'Corrigir Data Errada na Venda'
+          OnClick = CorrigirDataErradanaVenda1Click
+        end
       end
       object Nfe1: TMenuItem
         Caption = 'NFe'

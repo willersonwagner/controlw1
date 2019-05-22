@@ -56,6 +56,30 @@ var
   val, total, ent : currency;
   query : TIBQuery;
 begin
+
+  if campobusca = 'dataVenda' then begin
+    if key = #13 then begin
+      ch := funcoes.dialogo('data',0,'',2,true,'',Application.Title,'Qual a Data ?', FormatDateTime('dd/mm/yy', DBGrid1.DataSource.DataSet.FieldByName('data').AsDateTime));
+      if ch = '*' then exit;
+
+      dm.IBQuery1.close;
+      dm.IBQuery1.SQL.Text := 'update venda set data = :data where nota = :nota';
+      dm.IBQuery1.ParamByName('data').AsDate   := StrToDate(ch);
+      doc := DBGrid1.DataSource.DataSet.FieldByName('nota').AsString;
+      dm.IBQuery1.ParamByName('nota').AsString := doc;
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
+
+      DBGrid1.DataSource.DataSet.Close;
+      DBGrid1.DataSource.DataSet.Open;
+      DBGrid1.DataSource.DataSet.Locate('nota', doc, []);
+
+      exit;
+    end;
+  end;
+
+
+
  if campolocalizaca = 'nfeB' then begin
    if key = #13 then begin
      funcoes.retornoLocalizar := copy(DBGrid1.DataSource.DataSet.FieldByName('chave').AsString, 26, 9);

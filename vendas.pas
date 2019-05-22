@@ -6327,8 +6327,8 @@ begin
   // alinha tabela itens vendidos na venda
 
   tamanho_nota := 40;
-  if ordem = '' then
-    ordem := 'order by Descricao';
+  if trim(ordem) = '' then
+    ordem := 'order by nome';
 
   ordenaCampos := true;
 
@@ -6743,8 +6743,8 @@ begin
             exit;
           end;
 
-          funcoes.baixaEstoqueSP(ClientDataSet1CODIGO.AsString,
-            ClientDataSet1QUANT.AsCurrency, 1);
+          //funcoes.baixaEstoqueSP(ClientDataSet1CODIGO.AsString,
+            //ClientDataSet1QUANT.AsCurrency, 1);
 
           dm.IBQuery1.Close;
           dm.IBQuery1.Close;
