@@ -55,6 +55,7 @@ type
     Pgerais, nomesServico : TStringList;
     datamov: tdatetime;
     superUsu : integer;
+    UnidInteiro : string;
     procedure TrimAppMemorySize;
     procedure EventoErro(Sender: TObject; E: Exception);
     function enviNFCe(const perg : String = ''; nnf : String = ''; recebido : currency = 0) : boolean;
@@ -64,7 +65,7 @@ type
 
 var
   form22: Tform22;
-  ConfParamGerais,Conf_Ter,meses : TStringList;
+  ConfParamGerais1,Conf_Ter,meses : TStringList;
   //Papel_de_Parede : TJPEGImage;
   CaminhoBD : String;
   Ativado,demo : boolean;
@@ -244,6 +245,8 @@ if key=#27 then
        except
        end;
 
+       UnidInteiro := funcoes.buscaUnidadesFracionadas;
+
        try
          if ((funcoes.validaDataHora(datamov, usuario) = false) and (usuario <> 'ADMIN')) then begin
            self.Show;
@@ -356,7 +359,7 @@ if key=#27 then
                 //TrimAppMemorySize;
 
                 form2.Show;
-                funcoes.fazBackupMandaPorEmail;
+                if usuario <> 'ADMIN' then  funcoes.fazBackupMandaPorEmail;
               end
               else
                 begin
@@ -460,9 +463,15 @@ end;
 
 procedure Tform22.Button1Click(Sender: TObject);
 var
-  data : TDateTime;
+  temp : TStringList;
 begin
-  funcoes.apagaMovimento;
+  temp := TStringList.Create;
+
+  LE_CAMPOS(temp, InputBox('','',''), '|', false);
+
+  ShowMessage(temp.GetText);
+  temp.Free;
+  //funcoes.apagaMovimento;
 end;
 
 function Tform22.enviNFCe(const perg : String = ''; nnf : String = ''; recebido : currency = 0) : boolean;
@@ -503,7 +512,7 @@ begin
 
   envi := true;
   try
-    if ConfParamGerais[45] = 'S' then
+    if funcoes.buscaParamGeral(45, '') = 'S' then
       begin
          envi := false;
       end

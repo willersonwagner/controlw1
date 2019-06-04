@@ -499,6 +499,11 @@ object Form20: TForm20
       FieldName = 'seqServ'
       Visible = False
     end
+    object ClientDataSet1unid: TStringField
+      FieldName = 'unid'
+      Visible = False
+      Size = 10
+    end
     object ClientDataSet1p_total: TAggregateField
       DefaultExpression = 'sum(total)'
       FieldName = 'p_total'

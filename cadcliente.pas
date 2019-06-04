@@ -219,9 +219,9 @@ begin
    else if param92 = 'X' then Label22.Caption := 'Suframa:';
 
 
-   Label6.Caption := ConfParamGerais.Strings[7]+':';
+   Label6.Caption := funcoes.buscaParamGeral(7, '')+':';
    jsedit.SetTabelaDoBd(self,'cliente',dm.IBQuery1);
-   ativo.Text := ConfParamGerais.Strings[3];
+   ativo.Text := funcoes.buscaParamGeral(3, '');
    if Length(form22.Pgerais.Values['acessousu']) >= 3 then
      begin
        ativo.Enabled := false;
@@ -352,7 +352,7 @@ begin
       close;
     end;
 
-  if (key = #13) and (tedit(sender).Text = '') then ativo.Text := ConfParamGerais.Strings[3];
+  if (key = #13) and (tedit(sender).Text = '') then ativo.Text := funcoes.buscaParamGeral(3, '');
 
   if (key = #13) then
     begin
@@ -552,9 +552,9 @@ procedure TForm16.rotaKeyPress(Sender: TObject; var Key: Char);
 begin
 if (key=#13) and (tedit(sender).Text='') then
   begin
-    if ConfParamGerais[31] = 'S' then
+    if funcoes.buscaParamGeral(31, '') = 'S' then
       begin
-        tedit(sender).Text := funcoes.localizar('Localizar '+ConfParamGerais.Strings[7],'rota','cod,nome','cod','','nome','nome',false,false,false,'',370,NIL);
+        tedit(sender).Text := funcoes.localizar('Localizar '+funcoes.buscaParamGeral(7, ''),'rota','cod,nome','cod','','nome','nome',false,false,false,'',370,NIL);
       end;
   end;
 end;
@@ -823,11 +823,11 @@ begin
      For I := 0 to dm.ACBrCEP1.Enderecos.Count-1 do
      begin
        cep.Text     := dm.ACBrCEP1.Enderecos[I].CEP;
-       ende.Text    := dm.ACBrCEP1.Enderecos[I].Logradouro;
-       bairro.Text  := dm.ACBrCEP1.Enderecos[I].Bairro;
+       ende.Text    := LeftStr(dm.ACBrCEP1.Enderecos[I].Logradouro, ende.MaxLength);
+       bairro.Text  := LeftStr(dm.ACBrCEP1.Enderecos[I].Bairro, bairro.MaxLength);
        est.Text     := dm.ACBrCEP1.Enderecos[I].UF;
        cod_mun.Text := dm.ACBrCEP1.Enderecos[I].IBGE_Municipio;
-       cid.Text     := dm.ACBrCEP1.Enderecos[I].Municipio;
+       cid.Text     := LeftStr(dm.ACBrCEP1.Enderecos[I].Municipio, cid.MaxLength);
      end;
    end ;
 

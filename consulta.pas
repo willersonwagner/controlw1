@@ -339,7 +339,7 @@ begin
 
   If (key =#32) and (DBGrid1.SelectedField.DisplayLabel='CODBAR') then
   begin
-    if ConfParamGerais[5] = 'S' then
+    if funcoes.buscaParamGeral(5, '') = 'S' then
       begin
         BuscaCodBar_F6_AutoPecas1;
         exit;
@@ -355,7 +355,7 @@ begin
 
   If (key =#32) and (DBGrid1.SelectedField.DisplayLabel='APLICACAO') then
   begin
-    if ConfParamGerais.Strings[5] = 'S' then
+    if funcoes.buscaParamGeral(5, '') = 'S' then
       begin
         FUNCOES.BuscaAplicacao(sqlVenda, DBGrid1, TRUE);
         exit;
@@ -421,7 +421,7 @@ begin
   dm.produto.SQL.Clear;
   sim := 'N';
   try
-    sim := ConfParamGerais.Strings[43];
+    sim := funcoes.buscaParamGeral(43, '');
   except
     sim := 'N';
   end;
@@ -448,7 +448,7 @@ begin
   if strnum(BuscaCOd) <> '' then dm.produto.Locate('cod', strnum(BuscaCOd), []);
 
 
-  funcoes.OrdenaCamposVenda(ConfParamGerais.Strings[1]);
+  funcoes.OrdenaCamposVenda(funcoes.buscaParamGeral(1, ''));
   funcoes.FormataCampos(dm.produto,2,'ESTOQUE',3);
   DBGrid1.DataSource := dm.dsprod;
   cont := 1;
@@ -467,7 +467,7 @@ begin
 
   if key = 120 then //120 = F9 abre tela de equivalência
    begin
-     if ConfParamGerais[5] = 'S' then
+     if funcoes.buscaParamGeral(5, '') = 'S' then
        begin
          funcoes.buscaEquivalencia1(dm.produto.fieldbyname('cod').AsString);
          exit;
@@ -592,7 +592,7 @@ begin
   dm.produto.Open;
 
   dm.produto.Locate('cod', cod, []);
-  funcoes.OrdenaCamposVenda(ConfParamGerais.Strings[1]);
+  funcoes.OrdenaCamposVenda(funcoes.buscaParamGeral(1, ''));
   funcoes.FormataCampos(dm.produto,2,'ESTOQUE',3);
 
   DBGrid1.SelectedIndex := funcoes.buscaFieldDBgrid1(campo, DBGrid1);

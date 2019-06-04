@@ -389,6 +389,9 @@ type
     ConfiguraodeFormulrios1: TMenuItem;
     AtualizaodoSistema1: TMenuItem;
     CorrigirDataErradanaVenda1: TMenuItem;
+    EnxugarEstoque1: TMenuItem;
+    VendasemM31: TMenuItem;
+    EstoqueAtualemM31: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure CadastrarUsurio1Click(Sender: TObject);
     procedure FormKeyPress(Sender: TObject; var Key: Char);
@@ -661,6 +664,9 @@ type
     procedure ConfiguraodeFormulrios1Click(Sender: TObject);
     procedure AtualizaodoSistema1Click(Sender: TObject);
     procedure CorrigirDataErradanaVenda1Click(Sender: TObject);
+    procedure EnxugarEstoque1Click(Sender: TObject);
+    procedure VendasemM31Click(Sender: TObject);
+    procedure EstoqueAtualemM31Click(Sender: TObject);
   private
     b, cont : integer;
     ini : Smallint;
@@ -996,7 +1002,7 @@ begin
    if form22.usuario <> 'ADMIN' then RestaurarBackup1.Visible := false
      else RestaurarBackup1.Visible := true;
 
-   if ConfParamGerais[10] <> '1' then begin
+   if funcoes.buscaParamGeral(10, '') <> '1' then begin
      UsaSped := true;
    end;
 
@@ -1041,7 +1047,7 @@ begin
        inicializaComponentes();
        lista := TList.Create;
 
-       funcoes.transformaStringList(ConfParamGerais, li);
+       funcoes.transformaStringList(ConfParamGerais1, li);
 
        lista.Add(dm.IBQuery1);
        lista.Add(dm.IBQuery2);
@@ -1580,6 +1586,76 @@ begin
 
  end;
 
+procedure TForm2.EstoqueAtualemM31Click(Sender: TObject);
+var
+  h1, h2 : string;
+  lista : TItensProduto;
+  i : integer;
+  total, totm3, totquant : currency;
+begin
+  grupo := funcoes.dialogo('generico',0,'SN',50,true,'S',Application.Title,'Calcular com base no Preço de Venda (S-Sim N-Não) ?','');
+  if grupo = '*' then exit;
+
+  fornec := funcoes.dialogo('generico',0,'SN',50,true,'S',Application.Title,'Imprimir Itens Com Estoque Zero ?','');
+  if fornec = '*' then exit;
+
+  h1 := 'p_venda';
+  if grupo = 'N' then begin
+    h1 := ' p_compra as p_venda ';
+  end;
+
+  h2 := '';
+  if fornec = 'N' then h2 := ' and quant > 0';
+
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select cod, nome, ' + h1 + ',fracao, quant from produto where (fracao > 0) ' + h2;
+  dm.IBselect.Open;
+
+  lista := TItensProduto.Create;
+  total    := 0;
+  totm3    := 0;
+  totquant := 0;
+  while not dm.IBselect.Eof do begin
+    i := lista.Find(dm.IBselect.FieldByName('cod').AsInteger);
+    if i = -1 then begin
+      i := lista.Add(TregProd.Create);
+      lista[i].cod   := dm.IBselect.FieldByName('cod').Asinteger;
+      lista[i].nome  := dm.IBselect.FieldByName('nome').AsString;
+      lista[i].preco := dm.IBselect.FieldByName('p_venda').AsCurrency;
+      lista[i].quant := 0;
+      lista[i].aliqCred := 0;
+    end;
+
+    lista[i].total    := lista[i].total    + (dm.IBselect.FieldByName('quant').AsCurrency * dm.IBselect.FieldByName('p_venda').AsCurrency);
+    lista[i].quant    := lista[i].quant    + dm.IBselect.FieldByName('quant').AsCurrency;
+    lista[i].aliqCred := lista[i].aliqCred + (dm.IBselect.FieldByName('quant').AsCurrency * dm.IBselect.FieldByName('fracao').AsCurrency);
+
+    totquant := totquant + dm.IBselect.FieldByName('quant').AsCurrency;
+    total := total + (dm.IBselect.FieldByName('quant').AsCurrency * dm.IBselect.FieldByName('p_venda').AsCurrency);
+    totm3 := totm3 + (dm.IBselect.FieldByName('quant').AsCurrency * dm.IBselect.FieldByName('fracao').AsCurrency);
+
+    dm.IBselect.Next;
+  end;
+
+  form19.RichEdit1.Clear;
+  addRelatorioForm19(funcoes.RelatorioCabecalho(form22.Pgerais.Values['empresa'], 'ESTOQUE ATUAL EM M3', 80));
+  addRelatorioForm19('CODIGO DESCRICAO                                 PECAS       M3         PRECO' + CRLF);
+  addRelatorioForm19(CompletaOuRepete('','', '-', 80) + CRLF);
+
+  for i := 0 to lista.count - 1 do begin
+    addRelatorioForm19(CompletaOuRepete('', IntToStr(lista[i].cod), '0', 6) + ' ' + CompletaOuRepete(lista[i].nome, '', ' ', 40) + CompletaOuRepete('', FormatCurr('0.00', lista[i].quant), ' ', 8) +
+    CompletaOuRepete('', FormatCurr('0.00', lista[i].aliqCred), ' ', 10) + CompletaOuRepete('', FormatCurr('0.00', lista[i].total), ' ', 12) + CRLF);
+  end;
+
+  addRelatorioForm19(CompletaOuRepete('','', '-', 80) + CRLF);
+  addRelatorioForm19(CompletaOuRepete('T O T A L ==> ',formataCurrency(totquant), ' ', 55)  +
+  CompletaOuRepete('',FormatCurr('0.00',totm3), ' ', 10) + CompletaOuRepete('',FormatCurr('0.00',total), ' ', 12) + CRLF);
+  addRelatorioForm19(CompletaOuRepete('','', '-', 80) + CRLF);
+
+  lista.Free;
+  form19.ShowModal;
+end;
+
 procedure TForm2.EstoqueNegativo1Click(Sender: TObject);
 begin
   form19.RichEdit1.Clear;
@@ -1953,7 +2029,7 @@ begin
 
           if (StrToCurrDef(caixaSai.Values[ini], 0) <> 0) and (copy(fim, 1, 6) <> 'VENDAS') then
             begin
-              adic := ' (' + formataCurrency(StrToCurrDef(caixaSai.Values[ini], 0) / IfThen(ConfParamGerais[25] = '3', _TOTAL,  CUSTO) * 100) + '% DE ' + formataCurrency(IfThen(ConfParamGerais[25] = '3', _TOTAL,  CUSTO)) + ' )';
+              adic := ' (' + formataCurrency(StrToCurrDef(caixaSai.Values[ini], 0) / IfThen(funcoes.buscaParamGeral(25, '') = '3', _TOTAL,  CUSTO) * 100) + '% DE ' + formataCurrency(IfThen(funcoes.buscaParamGeral(25, '') = '3', _TOTAL,  CUSTO)) + ' )';
               addRelatorioForm19(funcoes.CompletaOuRepete(funcoes.CompletaOuRepete('', ini, ' ' , 7) + ' - ' + funcoes.CompletaOuRepete(copy(fim,1,25), '', ' ', 25), '', ' ', 35) + '=>' + funcoes.CompletaOuRepete('', formataCurrency(StrToCurrDef(caixaSai.Values[ini], 0)), ' ', 15) + adic + CRLF);
 
               if (StrToCurrDef(caixaSai.Values[ini], 0) <> 0) and (copy(fim, 1, 6) <> 'VENDAS') and (ini <> '101') and (LeftStr(fim, 8) <> 'RETIRADA') and
@@ -1983,7 +2059,7 @@ begin
   addRelatorioForm19(funcoes.CompletaOuRepete('LUCRO BRUTO SOBRE VENDAS          => ', FormatCurr('#,###,###0.00', _TOTAL - CUSTO), ' ', 60) + #13 + #10);
   IF (_ENTDEP <> 0) OR (_SAIDEP <> 0) then addRelatorioForm19(funcoes.CompletaOuRepete('TOTAL DEPOSITOS                   => ', formataCurrency(_ENTDEP) + ' => ' + formataCurrency(_SAIDEP), ' ', 60) + #13 + #10);
 
-  addRelatorioForm19(funcoes.CompletaOuRepete('SALDO PERIODO (ENTRADAS-DESPESAS) => ' + formataCurrency(ENTR_CAIXA1 + AVISTA - despesas) + ' => ' + formataCurrency((ENTR_CAIXA1 + AVISTA - despesas) / IfThen(ConfParamGerais[25] = '3', _TOTAL,  CUSTO) * 100) + '%', '', ' ', 70) + #13 + #10);
+  addRelatorioForm19(funcoes.CompletaOuRepete('SALDO PERIODO (ENTRADAS-DESPESAS) => ' + formataCurrency(ENTR_CAIXA1 + AVISTA - despesas) + ' => ' + formataCurrency((ENTR_CAIXA1 + AVISTA - despesas) / IfThen(funcoes.buscaParamGeral(25, '') = '3', _TOTAL,  CUSTO) * 100) + '%', '', ' ', 70) + #13 + #10);
 
   addRelatorioForm19('  ' + #13 + #10);
   addRelatorioForm19(funcoes.CompletaOuRepete('LUCRO LIQUIDO:                       ', '', ' ', 60) + #13 + #10);
@@ -2008,7 +2084,7 @@ begin
   addRelatorioForm19(funcoes.CompletaOuRepete('TOTAL DE ENCARGOS                 => ' + formataCurrency(despesas) + '- '+ fim, '', ' ', 80) + #13 + #10 + CRLF);
  // addRelatorioForm19(funcoes.CompletaOuRepete('TOTAL DE ENCARGOS                 => ' + formataCurrency(despesas - pag) + '- '+ fim, '', ' ', 80) + #13 + #10 + CRLF);
 
-  fim := ' => ' + formataCurrency((LIQ)/ IfThen(ConfParamGerais[25] = '3', _TOTAL,  CUSTO) * 100) + '%' ;
+  fim := ' => ' + formataCurrency((LIQ)/ IfThen(funcoes.buscaParamGeral(25, '') = '3', _TOTAL,  CUSTO) * 100) + '%' ;
   addRelatorioForm19(funcoes.CompletaOuRepete('TOTAL LUCRO LIQUIDO               => ', FormatCurr('#,###,###0.00', LIQ), ' ', 60) + fim + #13 + #10);
   addRelatorioForm19('  ' + #13 + #10);
 
@@ -2953,6 +3029,8 @@ begin
   form40.tipo.Add('106=generico');
   form40.tipo.Add('107=generico');
   form40.tipo.Add('108=generico');
+  form40.tipo.Add('109=generico');
+  form40.tipo.Add('110=normal');
 
   form40.troca := TStringList.Create;
   form40.troca.Add('0=S');
@@ -3067,6 +3145,8 @@ begin
   form40.troca.Add('106=S');
   form40.troca.Add('107=S');
   form40.troca.Add('108=S');
+  form40.troca.Add('109=S');
+  form40.troca.Add('110=');
 
   form40.teclas := TStringList.Create;
   form40.teclas.Add('0=FT');
@@ -3180,6 +3260,8 @@ begin
   form40.teclas.Add('106=SN');
   form40.teclas.Add('107=SN');
   form40.teclas.Add('108=SN');
+  form40.teclas.Add('109=SN');
+  form40.teclas.Add('110=1234567890ABCDEFGHIJLMNOPKXYZWQRSTUVXZ|' + #46);
 
 
   form40.ListBox1.Clear;
@@ -3292,6 +3374,8 @@ begin
   form40.ListBox1.Items.Add('106=Buscar Preço Atual Quando Recuperar um Orçamento ?');
   form40.ListBox1.Items.Add('107=Usar Desconto Por Quantidades ?');
   form40.ListBox1.Items.Add('108=Usar Leitura de Etiqueta de Pesagem no ControlW ?');
+  form40.ListBox1.Items.Add('109=Usar Venda de Mercadorias em M3 (S/N) ?');
+  form40.ListBox1.Items.Add('110=Quais as Unidades de Medida que Podem Ser Fracionadas ?');
 
   Form40.ListBox1.Selected[0] := true;
   form40.showmodal;
@@ -3920,7 +4004,7 @@ begin
   pergJuros := '';
 
   try
-    pergJuros := ConfParamGerais[44];
+    pergJuros := funcoes.buscaParamGeral(44, 'S');
   except
     pergJuros := 'S';
   end;
@@ -3954,7 +4038,7 @@ begin
     exit;
   end;
 
-  juros1 := StrToCurrDef(ConfParamGerais.Strings[6], 0);
+  juros1 := StrToCurrDef(funcoes.buscaParamGeral(6, '0'), 0);
   //juros ao dia
 
   Form34 := Tform34.Create(Self);
@@ -4398,7 +4482,7 @@ begin
   end;
 
   dm.IBselect.Close;
-  dm.IBselect.SQL.Text := 'select * from nfe where data >= :ini and data <= :fim';
+  dm.IBselect.SQL.Text := 'select * from nfe where data >= :ini and data <= :fim and tipo <> ''2'' ';
   dm.IBselect.ParamByName('ini').AsDate := StrToDate(ini);
   dm.IBselect.ParamByName('fim').AsDate := StrToDate(fim);
   dm.IBselect.Open;
@@ -5580,7 +5664,7 @@ begin
       if dm.IBselect.FieldByName('vencimento').AsDateTime < form22.datamov then
         begin
           vencido.Values[dm.IBselect.FieldByName('documento').AsString] := CurrToStr(StrToCurr(vencido.Values[dm.IBselect.FieldByName('documento').AsString]) + dm.IBselect.FieldByName('valor').AsCurrency);
-          juros.Values[dm.IBselect.FieldByName('documento').AsString] := CurrToStr(StrToCurr(juros.Values[dm.IBselect.FieldByName('documento').AsString]) + (dm.IBselect.FieldByName('valor').AsCurrency * StrToCurrDef(ConfParamGerais.Strings[6], 0)));
+          juros.Values[dm.IBselect.FieldByName('documento').AsString] := CurrToStr(StrToCurr(juros.Values[dm.IBselect.FieldByName('documento').AsString]) + (dm.IBselect.FieldByName('valor').AsCurrency * StrToCurrDef(funcoes.buscaParamGeral(6, ''), 0)));
         end
       else vencer.Values[dm.IBselect.FieldByName('documento').AsString] := CurrToStr(StrToCurr(vencer.Values[dm.IBselect.FieldByName('documento').AsString]) + dm.IBselect.FieldByName('valor').AsCurrency);
 
@@ -5727,7 +5811,7 @@ vencidoCurr,vencerCurr,totalgeral : currency;
 vencido,vencer,juros,total : TStringList;
 i : integer;
 begin
-  rota := funcoes.dialogo('not',0,'1234567890'+#8,30,false,'',Application.Title,'Qual a '+ConfParamGerais.Strings[7]+'?','');
+  rota := funcoes.dialogo('not',0,'1234567890'+#8,30,false,'',Application.Title,'Qual a '+funcoes.buscaParamGeral(7, '')+'?','');
   if rota = '' then rota := funcoes.localizar('Localizar Rotas de Distribuição','rota','cod,nome','cod','','nome','nome',true,false,false,'',300,nil);
   if rota = '' then exit;
   if rota<>'*' then sim := funcoes.dialogo('generico',0,'SN',30,false,'S',Application.Title,'Imprimir Clientes que Estão em Dia?','N');
@@ -7583,7 +7667,7 @@ begin
       form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete(#218,#191,#196,12)+funcoes.CompletaOuRepete(#218,#194,#196,10)+funcoes.CompletaOuRepete('',#194,#196,13)+funcoes.CompletaOuRepete('',#194,#196,12)+funcoes.CompletaOuRepete('',#194,#196,11)+funcoes.CompletaOuRepete('',#194,#196,12)+funcoes.CompletaOuRepete('',#191,#196,8)+#13+#10))));
       form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete(#179+' EMITENTE ',#179,' ',12)+funcoes.CompletaOuRepete(#179+ ' FATURA ',#179,' ',10)+funcoes.CompletaOuRepete('    VALOR',#179,' ',13)+funcoes.CompletaOuRepete(' DUPLICATA ',#179,' ',12)+funcoes.CompletaOuRepete('VENCIMENTO',#179,' ',11)+funcoes.CompletaOuRepete(' JUROS R$',#179,' ',12)+funcoes.CompletaOuRepete(' MULTA ',#179,' ',8)+#13+#10))));
       form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete(#179,#179,' ',12)+funcoes.CompletaOuRepete(#195,#197,#196,10)+funcoes.CompletaOuRepete('',#197,#196,13)+funcoes.CompletaOuRepete('',#197,#196,12)+funcoes.CompletaOuRepete('',#197,#196,11)+funcoes.CompletaOuRepete('',#197,#196,12)+funcoes.CompletaOuRepete('',#180,#196,8)+#13+#10))));
-      form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete(#179+'',#179,' ',12)+funcoes.CompletaOuRepete(#179+ funcoes.centraliza(fatura,' ',8),#179,' ',10)+funcoes.CompletaOuRepete('',FormatCurr('#,###,###0.00',total)+#179,' ',13)+funcoes.CompletaOuRepete(funcoes.centraliza('1/ 1',' ', 11),#179,' ',12) + funcoes.CompletaOuRepete(' '+FormatDateTime('dd/mm/yy',dm.IBselect.fieldbyname('vencimento').AsDateTime)+' ',#179,' ',11)+funcoes.CompletaOuRepete('',FormatCurr('#,###,###0.00',Arredonda(dm.IBselect.fieldbyname('valor').AsCurrency * StrToCurr(funcoes.ConverteNumerico(ConfParamGerais.Strings[6])) /100,2))+'/dia'+#179,' ',12)+funcoes.CompletaOuRepete('',FormatCurr('#,###,###0.00',Arredonda(dm.IBselect.fieldbyname('valor').AsCurrency * 2/100,2))  +#179,' ',8)+#13+#10))));
+      form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete(#179+'',#179,' ',12)+funcoes.CompletaOuRepete(#179+ funcoes.centraliza(fatura,' ',8),#179,' ',10)+funcoes.CompletaOuRepete('',FormatCurr('#,###,###0.00',total)+#179,' ',13)+funcoes.CompletaOuRepete(funcoes.centraliza('1/ 1',' ', 11),#179,' ',12) + funcoes.CompletaOuRepete(' '+FormatDateTime('dd/mm/yy',dm.IBselect.fieldbyname('vencimento').AsDateTime)+' ',#179,' ',11)+funcoes.CompletaOuRepete('',FormatCurr('#,###,###0.00',Arredonda(dm.IBselect.fieldbyname('valor').AsCurrency * StrToCurr(funcoes.ConverteNumerico(funcoes.buscaParamGeral(6, ''))) /100,2))+'/dia'+#179,' ',12)+funcoes.CompletaOuRepete('',FormatCurr('#,###,###0.00',Arredonda(dm.IBselect.fieldbyname('valor').AsCurrency * 2/100,2))  +#179,' ',8)+#13+#10))));
       form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete(#179,#179,' ',12)+funcoes.CompletaOuRepete(#192,#193,#196,10)+funcoes.CompletaOuRepete('',#193,#196,13)+funcoes.CompletaOuRepete('',#193,#196,12)+funcoes.CompletaOuRepete('',#193,#196,11)+funcoes.CompletaOuRepete('',#193,#196,12)+funcoes.CompletaOuRepete('',#217,#196,8)+#13+#10))));
 
       form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete(#179,#179,' ',12)+funcoes.CompletaOuRepete(#218+#196+#196+#196+'DADOS DO SACADO',#191,#196,66)+#13+#10))));
@@ -7622,7 +7706,7 @@ begin
   nota := funcoes.dialogo('not',0,'0123456789'+#8,50,true,'',Application.Title,'Qual o Número da Nota de Pedido?','');
   if (nota = '*') or (nota = '')  then exit;
 
-  funcoes.GeraCarne(nota,ConfParamGerais.Strings[8]);
+  funcoes.GeraCarne(nota,funcoes.buscaParamGeral(8, ''));
 end;
 
 procedure TForm2.BoletodeCobrana2Click(Sender: TObject);
@@ -8017,7 +8101,7 @@ procedure TForm2.StatusdoServoo1Click(Sender: TObject);
 begin
   NfeVenda := TNfeVenda.Create(self);
   try
-    if ConfParamGerais[36] <> 'N' then
+    if funcoes.buscaParamGeral(36, '') <> 'N' then
       begin
         fabric := NfeVenda.StatusServico;
         ShowMessage(fabric);
@@ -9111,6 +9195,11 @@ begin
   funcoes.enviaXMLsEmail;
 end;
 
+procedure TForm2.EnxugarEstoque1Click(Sender: TObject);
+begin
+  funcoes.apagarProdutoEstoqueZero;
+end;
+
 procedure TForm2.CalcularEstoqueMnimo1Click(Sender: TObject);
 var
   dini, dfim, sim : string;
@@ -9120,7 +9209,7 @@ var
   lista, sugestaoLista : TStringList;
 begin
   alterados := 0;
-  periodoCalculoParGer := StrToCurrDef(ConfParamGerais.Strings[18], 45);
+  periodoCalculoParGer := StrToCurrDef(funcoes.buscaParamGeral(18, ''), 45);
   sim := funcoes.dialogo('not',0,'SN'+#8 + #27,0,false,'S','Control For Windows','Confirma Cálculo de Estoque Mínimo? S/N:','');
   if (sim = 'N') or (sim = '*') then exit;
 
@@ -9469,7 +9558,7 @@ procedure TForm2.RecuperarNota1Click(Sender: TObject);
 begin
   NfeVenda := TNfeVenda.Create(self);
   try
-    if ConfParamGerais[36] <> 'N' then NfeVenda.RecuperarNota('')
+    if funcoes.buscaParamGeral(36, '') <> 'N' then NfeVenda.RecuperarNota('')
       else NfeVenda.RecuperarNota1('');
   except
     on e:exception do
@@ -10183,18 +10272,18 @@ begin
   unid := '';
   listUnidades := funcoes.listaUnidades;
 
-  if form22.usuario = 'ADMIN' then unid := funcoes.dialogo('generico',0,'ABCDEFGHIJLMNOPKXYZWQRSTUVXZ',50,false,'S',Application.Title,'Confirme o Drive para Gerar a Exportação ('+listUnidades+')?', ConfParamGerais[33])
-  else unid := funcoes.dialogo('generico',0,'ABCDEFGHIJLMNOPKXYZWQRSTUVXZ',50,false,'S',Application.Title,'Confirme o Drive para Gerar a Exportação ('+listUnidades+')?', ConfParamGerais[33]);
+  if form22.usuario = 'ADMIN' then unid := funcoes.dialogo('generico',0,'ABCDEFGHIJLMNOPKXYZWQRSTUVXZ',50,false,'S',Application.Title,'Confirme o Drive para Gerar a Exportação ('+listUnidades+')?', funcoes.buscaParamGeral(33, 'D'))
+  else unid := funcoes.dialogo('generico',0,'ABCDEFGHIJLMNOPKXYZWQRSTUVXZ',50,false,'S',Application.Title,'Confirme o Drive para Gerar a Exportação ('+listUnidades+')?', funcoes.buscaParamGeral(33, 'D'));
   if unid = '*' then exit;
 
   if funcoes.SincronizarExtoque1(unid + ':\MATRIZ.DAT') then begin
-    if trim(unid) <> trim(ConfParamGerais[33])  then begin
+    if trim(unid) <> trim(funcoes.buscaParamGeral(33, ''))  then begin
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Text := 'update pgerais set valor = :valor where cod = 33';
       dm.IBQuery1.ParamByName('valor').AsString := unid;
       dm.IBQuery1.ExecSQL;
       dm.IBQuery1.Transaction.Commit;
-      ConfParamGerais[33] := unid;
+      ConfParamGerais1.Values['33'] := unid;
     end;
     ShowMessage('Sincronização criada com sucesso.');
   end;
@@ -10205,7 +10294,7 @@ VAR
   unid : String;
 begin
   unid := '';
-  unid := funcoes.dialogo('generico',0,'ABCDEFGHIJLMNOPKXYZWQRSTUVXZ',50,false,'S',Application.Title,'Confirme o Drive para Receber a Exportação?', ConfParamGerais[33]);
+  unid := funcoes.dialogo('generico',0,'ABCDEFGHIJLMNOPKXYZWQRSTUVXZ',50,false,'S',Application.Title,'Confirme o Drive para Receber a Exportação?', funcoes.buscaParamGeral(33, ''));
   if unid = '*' then exit;
 
   if not FileExists(unid + ':\MATRIZ.DAT') then
@@ -10215,13 +10304,13 @@ begin
   end;
 
   if funcoes.receberSincronizacaoExtoque1(unid + ':\MATRIZ.DAT') then begin
-     if trim(unid) <> trim(ConfParamGerais[33])  then begin
+     if trim(unid) <> trim(funcoes.buscaParamGeral(33, ''))  then begin
        dm.IBQuery1.Close;
        dm.IBQuery1.SQL.Text := 'update pgerais set valor = :valor where cod = 33';
        dm.IBQuery1.ParamByName('valor').AsString := unid;
        dm.IBQuery1.ExecSQL;
        dm.IBQuery1.Transaction.Commit;
-       ConfParamGerais[33] := unid;
+       ConfParamGerais1.Values['33'] := unid;
      end;
      ShowMessage('Sincronizado com sucesso.');
   end;
@@ -10274,8 +10363,8 @@ begin
   nota := funcoes.dialogo('generico',0,'1234567890'+#8,50,true,'',Application.Title,'Qual a Número da Nota de Pedido a ser Enviada para a Filial?','');
   if nota = '*' then exit;
 
-  if ConfParamGerais[33] = '' then caminho := 'E'
-  else caminho := ConfParamGerais[33];
+  if funcoes.buscaParamGeral(33, '') = '' then caminho := 'E'
+  else caminho := funcoes.buscaParamGeral(33, '');
   caminho := funcoes.dialogo('generico',0,'ABCDEFGHIJLMNOPKXYZWQRSTUVXZ',50,false,'S',Application.Title,'Confirme o Drive para Gerar a Exportação?', caminho);
   if caminho = '*' then exit;
 
@@ -10355,7 +10444,7 @@ var
   total : currency;
   arqi : TStringList;
 begin
-  caminho := funcoes.dialogo('generico',0,'ABCDEFGHIJLMNOPKXYZWQRSTUVXZ',50,false,'S',Application.Title,'Confirme a unidade para Recebimento da Remessa:', ConfParamGerais[33]);
+  caminho := funcoes.dialogo('generico',0,'ABCDEFGHIJLMNOPKXYZWQRSTUVXZ',50,false,'S',Application.Title,'Confirme a unidade para Recebimento da Remessa:', funcoes.buscaParamGeral(33, ''));
   if caminho = '*' then exit;
 
   arqi := TStringList.Create;
@@ -10562,7 +10651,7 @@ procedure TForm2.CartadeCorreo1Click(Sender: TObject);
 begin
   NfeVenda := TNfeVenda.Create(self);
   try
-    if ConfParamGerais[36] <> 'N' then NfeVenda.cartaDeCorrecao()
+    if funcoes.buscaParamGeral(36, '') <> 'N' then NfeVenda.cartaDeCorrecao()
       else NfeVenda.cartaDeCorrecao1();
   except
     on e:exception do
@@ -13152,7 +13241,7 @@ begin
   totCANC := 0;
 
   dm.IBselect.close;
-  dm.IBselect.SQL.Text := 'select * from nfe where data >= :ini and data <= :fim ORDER BY NOTA';
+  dm.IBselect.SQL.Text := 'select * from nfe where data >= :ini and data <= :fim  and tipo <> ''2''  ORDER BY NOTA';
   dm.IBselect.ParamByName('ini').AsDate := dini1;
   dm.IBselect.ParamByName('fim').AsDate := dfim1;
   dm.IBselect.Open;
@@ -13428,7 +13517,7 @@ begin
   if funcoes.enviandoCupom then exit;
   sim := 'N';
   try
-    sim := ConfParamGerais[45];
+    sim := funcoes.buscaParamGeral(45, 'N');
   except
   end;
 
@@ -15222,6 +15311,79 @@ begin
   form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete('','','-',80)+#13+#10))));
   form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete('TOTAL GERAL =>   '+FormatCurr('#,###,###0.00',totalGeral),'',' ',80)+#13+#10))));
   form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete('','','-',80)+#13+#10))));
+  form19.ShowModal;
+end;
+
+procedure TForm2.VendasemM31Click(Sender: TObject);
+var
+  dini, dfim, h1 : string;
+  dini1, dfim1 : TDate;
+  lista : TItensProduto;
+  i : integer;
+  total, totm3, totquant : currency;
+begin
+  grupo := funcoes.dialogo('generico',0,'1234567890'+#8,50,false,'',Application.Title,'Qual o Grupo ?','');
+  if grupo = '*' then exit;
+
+  h1 := '';
+  if grupo <> '' then begin
+    h1 := ' and p.grupo = '+ StrNum(grupo);
+  end;
+
+  dini := funcoes.dialogo('data',0,'',2,true,'',Application.Title,'Qual a Data Inicial?','');
+  if dini = '*' then exit;
+
+  dfim := funcoes.dialogo('data',0,'',2,true,'',Application.Title,'Qual a Data Final?','');
+  if dfim = '*' then exit;
+
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select i.cod, p.nome, i.quant, p.fracao, i.p_venda, i.total from item_venda i inner join produto p on (p.cod = i.cod and p.fracao > 0 '+h1+') where i.data >= :ini and data <= :fim ';
+  dm.IBselect.ParamByName('ini').AsDate := StrToDate(dini);
+  dm.IBselect.ParamByName('fim').AsDate := StrToDate(dfim);
+  dm.IBselect.Open;
+
+  lista := TItensProduto.Create;
+  total    := 0;
+  totm3    := 0;
+  totquant := 0;
+  while not dm.IBselect.Eof do begin
+    i := lista.Find(dm.IBselect.FieldByName('cod').AsInteger);
+    if i = -1 then begin
+      i := lista.Add(TregProd.Create);
+      lista[i].cod   := dm.IBselect.FieldByName('cod').Asinteger;
+      lista[i].nome  := dm.IBselect.FieldByName('nome').AsString;
+      lista[i].preco := dm.IBselect.FieldByName('p_venda').AsCurrency;
+      lista[i].quant := 0;
+      lista[i].aliqCred := 0;
+    end;
+
+    lista[i].total    := lista[i].total    + dm.IBselect.FieldByName('total').AsCurrency;
+    lista[i].quant    := lista[i].quant    + dm.IBselect.FieldByName('quant').AsCurrency;
+    lista[i].aliqCred := lista[i].aliqCred + (dm.IBselect.FieldByName('quant').AsCurrency * dm.IBselect.FieldByName('fracao').AsCurrency);
+
+    totquant := totquant + dm.IBselect.FieldByName('quant').AsCurrency;
+    total := total + dm.IBselect.FieldByName('total').AsCurrency;
+    totm3 := totm3 + (dm.IBselect.FieldByName('quant').AsCurrency * dm.IBselect.FieldByName('fracao').AsCurrency);
+
+    dm.IBselect.Next;
+  end;
+
+  form19.RichEdit1.Clear;
+  addRelatorioForm19(funcoes.RelatorioCabecalho(form22.Pgerais.Values['empresa'], 'VENDAS EM M3 DE ' + formataDataDDMMYY(StrToDate(dini)) +  ' A ' + formataDataDDMMYY(StrToDate(dfim)), 80));
+  addRelatorioForm19('CODIGO DESCRICAO                                 PECAS       M3         PRECO' + CRLF);
+  addRelatorioForm19(CompletaOuRepete('','', '-', 80) + CRLF);
+
+  for i := 0 to lista.count - 1 do begin
+    addRelatorioForm19(CompletaOuRepete('', IntToStr(lista[i].cod), '0', 6) + ' ' + CompletaOuRepete(lista[i].nome, '', ' ', 40) + CompletaOuRepete('', FormatCurr('0.00', lista[i].quant), ' ', 8) +
+    CompletaOuRepete('', FormatCurr('0.00', lista[i].aliqCred), ' ', 10) + CompletaOuRepete('', FormatCurr('0.00', lista[i].total), ' ', 10) + CRLF);
+  end;
+
+  addRelatorioForm19(CompletaOuRepete('','', '-', 80) + CRLF);
+  addRelatorioForm19(CompletaOuRepete('T O T A L ==> ',formataCurrency(totquant), ' ', 55)  +
+  CompletaOuRepete('',FormatCurr('0.00',totm3), ' ', 10) + CompletaOuRepete('',FormatCurr('0.00',total), ' ', 10) + CRLF);
+  addRelatorioForm19(CompletaOuRepete('','', '-', 80) + CRLF);
+
+  lista.Free;
   form19.ShowModal;
 end;
 

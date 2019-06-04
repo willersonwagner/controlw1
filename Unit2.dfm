@@ -11962,6 +11962,14 @@ object Form2: TForm2
           Caption = 'Produtos com Divergencia na Ficha de Estoque'
           OnClick = ProdutoscomDivergencianaFichadoProduto1Click
         end
+        object VendasemM31: TMenuItem
+          Caption = 'Vendas em M3'
+          OnClick = VendasemM31Click
+        end
+        object EstoqueAtualemM31: TMenuItem
+          Caption = 'Estoque Atual em M3'
+          OnClick = EstoqueAtualemM31Click
+        end
       end
       object Faturamento1: TMenuItem
         Caption = 'Faturamento *'
@@ -12114,6 +12122,10 @@ object Form2: TForm2
         object ReceberNota1: TMenuItem
           Caption = 'Receber Nota'
           OnClick = ReceberNota1Click
+        end
+        object EnxugarEstoque1: TMenuItem
+          Caption = 'Excluir Produtos Estoque Zero'
+          OnClick = EnxugarEstoque1Click
         end
       end
       object BloquearUsurio1: TMenuItem

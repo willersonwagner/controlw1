@@ -169,10 +169,12 @@ begin
            ShowMessage('Download de XML ' +ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[i].resDFe.chDFe + ' Foi Concluído!');
         end
         else begin
+          ret := DANFE_Rave.Logo;
           ACBrNFe.NotasFiscais.LoadFromFile(camArq + ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[i].resDFe.chDFe + '-nfe.xml');
           ACBrNFe.DANFE := DANFE_Rave;
           ACBrNFe.NotasFiscais.Imprimir;
           ACBrNFe.NotasFiscais.Clear;
+          DANFE_Rave.Logo := ret;
         end;
       end;
     end;

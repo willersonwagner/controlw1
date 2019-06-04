@@ -38,7 +38,6 @@ type
     IBQuery2: TIBQuery;
     Gauge1: TGauge;
     ACBrNFeDANFeRL1: TACBrNFeDANFeRL;
-    ACBrNFe1: TACBrNFe;
     Panel1: TPanel;
     Label2: TLabel;
     ACBrNFeDANFCeFortes1: TACBrNFeDANFCeFortes;
@@ -54,6 +53,7 @@ type
     FinalizaTimer: TTimer;
     Label3: TLabel;
     IdSNTP1: TIdSNTP;
+    ACBrNFe1: TACBrNFe;
     procedure FormCreate(Sender: TObject);
     procedure Timer2Timer(Sender: TObject);
     procedure FormClick(Sender: TObject);

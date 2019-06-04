@@ -499,7 +499,7 @@ begin
   _CREDICM.setValor(ARREDONDA((_PCOMPRA.getValor * _BASECRED.getValor)
     / 100, 2));
   _LUC := _LUCRO.getValor;
-  _COM := StrToIntDef(ConfParamGerais.Strings[25], 1);
+  _COM := StrToIntDef(funcoes.buscaParamGeral(25, ''), 1);
 
   // if cod.Text = '0' then _COM := 1;
 
@@ -626,7 +626,7 @@ begin
 
   _CREDICM.setValor(ARREDONDA((precoCompra * _BASECRED.getValor) / 100, 2));
 
-  _COM := StrToIntDef(ConfParamGerais.Strings[25], 1);
+  _COM := StrToIntDef(funcoes.buscaParamGeral(25, ''), 1);
   // if cod.Text = '0' then _COM := 1;
 
   // descComp := 0;
@@ -941,15 +941,15 @@ begin
 
   if RecuperarCadastro = false then
     unid.Text := 'UN';
-  if ConfParamGerais.Strings[26] = 'S' then
+  if funcoes.buscaParamGeral(26, '') = 'S' then
     Label29.Caption := 'NCM:'; // Usar NCM na NFE
-  if ConfParamGerais[30] = 'S' then
+  if funcoes.buscaParamGeral(30, '') = 'S' then
     entrada := 1; // Cadastro de produtos em serie
 
   if RecuperarCadastro = false then
   begin
     if Trim(aliquota.Text) = '' then
-      aliquota.Text := IntToStr(StrToIntDef(ConfParamGerais[22], 2));
+      aliquota.Text := IntToStr(StrToIntDef(funcoes.buscaParamGeral(22, ''), 2));
   end;
   consultaCompleta := false;
 
@@ -963,16 +963,19 @@ begin
     end; }
 
   try
-    if ConfParamGerais[46] = 'S' then
+    if funcoes.buscaParamGeral(46, '') = 'S' then
     begin
       consultaCompleta := true;
     end;
   except
   end;
 
-  if funcoes.buscaParamGeral(90, 'N') = 'S' then
-  begin
+  if funcoes.buscaParamGeral(90, 'N') = 'S' then begin
     Label28.Caption := 'Equivalência:';
+  end;
+
+  if funcoes.buscaParamGeral(109, 'N') = 'S' then begin
+    Label26.Caption := 'M3:';
   end;
 
   ok := true;
@@ -1069,7 +1072,7 @@ begin
     TMP := cod.Text;
 
     if Trim(aliquota.Text) = '' then
-      aliquota.Text := IntToStr(StrToIntDef(ConfParamGerais[22], 2))
+      aliquota.Text := IntToStr(StrToIntDef(funcoes.buscaParamGeral(22, ''), 2))
     else
       aliquota.Text := copy(aliquota.Text, 1, 3);
 
@@ -1083,7 +1086,7 @@ begin
     atualizaCodBarAdicionais(valorRetorno);
     insereIgualProduto(valorRetorno, descr);
 
-    if ConfParamGerais[30] = 'S' then
+    if funcoes.buscaParamGeral(30, '') = 'S' then
     begin
       cod.Text := valorRetorno;
       JsEdit.SelecionaDoBD(self.Name);
@@ -1813,7 +1816,7 @@ begin
     unid.Text := 'UN';
 
   if Trim(aliquota.Text) = '' then
-    aliquota.Text := IntToStr(StrToIntDef(ConfParamGerais[22], 2))
+    aliquota.Text := IntToStr(StrToIntDef(funcoes.buscaParamGeral(22, ''), 2))
   else
     aliquota.Text := copy(aliquota.Text, 1, 3);
 end;

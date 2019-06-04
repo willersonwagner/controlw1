@@ -86,7 +86,7 @@ procedure Register;
 
 implementation
 
-uses DB, StrUtils;
+uses DB, StrUtils, JsEditNumero1;
 //Uma variável qualquer declarada aqui é entendida como atributo da classe
 var lista,botoes : TObjectList;tabelas, primarykey:Tstringlist; primeiroBotao, ultimoBotao : TBitBtn;
 primeiroCampo : TObject; tabela,formulario : string; query : tibquery;conta,n:integer;
@@ -498,6 +498,12 @@ begin
        JsEdit(lista.Items[ini]).Text := '__.___.___/___-___';
       if tipo = 'JsEditNumero' then begin
         DECIMAIS    := '00';
+        if JsEditNumero(lista.Items[ini]).decimal = 6 then DECIMAIS := '000000'
+        else if JsEditNumero(lista.Items[ini]).decimal = 5 then DECIMAIS := '00000'
+        else if JsEditNumero(lista.Items[ini]).decimal = 4 then DECIMAIS := '0000'
+        else if JsEditNumero(lista.Items[ini]).decimal = 3 then DECIMAIS := '000'
+        else if JsEditNumero(lista.Items[ini]).decimal = 2 then DECIMAIS := '00';
+
         IF POS(UpperCase(JsEdit(lista.Items[ini]).Name), 'P_COMPRA|P_VENDA|QUANT') > 0 THEN DECIMAIS := '000';
         JsEdit(lista.Items[ini]).Text := '0,' + decimais;
       end;
@@ -922,6 +928,13 @@ begin
   if (nomeDaClasse = 'JsEditNumero') then
    begin
      nomeDoCampo := UpperCase(nomeDoCampo);
+
+     if JsEditNumero(campo).decimal = 6 then DECIMAIS := '000000'
+     else if JsEditNumero(campo).decimal = 5 then DECIMAIS := '00000'
+     else if JsEditNumero(campo).decimal = 4 then DECIMAIS := '0000'
+     else if JsEditNumero(campo).decimal = 3 then DECIMAIS := '000'
+     else if JsEditNumero(campo).decimal = 2 then DECIMAIS := '00';
+
 
      IF POS(nomeDoCampo, 'P_COMPRA|P_VENDA|QUANT') > 0 THEN DECIMAIS := '000';
      ret := FormatCurr('#,###,###0.' + DECIMAIS, query.FieldByName(nomeDoCampo).AsCurrency);

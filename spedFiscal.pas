@@ -474,8 +474,8 @@ begin
     end; 
   dm.IBselect.Close;
 
-  TRIB_ALIQ_PIS    := StrToCurrDef(ConfParamGerais[11], 0.65);
-  TRIB_ALIQ_COFINS := StrToCurrDef(ConfParamGerais[12], 3);
+  TRIB_ALIQ_PIS    := StrToCurrDef(funcoes.buscaParamGeral(11, '0,65'), 0.65);
+  TRIB_ALIQ_COFINS := StrToCurrDef(funcoes.buscaParamGeral(12, '3'), 3);
 
   MAT_ALIQPIS  := TStringList.Create;
   BAS_ALIQPIS  := TStringList.Create;
@@ -1152,7 +1152,7 @@ begin
   fim := fim + dm.IBQuery4.RecordCount;
 
   dm.IBQuery4.Close;
-  dm.IBQuery4.SQL.Text := 'select * from nfe where (data >= :dataini) and (data <= :datafim)';
+  dm.IBQuery4.SQL.Text := 'select * from nfe where (data >= :dataini) and (data <= :datafim)  and tipo <> ''2'' ';
   dm.IBQuery4.ParamByName('dataini').AsDateTime := StrToDate(dataIni);
   dm.IBQuery4.ParamByName('datafim').AsDateTime := StrToDate(DataFim);
   dm.IBQuery4.Open;
@@ -1418,7 +1418,7 @@ begin
          TRIB      := '00';
        end;
 
-       if ConfParamGerais[10] = '1' then begin
+       if funcoes.buscaParamGeral(10, '') = '1' then begin
          listaProdutos[ini].TOT_ICM := 0;
          BASE_ICM  := 0;
        end;
@@ -2332,7 +2332,7 @@ begin
   dm.IBselect.ParamByName('ini').AsDate  := StrToDate(dataIni);
   dm.IBselect.ParamByName('fim').AsDate  := StrToDate(DataFim);}
 
-  dm.IBselect.SQL.Text := 'select * from nfe f where substring(chave from 3 for 4) = :ini and estado = ''E'' ';
+  dm.IBselect.SQL.Text := 'select * from nfe f where substring(chave from 3 for 4) = :ini and estado = ''E''  and tipo <> ''2'' ';
   dm.IBselect.ParamByName('ini').AsString  := chaveAnoMes;
   dm.IBselect.Open;
   dm.IBselect.FetchAll;
@@ -2415,7 +2415,7 @@ begin
                   //VALOR TOTAL DO ITEM - DESCONTO
                   TOT_ITEM := listaProdutos[ini].total;
 
-                  if ConfParamGerais[10] = '1' then begin
+                  if funcoes.buscaParamGeral(10, '') = '1' then begin
                     listaProdutos[ini].TOT_ICM := 0;
                   end;
 
@@ -2714,7 +2714,7 @@ begin
                  //TOT_ICM := IfThen(ALIQ > 0, RoundTo(BASE_ICM * ALIQ / 100, 2), 0);
                  TOT_ICM := IfThen(ALIQ > 0, RoundTo1(BASE_ICM * ALIQ / 100), 0);
 
-                  if ConfParamGerais[10] = '1' then begin
+                  if funcoes.buscaParamGeral(10, '') = '1' then begin
                     listaProdutos[i3].TOT_ICM := 0;
                     BASE_ICM := 0;
                     TOT_ICM  := 0;
@@ -2788,7 +2788,7 @@ begin
               BASE_ICM := IfThen(ALIQ = 0, 0, strtocurr(BAS_ALIQCFOP.ValueFromIndex[INI2]));
               TOT_ICM  := IfThen(ALIQ = 0, 0, RoundTo1(strtocurr(VAL_ALIQCFOP.ValueFromIndex[INI2]) * ALIQ));
 
-              if ConfParamGerais[10] = '1' then begin
+              if funcoes.buscaParamGeral(10, '') = '1' then begin
                 BASE_ICM := 0;
                 TOT_ICM  := 0;
               end;
@@ -3285,7 +3285,7 @@ procedure REM_CONTRIBUICOES();
 begin
   codCTA := '';
   try
-    codCTA := ConfParamGerais[99];
+    codCTA := funcoes.buscaParamGeral(99, '');
   except
   end;
 
@@ -3665,7 +3665,7 @@ begin
                   TOT      := TOT + listaProdutos[ini].total;
                   TOTDESC  := TOTDESC + listaProdutos[ini].descCom;
 
-                  if ConfParamGerais[10] = '1' then begin
+                  if funcoes.buscaParamGeral(10, '') = '1' then begin
                     listaProdutos[ini].TOT_ICM := 0;
                   end;
 
@@ -4372,7 +4372,7 @@ begin
   {DADOS DE NFES EMITIDAS}
   TIPO := '90';
   dm.IBselect.Close;
-  dm.IBselect.SQL.Text := 'select * from nfe f where substring(chave from 3 for 4) = :ini and estado = ''E'' ';
+  dm.IBselect.SQL.Text := 'select * from nfe f where substring(chave from 3 for 4) = :ini and estado = ''E'' and tipo <> ''2'' ';
   dm.IBselect.ParamByName('ini').AsString  := chaveAnoMes;
   {dm.IBselect.SQL.Text := 'select item from fvmt f where (substring(f.item from 21 for 2) = :tipo) and (data >= :ini) and (data <= :fim) and (estado = ''E'')';
   dm.IBselect.ParamByName('tipo').AsString := TIPO;
@@ -5398,7 +5398,7 @@ var
   DadosNfe : TDadosNFe;
   LIN, UF  : string;
 begin
-  dm.IBselect.SQL.Text := 'select * from nfe f where substring(chave from 3 for 4) = :ini and estado = ''S'' ';
+  dm.IBselect.SQL.Text := 'select * from nfe f where substring(chave from 3 for 4) = :ini and estado = ''S''  and tipo <> ''2'' ';
   dm.IBselect.ParamByName('ini').AsString  := chaveAnoMes;
   dm.IBselect.Open;
   dm.IBselect.FetchAll;
@@ -5493,7 +5493,7 @@ begin
                   //VALOR TOTAL DO ITEM - DESCONTO
                   TOT_ITEM := listaProdutos[ini].total;
 
-                  if ConfParamGerais[10] = '1' then begin
+                  if funcoes.buscaParamGeral(10, '') = '1' then begin
                     listaProdutos[ini].TOT_ICM := 0;
                   end;
 

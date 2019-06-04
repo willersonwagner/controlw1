@@ -327,6 +327,7 @@ var
   gArqNFE: String;
   gSenhaCert, CDCFOP: String;
 
+
   // 0-normal 1-resumido
   tipoIMPRESSAO, qtdVias: integer;
   contOFFLINE, existeCampoTipo_item, expLogoMarca: boolean;
@@ -3920,13 +3921,18 @@ begin
         sleep(10);
         estado := 'OK';
 
-        richED.Lines.Add('xMotivo=' + ACBrNFe.WebServices.enviar.xmotivo);
+        if csta = 613 then begin
+          richED.Lines.Add('xMotivo=' + ACBrNFe.WebServices.Consulta.xmotivo);
+          estado := ACBrNFe.WebServices.Consulta.xmotivo;
+        end
+        else richED.Lines.Add('xMotivo=' + ACBrNFe.WebServices.enviar.xmotivo);
 
         if ERRO_dados <> '' then
         begin
           estado := ERRO_dados;
           ACBrNFe.WebServices.Retorno.Executar;
-          csta := ACBrNFe.WebServices.Retorno.cstat;
+          csta   := ACBrNFe.WebServices.Retorno.cstat;
+          estado :=  ACBrNFe.WebServices.Retorno.xMotivo;
           if csta <> 100 then
             raise Exception.Create(estado);
         end;
@@ -3943,8 +3949,11 @@ begin
           Result := false;
 
           if (Contido('Duplicidade de NF-e', e.Message)) or (csta = 539) or
-            (csta = 204) THEN
-          begin
+            (csta = 204) or (csta = 613) THEN begin
+
+
+
+
             try
               richED.Lines.Add('(Tratando a Duplicidade) linha 3443');
               estado := '|ii| ' + e.Message + #13 +
@@ -3956,6 +3965,8 @@ begin
                 now), 'trataDuplicidade1');
 
               erro2 := ACBrNFe.WebServices.enviar.xmotivo;
+              if csta = 613 then erro2 := ACBrNFe.WebServices.Consulta.XMotivo;
+
               if not Contido('Duplicidade de', erro2) then
                 erro2 := e.Message;
 
@@ -4082,6 +4093,14 @@ begin
             end;
             estado := e.Message + #13 + 'NFCe ' + CHAVENF +
               ' já está marcada no BD como Cancelada!';
+
+            richED.Lines.Add('cstat 218: Consultando...');
+            ACBrNFe.Consultar;
+            richED.Lines.Add('Retorno: ' + IntToStr(ACBrNFe.WebServices.Consulta.cStat));
+            richED.Lines.Add('xMotivo: ' + (ACBrNFe.WebServices.Consulta.XMotivo));
+
+            ACBrNFe.NotasFiscais[0].GravarXML(CHAVENF + '-nfe.xml',
+            buscaPastaNFCe(CHAVENF));
             exit;
           end;
 
@@ -5503,8 +5522,10 @@ begin
     except
       on e: Exception do
       begin
-        ShowMessage(e.Message);
-        exit;
+        if ACBrNFe.WebServices.Inutilizacao.cstat <> 563 then begin
+          ShowMessage(e.Message);
+          exit;
+        end;
       end;
     end;
   finally
@@ -5512,8 +5533,7 @@ begin
     ACBrNFe.Configuracoes.Geral.Salvar := false;
   end;
 
-  if ACBrNFe.WebServices.Inutilizacao.cstat = 102 then
-  begin
+  if Contido('-'+IntToStr(ACBrNFe.WebServices.Inutilizacao.cstat) + '-', '-102-563-') then begin
     insereInutilizacao(ini, fim, IntToStr(modelo), IntToStr(_serie), now);
   end;
   // ACBrNFe.DANFE := DANFE_Rave;
@@ -7084,6 +7104,24 @@ begin
   except
   end;
 
+
+  if trim(chavt) <> '' then begin
+    query1.Close;
+    query1.SQL.text := 'select chave from nfce where chave = :chave';
+    query1.ParamByName('chave').AsString := chavt;
+    query1.open;
+
+    if query1.IsEmpty = false then begin
+      query1.Close;
+      query1.SQL.text := 'delete from nfce where chave = :chave';
+      query1.ParamByName('chave').AsString := chaveAtual;
+      query1.ExecSQL;
+      query1.Transaction.Commit;
+    end;
+
+  end;
+
+
   { if (chaveAtual <> '') and (chaveAtual <> chavt) and
     (length(strnum(chavt)) = 44) then
     begin
@@ -7998,6 +8036,19 @@ end;
 procedure insereInutilizacao(inicio, fim: integer; tipo, serie: string;
   Data: tdate);
 begin
+  query1.Close;
+  query1.SQL.text := 'select * from INUTILIZACAO where inicio = :ini and fim = :fim and SERIE = :ser';
+  query1.ParamByName('ini').AsInteger := inicio;
+  query1.ParamByName('fim').AsInteger := fim;
+  query1.ParamByName('ser').AsString  := serie;
+  query1.Open;
+
+  if query1.IsEmpty = false then begin
+    query1.Close;
+    exit;
+  end;
+
+
   query1.Close;
   query1.SQL.text :=
     'INSERT INTO INUTILIZACAO(COD, INICIO, FIM, TIPO, DATA, SERIE) ' +

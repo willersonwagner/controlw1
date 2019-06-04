@@ -225,11 +225,6 @@ begin
        end;
    end;
 
-{   if ConfParamGerais[5] = 'S' then //usar recursos de Auto Peças
-    begin                          // Gera CDS temporários de equivalências
-      funcoes.Timer1.Enabled := true;
-    end;}
-
    try
     if ParamCount > 0 then
       begin

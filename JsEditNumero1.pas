@@ -194,6 +194,12 @@ else
   //se deci for verdadeiro entao vai alterar so os decimais
  if vkey in ['0'..'9'] then
   begin
+    //se o cursor estiver prox da virgula entao altera tudo novamente
+    if deci and (SelStart = Pos(',', text)) then begin
+      c1 := 1;
+    end;
+
+
     if GetSelLength = Length(text) then
       begin
         novo();
@@ -226,7 +232,10 @@ else
      if not deci then  text := FormatCurr('###,###,##0',StrToCurr(ConverteNumerico(valor)))+','+decimais
       else text := valor+','+ decimais;
 
-   if deci then SelStart := pos(',',text)
+   if deci then begin
+     SelStart := pos(',',text) + c1 -1;
+     SelLength := 1;
+   end
    else
      begin
        SelStart := pos(',',text)-1;

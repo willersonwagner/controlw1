@@ -240,29 +240,6 @@ object Form1: TForm1
     Left = 496
     Top = 24
   end
-  object ACBrNFe1: TACBrNFe
-    OnGerarLog = ACBrNFe1GerarLog
-    Configuracoes.Geral.SSLLib = libWinCrypt
-    Configuracoes.Geral.SSLCryptLib = cryWinCrypt
-    Configuracoes.Geral.SSLHttpLib = httpWinHttp
-    Configuracoes.Geral.SSLXmlSignLib = xsLibXml2
-    Configuracoes.Geral.FormatoAlerta = 'TAG:%TAGNIVEL% ID:%ID%/%TAG%(%DESCRICAO%) - %MSG%.'
-    Configuracoes.Geral.ValidarDigest = False
-    Configuracoes.Geral.ModeloDF = moNFCe
-    Configuracoes.Geral.AtualizarXMLCancelado = True
-    Configuracoes.Geral.VersaoQRCode = veqr200
-    Configuracoes.Arquivos.OrdenacaoPath = <>
-    Configuracoes.WebServices.UF = 'RR'
-    Configuracoes.WebServices.AguardarConsultaRet = 0
-    Configuracoes.WebServices.TimeOut = 30000
-    Configuracoes.WebServices.TimeOutPorThread = True
-    Configuracoes.WebServices.QuebradeLinha = '|'
-    Configuracoes.WebServices.SSLType = LT_SSLv3
-    Configuracoes.RespTec.IdCSRT = 0
-    DANFE = ACBrNFeDANFeRL1
-    Left = 408
-    Top = 56
-  end
   object ACBrNFeDANFCeFortes1: TACBrNFeDANFCeFortes
     Sistema = 'Projeto ACBr - www.projetoacbr.com.br'
     MargemInferior = 0.800000000000000000
@@ -360,5 +337,26 @@ object Form1: TForm1
     ReceiveTimeout = 5000
     Left = 16
     Top = 272
+  end
+  object ACBrNFe1: TACBrNFe
+    Configuracoes.Geral.SSLLib = libWinCrypt
+    Configuracoes.Geral.SSLCryptLib = cryWinCrypt
+    Configuracoes.Geral.SSLHttpLib = httpWinHttp
+    Configuracoes.Geral.SSLXmlSignLib = xsLibXml2
+    Configuracoes.Geral.FormatoAlerta = 'TAG:%TAGNIVEL% ID:%ID%/%TAG%(%DESCRICAO%) - %MSG%.'
+    Configuracoes.Geral.ValidarDigest = False
+    Configuracoes.Geral.ModeloDF = moNFCe
+    Configuracoes.Geral.AtualizarXMLCancelado = True
+    Configuracoes.Geral.VersaoQRCode = veqr200
+    Configuracoes.Arquivos.OrdenacaoPath = <>
+    Configuracoes.WebServices.UF = 'RR'
+    Configuracoes.WebServices.AguardarConsultaRet = 0
+    Configuracoes.WebServices.Tentativas = 10
+    Configuracoes.WebServices.QuebradeLinha = '|'
+    Configuracoes.WebServices.SSLType = LT_SSLv3
+    Configuracoes.RespTec.IdCSRT = 0
+    DANFE = ACBrNFeDANFeRL1
+    Left = 416
+    Top = 56
   end
 end

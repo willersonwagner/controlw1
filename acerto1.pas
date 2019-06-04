@@ -176,7 +176,7 @@ begin
         
       if CODIGO.Text = '' then
         begin
-          if ConfParamGerais[46] = 'S' then begin
+          if funcoes.buscaParamGeral(46, '') = 'S' then begin
             form24.cosultaRetorna := true;
             form24.BuscaCOd := (codUlt);
             form24.ShowModal;

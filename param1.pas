@@ -43,12 +43,12 @@ begin
   begin
     if (ListBox1.ItemIndex = 35) then
       begin
-        if temp[35] = '' then temp.Strings[35] := '|Equip.|Marca|Modelo|Série|Técnico|Defeito|';
+        if temp.Values['35'] = '' then temp.Values['35'] := '|Equip.|Marca|Modelo|Série|Técnico|Defeito|';
       end;
 
     if (ListBox1.ItemIndex = 64) then
       begin
-        if temp[64] = '' then temp.Strings[64] := '|VIDRO|BOX  |FORRO|';
+        if temp.Values['64'] = '' then temp.Values['64'] := '|VIDRO|BOX  |FORRO|';
       end;
 
     if ((ListBox1.ItemIndex = 24) or (ListBox1.ItemIndex = 39) or (ListBox1.ItemIndex = 41)) and (form22.usuario <> 'ADMIN') then // Usar saída de estoque
@@ -60,12 +60,20 @@ begin
       begin
         if tipo.Values[IntToStr(ListBox1.ItemIndex)] = 'numero' then
           begin
-            tempo :=  funcoes.dialogo(tipo.Values[IntToStr(ListBox1.ItemIndex)], 0, teclas.Values[IntToStr(ListBox1.ItemIndex)], 2, false, troca.Values[IntToStr(ListBox1.ItemIndex)], Application.Title, ListBox1.Items.Values[IntToStr(ListBox1.ItemIndex)], temp.Strings[ListBox1.ItemIndex]);
+            tempo :=  funcoes.dialogo(tipo.Values[IntToStr(ListBox1.ItemIndex)], 0, teclas.Values[IntToStr(ListBox1.ItemIndex)], 2, false, troca.Values[IntToStr(ListBox1.ItemIndex)], Application.Title, ListBox1.Items.Values[IntToStr(ListBox1.ItemIndex)], temp.Values[IntToStr(ListBox1.ItemIndex)]);
           end
-        else  tempo :=  funcoes.dialogo(tipo.Values[IntToStr(ListBox1.ItemIndex)], 0, teclas.Values[IntToStr(ListBox1.ItemIndex)],  30, false,troca.Values[IntToStr(ListBox1.ItemIndex)], Application.Title, ListBox1.Items.Values[IntToStr(ListBox1.ItemIndex)], temp.Strings[ListBox1.ItemIndex]);
+        else  tempo :=  funcoes.dialogo(tipo.Values[IntToStr(ListBox1.ItemIndex)], 0, teclas.Values[IntToStr(ListBox1.ItemIndex)],  30, false,troca.Values[IntToStr(ListBox1.ItemIndex)], Application.Title, ListBox1.Items.Values[IntToStr(ListBox1.ItemIndex)], temp.Values[IntToStr(ListBox1.ItemIndex)]);
       end;
-    if tempo <> '*' then temp.Strings[ListBox1.ItemIndex] := tempo;
+
+    if tempo <> '*' then begin
+      if trim(tempo) = '' then begin
+        tempo := '';
+        temp.Values[IntToStr(ListBox1.ItemIndex)] := tempo;
+        temp.Add(IntToStr(ListBox1.ItemIndex) + '=');
+      end else temp.Values[IntToStr(ListBox1.ItemIndex)] := tempo;
+    end;
   end;
+
  if key = #27 then close;
 end;
 
@@ -73,41 +81,38 @@ procedure TForm40.FormShow(Sender: TObject);
 var i : integer;
 begin
 temp := TStringList.Create;
-for i := 0 to ConfParamGerais.Count-1 do
+for i := 0 to ConfParamGerais1.Count-1 do
  begin
-   temp.Add(ConfParamGerais.Strings[i]);
+   temp.Add(ConfParamGerais1.Strings[i]);
  end;
  for i := temp.Count to ListBox1.Items.Count - 1 do
    begin
-     temp.Add('');
+     temp.Add(IntToStr(i) + '=' );
    end;
 end;
 
 procedure TForm40.FormClose(Sender: TObject; var Action: TCloseAction);
-var i : integer;
-sim : string;
+var
+  i : integer;
+  sim : string;
 begin
-if temp.Text <> ConfParamGerais.Text then
- begin
+if temp.Text <> ConfParamGerais1.Text then begin
   sim := funcoes.dialogo('generico',0,'SN',20,false,'S',Application.Title,'Deseja Salvar as Configurações(S/N)?','S');
   if sim = 'S' then
    begin
-    for i := 0 to ListBox1.Count - 1 do
-     begin
+    for i := 0 to ListBox1.Count - 1 do begin
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Clear;
       dm.IBQuery1.SQL.Add('update or insert into pgerais(cod, valor) values(:cod, :valor ) matching(cod) ');
-      dm.IBQuery1.ParamByName('cod').AsInteger := i;
-      dm.IBQuery1.ParamByName('valor').AsString := temp.Strings[i];
+      dm.IBQuery1.ParamByName('cod').AsInteger  := i;
+      dm.IBQuery1.ParamByName('valor').AsString := temp.Values[IntToStr(i)];
       dm.IBQuery1.ExecSQL;
      end;
     dm.IBQuery1.Transaction.Commit;
-    ConfParamGerais := temp;
-    ConfParamGerais := nil;
-    ConfParamGerais := TStringList.Create;
+    ConfParamGerais1.Clear;
     for i := 0 to temp.Count - 1 do
       begin
-        ConfParamGerais.Add(temp.Strings[i]);
+        ConfParamGerais1.Add(IntToStr(i) + '=' + temp.Values[IntToStr(i)]);
       end;
     end;
    end;

@@ -713,7 +713,7 @@ begin
       if DBGrid1.SelectedField.FieldName = 'ALIQ' then
         begin
           //sim := funcoes.localizar('Localizar Aliquota','aliq','cod,aliq,reducao,cst','cod','','cod','cod',false,false,false,'',430,sender);
-          sim := funcoes.localizar1('Localizar Aliquota','aliq','cod,aliq,reducao,cst, CSOSN','cod','','cod','cod',false,false,false,'cod', IntToStr(StrToIntDef(ConfParamGerais[22], 2)),300,sender);
+          sim := funcoes.localizar1('Localizar Aliquota','aliq','cod,aliq,reducao,cst, CSOSN','cod','','cod','cod',false,false,false,'cod', IntToStr(StrToIntDef(funcoes.buscaParamGeral(22, ''), 2)),300,sender);
           if sim = '' then exit;
 
           ClientDataSet1.Edit;

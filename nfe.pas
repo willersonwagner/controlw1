@@ -740,28 +740,32 @@ end;
 
 procedure TNfeVenda.insereRegistroDaNotaNaTabelaNFE(numeroNFE, CHAVE, cstat : String; data : TDate; arquivoXML : String);
 var
-  esta : String;
+  esta, tipo : String;
 begin
+  tipo := '';
+  if ACBrNFe.Configuracoes.WebServices.Ambiente = taHomologacao then tipo := '2';
 
   if VerificaCampoTabela('data', 'nfe') and VerificaCampoTabela('estado', 'nfe') then
     begin
       dm.IBQuery3.Close;
       dm.IBQuery3.SQL.Clear;
-      dm.IBQuery3.SQL.Add('update or insert into nfe(nota, chave, data, estado, xml) values(:nota, :chave, :data, :estado, :xml) matching(chave)');
+      dm.IBQuery3.SQL.Add('update or insert into nfe(nota, chave, data, estado, xml, tipo) values(:nota, :chave, :data, :estado, :xml, :tipo) matching(chave)');
       dm.IBQuery3.ParamByName('nota').AsString   := numeroNFE;
       dm.IBQuery3.ParamByName('chave').AsString  := CHAVE;
       dm.IBQuery3.ParamByName('data').AsDate     := data;
       dm.IBQuery3.ParamByName('estado').AsString := cstat;
       dm.IBQuery3.ParamByName('xml').LoadFromFile(arquivoXML, ftBlob);
+      dm.IBQuery3.ParamByName('tipo').AsString := tipo;
     end
   else if VerificaCampoTabela('data', 'nfe') and (not VerificaCampoTabela('estado', 'nfe')) then
     begin
       dm.IBQuery3.Close;
-      dm.IBQuery3.SQL.Text := ('update or insert into nfe(nota, chave, data, xml) values(:nota, :chave, :data, :xml) matching(chave)');
+      dm.IBQuery3.SQL.Text := ('update or insert into nfe(nota, chave, data, xml, tipo) values(:nota, :chave, :data, :xml, :tipo) matching(chave)');
       dm.IBQuery3.ParamByName('nota').AsString   := numeroNFE;
       dm.IBQuery3.ParamByName('chave').AsString  := CHAVE;
       dm.IBQuery3.ParamByName('data').AsDate     := data;
       dm.IBQuery3.ParamByName('xml').LoadFromFile(arquivoXML, ftBlob);
+      dm.IBQuery3.ParamByName('tipo').AsString := tipo;
     end
   else
     begin
@@ -848,7 +852,7 @@ begin
   fim := funcoes.dialogo('data',0,'',2,true,'',Application.Title,'Qual a Data Final?', formatadataddmmyy(endOfTheMonth(form22.datamov)));
   if fim = '*' then exit;
 
-  unidade := funcoes.dialogo('generico',0,'ABCDEFGHIJLMNOPKXYZWQRSTUVXZ',50,false,'S',Application.Title,'Confirme a unidade para Recebimento da Remessa:', ConfParamGerais[33]);
+  unidade := funcoes.dialogo('generico',0,'ABCDEFGHIJLMNOPKXYZWQRSTUVXZ',50,false,'S',Application.Title,'Confirme a unidade para Recebimento da Remessa:', funcoes.buscaParamGeral(33, ''));
   if unidade = '*' then exit;
 
   dini := StrToDateTime(ini);
@@ -945,8 +949,8 @@ begin
   dfim := StrToDateTime(fim);
 
   if email = false then begin
-    if ConfParamGerais[33] = '' then ConfParamGerais[33] := 'D';
-    unidade := funcoes.dialogo('generico',0,'ABCDEFGHIJLMNOPKXYZWQRSTUVXZ',50,false,'S',Application.Title,'Confirme a unidade para Recebimento da Remessa:', ConfParamGerais[33]);
+    unidade := funcoes.buscaParamGeral(33, 'D');
+    unidade := funcoes.dialogo('generico',0,'ABCDEFGHIJLMNOPKXYZWQRSTUVXZ',50,false,'S',Application.Title,'Confirme a unidade para Recebimento da Remessa:', unidade);
     if unidade = '*' then exit;
     unidade := unidade + ':\NFE '+ FormatDateTime('mm-yyyy', dini);
   end
@@ -966,7 +970,7 @@ begin
   tot  := 0;
 
   dm.IBselect.Close;
-  dm.IBselect.SQL.Text := 'select * from nfe where substring(chave from 3 for 4) = :ini';
+  dm.IBselect.SQL.Text := 'select * from nfe where substring(chave from 3 for 4) = :ini  and tipo <> ''2'' ';
       dm.IBselect.ParamByName('ini').AsString := FormatDateTime('yy', StrToDate(ini)) +  FormatDateTime('mm', StrToDate(ini));
   dm.IBselect.Open;
   dm.IBselect.FetchAll;
@@ -2572,7 +2576,7 @@ VAR
 begin
   TOT := item1.total - item1.Desconto;
   //SE FOR OPTANTE DO SIMPLES NACIONAL, NAO USA TAG PIS/COFINS
-  IF (Contido(ConfParamGerais.Strings[10], '1-2')) and (trim(item1.Pis) = '')  then begin
+  IF (Contido(funcoes.buscaParamGeral(10, ''), '1-2')) and (trim(item1.Pis) = '')  then begin
     Result := '<PIS><PISAliq><CST>01</CST><vBC>0.00</vBC><pPIS>0.00</pPIS>' +
     '<vPIS>0.00</vPIS></PISAliq></PIS>' +
     '<COFINS><COFINSAliq><CST>01</CST><vBC>0.00</vBC>' +
@@ -2721,8 +2725,8 @@ begin
      end;
 
    try
-     TRIB_ALIQ_PIS := StrToCurr(ConfParamGerais.Strings[11]);
-     TRIB_ALIQ_COFINS := StrToCurr(ConfParamGerais.Strings[12])
+     TRIB_ALIQ_PIS := StrToCurr(funcoes.buscaParamGeral(11, '0,65'));
+     TRIB_ALIQ_COFINS := StrToCurr(funcoes.buscaParamGeral(12, '3'));
    except
      TRIB_ALIQ_COFINS := 0;
      TRIB_ALIQ_COFINS := 0;
@@ -2752,7 +2756,7 @@ begin
   item.base_icm := 0;
   //se a empresa é optante do simples nacional
   //if (ConfParamGerais.Strings[10] = '1') and (FIN_NFE1 <> '4') then
-  if (ConfParamGerais.Strings[10] = '1') then
+  if (funcoes.buscaParamGeral(10, '') = '1') then
     begin
       if ((FIN_NFE1 = '4') and (indIEDest <> '9')) then begin
         icms := item.PercICMS;
@@ -2943,7 +2947,7 @@ var
   barras, cfop1, infAdProd : string;
   cont,i : integer;
 begin
-  CSTPIS_CFP := ConfParamGerais.Strings[10];
+  CSTPIS_CFP := funcoes.buscaParamGeral(10, '');
   Result := '';
   qtd := 0;
   cont := lista.Count -1;
@@ -3335,7 +3339,7 @@ begin
   Result := '<infNFe versao="'+versaoNFe+'" Id="NFe' + trim(CHAVENF) +'">';
 
   Result := Result + NODO_IDE('14',dadosEmitente.Values['nf'], FIN_NFE1,natOp,'0', FormataData(form22.datamov), IND_PAG,'1400100', DigiVerifi);
-  Result := Result + NODO_EMIT(dadosEmitente.Values['cnpj'],dadosEmitente.Values['razao'],dadosEmitente.Values['empresa'],dadosEmitente.Values['ende'],dadosEmitente.Values['bairro'],dadosEmitente.Values['cod_mun'],dadosEmitente.Values['cid'],dadosEmitente.Values['est'],funcoes.StrNum(dadosEmitente.Values['cep']),dadosEmitente.Values['telres'],dadosEmitente.Values['ies'],ConfParamGerais.Strings[10]);
+  Result := Result + NODO_EMIT(dadosEmitente.Values['cnpj'],dadosEmitente.Values['razao'],dadosEmitente.Values['empresa'],dadosEmitente.Values['ende'],dadosEmitente.Values['bairro'],dadosEmitente.Values['cod_mun'],dadosEmitente.Values['cid'],dadosEmitente.Values['est'],funcoes.StrNum(dadosEmitente.Values['cep']),dadosEmitente.Values['telres'],dadosEmitente.Values['ies'],funcoes.buscaParamGeral(10, ''));
   Result := Result + NODO_DEST(dadosDest.Values['tipo'],dadosDest.Values['cnpj'],dadosDest.Values['cnpj'],dadosDest.Values['nome'],dadosDest.Values['ende'],dadosDest.Values['bairro'],dadosDest.Values['cod_mun'],dadosDest.Values['cid'],dadosDest.Values['est'],dadosDest.Values['cep'], dadosDest.Values['telres'], dadosDest.Values['ies'], dadosEmitente.Values['cod_mun']);
   Result := Result + NODO_ITENS(lista_itens,cod_OP,'','','', _ORIGEM);
   Result := Result + NODO_TOTAL(totalNota,TOT_BASEICM,TOTICM,TOT_PIS,TOT_COFINS,0,totDesc);
@@ -4004,10 +4008,13 @@ begin
           sleep(1500);
         end;
 
+        form65.Label1.Caption := 'Aguarde, cSta: '+IntToStr(csta)+'...';
+        form65.Label1.Update;
+
 
         //se nao veio resposta entao consulta 3x pra ver se foi emitida ou o cstat veio com valor 999
         //como foi iniciado a variavel, caso venha um cstat entao sai do while
-        if (Contido('(5)-', ERRO_dados) or (csta = 999) or (csta = 0))  then begin
+        if (Contido('(5)-', ERRO_dados) or (csta = 999) or (csta = 0) or (csta = 204))  then begin
           i := 0;
           while true do begin
             i := i + 1;
@@ -4026,6 +4033,10 @@ begin
             sleep(1500);
           end;
         end;
+
+      form65.Label1.Caption := 'Aguarde, cStat: '+IntToStr(csta)+'...';
+      form65.Label1.Update;
+      sleep(1500);
 
 
       if csta = 217 then begin

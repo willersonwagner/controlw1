@@ -874,7 +874,6 @@ begin
 
    usarValidade := false;
    if funcoes.buscaParamGeral(58, 'N') = 'S' then usarValidade := true;
-//   if ConfParamGerais.Strings[13] = 'S' then  Label5.Caption := 'Cod. de Barras:';
 end;
 
 procedure TForm17.codbarEnter(Sender: TObject);
@@ -899,7 +898,7 @@ begin
      form9.SetComponenteRetorno(jsedit(sender));
 
      //cadastrar Produtos em série
-     if ConfParamGerais[30] = 'S' then form9.entrada := 1;
+     if funcoes.buscaParamGeral(30, '') = 'S' then form9.entrada := 1;
      //cadastrar produtos em série
 
      form9.ShowModal;

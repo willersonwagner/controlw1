@@ -417,8 +417,8 @@ object Form9: TForm9
       ParentFont = False
     end
     object Label26: TLabel
-      Left = 373
-      Top = 204
+      Left = 376
+      Top = 200
       Width = 44
       Height = 13
       Caption = 'Fra'#231#227'o:'
@@ -1172,7 +1172,7 @@ object Form9: TForm9
     object fracao: JsEditNumero
       Left = 376
       Top = 217
-      Width = 57
+      Width = 66
       Height = 24
       CharCase = ecUpperCase
       Font.Charset = DEFAULT_CHARSET
@@ -1182,13 +1182,13 @@ object Form9: TForm9
       Font.Style = [fsBold]
       ParentFont = False
       TabOrder = 26
-      Text = '0,00'
+      Text = '0,0000'
       UsarCadastros = False
       FormularioComp = 'Form9'
       ColorOnEnter = clSkyBlue
       Indice = 0
       TipoDeDado = teNumero
-      CasasDecimais = 2
+      CasasDecimais = 4
     end
     object aplic: JsEdit
       Left = 448
