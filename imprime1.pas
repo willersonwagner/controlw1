@@ -755,14 +755,12 @@ begin
    if LeftStr(Trim(lin), 1) = '&' then
      begin
        result := #18 + copy(lin, 2, length(lin));
-       //if test = 1 then printer.canvas.font.size := 9
        printer.canvas.font.size := imprime.tamFontePadrao;
      end;
 
    if LeftStr(Trim(lin), 1) = '%' then
      begin
        result := #15 + copy(lin, 2, length(lin));
-       //if test = 1 then printer.canvas.font.size := 9
        printer.canvas.font.size := 7;
      end;
 

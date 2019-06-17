@@ -89,6 +89,7 @@ object CadNotasFiscais1: TCadNotasFiscais1
       FormularioComp = 'Form6'
       ColorOnEnter = clSkyBlue
       Indice = 0
+      TipoDeDado = teNumero
     end
     object nota: JsEditInteiro
       Left = 87
@@ -101,6 +102,7 @@ object CadNotasFiscais1: TCadNotasFiscais1
       FormularioComp = 'Form6'
       ColorOnEnter = clSkyBlue
       Indice = 0
+      TipoDeDado = teNumero
     end
     object pedido: JsEditInteiro
       Left = 166
@@ -113,6 +115,7 @@ object CadNotasFiscais1: TCadNotasFiscais1
       FormularioComp = 'Form6'
       ColorOnEnter = clSkyBlue
       Indice = 0
+      TipoDeDado = teNumero
     end
     object data: JsEditData
       Left = 245

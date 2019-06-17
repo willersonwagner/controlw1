@@ -69,6 +69,7 @@ function SendPostData(var http: TIdHTTP;
   arquivo, estado, cstat: String): boolean;
 function SendPostDataMensagem(var http: TIdHTTP;
   erro, tipo, cstat, nomePC: String): boolean;
+procedure baixaxml(var http: TIdHTTP;chave : String);
 function usaNFe4ouMaior(): boolean;
 procedure atualizaRegistroNFCe(chaveVelha1, chaveNova1: String);
 function CodificaDataPelaChave(chave: String): TDateTime;
@@ -553,6 +554,8 @@ begin
     DANFE_Rave.logo := '';
     DANFE_Rave.ExpandeLogoMarca := false;
   end;
+
+  DANFE_Rave.MostraStatus := false;
 
   try
     ACBrNFe.DANFE.Impressora := setPrinter(indxImpressoraNFE, impreNFE);
@@ -8440,6 +8443,14 @@ begin
   end;
 
   ShowMessage(query1.SQL.text);
+end;
+
+procedure baixaxml(var http: TIdHTTP; chave : String);
+begin
+
+
+  http.Get('http://controlw.blog.br/si2/verarq.php?chave='  );
+
 end;
 
 function SendPostData(var http: TIdHTTP;

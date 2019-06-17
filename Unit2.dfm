@@ -12127,6 +12127,10 @@ object Form2: TForm2
           Caption = 'Excluir Produtos Estoque Zero'
           OnClick = EnxugarEstoque1Click
         end
+        object EnxugarEstoque2: TMenuItem
+          Caption = 'Enxugar Estoque'
+          OnClick = EnxugarEstoque2Click
+        end
       end
       object BloquearUsurio1: TMenuItem
         Caption = 'Bloquear Usu'#225'rio'
@@ -12314,6 +12318,10 @@ object Form2: TForm2
         object ManifestaodoDestinatrio1: TMenuItem
           Caption = 'Manifesta'#231#227'o do Destinat'#225'rio'
           OnClick = ManifestaodoDestinatrio1Click
+        end
+        object ValidarAssinaturaDigital1: TMenuItem
+          Caption = 'Validar Assinatura Digital'
+          OnClick = ValidarAssinaturaDigital1Click
         end
         object EnviarporEmail1: TMenuItem
           Caption = 'Enviar por Email'

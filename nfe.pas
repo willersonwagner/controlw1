@@ -261,8 +261,9 @@ begin
       while not dm.IBselect.Eof do
         begin
           parc := Tparcela.Create;
-          if dm.IBselect.fieldbyname('vencimento').AsDateTime < now then parc.Vencimento := now + 1
+          if dm.IBselect.fieldbyname('vencimento').AsDateTime < now then parc.Vencimento := now
           else parc.Vencimento := dm.IBselect.fieldbyname('vencimento').AsDateTime;
+          //parc.Vencimento := dm.IBselect.fieldbyname('vencimento').AsDateTime;
           parc.valor      := dm.IBselect.fieldbyname('total').AsCurrency;
           parc.historico  :=  strzero(IntToStr(cont), 3);
           cont  := cont + 1;
@@ -970,7 +971,7 @@ begin
   tot  := 0;
 
   dm.IBselect.Close;
-  dm.IBselect.SQL.Text := 'select * from nfe where substring(chave from 3 for 4) = :ini  and tipo <> ''2'' ';
+  dm.IBselect.SQL.Text := 'select * from nfe where substring(chave from 3 for 4) = :ini and ((tipo <> ''2'') or (tipo is null)) ';
       dm.IBselect.ParamByName('ini').AsString := FormatDateTime('yy', StrToDate(ini)) +  FormatDateTime('mm', StrToDate(ini));
   dm.IBselect.Open;
   dm.IBselect.FetchAll;
@@ -997,6 +998,7 @@ begin
       num := dm.IBselect.FieldByName('chave').AsString + '-nfe.xml'; //cria o nome do arquivo
 
       if FileExists(caminhoEXE_com_barra_no_final + 'NFE\EMIT\' + num) then begin
+        funcoes.checaAssinatura(caminhoEXE_com_barra_no_final + 'NFE\EMIT\' + num);
         if dm.IBselect.FieldByName('estado').AsString = 'C' then begin
           listaCANC.Add(caminhoEXE_com_barra_no_final + 'NFE\EMIT\' + num);
         end
@@ -1284,13 +1286,20 @@ begin
     dm.ACBrNFe.NotasFiscais.LoadFromString(dm.IBselect.FieldByName('xml').AsString);
     arq.Text := dm.IBselect.FieldByName('xml').AsString;
     dm.IBselect.Close;
-    if not FileExists(buscaPastaNFe(nf) + '\'+ nf +'-nfe.xml') then begin
-      arq.SaveToFile(buscaPastaNFe(nf) + '\'+ nf +'-nfe.xml');
+
+    if not FileExists(buscaPastaNFe(nf) + nf +'-nfe.xml') then begin
+      arq.SaveToFile(buscaPastaNFe(nf) + nf +'-nfe.xml');
     end;
 
+    //arq.Free;
+
+    funcoes.checaAssinatura(buscaPastaNFe(nf) + nf +'-nfe.xml');
+    dm.ACBrNFe.NotasFiscais.LoadFromFile(buscaPastaNFe(nf) + nf +'-nfe.xml');
   end
   else begin
-    dm.ACBrNFe.NotasFiscais.LoadFromFile(buscaPastaNFe(nf) + '\'+ nf +'-nfe.xml');
+    funcoes.checaAssinatura(buscaPastaNFe(nf) + nf +'-nfe.xml');
+
+    dm.ACBrNFe.NotasFiscais.LoadFromFile(buscaPastaNFe(nf) + nf +'-nfe.xml');
     arq.LoadFromFile(caminhoEXE_com_barra_no_final + 'NFE\EMIT\' + dm.IBselect.FieldByName('chave').AsString + '-nfe.xml');
   end;
 
@@ -4074,11 +4083,13 @@ begin
         end;
 
         if ((funcoes.Contido('DUPLICIDADE DE NF-E', UpperCase(erro_dados))) or (csta = 204) or (csta = 539)) THEN begin
+
             trataDuplicidadeNFe(dm.ACBrNFe.WebServices.Retorno.xMotivo, true);
 
             erro_dados := '';
 
-            if chaveNF = chaveRecuperada then begin
+            //if chaveNF = chaveRecuperada then begin
+            if true then begin
               funcoes.mensagemEnviandoNFCE('', false, true);
               Fechar_Datasets_limpar_Listas_e_variaveis;
               MessageDlg('O Sistema Recuperou a NFe com Sucesso!', mtInformation, [mbOK], 1);
@@ -4091,19 +4102,7 @@ begin
 
             ACBrNFe.NotasFiscais.Clear;
             ACBrNFe.NotasFiscais.LoadFromFile(arq);
-         { end
-          else begin
-            if Contido('Rejeicao:', erro_dados) then begin
-              MessageDlg('Erro: ' + erro_dados + #13 + 'xMotivo= ' + ACBrNFe.WebServices.Retorno.xMotivo + #13 + 'Cstat=' + IntToStr(ACBrNFe.WebServices.Retorno.cStat) + #13 + 'Esta NFe não pode ser transmitida.' + #13 + #13 +'Por Favor Tente Novamente',
-              mtError,[mbOK],0);
-              funcoes.mensagemEnviandoNFCE('', false, true);
-              Fechar_Datasets_limpar_Listas_e_variaveis;
-              exit;
-
-
-            end;
-          end;       }
-      end;
+        end;
   
     if Contido('-' + IntToStr(csta) + '-', '-100-204-110-205-301-302-') then//((csta = 301) or (csta = 302) or (csta = 110)) then
       begin

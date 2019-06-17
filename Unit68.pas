@@ -85,10 +85,10 @@ begin
   end;
 
   if key = 114 then begin //F3
-    if DBGrid1.DataSource.DataSet.FieldByName('chave').AsString = '' then begin
+  {  if DBGrid1.DataSource.DataSet.FieldByName('chave').AsString = '' then begin
       MessageDlg('Chave da NFe Inválida!', mtInformation, [mbOK], 1);
       exit;
-    end;
+    end;}
 
     form78 := TForm78.Create(self);
     form78.EditChave.Text := DBGrid1.DataSource.DataSet.FieldByName('chave').AsString;
@@ -96,10 +96,6 @@ begin
     form78.imprimir := true;
     form78.ShowModal;
     form78.Free;
-    {
-    form63.imprimir := true;
-    form63.EditChave.Text := DBGrid1.DataSource.DataSet.FieldByName('chave').AsString;
-    form63.ShowModal;}
   end;
 
   if key = 115 then begin //F4

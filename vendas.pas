@@ -2919,17 +2919,14 @@ begin
     ClientDataSet1.First;
     ClientDataSet1.EnableControls;
 
-    if (Modo_Venda = true) then
-    begin
+    if (Modo_Venda = true) then begin
       try
         if funcoes.ExisteParcelamento(novocod) and
           (funcoes.buscaParamGeral(20, '') = 'S') then
         // (form22.Pgerais.Strings[20] = 'S') then
         begin
-          form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-            Longint(PChar
-            (('|      |      |       |                                  |        |          |'
-            + CRLF))));
+          addRelatorioForm19('|      |      |       |                                  |        |          |'
+            + CRLF);
           funcoes.ImprimeParcelamento('|      |      |         |  ',
             '    |        |          |', FormatCurr('#,###,###0.00',
             StrToCurr(Parcelamento.Values['entrada'])), novocod);
@@ -2940,6 +2937,13 @@ begin
           gravaErrosNoArquivo(e.Message, 'Form20', '808',
             'NotaMedia - ImprimeNota');
         end;
+      end;
+    end
+    else begin
+      if (funcoes.buscaParamGeral(20, '') = 'S') then begin
+        addRelatorioForm19('|      |      |       |                                  |        |          |'+ CRLF);
+          funcoes.ImprimeParcelamentoOrca(Parcelamento, '|      |      |         |  ',
+            '    |        |          |');
       end;
     end;
 
@@ -3288,7 +3292,9 @@ begin
     ClientDataSet1.First;
     ClientDataSet1.EnableControls;
 
-    if (Modo_Venda = true) then
+    //if (Modo_Venda = true) then
+    if true then
+
     begin
       try
         if funcoes.ExisteParcelamento(novocod) and
@@ -4187,7 +4193,9 @@ begin
         Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 40) + #13
         + #10))));
 
-      addRelatorioForm19(funcoes.CompletaOuRepete(nomevol, FormatCurr('#,###,###0.00' + ifthen(contido('M3', nomevol), '00', ''),totVolumes), '.', 40) + CRLF);
+      if funcoes.buscaParamGeral(112, 'S') = 'S' then begin
+        addRelatorioForm19(funcoes.CompletaOuRepete(nomevol, FormatCurr('#,###,###0.00' + ifthen(contido('M3', nomevol), '00', ''),totVolumes), '.', 40) + CRLF);
+      end;
     end
     else
     begin
@@ -4195,7 +4203,10 @@ begin
         Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 40) + #13
         + #10))));
 
-      addRelatorioForm19(funcoes.CompletaOuRepete(nomevol, FormatCurr('#,###,###0.00' + ifthen(contido('M3', nomevol), '00', ''),totVolumes), '.', 40) + CRLF);
+      if funcoes.buscaParamGeral(112, 'S') = 'S' then begin
+        if Modo_Venda then
+          addRelatorioForm19(funcoes.CompletaOuRepete(nomevol, FormatCurr('#,###,###0.00' + ifthen(contido('M3', nomevol), '00', ''),totVolumes), '.', 40) + CRLF);
+      end;
       addRelatorioForm19(funcoes.CompletaOuRepete('SUBTOTAL:',
         FormatCurr('#,##,###0.00', total1 - Desconto), '.', 40) + CRLF);
       addRelatorioForm19(funcoes.CompletaOuRepete('DESCONTO(' +
@@ -4264,15 +4275,22 @@ begin
       form19.RichEdit1.Perform(EM_REPLACESEL, 1,
         Longint(PChar(('* * *  *  *  *   COMPRA  *  *  *   * * *' +
         #13 + #10))))
-    else if Modo_Orcamento then
+    else if Modo_Orcamento then begin
       form19.RichEdit1.Perform(EM_REPLACESEL, 1,
         Longint(PChar(('* * *          ORCAMENTO           * * *' +
-        #13 + #10))))
+        #13 + #10))));
+
+      if Assigned(Parcelamento) then begin
+         if funcoes.buscaParamGeral(20, '') = 'S' then
+          funcoes.ImprimeParcelamentoOrca(Parcelamento,'', '');
+      end;
+
+
+    end
     else
       addRelatorioForm19('* * *   NAO  TEM  VALOR  FISCAL    * * *' + CRLF);
 
-    if Assigned(Parcelamento) then
-    begin
+    if Assigned(Parcelamento) then begin
       if funcoes.buscaParamGeral(20, '') = 'S' then
         funcoes.ImprimeParcelamento('', '', FormatCurr('#,###,###0.00',
           StrToCurrDef(Parcelamento.Values['entrada'], 0)), novocod);

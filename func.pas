@@ -137,9 +137,10 @@ type
     enviandoCupom, enviandoBackup: boolean;
     fonteRelatorioForm19: integer;
     NegritoRelatorioForm19, saiComEnter: boolean;
+    procedure checaAssinatura(arquivo : String);
     function buscaUnidadesFracionadas() : String;
     procedure apagaMovimento();
-    procedure enxugaEstoque();
+    procedure enxugaEstoque(msg : boolean = true);
     procedure apagarProdutoEstoqueZero();
     function apagarCadastrarNovoUsuarioBD :boolean;
     function senhaAdmin : String;
@@ -483,6 +484,7 @@ type
     function TimageToFileStream(caminho: string): TFileStream;
     procedure GeraTemas;
     procedure ImprimeParcelamento(ini, fim, entrada, nota: string);
+    procedure ImprimeParcelamentoOrca(var parc : TStringList; ini, fim : String);
     function ExisteParcelamento(nota: string): boolean;
     function QuebraLinhas(ini, fim, entrada: string;
       qtdQuebra: integer): string;
@@ -11519,6 +11521,43 @@ begin
 
 end;
 
+procedure Tfuncoes.ImprimeParcelamentoOrca(var parc : TStringList; ini, fim : String);
+var
+  i, fimi : integer;
+  data : TDate;
+  valor : currency;
+begin
+  try
+    if parc.Count <= 0 then exit;
+  except
+    exit;
+  end;
+
+  form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+    Longint(PChar((ini + '* * *  PARCELAMENTO  * * *' + fim + #13 + #10))));
+  // form19.RichEdit1.Perform(EM_REPLACESEL, 1,  Longint(PChar((ini + '*                        *' + fim + #13 + #10))));
+  form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+    Longint(PChar((ini + '* ENTRADA:' + funcoes.CompletaOuRepete('', parc.Values['entrada'],' ', 14) + ' *' + fim + #13 + #10))));
+
+  fimi  := StrToIntDef(parc.Values['qtd'], 0);
+  data  := StrToDate(parc.Values['vencto']);
+  data  := IncMonth(data, -1);
+  valor := StrToCurrDef(parc.Values['valorp'], 0);
+
+  for i := 1 to fimi do begin
+    data := IncMonth(data, 1);
+    addRelatorioForm19(ini + '* ' + FormatDateTime('dd/mm/yy', data) +
+      funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00', valor), ' ', 14) + ' *' + fim + #13
+      + #10);
+
+  end;
+  // form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((ini + '*                        *' + fim + #13 + #10))));
+  form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+    Longint(PChar((ini + '* * *  * * * * * * * * * *' + fim + #13 + #10))));
+  dm.IBQuery1.Close;
+
+end;
+
 procedure Tfuncoes.GeraTemas;
 var
   bs: TStream;
@@ -14894,15 +14933,15 @@ begin
         + numNota)
     else if opcao = 2 then
       dm.IBQuery2.SQL.Add
-        ('select i.cod, i.p_venda,p.nome, i.quant, p.codbar, p.refori, p.localiza, p.unid from item_orcamento i left join produto p on (i.cod = p.cod) where nota = '
+        ('select i.cod, i.p_venda,p.nome, i.quant, p.codbar, p.refori, p.localiza, p.unid, p.fracao from item_orcamento i left join produto p on (i.cod = p.cod) where nota = '
         + numNota)
     else if opcao = 3 then
       dm.IBQuery2.SQL.Add
-        ('select i.cod, p.p_compra as p_venda,p.unid, i.quant, p.nome, p.codbar, p.localiza, p.refori from ITEM_COMPRA i left join produto p on (i.cod = p.cod) where nota = '
+        ('select i.cod, p.p_compra as p_venda,p.unid, i.quant, p.nome, p.codbar, p.localiza, p.refori, p.fracao from ITEM_COMPRA i left join produto p on (i.cod = p.cod) where nota = '
         + numNota)
     else if opcao = 4 then
       dm.IBQuery2.SQL.Add
-        ('select e.cod, i.p_venda, i.total, iif(char_length(i.nome) = 0, p.nome, i.nome) as nome, '
+        ('select e.cod, i.p_venda, i.total, iif(char_length(i.nome) = 0, p.nome, i.nome) as nome '
         + 'e.quant, p.codbar, p.refori, p.localiza,p.unid, p.fracao  from CONT_ENTREGA e left join '
         + 'item_venda i on (i.nota = e.nota and i.cod = e.cod) left join produto p on (i.cod = p.cod) '
         + 'where e.ENT_AGORA = ''X'' and e.nota = ' + numNota);
@@ -15020,12 +15059,17 @@ begin
           + #10))));
       end;
       addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 40) + #13 + #10);
-      addRelatorioForm19(funcoes.CompletaOuRepete(NOMEVOL, FormatCurr('#,###,###0.00' + ifthen(contido('M3', nomevol), '00', ''),TOT_PIS), '.', 40) + CRLF);
+
+      if funcoes.buscaParamGeral(112, 'S') = 'S' then begin
+        addRelatorioForm19(funcoes.CompletaOuRepete(NOMEVOL, FormatCurr('#,###,###0.00' + ifthen(contido('M3', nomevol), '00', ''),TOT_PIS), '.', 40) + CRLF);
+      end;
     end
     else
     begin
       addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 40) + #13 + #10);
-      addRelatorioForm19(funcoes.CompletaOuRepete(NOMEVOL, FormatCurr('#,###,###0.00' + ifthen(contido('M3', nomevol), '00', ''),TOT_PIS), '.', 40) + CRLF);
+      if funcoes.buscaParamGeral(112, 'S') = 'S' then begin
+        addRelatorioForm19(funcoes.CompletaOuRepete(NOMEVOL, FormatCurr('#,###,###0.00' + ifthen(contido('M3', nomevol), '00', ''),TOT_PIS), '.', 40) + CRLF);
+      end;
 
       addRelatorioForm19(funcoes.CompletaOuRepete('SUBTOTAL:',
         FormatCurr('#,##,###0.00', dm.IBselect.FieldByName('total').AsCurrency -
@@ -22168,7 +22212,7 @@ begin
   dm.IBselect.Close;
   dm.IBselect.SQL.text :=
     'select nota,chave, cast(substring(chave from 26 for 9) as integer) as nnf, cast(substring(chave from 23 for 3) as integer)'
-    + ' as serie,xml from nfe where chave <> '''' and data >= :ini and data <= :fim  and tipo <> ''2'' '
+    + ' as serie,xml from nfe where chave <> '''' and data >= :ini and data <= :fim  and ((tipo <> ''2'') or (tipo is null)) '
     + 'order by cast(substring(chave from 23 for 3) as integer),cast(substring(chave from 26 for 9) as integer)';
   dm.IBselect.ParamByName('ini').AsDate := StrToDate(dataIni);
   dm.IBselect.ParamByName('fim').AsDate := StrToDate(DataFim);
@@ -26729,7 +26773,7 @@ begin
   arq := TStringList.Create;
  
   dm.IBselect.Close;
-  dm.IBselect.SQL.Text := 'select * from nfe where tipo <> ''2'' ';
+  dm.IBselect.SQL.Text := 'select * from nfe where ((tipo <> ''2'') or (tipo is null)) ';
   dm.IBselect.Open;
 
   form33 := TForm33.Create(self);
@@ -27027,7 +27071,7 @@ begin
  arq.Free;
 end;
 
-procedure Tfuncoes.enxugaEstoque();
+procedure Tfuncoes.enxugaEstoque(msg : boolean = true);
 var
   sim, cods : String;
   listaProdutos : TItensProduto;
@@ -27035,8 +27079,10 @@ var
   quant : currency;
   arq : TStringList;
 begin
-  sim := funcoes.dialogo('generico', 0, 'SN' + #8, 30, False, 'S', Application.Title, 'Confirma Enxugamento de Estoque para Eliminar Mercadorias Antigas ?', 'N');
-  if ((sim = '*') or (sim = 'N')) then exit;
+  if msg then begin
+    sim := funcoes.dialogo('generico', 0, 'SN' + #8, 30, False, 'S', Application.Title, 'Confirma Enxugamento de Estoque para Eliminar Mercadorias Antigas ?', 'N');
+    if ((sim = '*') or (sim = 'N')) then exit;
+  end;
 
   funcoes.informacao(0,0, 'Aguarde, Lendo Produtos...', true, false, 0);
   dm.IBselect.Close;
@@ -27122,7 +27168,7 @@ begin
   form19.RichEdit1.Clear;
 
   //addRelatorioForm19('#15' +funcoes.RelatorioCabecalho(form22.pgerais.Values['empresa'], 'RELATORIO DE PRODUTOS EXCLUIDOS', 79));
-  addRelatorioForm19('#15' +funcoes.RelatorioCabecalho('empresa', 'RELATORIO DE PRODUTOS EXCLUIDOS', 79));
+  addRelatorioForm19('%' +funcoes.RelatorioCabecalho('empresa', 'RELATORIO DE PRODUTOS EXCLUIDOS', 122));
   addRelatorioForm19('CODIGO DESCRICAO                                    LOJA DEPOSITO      CUSTO      VENDA  REFERENCIA     COD. DE BARRAS' + CRLF);
 
   arq := TStringList.Create;
@@ -27425,6 +27471,26 @@ begin
   end;
 
 
+end;
+
+procedure Tfuncoes.checaAssinatura(arquivo : String);
+var
+  arq : TStringList;
+begin
+  arq := TStringList.Create;
+  arq.LoadFromFile(arquivo);
+
+  if Contido('Signature', arq.Text) then begin
+    arq.Free;
+    exit;
+  end;
+
+  arq.Free;
+  ACBrNFe.NotasFiscais.Clear;
+  ACBrNFe.NotasFiscais.LoadFromFile(arquivo);
+  ACBrNFe.NotasFiscais[0].Assinar;
+  ACBrNFe.NotasFiscais[0].GravarXML(ExtractFileName(arquivo), ExtractFileDir(arquivo));
+  ACBrNFe.NotasFiscais.Clear;
 end;
 
 

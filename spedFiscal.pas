@@ -1152,7 +1152,7 @@ begin
   fim := fim + dm.IBQuery4.RecordCount;
 
   dm.IBQuery4.Close;
-  dm.IBQuery4.SQL.Text := 'select * from nfe where (data >= :dataini) and (data <= :datafim)  and tipo <> ''2'' ';
+  dm.IBQuery4.SQL.Text := 'select * from nfe where (data >= :dataini) and (data <= :datafim)  and ((tipo <> ''2'') or (tipo is null)) ';
   dm.IBQuery4.ParamByName('dataini').AsDateTime := StrToDate(dataIni);
   dm.IBQuery4.ParamByName('datafim').AsDateTime := StrToDate(DataFim);
   dm.IBQuery4.Open;
@@ -2332,7 +2332,7 @@ begin
   dm.IBselect.ParamByName('ini').AsDate  := StrToDate(dataIni);
   dm.IBselect.ParamByName('fim').AsDate  := StrToDate(DataFim);}
 
-  dm.IBselect.SQL.Text := 'select * from nfe f where substring(chave from 3 for 4) = :ini and estado = ''E''  and tipo <> ''2'' ';
+  dm.IBselect.SQL.Text := 'select * from nfe f where substring(chave from 3 for 4) = :ini and estado = ''E''  and ((tipo <> ''2'') or (tipo is null)) ';
   dm.IBselect.ParamByName('ini').AsString  := chaveAnoMes;
   dm.IBselect.Open;
   dm.IBselect.FetchAll;
@@ -4372,7 +4372,7 @@ begin
   {DADOS DE NFES EMITIDAS}
   TIPO := '90';
   dm.IBselect.Close;
-  dm.IBselect.SQL.Text := 'select * from nfe f where substring(chave from 3 for 4) = :ini and estado = ''E'' and tipo <> ''2'' ';
+  dm.IBselect.SQL.Text := 'select * from nfe f where substring(chave from 3 for 4) = :ini and estado = ''E'' and ((tipo <> ''2'') or (tipo is null)) ';
   dm.IBselect.ParamByName('ini').AsString  := chaveAnoMes;
   {dm.IBselect.SQL.Text := 'select item from fvmt f where (substring(f.item from 21 for 2) = :tipo) and (data >= :ini) and (data <= :fim) and (estado = ''E'')';
   dm.IBselect.ParamByName('tipo').AsString := TIPO;
@@ -5398,7 +5398,7 @@ var
   DadosNfe : TDadosNFe;
   LIN, UF  : string;
 begin
-  dm.IBselect.SQL.Text := 'select * from nfe f where substring(chave from 3 for 4) = :ini and estado = ''S''  and tipo <> ''2'' ';
+  dm.IBselect.SQL.Text := 'select * from nfe f where substring(chave from 3 for 4) = :ini and estado = ''S''  and ((tipo <> ''2'') or (tipo is null)) ';
   dm.IBselect.ParamByName('ini').AsString  := chaveAnoMes;
   dm.IBselect.Open;
   dm.IBselect.FetchAll;
@@ -5664,3 +5664,4 @@ end;
 
 
 end.
+

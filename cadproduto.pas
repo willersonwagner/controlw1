@@ -1877,10 +1877,14 @@ end;
 procedure TForm9.FormCreate(Sender: TObject);
 begin
   RecuperarCadastro := false;
-  if funcoes.buscaParamGeral(17, 'N') = 'S' then
-  begin
+  if funcoes.buscaParamGeral(17, 'N') = 'S' then begin
     Label35.Caption := Label35.Caption + '/F2-Atacado';
   end;
+
+  p_venda.setDecimais(StrToIntDef(funcoes.buscaParamGeral(111, '3'), 3));
+
+  //if p_venda.decimal > 9 then p_venda.setDecimais(3);
+  
 end;
 
 procedure TForm9.insereIgualProduto(const cod2, igual: String);

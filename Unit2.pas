@@ -392,6 +392,8 @@ type
     EnxugarEstoque1: TMenuItem;
     VendasemM31: TMenuItem;
     EstoqueAtualemM31: TMenuItem;
+    ValidarAssinaturaDigital1: TMenuItem;
+    EnxugarEstoque2: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure CadastrarUsurio1Click(Sender: TObject);
     procedure FormKeyPress(Sender: TObject; var Key: Char);
@@ -667,6 +669,8 @@ type
     procedure EnxugarEstoque1Click(Sender: TObject);
     procedure VendasemM31Click(Sender: TObject);
     procedure EstoqueAtualemM31Click(Sender: TObject);
+    procedure ValidarAssinaturaDigital1Click(Sender: TObject);
+    procedure EnxugarEstoque2Click(Sender: TObject);
   private
     b, cont : integer;
     ini : Smallint;
@@ -3031,6 +3035,8 @@ begin
   form40.tipo.Add('108=generico');
   form40.tipo.Add('109=generico');
   form40.tipo.Add('110=normal');
+  form40.tipo.Add('111=generico');
+  form40.tipo.Add('112=generico');
 
   form40.troca := TStringList.Create;
   form40.troca.Add('0=S');
@@ -3147,6 +3153,8 @@ begin
   form40.troca.Add('108=S');
   form40.troca.Add('109=S');
   form40.troca.Add('110=');
+  form40.troca.Add('111=S');
+  form40.troca.Add('112=S');
 
   form40.teclas := TStringList.Create;
   form40.teclas.Add('0=FT');
@@ -3262,6 +3270,8 @@ begin
   form40.teclas.Add('108=SN');
   form40.teclas.Add('109=SN');
   form40.teclas.Add('110=1234567890ABCDEFGHIJLMNOPKXYZWQRSTUVXZ|' + #46);
+  form40.teclas.Add('111=1234567890');
+  form40.teclas.Add('112=SN');
 
 
   form40.ListBox1.Clear;
@@ -3376,6 +3386,9 @@ begin
   form40.ListBox1.Items.Add('108=Usar Leitura de Etiqueta de Pesagem no ControlW ?');
   form40.ListBox1.Items.Add('109=Usar Venda de Mercadorias em M3 (S/N) ?');
   form40.ListBox1.Items.Add('110=Quais as Unidades de Medida que Podem Ser Fracionadas ?');
+  form40.ListBox1.Items.Add('111=Usar Quantas Casas Decimais no Preço de Venda ?');
+  form40.ListBox1.Items.Add('112=Imprimir Volumes no Ticket ?');
+
 
   Form40.ListBox1.Selected[0] := true;
   form40.showmodal;
@@ -4482,7 +4495,7 @@ begin
   end;
 
   dm.IBselect.Close;
-  dm.IBselect.SQL.Text := 'select * from nfe where data >= :ini and data <= :fim and tipo <> ''2'' ';
+  dm.IBselect.SQL.Text := 'select * from nfe where data >= :ini and data <= :fim and ((tipo <> ''2'') or (tipo is null)) ';
   dm.IBselect.ParamByName('ini').AsDate := StrToDate(ini);
   dm.IBselect.ParamByName('fim').AsDate := StrToDate(fim);
   dm.IBselect.Open;
@@ -9200,6 +9213,15 @@ begin
   funcoes.apagarProdutoEstoqueZero;
 end;
 
+procedure TForm2.EnxugarEstoque2Click(Sender: TObject);
+begin
+  if MessageDlg('Atenção!' + #13 +
+             'Esta Rotina irá apagar os Registros com Estoque Zero' + #13+
+             'Deseja Realmente Proceder com a Execução da Rotina ?', mtWarning, [mbYes, mbNo], 1) = idno then exit;
+
+  funcoes.enxugaEstoque(true);
+end;
+
 procedure TForm2.CalcularEstoqueMnimo1Click(Sender: TObject);
 var
   dini, dfim, sim : string;
@@ -11469,6 +11491,21 @@ begin
   ShowMessage('Reajuste Efetuado com Sucesso');  
 end;
 
+procedure TForm2.ValidarAssinaturaDigital1Click(Sender: TObject);
+var
+  arq : TOpenDialog;
+begin
+  arq := TOpenDialog.Create(self);
+  if not arq.Execute then exit;
+
+  nota := arq.FileName;
+
+  dm.ACBrNFe.NotasFiscais.Clear;
+  dm.ACBrNFe.NotasFiscais.LoadFromFile(nota);
+  dm.ACBrNFe.NotasFiscais[0].Assinar;
+  dm.ACBrNFe.NotasFiscais[0].GravarXML(ExtractFileName(nota), ExtractFileDir(nota));
+end;
+
 procedure TForm2.VendanoAtacado1Click(Sender: TObject);
 var
  perce, sim : String;
@@ -13241,7 +13278,7 @@ begin
   totCANC := 0;
 
   dm.IBselect.close;
-  dm.IBselect.SQL.Text := 'select * from nfe where data >= :ini and data <= :fim  and tipo <> ''2''  ORDER BY NOTA';
+  dm.IBselect.SQL.Text := 'select * from nfe where data >= :ini and data <= :fim  and ((tipo <> ''3'') or (tipo is null))  ORDER BY NOTA';
   dm.IBselect.ParamByName('ini').AsDate := dini1;
   dm.IBselect.ParamByName('fim').AsDate := dfim1;
   dm.IBselect.Open;

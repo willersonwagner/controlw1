@@ -660,7 +660,7 @@ object Form17: TForm17
       object tot: TLabel
         Left = 1
         Top = 1
-        Width = 91
+        Width = 199
         Height = 23
         Align = alTop
         Alignment = taCenter
@@ -671,11 +671,12 @@ object Form17: TForm17
         Font.Name = 'Courier New'
         Font.Style = [fsBold]
         ParentFont = False
+        ExplicitWidth = 91
       end
       object totXML: TLabel
         Left = 1
         Top = 33
-        Width = 13
+        Width = 199
         Height = 23
         Align = alBottom
         Alignment = taCenter
@@ -685,6 +686,7 @@ object Form17: TForm17
         Font.Name = 'Courier New'
         Font.Style = [fsBold]
         ParentFont = False
+        ExplicitWidth = 13
       end
     end
     object DESC_COMP: JsEditNumero

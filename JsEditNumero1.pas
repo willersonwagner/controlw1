@@ -9,13 +9,15 @@ type
   JsEditNumero = class(JsEdit)
   private
     cont, c1 : integer;
-    deci : boolean;
     procedure novo;
     { Private declarations }
   protected
     { Protected declarations }
   public
     decimal : integer;
+    deci : boolean;
+    procedure DoEnter(); override;
+    procedure setDecimais(decimais : integer);
     function GeraCompleto(valorx : integer) : string;
     procedure EscreveNumero(Value: Integer);
     function GeraDecimais : String;
@@ -49,6 +51,13 @@ end;
 procedure JsEditNumero.novo;
 begin
   text :='0'+GeraDecimais;
+  deci := false;
+end;
+
+procedure JsEditNumero.setDecimais(decimais : integer);
+begin
+  decimal := decimais;
+  self.Text := '0'+GeraDecimais;
   deci := false;
 end;
 
@@ -124,6 +133,14 @@ begin
   result:=valor;
   end
    else result:='0';
+end;
+
+procedure JsEditNumero.DoEnter();
+begin
+  Inherited;
+  deci := false;
+  cont := 1;
+  self.SelectAll;
 end;
 
 procedure JsEditNumero.KeyPress(var Key: Char);

@@ -504,7 +504,8 @@ begin
         else if JsEditNumero(lista.Items[ini]).decimal = 3 then DECIMAIS := '000'
         else if JsEditNumero(lista.Items[ini]).decimal = 2 then DECIMAIS := '00';
 
-        IF POS(UpperCase(JsEdit(lista.Items[ini]).Name), 'P_COMPRA|P_VENDA|QUANT') > 0 THEN DECIMAIS := '000';
+        JsEditNumero(lista.Items[ini]).deci := false;
+        IF POS(UpperCase(JsEdit(lista.Items[ini]).Name), 'P_COMPRA|QUANT') > 0 THEN DECIMAIS := '000';
         JsEdit(lista.Items[ini]).Text := '0,' + decimais;
       end;
       finally
