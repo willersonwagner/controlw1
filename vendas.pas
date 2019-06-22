@@ -161,7 +161,7 @@ type
     procedure gravaCompra;
     procedure RecuperaCompra(numCompra: string);
     procedure AddProdutoCDS_Compra(quanti, valor: currency);
-    procedure AddProdutoCDS_Generico(cod: integer; quanti, valor: currency);
+    procedure AddProdutoCDS_Generico(cod: integer; quanti, valor: currency; permitirVendaNegativa : boolean = true);
     function somaDescontoVendaCDS: currency;
     function AdicionaListaSmall: boolean;
     procedure ordenaDatasetPorCampoBdgrid(campo, valor: String);
@@ -1168,13 +1168,17 @@ begin
   end;
 end;
 
-procedure TForm20.AddProdutoCDS_Generico(cod: integer; quanti, valor: currency);
+procedure TForm20.AddProdutoCDS_Generico(cod: integer; quanti, valor: currency; permitirVendaNegativa : boolean = true);
 begin
   if DBGrid1.DataSource.DataSet.Locate('cod', cod, []) = false then
   begin
     MessageDlg('Produto Código ' + IntToStr(cod) + ' Não Foi Encontrado!',
       mtInformation, [mbok], 1);
     exit;
+  end;
+
+  if permitirVendaNegativa = false then begin
+    if limitar_QTD_Estoque(quanti, cod) = false then exit;
   end;
 
   if buscaProdutoCDS(IntToStr(cod), valor, '', 0) then
@@ -5074,7 +5078,7 @@ begin
       if prodcodbar.codbar <> '*' then
       begin
         AddProdutoCDS_Generico(prodcodbar.cod, prodcodbar.quant,
-          prodcodbar.Preco);
+          prodcodbar.Preco, false);
         exit;
       end
     end;
@@ -8516,8 +8520,7 @@ begin
 
   if funcoes.LerConfig(form22.Pgerais.Values['configu'], 11) = 'N' then
   begin // permitir venda sem estoque disponivel
-    if qtd < 0 then
-    begin
+    if qtd < 0 then begin
       WWMessage('Venda de quantidade Negativa Não Permitida!', mtInformation,
         [mbok], HexToTColor('FFD700'), true, false, HexToTColor('B22222'));
       exit;

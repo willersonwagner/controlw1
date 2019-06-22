@@ -1876,7 +1876,7 @@ begin
 
   DESCONTO := DESCONTO + dm.IBselect.fieldbyname('desconto').AsCurrency;
 
-  formas.Values[dm.IBselect.fieldbyname('codhis').AsString] := CurrToStr(StrToCurrDef(formas.Values[dm.IBselect.fieldbyname('codhis').AsString], 0) + dm.IBselect.fieldbyname('total').AsCurrency );
+  //formas.Values[dm.IBselect.fieldbyname('codhis').AsString] := CurrToStr(StrToCurrDef(formas.Values[dm.IBselect.fieldbyname('codhis').AsString], 0) + dm.IBselect.fieldbyname('total').AsCurrency );
   nota   := dm.IBselect.fieldbyname('nota').AsString;
   CUSTO  := 0;
   _TOTAL := 0;
@@ -1888,6 +1888,7 @@ begin
       if not contido('-' + dm.IBselect.fieldbyname('nota').AsString + '-', notas) then begin
         notas := notas + dm.IBselect.fieldbyname('nota').AsString + '-';
         _TOTAL := _TOTAL +  dm.IBselect.fieldbyname('desconto').AsCurrency;
+
         if dm.IBselect.fieldbyname('entrada').AsCurrency <> 0 then begin
           formas.Values['1'] := CurrToStr(StrToCurrDef(formas.Values['1'], 0) + (dm.IBselect.fieldbyname('entrada').AsCurrency));
           formas.Values[dm.IBselect.fieldbyname('codhis').AsString] := CurrToStr(StrToCurrDef(formas.Values[dm.IBselect.fieldbyname('codhis').AsString], 0) + (dm.IBselect.fieldbyname('total').AsCurrency - dm.IBselect.fieldbyname('entrada').AsCurrency));
@@ -1940,6 +1941,7 @@ begin
 
   fi := formas.Count -1;
 
+  //formas.SaveToFile('te.txt');
   for i := 0 to fi do
     begin
       ini := formas.Names[i];
@@ -5021,7 +5023,7 @@ begin
 
     if grupo<>'' then g1 := '(codgru='+grupo+') and';
 
-    if saldo='S' then
+    if saldo = 'S' then
      begin
       dm.IBQuery2.SQL.Clear;
       dm.IBQuery2.SQL.Add('select (sum(entrada) - sum(saida)) as soma from caixa where '+g1+' (cast(data as date) < :d1)');
@@ -5044,7 +5046,7 @@ begin
 
     dm.IBselect.Close;
     dm.IBselect.SQL.Clear;
-    dm.IBselect.SQL.Add('select * from caixa where '+g1+' ((cast(data as date) >= :v1) and (cast(data as date) <=:v2) ) order by data');
+    dm.IBselect.SQL.Add('select * from caixa where '+g1+' ((cast(data as date) >= :v1) and (cast(data as date) <=:v2) ) and (tipo <> ''E'') order by data');
     dm.IBselect.ParamByName('v1').AsDateTime := StrToDate(ini);
     dm.IBselect.ParamByName('v2').AsDateTime := StrToDate(fim);
     dm.IBselect.Open;
@@ -5258,14 +5260,13 @@ begin
 
   anterior := dm.IBQuery2.fieldbyname('soma').AsCurrency;
 
-  if saldo = 'S' then
-    begin
-      acc := anterior;
-    end;
+  if saldo = 'S' then begin
+    acc := anterior;
+  end;
 
      dm.IBselect.Close;
      dm.IBselect.SQL.Clear;
-     dm.IBselect.SQL.Add('select codhis, entrada, saida from caixa where '+g1+' ((cast(data as date)>=:v1) and (cast(data as date)<=:v2) ) order by data');
+     dm.IBselect.SQL.Add('select codhis, entrada, saida from caixa where '+g1+' ((cast(data as date)>=:v1) and (cast(data as date)<=:v2) ) and (tipo <> ''E'')  order by data');
      dm.IBselect.ParamByName('v1').AsDateTime := StrToDate(ini);
      dm.IBselect.ParamByName('v2').AsDateTime := StrToDate(fim);
      dm.IBselect.Open;
@@ -5432,7 +5433,7 @@ begin
      if his<>'' then h1 := 'and (codhis='+his+') ';
      dm.IBselect.Close;
      dm.IBselect.SQL.Clear;
-     dm.IBselect.SQL.Add('select * from caixa where '+g1+' ((cast(data as date) >= :v1) and (cast(data as date) <= :v2) ) '+h1+' order by data');
+     dm.IBselect.SQL.Add('select * from caixa where '+g1+' ((cast(data as date) >= :v1) and (cast(data as date) <= :v2) ) and (tipo <> ''E'') '+h1+' order by data');
      dm.IBselect.ParamByName('v1').AsDateTime := StrToDate(ini);
      dm.IBselect.ParamByName('v2').AsDateTime := StrToDate(fim);
      dm.IBselect.Open;
@@ -6996,7 +6997,7 @@ begin
 
   dm.IBselect.Close;
   dm.IBselect.SQL.Clear;
-  dm.IBselect.SQL.Add('select nota,data,data + prazo as vencimento,total from venda where ((cancelado = 0) and(data >= :v1) and (data<=:v2)) and (cliente='+cliente+') ');
+  dm.IBselect.SQL.Add('select nota,data,data + prazo as vencimento,total from venda where ((cancelado = 0) and(data >= :v1) and (data<=:v2)) and (cliente='+cliente+')  order by nota');
   dm.IBselect.ParamByName('v1').AsDateTime := StrToDate(ini);
   dm.IBselect.ParamByName('v2').AsDateTime := StrToDate(fim);
   dm.IBselect.Open;

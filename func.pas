@@ -111,6 +111,7 @@ type
     cdsEquiva: TClientDataSet;
     buscaTimer: String;
     listaProdutos: Tprodutos;
+    procedure alteraDataHoraLocal(var data1 : TDateTime);
     procedure corrigeUnidades();
     procedure SOMA_EST(const cod: integer; const qtd, DEP: currency;
       var lista: TItensAcumProd);
@@ -2912,8 +2913,8 @@ var
   SS: TStringStream;
   bb: TWebBrowser;
   arq: tstringList;
+  dias : integer;
 begin
-
   Result := '';
   { dm.IBselect.Close;
     dm.IBselect.SQL.Clear;
@@ -2933,7 +2934,7 @@ begin
     quer.FieldByName('telcom').AsString + '_' + quer.FieldByName('ende')
     .AsString + '_' + quer.FieldByName('bairro').AsString, ' ', '_'), 195);
 
-  th := 'emp=' + trim(emp1) + '&cnpj=' + cnpj + '&ende=' + ende;
+  th := 'emp=' + trim(emp1) + '&cnpj=' + cnpj + '&ende=' + ende ;
   th := trocaChar(trocaChar(th, '.', ''), ',', '');
   th := trocaChar(buscaNomeSite + '/si2/add.php?' + th, ' ', '_');
   th := trim(th);
@@ -5498,6 +5499,9 @@ begin
   // 24 - agregado
   // 25 - obs
   // 26 - TIPO_ITEM
+  // 27 - DESC_COMP
+  // 28 - ICMS_SUBS
+  // 29 - fracao
 
   // tot := filesize(F);
   tot := arquivo.count - 1;
@@ -5554,8 +5558,8 @@ begin
     dm.IBQuery1.Close;
     dm.IBQuery1.SQL.text :=
       ('update or insert into produto(cod, codbar, unid, nome, p_compra, p_venda, aliquota, classif, is_pis, cod_ispis, grupo, p_venda1, fornec, fabric, localiza, refori, lucro, comissao,'
-      + ' credicm, basecred, debicm, basedeb, frete, encargos, agregado, obs, TIPO_ITEM) values(:cod, :codbar, :unid, :nome, :p_compra, :p_venda, :aliquota, :classif, :is_pis, :cod_ispis,'
-      + ' :grupo, :p_venda1, :fornec, :fabric, :localiza, :refori, :lucro, :comissao, :credicm, :basecred, :debicm, :basedeb, :frete, :encargos, :agregado, :obs, :TIPO_ITEM) matching(cod)');
+      + ' credicm, basecred, debicm, basedeb, frete, encargos, agregado, obs, TIPO_ITEM, DESC_COMP, ICMS_SUBS, fracao) values(:cod, :codbar, :unid, :nome, :p_compra, :p_venda, :aliquota, :classif, :is_pis, :cod_ispis,'
+      + ' :grupo, :p_venda1, :fornec, :fabric, :localiza, :refori, :lucro, :comissao, :credicm, :basecred, :debicm, :basedeb, :frete, :encargos, :agregado, :obs, :TIPO_ITEM, :DESC_COMP, :ICMS_SUBS, :fracao) matching(cod)');
     dm.IBQuery1.ParamByName('cod').AsString := arq.Values['0'];
     dm.IBQuery1.ParamByName('codbar').AsString := arq.Values['1'];
     dm.IBQuery1.ParamByName('unid').AsString := arq.Values['2'];
@@ -5595,6 +5599,10 @@ begin
       StrToCurrDef(arq.Values['24'], 0);
     dm.IBQuery1.ParamByName('obs').AsString := trim(arq.Values['25']);
     dm.IBQuery1.ParamByName('TIPO_ITEM').AsString := StrNum(arq.Values['26']);
+
+    dm.IBQuery1.ParamByName('DESC_COMP').AsCurrency :=StrToCurrDef(arq.Values['27'], 0);
+    dm.IBQuery1.ParamByName('ICMS_SUBS').AsCurrency :=StrToCurrDef(arq.Values['28'], 0);
+    dm.IBQuery1.ParamByName('fracao').AsCurrency    :=StrToCurrDef(arq.Values['29'], 0);
 
     try
       dm.IBQuery1.ExecSQL;
@@ -5827,6 +5835,9 @@ begin
     // 24 - agregado
     // 25 - obs
     // 26 - TIPO_ITEM
+    // 27 - DESC_COMP
+    // 28 - ICMS_SUBS
+    // 29 - fracao
     funcoes.informacao(0, tot, 'Gerando Sincronização...', true, False, 5);
 
     while not dm.IBselect.Eof do
@@ -5858,8 +5869,10 @@ begin
         dm.IBselect.FieldByName('encargos').AsString + '|' +
         dm.IBselect.FieldByName('agregado').AsString + '|' +
         dm.IBselect.FieldByName('obs').AsString + '|' +
-        IfThen(trim(dm.IBselect.FieldByName('TIPO_ITEM').AsString) = '', '00',
-        trim(dm.IBselect.FieldByName('TIPO_ITEM').AsString)) + '|';
+        IfThen(trim(dm.IBselect.FieldByName('TIPO_ITEM').AsString) = '', '00',trim(dm.IBselect.FieldByName('TIPO_ITEM').AsString)) + '|' +
+        dm.IBselect.FieldByName('DESC_COMP').AsString + '|' +
+        dm.IBselect.FieldByName('ICMS_SUBS').AsString + '|' +
+        dm.IBselect.FieldByName('fracao').AsString + '|';
 
       // Writeln(F, funcoes.Criptografar(linha));
       Writeln(F, linha);
@@ -21789,7 +21802,7 @@ begin
 
   // pega a data atual do BD do servidor
   dm.IBselect.Close;
-  dm.IBselect.SQL.text := ('select current_date as data from rdb$database');
+  dm.IBselect.SQL.text := ('SELECT CAST (''NOW'' AS TIMESTAMP) as DATA FROM RDB$DATABASE');
   dm.IBselect.Open;
   dataBd := dm.IBselect.FieldByName('data').AsDateTime;
 
@@ -21798,11 +21811,11 @@ begin
   if ((dataBd > ultDataMov) and ((dataBd - ultDataMov) <= 5)) then
     ultDataMov := dataBd;
 
-  // se a data de relógio é maior que a ultima data de movimento
-  // e essa data for até 30 dias maior, adianta automático pra a data de relógio
-  if ((now > ultDataMov) and ((now - ultDataMov) <= 5)) then
-    ultDataMov := now;
-
+  //se a data local for maior que o
+  if (now > dataBd) then begin
+    ultDataMov := dataBd;
+    alteraDataHoraLocal(ultDataMov);
+  end;
 
   dm.IBselect.Close;
   dm.IBselect.SQL.text := ('select nota,data from venda where nota = gen_id(venda, 0)');
@@ -27491,6 +27504,24 @@ begin
   ACBrNFe.NotasFiscais[0].Assinar;
   ACBrNFe.NotasFiscais[0].GravarXML(ExtractFileName(arquivo), ExtractFileDir(arquivo));
   ACBrNFe.NotasFiscais.Clear;
+end;
+
+procedure Tfuncoes.alteraDataHoraLocal(var data1 : TDateTime);
+var
+  SystemTime1: TSystemTime;
+begin
+  SystemTime1.wYear   := YearOf(data1);
+  SystemTime1.wMonth  := MonthOf(data1);
+  SystemTime1.wDay    := DayOf(data1);
+  SystemTime1.wHour   := HourOf(data1);
+  SystemTime1.wMinute := MinuteOf(data1);
+  SystemTime1.wSecond := SecondOf(data1);
+
+  ShowMessage('Data Ajustada: ' + DateTimeToStr(data1));
+ // ShowMessage(IntToStr(SystemTime1.wYear) + #13 + IntToStr(SystemTime1.wMonth) + #13 + IntToStr(SystemTime1.wDay) + #13 +
+ // IntToStr(SystemTime1.wHour) + #13 + IntToStr(SystemTime1.wMinute) + #13 + IntToStr(SystemTime1.wSecond));
+
+  SetLocalTime(SystemTime1);
 end;
 
 
