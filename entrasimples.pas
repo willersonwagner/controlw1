@@ -1310,6 +1310,7 @@ end;
 procedure TForm17.DBGrid2KeyPress(Sender: TObject; var Key: Char);
 var
   custo, DATA : String;
+  idx : integer;
 begin
   if key = #13 then
     begin
@@ -1324,6 +1325,8 @@ begin
           DATA := funcoes.dialogo('data',0,'',2,true,'',Application.Title,'Qual a Data de Validade ?',data);
           if DATA = '*' then exit;
 
+          idx := DBGrid2.DataSource.DataSet.RecNo;
+
           dm.IBQuery3.Close;
           dm.IBQuery3.SQL.Text := 'update item_entrada set validade = :validade where (CODENTRADA = :cod)';
           dm.IBQuery3.ParamByName('validade').AsDate  := StrToDate(data);
@@ -1333,6 +1336,10 @@ begin
           dm.IBQuery3.Transaction.Commit;
 
           abreDataSet;
+          DBGrid2.DataSource.DataSet.RecNo := idx;
+          DBGrid2.SelectedIndex := funcoes.buscaFieldDBgrid1('validade', DBGrid2);
+
+          //DBGrid2.Columns.
           tot.Caption := 'R$  '+FormatCurr('#,##,###0.00',lertotal);
         end;
 
