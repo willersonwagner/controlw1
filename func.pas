@@ -25363,7 +25363,7 @@ end;
 
 FUNCTION Tfuncoes.IMP_CODBAR(const cod: String): boolean;
 VAR
-  _CB, _REF, linha, qtd, _PV, _COD, imp: String;
+  _CB, _REF, linha, qtd, _PV, _COD, imp, _localiza: String;
   LIDO, posi, ini, fim, tam, tam1: integer;
   hand, arqTXT: tstringList;
   codbarValido : boolean;
@@ -25420,6 +25420,7 @@ begin
     .AsCurrency);
   _COD := dm.IBselect.FieldByName('cod').AsString;
   _REF := allTrim(dm.IBselect.FieldByName(refori1).AsString);
+  _localiza := dm.IBselect.FieldByName('localiza').AsString;
 
   if funcoes.buscaParamGeral(5, '') = 'S' then
   begin
@@ -25495,7 +25496,10 @@ begin
     // LINHA := TROCA_STR(LINHA,'PRODUTO', copy(dm.produto.fieldbyname('DESCRICAO').AsString, 1, 20));
     linha := troca_str(linha, 'CODIGO', dm.IBselect.FieldByName('cod')
       .AsString);
+
     linha := troca_str(linha, 'CODBAR', _CB);
+    linha := troca_str(linha, 'LOCALIZA', _localiza);
+
     linha := troca_str(linha, 'PRECO', _PV);
     linha := troca_str(linha, 'REFORI', _REF);
     linha := troca_str(linha, 'XQTD', STRZERO(qtd, 4));

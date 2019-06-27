@@ -12052,6 +12052,10 @@ object Form2: TForm2
         Caption = 'CEST'
         OnClick = CEST1Click
       end
+      object Cadastrode1: TMenuItem
+        Caption = 'Cadastro de'
+        OnClick = Cadastrode1Click
+      end
     end
     object Utilitarios1: TMenuItem
       Caption = 'Utilitarios'

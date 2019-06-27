@@ -58,7 +58,7 @@ end;
 
 procedure TForm4.FormShow(Sender: TObject);
 begin
-JsEdit.SetTabelaDoBd(self,'vendedor', dm.IBQuery1);
+  JsEdit.SetTabelaDoBd(self,'vendedor', dm.IBQuery1);
 end;
 
 procedure TForm4.codEnter(Sender: TObject);
