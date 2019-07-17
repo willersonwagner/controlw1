@@ -2354,8 +2354,8 @@ begin
       listaPIS.Clear;
 
       zerarArrayProduto();
-      //NOTA := StrToIntDef(mat[2], 0);
-      NOTA := dm.IBselect.FieldByName('nota').AsInteger ;
+      CHAVENF := dm.IBselect.FieldByName('chave').AsString;
+      nota    := StrToIntDef(copy(chaveNF, 26, 9), 0);
 
       //if not Contido(IntToStr(nota), CODNOTA) then
         //begin
@@ -4402,7 +4402,10 @@ begin
 
       //if not Contido(IntToStr(nota), CODNOTA) then
         //begin
-          CODNOTA := CODNOTA + IntToStr(NOTA) + '-';
+        CHAVENF := dm.IBselect.FieldByName('chave').AsString;
+        nota    := StrToIntDef(copy(chaveNF, 26, 9), 0);
+
+        CODNOTA := CODNOTA + IntToStr(NOTA) + '-';
           //DATA_EMI := converteDataYYMMDDParaTdate(mat[0]);
 
 

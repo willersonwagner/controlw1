@@ -3477,7 +3477,7 @@ object Form2: TForm2
       AD00B7F0F43FA2A6726ACDD1A8FD0000000049454E44AE426082}
   end
   object btnVendas: TPngSpeedButton
-    Left = 519
+    Left = 511
     Top = 256
     Width = 146
     Height = 121
@@ -11413,6 +11413,14 @@ object Form2: TForm2
         Caption = 'Relat'#243'rio P/ Clientes'
         Visible = False
       end
+      object RelatrioTcnicoOS1: TMenuItem
+        Caption = 'Relat'#243'rio T'#233'cnico/OS'
+        OnClick = RelatrioTcnicoOS1Click
+      end
+      object RelatrioTcnicoProdutos1: TMenuItem
+        Caption = 'Relat'#243'rio T'#233'cnico/Produtos'
+        OnClick = RelatrioTcnicoProdutos1Click
+      end
       object Reimpresso3: TMenuItem
         Caption = 'Reimpress'#227'o'
         OnClick = Reimpresso3Click
@@ -11985,6 +11993,9 @@ object Form2: TForm2
         Caption = 'Acertos de Estoque'
         OnClick = AcertosdeEstoque1Click
       end
+      object Servios3: TMenuItem
+        Caption = 'Servi'#231'os'
+      end
     end
     object Cadastro1: TMenuItem
       Caption = 'Cadastros'
@@ -12135,6 +12146,10 @@ object Form2: TForm2
           Caption = 'Enxugar Estoque'
           OnClick = EnxugarEstoque2Click
         end
+        object ApagarMovimento1: TMenuItem
+          Caption = 'Apagar Movimento'
+          OnClick = ApagarMovimento1Click
+        end
       end
       object BloquearUsurio1: TMenuItem
         Caption = 'Bloquear Usu'#225'rio'
@@ -12178,13 +12193,9 @@ object Form2: TForm2
           Caption = 'Restaurar Padr'#245'es'
           OnClick = RestaurarPadres1Click
         end
-        object EnviarLogdeErrosViaEmail1: TMenuItem
-          Caption = 'Enviar Log de Erros Via Email'
-          OnClick = EnviarLogdeErrosViaEmail1Click
-        end
-        object AtualizarControlW1: TMenuItem
-          Caption = 'Atualizar Sistema'
-          OnClick = AtualizarControlW1Click
+        object ema1: TMenuItem
+          Caption = 'Tema'
+          OnClick = ema1Click
         end
         object AtualizarBD1: TMenuItem
           Caption = 'Atualizar BD'
@@ -12194,34 +12205,9 @@ object Form2: TForm2
           Caption = 'Apagar Configura'#231#245'es do Terminal'
           OnClick = AtualizarAliquotasSmallSoft2Click
         end
-        object ExportaDAV1: TMenuItem
-          Caption = 'Exportar DAV'
-          OnClick = ExportaDAV1Click
-        end
-        object SuporteOnline1: TMenuItem
-          Caption = 'Suporte Online'
-          Visible = False
-          OnClick = SuporteOnline1Click
-        end
-        object RecuperarumBackup1: TMenuItem
-          Caption = 'Recuperar B'
-          OnClick = RecuperarumBackup1Click
-        end
-        object ema1: TMenuItem
-          Caption = 'Tema'
-          OnClick = ema1Click
-        end
-        object VerificarVendas1: TMenuItem
-          Caption = 'Verificar Vendas'
-          OnClick = VerificarVendas1Click
-        end
         object CriarSrie1: TMenuItem
           Caption = 'Criar S'#233'rie NFCe'
           OnClick = CriarSrie1Click
-        end
-        object EstruturarPastaNFCe1: TMenuItem
-          Caption = 'Estruturar Pasta NFCe'
-          OnClick = EstruturarPastaNFCe1Click
         end
         object RestaurarCadastro1: TMenuItem
           Caption = 'Restaurar Cadastro Produto'
@@ -12231,33 +12217,44 @@ object Form2: TForm2
           Caption = 'Adiciona Exce'#231#227'o Firewall'
           OnClick = AdicionaExceoFireWall1Click
         end
-        object VerificarNFCes1: TMenuItem
-          Caption = 'Verificar NFCes'
-          OnClick = VerificarNFCes1Click
-        end
-        object RestaurarBackup1: TMenuItem
-          Caption = 'Restaurar Backup'
-          OnClick = RestaurarBackup1Click
-        end
-        object AtualizaCFOPs1: TMenuItem
-          Caption = 'Atualiza CFOPs'
-          OnClick = AtualizaCFOPs1Click
-        end
-        object ExecutarComando1: TMenuItem
-          Caption = 'Executar Comando SQL'
-          OnClick = ExecutarComando1Click
-        end
         object AtualizarTabelaIBPT1: TMenuItem
           Caption = 'Atualizar Tabela IBPT'
           OnClick = AtualizarTabelaIBPT1Click
         end
-        object ApagarLanamentosdecaixaDuplicados1: TMenuItem
-          Caption = 'Apagar Lan'#231'amentos de caixa Duplicados'
-          OnClick = ApagarLanamentosdecaixaDuplicados1Click
-        end
-        object CorrigirDataErradanaVenda1: TMenuItem
-          Caption = 'Corrigir Data Errada na Venda'
-          OnClick = CorrigirDataErradanaVenda1Click
+        object Manuteno1: TMenuItem
+          Caption = 'Manuten'#231#227'o'
+          object BackupRestore1: TMenuItem
+            Caption = 'Backup/Restore'
+            OnClick = BackupRestore1Click
+          end
+          object CorrigirDataErradanaVenda1: TMenuItem
+            Caption = 'Corrigir Data Errada na Venda'
+            OnClick = CorrigirDataErradanaVenda1Click
+          end
+          object ApagarLanamentosdecaixaDuplicados1: TMenuItem
+            Caption = 'Apagar Lan'#231'amentos de caixa Duplicados'
+            OnClick = ApagarLanamentosdecaixaDuplicados1Click
+          end
+          object ExecutarComando1: TMenuItem
+            Caption = 'Executar Comando SQL'
+            OnClick = ExecutarComando1Click
+          end
+          object RestaurarBackup1: TMenuItem
+            Caption = 'Restaurar Backup'
+            OnClick = RestaurarBackup1Click
+          end
+          object VerificarVendas1: TMenuItem
+            Caption = 'Verificar Vendas'
+            OnClick = VerificarVendas1Click
+          end
+          object AtualizaCFOPs1: TMenuItem
+            Caption = 'Atualiza CFOPs'
+            OnClick = AtualizaCFOPs1Click
+          end
+          object VerificarNFCes1: TMenuItem
+            Caption = 'Verificar NFCes'
+            OnClick = VerificarNFCes1Click
+          end
         end
       end
       object Nfe1: TMenuItem

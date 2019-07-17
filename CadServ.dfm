@@ -316,6 +316,7 @@ object Form51: TForm51
     CharCase = ecUpperCase
     MaxLength = 15
     TabOrder = 11
+    OnKeyPress = tecnicoKeyPress
     FormularioComp = 'Form51'
     ColorOnEnter = 16776176
     Indice = 0

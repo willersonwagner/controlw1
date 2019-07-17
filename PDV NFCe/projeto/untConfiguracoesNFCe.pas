@@ -144,6 +144,7 @@ type
     procedure btnAbrirPDFClick(Sender: TObject);
     procedure btnAbrirXMLClick(Sender: TObject);
     procedure usarSerivodrRemotoClick(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
     { Private declarations }
     procedure CarregaDadosArquivo;
@@ -451,6 +452,12 @@ begin
    Ini.Free;
    FreeAndNil(mmEmailMsg);
   end;
+end;
+
+procedure TfrmConfiguracoesNFe.FormClose(Sender: TObject;
+  var Action: TCloseAction);
+begin
+  JsEdit.LiberaMemoria(self);
 end;
 
 procedure TfrmConfiguracoesNFe.FormShow(Sender: TObject);

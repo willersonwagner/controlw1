@@ -51,7 +51,7 @@ type
     procedure IdHTTP2WorkEnd(ASender: TObject; AWorkMode: TWorkMode);
 
   private
-    tamanho, tentativas: Integer;
+    tamanho, tentativas, tamArquivo: Integer;
     pasta: String;
     procedure CopiarArquivos(Origem, Destino, Filtro: String);
     Function CountChar(Texto: String; C: Char): Integer;
@@ -76,7 +76,7 @@ function DownloadFile(Source, Dest: string): boolean;
 
 implementation
 
-uses Math;
+uses Math, funcoesdav;
 
 {$R *.dfm}
 
@@ -183,7 +183,8 @@ procedure TForm1.BaixaAtualizacao;
 var
   test: Integer;
   arquivo1: TFileStream;
-  site: string;
+  site, retSite: string;
+  arq: TStringList;
 begin
   Label1.Visible := true;
   //lConnectionInfo.Visible := true;
@@ -197,17 +198,24 @@ begin
     Application.Terminate;
   end;
 
+
   Memo1.Lines.Add('Buscando Versão....');
-  Memo1.Lines.Add('Versão: ' + buscaNomeExec);
+  retSite := buscaNomeExec;
+
+  arq := TStringList.Create;
+  LE_CAMPOS(arq, '|'+ retSite + '|', '|', false);
+
+  retSite     := arq.Values['0'];
+  tamArquivo  := StrToIntDef(arq.Values['1'], 0);
+
+  Memo1.Lines.Add('Versão : ' + retSite);
+  Memo1.Lines.Add('Tamanho: ' + FormatCurr('0.00',(tamArquivo / 1048576)) + ' MB');
 
   if FileExists(ExtractFileDir(ParamStr(0)) + '\ControlW.7z') then
     DeleteFile(ExtractFileDir(ParamStr(0)) + '\ControlW.7z');
 
-  { ACBrDownload.DownloadDest    := ExtractFileDir(ParamStr(0)) + '\';
-    ACBrDownload.DownloadNomeArq := 'ControlW.7z';
-
-    ACBrDownload.DownloadUrl     := 'http://controlw.blog.br/si2/verarqallatu.php';
-    ACBrDownload.StartDownload; }
+  lConnectionInfo.Caption := '0/' + FormatCurr('0.00',(tamArquivo / 1048576)) + ' MB';
+  lConnectionInfo.Visible := true;
 
   arquivo1 := TFileStream.Create(ExtractFileDir(ParamStr(0)) + '\' +
     'ControlW.7z', fmCreate);
@@ -274,11 +282,12 @@ var
   op: TOpenDialog;
   dir: String;
 begin
-
-  dir := ExtractFileDir(ParamStr(0)) + '\cw1\';
+  op := TOpenDialog.Create(self);
+  op.Execute;
+  dir := InputBox('','',ExtractFileDir(ParamStr(0)) + '\');
   if not DirectoryExists(dir) then
     ForceDirectories(dir);
-  ExtractIt(ExtractFileDir(ParamStr(0)) + '\ControlW.7z', dir);
+  ExtractIt(op.FileName, dir);
 end;
 
 function TForm1.PosFinal(substr: string; Texto: string): Integer;
@@ -357,7 +366,7 @@ end;
 procedure TForm1.IdHTTP1WorkBegin(Sender: TObject; AWorkMode: TWorkMode;
   const AWorkCountMax: Integer);
 begin
-  Gauge1.MaxValue := AWorkCountMax;
+  Gauge1.MaxValue := tamArquivo;
 end;
 
 procedure TForm1.IdHTTP1WorkEnd(Sender: TObject; AWorkMode: TWorkMode);
@@ -370,12 +379,13 @@ procedure TForm1.IdHTTP2Work(ASender: TObject; AWorkMode: TWorkMode;
   AWorkCount: Int64);
 begin
   Gauge1.Progress := AWorkCount;
+  lConnectionInfo.Caption := FormatCurr('0.00',(AWorkCount / 1048576)) +'/' + FormatCurr('0.00',(tamArquivo / 1048576)) + ' MB';
 end;
 
 procedure TForm1.IdHTTP2WorkBegin(ASender: TObject; AWorkMode: TWorkMode;
   AWorkCountMax: Int64);
 begin
-  Gauge1.MaxValue := AWorkCountMax;
+  Gauge1.MaxValue := tamArquivo;
   Memo1.Lines.Add('Download Começou...');
 end;
 
@@ -640,9 +650,7 @@ begin
   TerminarProcesso('ControlW.exe');
   TerminarProcesso('PDV.exe');
   Memo1.Lines.Add('Descompactando Atualização');
-  if not ExtractIt(ExtractFileDir(ParamStr(0)) + '\ControlW.7z',
-    ExtractFileDir(ParamStr(0)) + '\temp\') then
-    exit;
+  if not ExtractIt(ExtractFileDir(ParamStr(0)) + '\ControlW.7z',ExtractFileDir(ParamStr(0)) + '\temp\') then exit;
 
   if FileExists(ExtractFileDir(ParamStr(0)) + '\copy.bat') then
     DeleteFile(ExtractFileDir(ParamStr(0)) + '\copy.bat');
@@ -672,15 +680,13 @@ begin
   end;
 
   arq.Add('timeout /t 3 /nobreak');
-  arq.Add('xcopy ' + ExtractFileDir(ParamStr(0)) + '\temp\*.*' + ' ' +
-    ExtractFileDir(ParamStr(0)) + '\' + ' /y /e');
+  arq.Add('xcopy ' + ExtractFileDir(ParamStr(0)) + '\temp\*.*' + ' ' + ExtractFileDir(ParamStr(0)) + '\' + ' /y /e');
 
   if pastaServer <> '' then
   begin
-    arq.Add('xcopy ' + ExtractFileDir(ParamStr(0)) + '\temp\*.*' + ' ' +
-      pastaServer + ' /y /e');
+    arq.Add('xcopy ' + ExtractFileDir(ParamStr(0)) + '\temp\*.*' + ' ' + pastaServer + ' /y /e');
   end;
-  // arq.Add('rd /S /Q ' + ExtractFileDir(ParamStr(0)) + '\temp\');
+  arq.Add('rd /S /Q ' + ExtractFileDir(ParamStr(0)) + '\temp\');
   arq.SaveToFile(ExtractFileDir(ParamStr(0)) + '\copy.bat');
   Memo1.Lines.Add('Sistema Atualizado Com Sucesso!');
   sleep(2000);

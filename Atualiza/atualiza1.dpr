@@ -3,7 +3,9 @@ program atualiza1;
 uses
   Forms,
   atualiza in 'atualiza.pas' {Form1},
-  SevenZip in 'SevenZip.pas';
+  SevenZip in 'SevenZip.pas',
+  funcoesDAV in '..\funcoesDAV.pas',
+  classes1 in '..\classes1.pas';
 
 {$R *.res}
 

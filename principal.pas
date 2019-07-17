@@ -462,16 +462,8 @@ begin
 end;
 
 procedure Tform22.Button1Click(Sender: TObject);
-var
-  temp : TStringList;
 begin
-  temp := TStringList.Create;
-
-  LE_CAMPOS(temp, InputBox('','',''), '|', false);
-
-  ShowMessage(temp.GetText);
-  temp.Free;
-  //funcoes.apagaMovimento;
+  funcoes.apagaMovimento;
 end;
 
 function Tform22.enviNFCe(const perg : String = ''; nnf : String = ''; recebido : currency = 0) : boolean;

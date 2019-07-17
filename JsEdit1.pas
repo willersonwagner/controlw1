@@ -31,7 +31,7 @@ type
   public
     func : boolean;
     num :integer;
-    form, tipoBancoDados : string;
+    form, tipoBancoDados,Ulterro : string;
     class function getCamposNomes(formi : string) : String;
     function ContaComponentesPorForm(form:string) : integer;
     constructor Create(AOwner:TComponent);override;
@@ -57,7 +57,7 @@ type
     class function GetPrimeiroCampo(formi:string) : JsEdit;
     class function GetPrimeiroBotao(form:string) : TBitBtn;
     class function GetUltimoBotao(form:string) : TBitBtn;
-    class function GravaNoBD(form:tform; usaGen : boolean = true; genName : string = '') : string;
+    class function GravaNoBD(form:tform; usaGen : boolean = true; genName : string = ''; msgErro : boolean = true) : string;
     class function SelecionaDoBD(formi:string; msg :boolean = true; condicao : String = '') : boolean;
     class function NovoCodigo(formi:string; genName : String = '') : integer;
     class function  AchaProximo(comp:TComponent) : TComponent;
@@ -593,7 +593,7 @@ if lista <> nil then
  end;
 end;
 
-class function JsEdit.GravaNoBD(form:tform; usaGen : boolean = true; genName : string = '') : string;
+class function JsEdit.GravaNoBD(form:tform; usaGen : boolean = true; genName : string = ''; msgErro : boolean = true) : string;
 var
   ini, fim, ultCod, codAtual, tmp : integer; stringSql, PKTabela, 
   sqlUpdate, condicao : String;
@@ -688,14 +688,20 @@ begin
 
     if query.Transaction.InTransaction then query.Transaction.Commit;
 
-    try
+    if msgErro = false then begin
       query.ExecSQL;
-    except
-      on e:exception do begin
-        MessageDlg(e.Message + #13 + #13 + stringSql, mtError, [mbOK], 1);
-        exit;
+    end
+    else begin
+      try
+        query.ExecSQL;
+      except
+        on e:exception do begin
+          MessageDlg(e.Message + #13 + #13 + stringSql, mtError, [mbOK], 1);
+          exit;
+        end;
       end;
     end;
+
     if query.Transaction.InTransaction then query.Transaction.Commit;
     LimpaCampos(form.Name);
 end;

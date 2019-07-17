@@ -283,9 +283,6 @@ Coordinates=42,1235,113,33
 [MAILMESSAGE]
 Coordinates=1098,157,91,33
 
-[EnviarLogdeErrosViaEmail1]
-Coordinates=1098,209,152,33
-
 [GrficoCtasReceber1]
 Coordinates=1098,261,113,33
 
@@ -378,9 +375,6 @@ Coordinates=149,485,72,51
 
 [dm.IBQuery2]
 Coordinates=317,10,78,231
-
-[SuporteOnline1]
-Coordinates=296,1306,91,33
 
 [AvanarNumerao1]
 Coordinates=187,1306,99,33
@@ -624,9 +618,6 @@ Coordinates=1483,1249,124,33
 
 [NveisdeAcesso1]
 Coordinates=1071,1443,96,33
-
-[AtualizarControlW1]
-Coordinates=952,1443,109,33
 
 [LandeConvnios1]
 Coordinates=853,1443,97,33
@@ -889,14 +880,8 @@ Coordinates=195,1580,58,33
 [FormasdePagamento2]
 Coordinates=66,1580,124,33
 
-[RecuperarumBackup1]
-Coordinates=1876,1,123,33
-
 [roca1]
 Coordinates=0,1202,41,33
-
-[ExportaDAV1]
-Coordinates=1876,53,80,33
 
 [Faturamento1]
 Coordinates=1876,105,82,33
@@ -918,4 +903,7 @@ Coordinates=1056,485,81,33
 
 [Convnios1]
 Coordinates=266,546,66,33
+
+[]
+Coordinates=1876,1,123,33
 

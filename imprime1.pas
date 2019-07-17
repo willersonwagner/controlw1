@@ -5,7 +5,8 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Printers,
   StdCtrls, ExtCtrls, imprNovo, ComCtrls, Richedit, charprinter, unit1, ACBrETQ, ACBrDevice,
-  RLReport, RLBarcode, funcoesdav, RLRichText, Data.DB;
+  RLReport, RLBarcode, funcoesdav, RLRichText, Data.DB, RLPreviewForm,
+  RLFilters, RLPDFFilter;
 
 type
 
@@ -107,8 +108,11 @@ type
     RLDBText4: TRLDBText;
     RLSystemInfo1: TRLSystemInfo;
     RLDraw12: TRLDraw;
+    RLPDFFilter1: TRLPDFFilter;
+    RLPreviewSetup1: TRLPreviewSetup;
     procedure Timer1Timer(Sender: TObject);
     procedure RLBand7BeforePrint(Sender: TObject; var PrintIt: Boolean);
+    procedure RLReport2AfterPrint(Sender: TObject);
   private
     tipo : integer;
     procedure MudaTamPapel(PaperSize, Comp, Alt: integer);
@@ -334,6 +338,11 @@ procedure Timprime.RLBand7BeforePrint(Sender: TObject; var PrintIt: Boolean);
 begin
   if rlband7.Color = clwhite then rlband7.Color := cl3dlight else
   rlband7.Color := clwhite;
+end;
+
+procedure Timprime.RLReport2AfterPrint(Sender: TObject);
+begin
+  //RLReport2.DefaultFilter := rlpd
 end;
 
 function Timprime.setCofiguracoesImpressora() : String;

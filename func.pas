@@ -138,6 +138,9 @@ type
     enviandoCupom, enviandoBackup: boolean;
     fonteRelatorioForm19: integer;
     NegritoRelatorioForm19, saiComEnter: boolean;
+    function CreateProcessSimple(cmd: string): boolean;
+    procedure BackupRestoreFB();
+    procedure adicionaChavePeloNumero(num : String);
     procedure checaAssinatura(arquivo : String);
     function buscaUnidadesFracionadas() : String;
     procedure apagaMovimento();
@@ -388,6 +391,7 @@ type
     function receberSincronizacaoExtoque1(CaminhoArq: String): boolean;
     function geraRelFechamento(const cod12: integer; vendedor: String): String;
     function recuperaChaveNFe(const nota: string): string;
+    function recuperaChaveNFe1(const nota: string; var queri : TIBQuery): string;
     function listaArquivos(const pasta: String): tstringList;
     function dadosAdicSped(xml: String): tstringList;
     procedure executaCalculadora();
@@ -659,7 +663,7 @@ uses Unit1, Math, dialog, formpagtoformulario, StrUtils,
   subconsulta, vendas, nfe, Unit48, login, DateUtils, zlib, envicupom,
   untnfceForm,
   Unit57, cadCli, dadosTransp, cadproduto, gifAguarde, param,
-  caixaLista, unid, Unit69, consultaOrdem, Unit73, Unit76;
+  caixaLista, unid, Unit69, consultaOrdem, Unit73, Unit76, email;
 
 {$R *.dfm}
 
@@ -5136,8 +5140,8 @@ begin
     // form48.ClientDataSet1.FieldDefs.Add('DESONERADO', ftCurrency);
     form48.ClientDataSet1.FieldDefs.Add('CODBAR_ATUAL', ftString, 15);
     form48.ClientDataSet1.FieldDefs.Add('CODIGO', ftInteger);
-    form48.ClientDataSet1.FieldDefs.Add('DESCRICAO_FORNECEDOR', ftString, 40);
-    form48.ClientDataSet1.FieldDefs.Add('DESCRICAO_ATUAL', ftString, 40);
+    form48.ClientDataSet1.FieldDefs.Add('DESCRICAO_FORNECEDOR', ftString, 60);
+    form48.ClientDataSet1.FieldDefs.Add('DESCRICAO_ATUAL', ftString, 60);
     form48.ClientDataSet1.FieldDefs.Add('PRECO_NFE', ftCurrency);
     form48.ClientDataSet1.FieldDefs.Add('LUCRO', ftCurrency);
     form48.ClientDataSet1.FieldDefs.Add('PRECO_NOVO', ftCurrency);
@@ -6434,6 +6438,47 @@ begin
     Result := true;
 
 end;
+
+function Tfuncoes.recuperaChaveNFe1(const nota: string; var queri : TIBQuery): string;
+var
+  arq: tstringList;
+  fim, i: Smallint;
+  tmp: string;
+begin
+  queri.Close;
+  queri.SQL.Clear;
+  queri.SQL.Add('select chave from nfe where nota = :nota');
+  queri.ParamByName('nota').AsString := nota;
+  queri.Open;
+
+  Result := '';
+  tmp := '';
+
+  if queri.IsEmpty then
+  begin
+    queri.Close;
+    arq := funcoes.listaArquivos(caminhoEXE_com_barra_no_final +
+      'NFE\EMIT\*.xml');
+    fim := arq.count - 1;
+
+    for i := 0 to fim do
+    begin
+      tmp := copy(arq.Strings[i], 26, 9);
+      if StrToIntDef(tmp, 0) = StrToIntDef(nota, 0) then
+      begin
+        Result := copy(arq.Strings[i], 1, length(arq.Strings[i]) - 8);
+        break;
+      end;
+    end;
+  end
+  else
+  begin
+    Result := dm.IBselect.FieldByName('chave').AsString;
+  end;
+
+  queri.Close;
+end;
+
 
 function Tfuncoes.recuperaChaveNFe(const nota: string): string;
 var
@@ -10719,6 +10764,24 @@ begin
       dm.IBQuery1.ExecSQL;
       dm.IBQuery1.Transaction.Commit;
     end;
+
+    if NOT verSeExisteTabela('MECANICO') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := 'CREATE TABLE MECANICO (COD   INTEGER DEFAULT 0 NOT NULL,' +
+      'NOME  VARCHAR(40) DEFAULT '''') ';
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := 'alter table MECANICO add constraint UNQ1_MECANICO unique (NOME)';
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := 'CREATE SEQUENCE MECANICO';
+      dm.IBQuery1.ExecSQL;
+    end;
+
     //VerificaVersao_do_bd
   end;
 
@@ -15051,7 +15114,7 @@ begin
       else begin
         nomevol := 'VOLUMES:';
         if Contido('|'+dm.IBQuery2.FieldByName('unid').AsString + '|', form22.UnidInteiro) then TOT_PIS := TOT_PIS + 1
-      else TOT_PIS := TOT_PIS + dm.IBQuery2.FieldByName('quant').AsCurrency;
+        else TOT_PIS := TOT_PIS + dm.IBQuery2.FieldByName('quant').AsCurrency;
       end;
 
 
@@ -17044,8 +17107,7 @@ begin
   end;
 
   Application.ProcessMessages;
-  if trunc(posicao / (total / 100)) >= form23.vezes then
-  begin
+  if trunc(posicao / (total / 100)) >= form23.vezes then begin
     form23.ProgressBar1.Position := trunc(posicao / (total / 100));
     form23.vezes := form23.vezes + valorprogressao;
   end;
@@ -22172,6 +22234,50 @@ begin
   end;
 end;
 
+procedure Tfuncoes.adicionaChavePeloNumero(num : String);
+var
+  arq : TStringList;
+  stat : string;
+begin
+  num := recuperaChaveNFe1(num, dm.IBQuery1);
+  if num <> '' then begin
+    if FileExists(buscaPastaNFe(num) + num+ '-nfe.xml') then begin
+      //ShowMessage('encontrou: ' + buscaPastaNFe(num) + num+ '-nfe.xml');
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := 'select * from nfe where chave = :chave';
+      dm.IBQuery1.ParamByName('chave').AsString := num;
+      dm.IBQuery1.Open;
+      dm.IBQuery1.FetchAll;
+
+      if dm.IBQuery1.IsEmpty then begin
+        arq := TStringList.Create;
+        arq.LoadFromFile(buscaPastaNFe(num) + num+ '-nfe.xml');
+        stat := Le_Nodo('cStat', arq.Text);
+        if stat  = '' then exit;
+
+        if funcoes.Contido(stat, '110-301-302') then stat := 'D'
+        else if funcoes.Contido(stat, '100')    then stat := 'E'
+        else if funcoes.Contido(stat, '101-135')then stat := 'C'
+        else stat := 'E';
+
+        dm.IBQuery1.Close;
+        dm.IBQuery1.SQL.Clear;
+        dm.IBQuery1.SQL.Add('update or insert into nfe(nota, chave, data, estado, xml, tipo) values(:nota, :chave, :data, :estado, :xml, :tipo) matching(chave)');
+        dm.IBQuery1.ParamByName('nota').AsString   := copy(num, 26, 9);
+        dm.IBQuery1.ParamByName('chave').AsString  := num;
+        dm.IBQuery1.ParamByName('data').AsDate     := StrToDate(dataInglesToBrasil(leftstr(Le_Nodo('dhEmi', arq.Text), 10)));;
+        dm.IBQuery1.ParamByName('estado').AsString := stat;
+        dm.IBQuery1.ParamByName('xml').LoadFromFile(buscaPastaNFe(num) + num+ '-nfe.xml', ftBlob);
+        dm.IBQuery1.ParamByName('tipo').AsString   := '1';
+        dm.IBQuery1.ExecSQL;
+        dm.IBQuery1.Transaction.Commit;
+
+      end;
+
+    end;
+  end;
+end;
+
 function Tfuncoes.verificaNFe(dataIni: String = ''; DataFim: String = '';
   sped: boolean = False): boolean;
 var
@@ -22225,7 +22331,7 @@ begin
   dm.IBselect.Close;
   dm.IBselect.SQL.text :=
     'select nota,chave, cast(substring(chave from 26 for 9) as integer) as nnf, cast(substring(chave from 23 for 3) as integer)'
-    + ' as serie,xml from nfe where chave <> '''' and data >= :ini and data <= :fim  and ((tipo <> ''2'') or (tipo is null)) '
+    + ' as serie,xml from nfe where chave <> '''' and data >= :ini and data <= :fim  and ((tipo <> ''3'') or (tipo is null)) '
     + 'order by cast(substring(chave from 23 for 3) as integer),cast(substring(chave from 26 for 9) as integer)';
   dm.IBselect.ParamByName('ini').AsDate := StrToDate(dataIni);
   dm.IBselect.ParamByName('fim').AsDate := StrToDate(DataFim);
@@ -22299,6 +22405,8 @@ begin
         // pulos := pulos + IntToStr(dm.IBselect.FieldByName('nnf').AsInteger - 1) + ' - ';
         pulos := pulos + IntToStr(cont) + ' - ';
         acc := acc + IntToStr(cont) + ' - ';
+
+        adicionaChavePeloNumero(IntToStr(cont));
 
         { dm.IBQuery2.Close;
           dm.IBQuery2.SQL.Text := 'select chave, data from nfce where substring(chave from 23 for 3) = :serie and substring(chave from 26 for 9) = :nnf';
@@ -22517,7 +22625,7 @@ begin
     balItem.Validade :=
       StrToIntDef(copy(dm.IBselect.FieldByName('codbar').AsString, 6, 2), 15);
     balItem.Tecla := 0;
-    balItem.Receita := dm.IBselect.FieldByName('nome').AsString;
+    //balItem.Receita := dm.IBselect.FieldByName('nome').AsString;
     // Nutricional     := Format('Informação Nutricional do item %d', [I]);;
 
     balItem.Nutricional.Codigo :=
@@ -24877,11 +24985,12 @@ var
 begin
   if ACBrNFe.SSL.NumeroSerie = '' then
     exit;
+
   data := buscaConfigNaPastaDoControlW('VersaoIBPT', '01/01/1900');
 
   if forcar = False then
   begin
-    if ((trunc(form22.dataMov - StrToDate(data)) < 10) or (primeiroDiaDoMes and (StrToDate(data) <> DateOf(now)))) then
+    if ((trunc(form22.dataMov - StrToDate(data)) < 15) or (primeiroDiaDoMes and (StrToDate(data) <> DateOf(now)))) then
       exit;
   end;
 
@@ -24889,14 +24998,14 @@ begin
     data := '01/01/2000';
 
   versaoSite := buscaVersaoIBPT_Site;
-  if versaoSite = '' then
-  begin
+  if versaoSite = '' then begin
     ShowMessage('Versao do WebService Não Encontrada!');
+    GravaConfigNaPastaDoControlW('VersaoIBPT', FormatDateTime('dd/mm/yyyy',
+      form22.dataMov));
     exit;
   end;
 
-  if length(versaoSite) > 20 then
-  begin
+  if length(versaoSite) > 20 then begin
     ShowMessage('Versao do WebService Inválida!' + #13 + 'Versão: ' +
       versaoSite);
     exit;
@@ -27219,15 +27328,27 @@ end;
 
 procedure Tfuncoes.apagaMovimento();
 var
-  sim, cods : String;
+  sim, cods, dataOK : String;
   listaProdutos : TItensProduto;
   i, fim, tempInicial : integer;
   quant : currency;
-  ent, sai, transf, acert : TStringList;
-  data : TDateTime;
+  ent, sai, transf, acert, produto : TStringList;
+  data, dataPadrao : TDateTime;
 begin
-  //data := StartOfTheMonth(IncMonth(now, -8));
-  data := StartOfTheMonth(IncMonth(now, -2));
+  data := StartOfTheMonth(IncMonth(now, -6));
+  dataPadrao := data;
+
+
+  while true do begin
+    dataOK := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,'Qual a Data Final para apagar o Movimento ?', formataDataDDMMYY(dataPadrao));
+    if dataOK = '*' then exit;
+
+    data := StrToDate(dataok);
+
+    if data <= dataPadrao then break
+    else ShowMessage('A Data Informada nao Pode ser maior que a Padrão ' + formataDataDDMMYY(dataPadrao));
+  end;
+
   sim := funcoes.dialogo('generico', 0, 'SN' + #8, 30, False, 'S', Application.Title, 'Deseja apagar o Movimento anterior a '+FormatDateTime('dd/mm/yy', data)+' ?', 'N');
   if ((sim = '*') or (sim = 'N')) then exit;
 
@@ -27237,19 +27358,22 @@ begin
   acert  := TStringList.Create;
   listaProdutos := TItensProduto.Create;
 
+  if (StrToIntDef(ContaChar(dm.bd.DatabaseName, ':'), 0) = 1) then begin
+    CopyFile(pchar(dm.bd.DatabaseName), pchar('Backup_BD_' +FormatDateTime('dd-mm-yy', now)+'_' + FormatDateTime('hh-mm-ss', now) + '_.fdb'), true);
+  end;
 
   dm.IBselect.Close;
-  dm.IBselect.SQL.Text := 'select cod, quant, origem, nota from item_venda where data < :data'  ;
+  dm.IBselect.SQL.Text := 'select cod, origem, sum(quant) as quant from item_venda where data < :data and cancelado = 0 group by cod, origem'  ;
   dm.IBselect.ParamByName('data').AsDate := data;
   dm.IBselect.Open;
   dm.IBselect.FetchAll;
   fim := dm.IBselect.RecordCount;
 
   funcoes.informacao(0, 0, 'Aguarde, Lendo Vendas...', true, false, 5);
-  form23.Label2.Visible := true;
   tempInicial           := TimeGetTime;
   while not dm.IBselect.Eof do begin
     funcoes.informacao(dm.IBselect.RecNo, fim, 'Aguarde, Lendo Vendas...', false, false, 5);
+
       i := listaProdutos.Find(dm.IBselect.FieldByName('cod').AsInteger);
       if i = -1 then begin
         i := listaProdutos.Add(TregProd.Create);
@@ -27257,8 +27381,6 @@ begin
         listaProdutos[i].quant    := 0;
         listaProdutos[i].aliqCred := 0;
       end;
-
-      sai.Values[dm.IBselect.FieldByName('nota').AsString] := 'X';
 
       quant := dm.IBselect.fieldbyname('quant').AsCurrency;
 
@@ -27268,10 +27390,9 @@ begin
     dm.IBselect.Next;
   end;
   funcoes.informacao(dm.IBselect.RecNo, fim, 'Aguarde, Lendo Entradas...', false, true, 5);
-  form23.Label2.Visible := false;
 
 
-  dm.IBselect.Close;
+{  dm.IBselect.Close;
   dm.IBselect.SQL.Text := 'select nota, fornec,cod, quant, destino, qtd_ent, unid from item_entrada where data < :data';
   dm.IBselect.ParamByName('data').AsDate := data;
   dm.IBselect.Open;
@@ -27341,7 +27462,7 @@ begin
   dm.IBselect.FetchAll;
   fim := dm.IBselect.RecordCount;
 
- { funcoes.informacao(0, 0, 'Aguarde, Lendo Acertos...', true, false, 5);
+  funcoes.informacao(0, 0, 'Aguarde, Lendo Acertos...', true, false, 5);
   while not dm.IBselect.Eof do begin
     funcoes.informacao(dm.IBselect.RecNo, fim, 'Aguarde, Lendo Acertos...', false, false, 5);
     i := listaProdutos.Find(dm.IBselect.FieldByName('codigo').AsInteger);
@@ -27374,7 +27495,7 @@ begin
   end;
   if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
 
-  funcoes.informacao(0, 0, 'Excluindo Entradas...', true, false, 5);
+ { funcoes.informacao(0, 0, 'Excluindo Entradas...', true, false, 5);
   fim := ent.Count -1;
   //apagando entradas
   for I := 0 to fim do begin
@@ -27391,45 +27512,32 @@ begin
     dm.IBQuery1.ParamByName('fornec').AsString := ent.ValueFromIndex[i];
     dm.IBQuery1.ExecSQL;
   end;
-  if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+  if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;}
 
   funcoes.informacao(0, 0, 'Excluindo Vendas...', true, false, 5);
-  fim  := sai.Count -1;
-  cont := 0;
-  cods := '-';
-  //apagando vendas
-  for I := 0 to fim do begin
-    cont := cont + 1;
-    cods := cods + sai.Names[i] + '-';
-    funcoes.informacao(i, fim, 'Excluindo Vendas...', false, false, 5);
 
-    if ((cont = 300) or (i = fim)) then begin
-      dm.IBQuery1.Close;
-      dm.IBQuery1.SQL.Text := 'delete from venda where '+QuotedStr(cods)+' like ''%-''|| nota||''-%'' ';
-      //dm.IBQuery1.ParamByName('nota').AsString   := sai.Names[i];
-      dm.IBQuery1.ExecSQL;
+  dm.IBQuery1.Close;
+  dm.IBQuery1.SQL.Text := 'delete from venda where data < :data';
+  dm.IBQuery1.ParamByName('data').AsDate := data;
+  dm.IBQuery1.ExecSQL;
 
-      dm.IBQuery1.Close;
-      dm.IBQuery1.SQL.Text := 'delete from item_venda where '+QuotedStr(cods)+' like ''%-''|| nota||''-%'' ';
-      //dm.IBQuery1.ParamByName('nota').AsString   := sai.Names[i];
-      dm.IBQuery1.ExecSQL;
+  dm.IBQuery1.Close;
+  dm.IBQuery1.SQL.Text := 'delete from item_venda where data < :data';
+  dm.IBQuery1.ParamByName('data').AsDate := data;
+  dm.IBQuery1.ExecSQL;
 
-      cont := 0;
-      cods := '-';
-      {dm.IBQuery1.Close;
-      dm.IBQuery1.SQL.Text := 'delete from venda where (nota = :nota) ';
-      dm.IBQuery1.ParamByName('nota').AsString   := sai.Names[i];
-      dm.IBQuery1.ExecSQL;
+  dm.IBQuery1.Close;
+  dm.IBQuery1.SQL.Text := 'delete from contaspagar where total = pago';
+  dm.IBQuery1.ExecSQL;
 
-      dm.IBQuery1.Close;
-      dm.IBQuery1.SQL.Text := 'delete from item_venda where (nota = :nota)';
-      dm.IBQuery1.ParamByName('nota').AsString   := sai.Names[i];
-      dm.IBQuery1.ExecSQL;}
-    end;
-  end;
+  dm.IBQuery1.Close;
+  dm.IBQuery1.SQL.Text := 'delete from contasreceber where total = pago';
+  dm.IBQuery1.ExecSQL;
+
+  funcoes.informacao(0, 0, 'Excluindo Vendas...', false, true, 5);
   if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
 
-  funcoes.informacao(0, 0, 'Excluindo Transferências...', true, false, 5);
+{  funcoes.informacao(0, 0, 'Excluindo Transferências...', true, false, 5);
   fim := transf.Count -1;
   //apagando transferencias
   for I := 0 to fim do begin
@@ -27451,14 +27559,15 @@ begin
     dm.IBQuery1.ParamByName('nota').AsString   := acert.Names[i];
     dm.IBQuery1.ExecSQL;
   end;
-  if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+  if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;}
 
 
- funcoes.informacao(0, 0, 'Imprimindo Relatório...', false, true, 5);
- addRelatorioForm19(CompletaOuRepete('', '', '-', 122) + CRLF);
- form19.ShowModal;
+ //funcoes.informacao(0, 0, 'Imprimindo Relatório...', false, true, 5);
+ //addRelatorioForm19(CompletaOuRepete('', '', '-', 122) + CRLF);
+ //form19.ShowModal;
 
- ShowMessage('Estoque Enxugado com Sucesso. ' +  IntToStr(listaProdutos.Count) + ' Produtos excluidos do estoque!');
+
+ ShowMessage('Movimento Apagado com Sucesso!');
  listaProdutos.Free;
  sai.Free;
  ent.Free;
@@ -27527,6 +27636,114 @@ begin
 
   SetLocalTime(SystemTime1);
 end;
+
+
+procedure Tfuncoes.BackupRestoreFB();
+var
+  gbakdir, bdfbNovo : String;
+begin
+  dm.bd.Connected := false;
+  bdfbNovo := dm.bd.DatabaseName;
+
+  if (StrToIntDef(ContaChar(dm.bd.DatabaseName, ':'), 0) > 1) then begin
+    MessageDlg('Essa Rotina não pode ser executada em Terminal de Rede, Execute no Servidor!', mtError, [mbOK], 1);
+    exit;
+  end;
+
+  Randomize;
+
+  form70.memo1.Clear;
+  form70.Button1.Enabled := false;
+  form70.Caption := 'Backup/Restore...';
+  form70.Show;
+  form70.memo1.Lines.Add('Forçando a Parada do BD...');
+
+
+  try
+  gbakdir := caminhoEXE_com_barra_no_final + 'gfix.exe -shut -force 0 '+bdfbNovo+' -user sysdba -pass SYSTEMA1 ';
+  CreateProcessSimple(gbakdir);
+
+  if FileExists(caminhoEXE_com_barra_no_final + 'bd.old') then begin
+    RenameFile(caminhoEXE_com_barra_no_final + 'bd.old', caminhoEXE_com_barra_no_final + 'bd'+IntToStr(Random(100))+'.old');
+  end;
+
+  form70.memo1.Lines.Add('OK!');
+  form70.memo1.Lines.Add('Renomeando BD.fdb para BD.old');
+
+  RenameFile(bdfbNovo, caminhoEXE_com_barra_no_final + 'bd.old');
+  form70.memo1.Lines.Add('OK!');
+
+  if not FileExists(caminhoEXE_com_barra_no_final + 'bd.old')  then
+    begin
+      ShowMessage('O sistema não Pode fazer backup desse Banco de Dados. Verifique Se o Bd não está sendo usado em algum terminal');
+      exit;
+      bdfbNovo := '';
+    end;
+
+  form70.memo1.Lines.Add('Iniciando Backup');
+
+  bdfbNovo := caminhoEXE_com_barra_no_final + 'bd.old';
+
+  gbakdir := caminhoEXE_com_barra_no_final + 'gbak.exe -G -B -V -user sysdba -pass SYSTEMA1 '+bdfbNovo+' '+copy(bdfbNovo,1,PosFinal('\',bdfbNovo))+'bd.bkp';
+  CreateProcessSimple(gbakdir);
+
+  form70.memo1.Lines.Add('Aquivo .old criado');
+  bdfbNovo := caminhoEXE_com_barra_no_final + 'bd.bkp';
+  gbakdir := 'gbak.exe -G -R -V -P 4096 -user sysdba -pass SYSTEMA1 '+ bdfbNovo +' '+ caminhoEXE_com_barra_no_final +'bd.fdb';
+  CreateProcessSimple(gbakdir);
+
+  form70.memo1.Lines.Add('gbak.exe -G -R -V -P 4096 -user sysdba -pass '+ bdfbNovo +' '+ caminhoEXE_com_barra_no_final +'bd.fdb');
+  DeleteFile(bdfbNovo);
+
+  form70.memo1.Lines.Add('Rotinas Executadas!');
+  form70.Button1.Enabled := true;
+
+  if not FileExists(caminhoEXE_com_barra_no_final + 'bd.fdb') then begin
+
+  end;
+  except
+    on e : exception do
+      begin
+        ShowMessage('Ocorreu um Erro: ' + e.Message);
+        exit;
+      end;
+  end;
+
+  dm.bd.Connected := true;
+
+end;
+
+function Tfuncoes.CreateProcessSimple(cmd: string): boolean;
+var
+  SUInfo: TStartupInfo;
+  ProcInfo: TProcessInformation;
+begin
+  FillChar(SUInfo, SizeOf(SUInfo), #0);
+  SUInfo.cb      := SizeOf(SUInfo);
+  SUInfo.dwFlags := STARTF_USESHOWWINDOW;
+  SUInfo.wShowWindow := SW_HIDE;
+
+  Result := CreateProcess(nil,
+                          PChar(cmd),
+                          nil,
+                          nil,
+                          false,
+                          CREATE_NEW_CONSOLE or
+                          NORMAL_PRIORITY_CLASS,
+                          nil,
+                          nil,
+                          SUInfo,
+                          ProcInfo);
+
+  if (Result) then
+  begin
+    WaitForSingleObject(ProcInfo.hProcess, INFINITE);
+
+    CloseHandle(ProcInfo.hProcess);
+    CloseHandle(ProcInfo.hThread);
+  end;
+end;
+
 
 
 

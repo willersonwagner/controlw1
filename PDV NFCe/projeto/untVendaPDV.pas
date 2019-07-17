@@ -860,6 +860,7 @@ begin
       finally
         tecladoOK := true;
       end;
+
       if ok = false then
         begin
           MessageDlg('Ocorreu Um erro na Venda, Ela está Disponivel para Emissao no F9', mtInformation, [mbOK], 1);

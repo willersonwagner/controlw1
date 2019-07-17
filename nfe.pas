@@ -1383,7 +1383,7 @@ begin
       dm.ACBrMail1.Body.Assign(mBody.Lines);
       dm.ACBrMail1.Body.Text := mbody.text;
 
-
+      AcbrEmail.ClearAttachments;
       AcbrEmail.AddAttachment(caminhoEXE_com_barra_no_final + 'NFe\PDF\' + nf+ '-nfe.pdf');
       AcbrEmail.AddAttachment(buscaPastaNFe(nf) + '\'+ nf +'-nfe.xml');
      dm.ACBrMail1.Send(true);

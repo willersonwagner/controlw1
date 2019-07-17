@@ -230,18 +230,15 @@ type
     ConsultarNFe1: TMenuItem;
     versao: TLabel;
     Image2: TImage;
-    EnviarLogdeErrosViaEmail1: TMenuItem;
     mail: TIdSMTP;
     MAILMESSAGE: TIdMessage;
     CalcularEstoqueMnimo1: TMenuItem;
     Image1: TImage;
-    AtualizarControlW1: TMenuItem;
     Reimpresso2: TMenuItem;
     IdIPWatch1: TIdIPWatch;
     AtualizarBD1: TMenuItem;
     AtualizarAliquotasSmallSoft2: TMenuItem;
     RecuperarNota1: TMenuItem;
-    ExportaDAV1: TMenuItem;
     Sped1: TMenuItem;
     CadastrodeLeituraZECF1: TMenuItem;
     MovimentodeNotasFiscais1: TMenuItem;
@@ -275,11 +272,9 @@ type
     PorFornecedor2: TMenuItem;
     PorFabricante1: TMenuItem;
     VendanoAtacado1: TMenuItem;
-    SuporteOnline1: TMenuItem;
     DataSetProvider1: TDataSetProvider;
     ProdutosporAliquotas1: TMenuItem;
     FazerBackUp1: TMenuItem;
-    RecuperarumBackup1: TMenuItem;
     OrdemdeServio1: TMenuItem;
     Consulta1: TMenuItem;
     Cancelamento1: TMenuItem;
@@ -352,7 +347,6 @@ type
     CriarSrie1: TMenuItem;
     PendnciasNFe1: TMenuItem;
     NFesCanceladas1: TMenuItem;
-    EstruturarPastaNFCe1: TMenuItem;
     ContadeCliente2: TMenuItem;
     BoletodeCobrana2: TMenuItem;
     ConsultarCNPJ1: TMenuItem;
@@ -397,6 +391,12 @@ type
     ValidarAssinaturaDigital1: TMenuItem;
     EnxugarEstoque2: TMenuItem;
     Cadastrode1: TMenuItem;
+    Servios3: TMenuItem;
+    RelatrioTcnicoOS1: TMenuItem;
+    RelatrioTcnicoProdutos1: TMenuItem;
+    ApagarMovimento1: TMenuItem;
+    Manuteno1: TMenuItem;
+    BackupRestore1: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure CadastrarUsurio1Click(Sender: TObject);
     procedure FormKeyPress(Sender: TObject; var Key: Char);
@@ -674,6 +674,10 @@ type
     procedure ValidarAssinaturaDigital1Click(Sender: TObject);
     procedure EnxugarEstoque2Click(Sender: TObject);
     procedure Cadastrode1Click(Sender: TObject);
+    procedure RelatrioTcnicoOS1Click(Sender: TObject);
+    procedure RelatrioTcnicoProdutos1Click(Sender: TObject);
+    procedure ApagarMovimento1Click(Sender: TObject);
+    procedure BackupRestore1Click(Sender: TObject);
   private
     b, cont: integer;
     ini: Smallint;
@@ -827,8 +831,7 @@ begin
   if cod = '*' then
     exit;
 
-  ini := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,
-    'Qual a Data Inicial?', '');
+  ini := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,'Qual a Data Inicial?', '');
   if ini = '*' then
     exit;
 
@@ -1039,8 +1042,12 @@ var
   li: TStringList;
   dias: integer;
   cupons: TTWtheadEnviaCupons1;
+  nomeMecanico: String;
 begin
-  Cadastrode1.Caption := UpperCase(LeftStr(form22.nomesServico.Values['5'], 1)) + LowerCase(copy(form22.nomesServico.Values['5'], 2, 100));
+  nomeMecanico                    := UpperCase(LeftStr(form22.nomesServico.Values['5'], 1)) + LowerCase(copy(form22.nomesServico.Values['5'], 2, 100));
+  Cadastrode1.Caption             := nomeMecanico;
+  RelatrioTcnicoOS1.Caption       := 'Relatório ' + nomeMecanico + '/OS';
+  RelatrioTcnicoProdutos1.Caption := 'Relatório ' + nomeMecanico + '/Produtos';
 
   { btnNFE1.Caption         := 'F2' + #13 + 'NFE';
     btnConsultaProd.Caption := 'F3' + #13 + 'PRODUTOS';
@@ -5043,6 +5050,11 @@ begin
   Form29.Free;
 end;
 
+procedure TForm2.BackupRestore1Click(Sender: TObject);
+begin
+  funcoes.BackupRestoreFB;
+end;
+
 procedure TForm2.Baixa1Click(Sender: TObject);
 begin
   Form30 := Tform30.Create(self);
@@ -5823,7 +5835,7 @@ begin
   begin
     while his = '' do
     begin
-      his := funcoes.dialogo('normal', 0, '', 50, false, '', application.Title,
+      his := funcoes.dialogo('normal', 0, '', 300, false, '', application.Title,
         'Qual o Histórico?', '');
     end;
   end;
@@ -6253,7 +6265,7 @@ begin
   if fim = '*' then
     exit;
 
-  his := funcoes.dialogo('normal', 0, '', 50, false, '', application.Title,
+  his := funcoes.dialogo('normal', 0, '', 300, false, '', application.Title,
     'Qual o Histórico?', '');
   if his = '*' then
     exit;
@@ -6393,7 +6405,7 @@ begin
     fim := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,
       'Qual a Data Final?', formataDataDDMMYY(endOfTheMonth(now)));
   if not funcoes.Contido('*', grupo + ini + fim) then
-    his := funcoes.dialogo('normal', 0, '', 50, false, '', application.Title,
+    his := funcoes.dialogo('normal', 0, '', 300, false, '', application.Title,
       'Qual o Histórico?', '');
   if not funcoes.Contido('*', grupo + ini + fim + his) then
     imprimirtotaldia := funcoes.dialogo('generico', 0, 'SN', 20, false, 'S',
@@ -11424,8 +11436,8 @@ begin
     exit;
   end;
 
-  his := funcoes.dialogo('not', 0, '', 50, true, '', application.Title,
-    'Confirme o Histórico:', '');
+  his := funcoes.dialogo('normal', 0, '', 300, false, '', application.Title,
+    'Qual o Histórico?', '');
   if his = '*' then
     exit;
 
@@ -11594,8 +11606,8 @@ begin
     exit;
   end;
 
-  his := funcoes.dialogo('not', 0, '', 50, true, '', application.Title,
-    'Confirme o Histórico:', '');
+  his := funcoes.dialogo('normal', 150, '', 300, false, '', application.Title,
+    'Qual o Histórico?', '');
   if his = '*' then
   begin
     dm.ibselect.Close;
@@ -15277,6 +15289,11 @@ begin
   funcoes.verificaregistrosDuplicadosCaixa;
 end;
 
+procedure TForm2.ApagarMovimento1Click(Sender: TObject);
+begin
+  funcoes.apagaMovimento;
+end;
+
 procedure TForm2.ApplicationEvents1Minimize(Sender: TObject);
 begin
   application.Minimize;
@@ -18151,6 +18168,196 @@ begin
   addRelatorioForm19
     ('+-----------------------------------------------------------------------------+'
     + CRLF);
+  dm.ibselect.Close;
+
+  form19.showmodal;
+end;
+
+procedure TForm2.RelatrioTcnicoOS1Click(Sender: TObject);
+var
+  ini, fim, ordem, cond, tecnico, tecNome: string;
+  pen, venda: integer;
+  total : currency;
+begin
+  tecNome := UpperCase(LeftStr(form22.nomesServico.Values['5'], 1)) + LowerCase(copy(form22.nomesServico.Values['5'], 2, 100));
+  ini := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,
+    'Qual a Data Inicial?', '');
+  if ini = '*' then
+    exit;
+
+  fim := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,
+    'Qual a Data Final?', '');
+  if fim = '*' then
+    exit;
+
+  tecnico := funcoes.localizar('Localizar ' + UpperCase(LeftStr(form22.nomesServico.Values['5'], 1)) + LowerCase(copy(form22.nomesServico.Values['5'], 2, 100)),'mecanico','cod,nome','nome','','nome','nome',true,false,false,'',300,nil);
+  if trim(tecnico) = '' then exit;
+
+  dm.ibselect.Close;
+  dm.ibselect.SQL.Text := 'select s.cod, data, s.equip, s.venda, (select nome'+
+  ' from cliente c where c.cod = s.cliente) as nome from servico s where (data >= :ini)'+
+  ' and (data <= :fim) and s.tecnico = :tec  order by cod' ;
+  dm.ibselect.ParamByName('ini').AsDateTime := StrToDateTime(ini);
+  dm.ibselect.ParamByName('fim').AsDateTime := StrToDateTime(fim);
+  dm.ibselect.ParamByName('tec').AsString   := tecnico;
+  dm.ibselect.Open;
+  dm.ibselect.FetchAll;
+
+  form19.RichEdit1.Clear;
+
+  addRelatorioForm19(funcoes.RelatorioCabecalho(form22.Pgerais.Values['empresa'], 'Relatorio '+tecNome+'/OS: ' + tecnico  ,  79));
+  addRelatorioForm19('|  Data  |Ordem | Equipamento             | Cliente                  |   TOTAL|'+ CRLF);
+  addRelatorioForm19('+-----------------------------------------------------------------------------+'+ CRLF);
+
+  pen := 0;
+  while not dm.ibselect.Eof do begin
+    total := 0;
+
+    if dm.IBselect.FieldByName('venda').AsCurrency > 0 then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := 'select nota,total from venda where nota = :nota';
+      dm.IBQuery1.ParamByName('nota').AsInteger := dm.IBselect.FieldByName('venda').AsInteger;
+      dm.IBQuery1.Open;
+      if dm.IBQuery1.IsEmpty = false then total := dm.IBQuery1.FieldByName('total').AsCurrency;      
+    end;
+
+    addRelatorioForm19('|' + formataDataDDMMYY(dm.ibselect.FieldByName('data').AsDateTime) +
+     '|' + funcoes.CompletaOuRepete('',dm.ibselect.FieldByName('cod').AsString, ' ', 6) + '|' +
+      funcoes.CompletaOuRepete(copy(dm.ibselect.FieldByName('equip').AsString,
+      1, 25), '', ' ', 25) + '|' + funcoes.CompletaOuRepete(copy(dm.ibselect.FieldByName('nome').AsString, 1, 26), '', ' ', 26) +
+      funcoes.CompletaOuRepete('',formataCurrency(total), ' ', 9) + '|' + CRLF);
+    dm.ibselect.Next;
+    pen := pen + 1;
+  end;
+
+
+  addRelatorioForm19('+-----------------------------------------------------------------------------+'
+    + CRLF);
+  addRelatorioForm19(funcoes.CompletaOuRepete('| Registros => ' +
+    IntToStr(pen), '|', ' ', 79) + CRLF);
+  addRelatorioForm19
+    ('+-----------------------------------------------------------------------------+'
+    + CRLF);
+  dm.ibselect.Close;
+
+  form19.showmodal;
+end;
+
+procedure TForm2.RelatrioTcnicoProdutos1Click(Sender: TObject);
+var
+  ini, fim, ordem, cond, tecnico, nometec: string;
+  pen: integer;
+  desc : TStringList;
+  lista : TItensProduto;
+  i, f : integer;
+  total : currency;
+begin
+  nometec := UpperCase(LeftStr(form22.nomesServico.Values['5'], 1)) + LowerCase(copy(form22.nomesServico.Values['5'], 2, 100));
+
+  ini := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,
+    'Qual a Data Inicial?', '');
+  if ini = '*' then
+    exit;
+
+  fim := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,
+    'Qual a Data Final?', '');
+  if fim = '*' then
+    exit;
+
+  tecnico := funcoes.localizar('Localizar ' + UpperCase(LeftStr(form22.nomesServico.Values['5'], 1)) + LowerCase(copy(form22.nomesServico.Values['5'], 2, 100)),'mecanico','cod,nome','nome','','nome','nome',true,false,false,'',300,nil);
+  if trim(tecnico) = '' then exit;
+
+  dm.ibselect.Close;
+  dm.ibselect.SQL.Text := 'select s.cod as ordem,s.tecnico,v.nota, v.desconto,i.cod,p.nome, i.quant, i.p_venda,i.total from item_venda i left join servico s on (s.venda = i.nota)' +
+  ' left join produto p on (p.cod = i.cod) left join venda v on (v.nota= i.nota) ' +
+  ' where i.data >= :ini and i.data <= :fim and not(s.cod is null) and s.tecnico = :tec ';
+  dm.ibselect.ParamByName('ini').AsDateTime := StrToDateTime(ini);
+  dm.ibselect.ParamByName('fim').AsDateTime := StrToDateTime(fim);
+  dm.ibselect.ParamByName('tec').AsString   := tecnico;
+  dm.ibselect.Open;
+  dm.ibselect.FetchAll;
+
+  form19.RichEdit1.Clear;
+
+  addRelatorioForm19(funcoes.RelatorioCabecalho(form22.Pgerais.Values['empresa'], 'Relatorio '+nometec+'/Produtos: ' + tecnico, 79));
+  addRelatorioForm19('|   COD|NOME                               |     QUANT|     PRECO|       TOTAL|'+ CRLF);
+  addRelatorioForm19('+-----------------------------------------------------------------------------+'+ CRLF);
+
+  pen   := 0;
+  total := 0;
+  desc  := TStringList.Create;
+  lista := TItensProduto.Create;
+  while not dm.ibselect.Eof do begin
+    desc.Values[dm.IBselect.FieldByName('nota').AsString] := dm.IBselect.FieldByName('desconto').AsString;
+    pen := lista.Find(dm.IBselect.FieldByName('cod').AsInteger);
+    if pen = -1 then begin
+      pen := lista.Add(TregProd.Create);
+      lista[pen].cod   := dm.IBselect.FieldByName('cod').AsInteger;
+      lista[pen].nome  := dm.IBselect.FieldByName('nome').AsString;
+      lista[pen].quant := dm.IBselect.FieldByName('quant').AsCurrency;
+      lista[pen].preco := dm.IBselect.FieldByName('p_venda').AsCurrency;
+      lista[pen].total := dm.IBselect.FieldByName('total').AsCurrency;
+    end
+    else begin
+      lista[pen].quant := lista[pen].quant + dm.IBselect.FieldByName('quant').AsCurrency;
+      lista[pen].preco := lista[pen].preco + dm.IBselect.FieldByName('p_venda').AsCurrency;
+      lista[pen].total := lista[pen].total + dm.IBselect.FieldByName('total').AsCurrency;
+    end;
+
+    total := total + dm.IBselect.FieldByName('total').AsCurrency;
+
+    dm.ibselect.Next;
+  end;
+
+  f := desc.Count -1;
+  for i := 0 to f do begin
+    total := total + StrToCurr(desc.ValueFromIndex[i]);
+  end;
+
+  dm.ibselect.Close;
+  dm.ibselect.SQL.Text := 'select i.cod,p.nome, i.quant,i.nota, i.p_venda, i.total from os_itens i, servico s, produto p '+
+  ' where (i.nota = s.cod and s.tecnico = :tec and (p.cod = i.cod))' +
+  ' and (s.data >= :ini and s.data <= :fim) and (s.venda = 0)';
+  dm.ibselect.ParamByName('tec').AsString   := tecnico;
+  dm.ibselect.ParamByName('ini').AsDateTime := StrToDateTime(ini);
+  dm.ibselect.ParamByName('fim').AsDateTime := StrToDateTime(fim);
+  dm.ibselect.Open;
+  dm.ibselect.FetchAll;
+
+  while not dm.ibselect.Eof do begin
+    pen := lista.Find(dm.IBselect.FieldByName('cod').AsInteger);
+    if pen = -1 then begin
+      pen := lista.Add(TregProd.Create);
+      lista[pen].cod   := dm.IBselect.FieldByName('cod').AsInteger;
+      lista[pen].nome  := dm.IBselect.FieldByName('nome').AsString;
+      lista[pen].quant := dm.IBselect.FieldByName('quant').AsCurrency;
+      lista[pen].preco := dm.IBselect.FieldByName('p_venda').AsCurrency;
+      lista[pen].total := dm.IBselect.FieldByName('total').AsCurrency;
+    end
+    else begin
+      lista[pen].quant := lista[pen].quant + dm.IBselect.FieldByName('quant').AsCurrency;
+      lista[pen].preco := lista[pen].preco + dm.IBselect.FieldByName('p_venda').AsCurrency;
+      lista[pen].total := lista[pen].total + dm.IBselect.FieldByName('total').AsCurrency;
+    end;
+
+    total := total + dm.IBselect.FieldByName('total').AsCurrency;
+
+    dm.ibselect.Next;
+  end;
+
+  lista.OrdenarPorNome;
+
+  f := lista.Count -1;
+  for i := 0 to f do begin
+    addRelatorioForm19(CompletaOuRepete('', IntToStr(lista[i].cod), ' ', 7) + ' ' + CompletaOuRepete(LeftStr(lista[i].nome, 35), '', ' ', 35) +
+    CompletaOuRepete('', formataCurrency(lista[i].quant), ' ', 11) + CompletaOuRepete('', formataCurrency(lista[i].preco), ' ', 11) +
+    CompletaOuRepete('', formataCurrency(lista[i].total), ' ', 13) + CRLF);
+  end;
+
+
+  addRelatorioForm19('+-----------------------------------------------------------------------------+'+ CRLF);
+  addRelatorioForm19(funcoes.CompletaOuRepete('| T O T A L ---> ', formataCurrency(TOTAL) + '|', '.', 79) + CRLF);
+  addRelatorioForm19('+-----------------------------------------------------------------------------+'+ CRLF);
   dm.ibselect.Close;
 
   form19.showmodal;

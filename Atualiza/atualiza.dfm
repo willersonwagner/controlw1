@@ -40,8 +40,8 @@ object Form1: TForm1
     ExplicitWidth = 271
   end
   object lConnectionInfo: TLabel
-    Left = 211
-    Top = 32
+    Left = 179
+    Top = 37
     Width = 75
     Height = 13
     Alignment = taRightJustify
@@ -76,6 +76,7 @@ object Form1: TForm1
     Top = 8
   end
   object IdHTTP1: TIdHTTP
+    OnWork = IdHTTP2Work
     OnWorkEnd = IdHTTP1WorkEnd
     AllowCookies = False
     ProxyParams.BasicAuthentication = False
@@ -91,8 +92,8 @@ object Form1: TForm1
     Request.Ranges.Units = 'bytes'
     Request.Ranges = <>
     HTTPOptions = [hoForceEncodeParams]
-    Left = 224
-    Top = 8
+    Left = 64
+    Top = 80
   end
   object IdAntiFreeze1: TIdAntiFreeze
     Left = 104
@@ -115,8 +116,8 @@ object Form1: TForm1
     Protocolo = protHTTP
     OnHookStatus = HookStatus
     OnHookMonitor = ACBrDownloadHookMonitor
-    Left = 168
-    Top = 48
+    Left = 104
+    Top = 88
   end
   object IdHTTP2: TIdHTTP
     OnWork = IdHTTP2Work

@@ -153,7 +153,6 @@ begin
   sleep(5000);
   form70.Button1.Enabled := true;
   form70.Button1.SetFocus;
-
 end;
 
 procedure Tdm.ACBrMail1BeforeMailProcess(Sender: TObject);

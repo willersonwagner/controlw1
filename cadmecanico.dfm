@@ -23,8 +23,6 @@ object Form80: TForm80
     Height = 79
     Align = alClient
     TabOrder = 0
-    ExplicitWidth = 446
-    ExplicitHeight = 71
     object Label2: TLabel
       Left = 128
       Top = 16
@@ -46,7 +44,9 @@ object Form80: TForm80
       Height = 21
       CharCase = ecUpperCase
       TabOrder = 0
+      OnEnter = codEnter
       OnKeyPress = codKeyPress
+      OnKeyUp = codKeyUp
       FormularioComp = 'Form4'
       ColorOnEnter = clSkyBlue
       Indice = 0
@@ -73,8 +73,6 @@ object Form80: TForm80
     Height = 35
     Align = alBottom
     TabOrder = 1
-    ExplicitTop = 71
-    ExplicitWidth = 446
     object info: TLabel
       Left = 156
       Top = 6
@@ -152,6 +150,7 @@ object Form80: TForm80
         CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
         CCCCCCCCCCCCCCCCBAC0BCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC}
       TabOrder = 0
+      OnClick = JsBotao1Click
     end
     object JsBotao2: JsBotao
       Left = 75
@@ -217,6 +216,7 @@ object Form80: TForm80
         CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
         CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC}
       TabOrder = 1
+      OnClick = JsBotao2Click
     end
   end
 end

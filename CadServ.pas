@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, Mask, JsEditData1, StdCtrls, JsEdit1, JsEditInteiro1, Buttons,
-  JsBotao1, ExtCtrls, classes1, JsEditNumero1;
+  JsBotao1, ExtCtrls, classes1, JsEditNumero1, StrUtils;
 
 type
   TForm51 = class(TForm)
@@ -49,6 +49,7 @@ type
     procedure clienteEnter(Sender: TObject);
     procedure codKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure obsKeyPress(Sender: TObject; var Key: Char);
+    procedure tecnicoKeyPress(Sender: TObject; var Key: Char);
   private
     ret, cap, codigo : String;
     function geraCap : String;
@@ -68,6 +69,25 @@ implementation
 uses Unit1, func, principal, impriNovo, consultaOrdem, cadcliente;
 
 {$R *.dfm}
+procedure TForm51.tecnicoKeyPress(Sender: TObject; var Key: Char);
+var
+  mec : String;
+begin
+  if not(key in [#13, #27]) then begin
+    key := #0;
+  end;
+
+  if key = #13 then begin
+    mec := funcoes.localizar('Localizar ' + UpperCase(LeftStr(form22.nomesServico.Values['5'], 1)) + LowerCase(copy(form22.nomesServico.Values['5'], 2, 100)),'mecanico','cod,nome','nome','','nome','nome',false,false,false,'',300,sender);
+    if trim(mec) = '' then begin
+      key := #0;
+      exit;
+    end;
+
+    tedit(sender).Text := mec;
+  end;
+end;
+
 procedure TForm51.trocaLabeldosComponentes();
 begin
   label5.Caption  := form22.nomesServico.Values['1'] + ':';

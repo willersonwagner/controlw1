@@ -91,6 +91,8 @@
             <Form>Form1</Form>
         </DCCReference>
         <DCCReference Include="SevenZip.pas"/>
+        <DCCReference Include="..\funcoesDAV.pas"/>
+        <DCCReference Include="..\classes1.pas"/>
         <BuildConfiguration Include="Debug">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
