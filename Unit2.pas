@@ -9471,7 +9471,9 @@ begin
 
   if his <> '' then
     h1 := ' and (codhis=' + his + ')';
-  // else h1 := ' and (codhis = 1)';
+
+  //modificação josenir 17/07/2019 para sempre aparecer as vendas futuras
+  //IF StrToDate(fim) = DateOf(form22.datamov) then fim := ('31/12/2068');
 
   dm.ibselect.Close;
   dm.ibselect.SQL.Clear;

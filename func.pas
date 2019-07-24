@@ -139,6 +139,7 @@ type
     fonteRelatorioForm19: integer;
     NegritoRelatorioForm19, saiComEnter: boolean;
     function CreateProcessSimple(cmd: string): boolean;
+    procedure atualizaDataVendasFuturas(dataMov : tdate);
     procedure BackupRestoreFB();
     procedure adicionaChavePeloNumero(num : String);
     procedure checaAssinatura(arquivo : String);
@@ -230,6 +231,9 @@ type
     function verificaNFCe(dataIni: String = ''; DataFim: String = '';
       sped: boolean = False): boolean;
     function validaDataHora(var dataMo: TDateTime; USUARIO: STRING) : boolean;
+    function validaDataHoraW(var dataMo: TDateTime; USUARIO: STRING) : boolean;
+    function leDataMov(var dataMov: TDateTime) : boolean;
+  	function gravaDataMov(dataMov: TDateTime) : boolean;
     function listaUnidades: String;
     function ajustaHoraPelaInternet(var dataMov: TDateTime): boolean;
     function listaUnidadesComDescricoes: TStrings;
@@ -21815,7 +21819,7 @@ begin
   SetLocalTime(SystemTime);
 end;
 
-function Tfuncoes.validaDataHora(var dataMo: TDateTime; USUARIO: STRING) : boolean;
+function Tfuncoes.validaDataHoraW(var dataMo: TDateTime; USUARIO: STRING) : boolean;
 var
   ultDataMov, dataAtual, dataBd, dataUltimaVenda: TDateTime;
   temp, somenteHora, BomDia: String;
@@ -21935,6 +21939,76 @@ begin
     BomDia := 'Boa Noite ';
   ShowMessage(BomDia + USUARIO + ' - ' + FormatDateTime('dddddd', dataMo));
 end;
+
+
+function Tfuncoes.validaDataHora(var dataMo: TDateTime; USUARIO: STRING) : boolean;
+var
+  ultDataMov, dataAtual, dataBd, dataUltimaVenda: TDateTime;
+  temp, somenteHora, BomDia: String;
+  hora: TTime;
+  dias : integer;
+begin
+  Result := false;
+
+  // pega a data atual de movimento do bd e grava em ultDataMov. Se der erro já retortna daqui sem validar a data
+  if (not leDataMov(ultDataMov)) then exit;
+
+
+  //atualiza a variável de retorno da data de movimento
+  dataMo := ultDataMov;
+
+  //verifica quantos dias de diferença dá entre a data de relógio do pc e ultDataMov do bd
+  dias := Trunc(now - ultDataMov);
+
+  //se a data de relógio é menor que a data_mov retorna falso e não valida a data
+  if ((dias < 0) and (form22.USUARIO <> 'ADMIN')) then
+    begin
+      MessageDlg('Data Inválida: ' + DateToStr(now) + #13 + #10 + 'Verifique a data deste computador ou procure o suporte. ' +
+	    #13 + #10 + 'Última data de movimento válida: ' + DateToStr(ultDataMov), mtError, [mbOK], 1);
+      exit;
+	  end;
+
+
+  //se a data de relógio é igual à data_mov, então valida
+  if dias = 0 then
+    begin
+	    Result := true;
+      exit;
+    end;
+
+  //se o relógio estiver com até 5 dias permite editar a data
+  if (dias <= 5) then
+     begin
+      while true do begin
+        temp := funcoes.dialogo('data', 0, '', 0, true, '', 'Confirmação de data - usuário normal - até 5 dias',
+        'Confirme a Data de Movimento:', FormatDateTime('dd/mm/yy', ultDataMov));
+        if temp = '*' then exit else ultDataMov := StrToDateDef(temp, ultDataMov);
+        dias := Trunc(ultDataMov - dataMo);
+        if (dias <= 5) then begin
+		       dataMo := ultDataMov;
+           Result := gravaDataMov(ultDatamov);
+		       exit;
+		    end;
+    end;
+  end;
+
+  //se o usuário é o admin, deixa entrar com qualquer data
+  if (form22.USUARIO = 'ADMIN') then begin
+    temp := funcoes.dialogo('data', 0, '', 0, true, '', 'Confirmação de data - usuário ADMIN - qualquer data',
+    'Confirme a Data de Movimento:', FormatDateTime('dd/mm/yy', ultDataMov));
+    if temp = '*' then exit else ultDataMov := StrToDateDef(temp, ultDataMov);
+    dataMo := ultDataMov;
+    Result := gravaDataMov(ultDataMov);
+  end;
+
+ //Wagner, ache um lugar melhor pra a chamada dessa função. Coloque depois da chamada a validaDataHora assim:
+ //if validaDataHora(dataMov, USUARIO) then funcoes.verificaPermissaoPagamento(false, false);
+ // BomDia := funcoes.verificaPermissaoPagamento(false, false);
+
+ //eliminei aquela mensagem de bom dia para o usuário.
+
+  end;
+
 
 function Tfuncoes.verificaNFCe(dataIni: String = ''; DataFim: String = '';
   sped: boolean = False): boolean;
@@ -27745,6 +27819,76 @@ begin
 end;
 
 
+procedure Tfuncoes.atualizaDataVendasFuturas(dataMov : tdate);
+begin
+  dataMov := IncDay(dataMov, 30);
+
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select nota from venda where data > :data';
+  dm.IBselect.ParamByName('data').AsDate := dataMov;
+  dm.IBselect.Open;
+
+  if dm.IBselect.IsEmpty = false then begin
+    dm.IBQuery1.Close;
+    dm.IBQuery1.SQL.Text := 'update venda set data = ''31.12.2000'' where data > :data';
+    dm.IBQuery1.ParamByName('data').AsDate := dataMov;
+    dm.IBQuery1.ExecSQL;
+    dm.IBQuery1.Transaction.Commit;
+  end;
+
+  dm.IBselect.Close;
+end;
+
+function Tfuncoes.gravaDataMov(dataMov: TDateTime) : boolean;
+begin
+  result := false;
+  if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+  dm.IBQuery1.Close;
+  dm.IBQuery1.SQL.text := ('update registro set data_mov = :datamov');
+  dm.IBQuery1.ParamByName('datamov').AsDateTime := dataMov;
+  try
+    dm.IBQuery1.ExecSQL;
+    dm.IBQuery1.Transaction.Commit;
+    dm.IBQuery1.Close;
+    ShowMessage('Data de movimento acertada para: ' + DateToStr(dataMov));
+	  result := true;
+   except
+    //se deu erro de gravação no bd, retorna e não valida a data
+    on e: exception do
+       begin
+         ShowMessage('Erro ao atualizar a data de movimento no bd: ' + e.Message + #13 + #10 + '. Tente Novamente');
+         dm.IBselect.Close;
+       end;
+   end;
+end;
+
+function Tfuncoes.leDataMov(var dataMov: TDateTime) : boolean;
+begin
+  result := false;
+  if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Clear;
+  dm.IBselect.SQL.Add('select data_mov from registro');
+  try
+    dm.IBselect.Open;
+  except
+    on e: exception do
+       begin
+         ShowMessage('Ocorreu um erro ao ler a data de movimento: ' + e.Message + #13 + #10 + '. Tente Novamente');
+         dm.IBselect.Close;
+         exit;
+       end;
+  end;
+  if dm.IBselect.IsEmpty then
+    begin
+	  ShowMessage('Erro: Registro do Sistema Inválido' + #13 + #10 + 'Procure o suporte');
+	  exit;
+	end;
+
+  dataMov := dm.IBselect.FieldByName('data_mov').AsDateTime;
+  dm.IBselect.Close;
+  result := true;
+end;
 
 
 end.

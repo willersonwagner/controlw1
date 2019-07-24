@@ -248,7 +248,7 @@ if key=#27 then
        UnidInteiro := funcoes.buscaUnidadesFracionadas;
 
        try
-         if ((funcoes.validaDataHora(datamov, usuario) = false) and (usuario <> 'ADMIN')) then begin
+         if ((funcoes.validaDataHoraW(datamov, usuario) = false) and (usuario <> 'ADMIN')) then begin
            self.Show;
            exit;
          end;

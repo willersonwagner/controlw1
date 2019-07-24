@@ -1,5 +1,5 @@
 {$A8,B-,C+,D+,E-,F-,G+,H+,I+,J-,K-,L+,M-,N+,O+,P+,Q-,R-,S-,T-,U-,V+,W-,X+,Y+,Z1}
-{$MINSTACKSIZE $00004000}                                                 
+{$MINSTACKSIZE $00004000}
 {$MAXSTACKSIZE $00100000}
 {$IMAGEBASE $00400000}
 {$APPTYPE GUI}
@@ -240,7 +240,7 @@ begin
 
   ncm := StrNum(trim(dm.IBQuery4.FieldByName('classif').AsString));
   if Length(ncm) = 8 then Result := ncm;
-  dm.IBQuery4.Close; 
+  dm.IBQuery4.Close;
 end;
 
 function TNfeVenda.VER_PARCELAS(notas1 : TStringList) : TList;
@@ -280,7 +280,7 @@ end;
 
 function TNfeVenda.busca1grava0PastaRedeNoBD(opcao : smallint) : string;
 begin
- 
+
 end;
 
 
@@ -409,7 +409,7 @@ begin
       imprime.textx('');
 
     end
-  else ShowMessage('Não Existe CCE da Nota ' + nota); 
+  else ShowMessage('Não Existe CCE da Nota ' + nota);
 end;
 
 function TNfeVenda.dataInglesToBrasil(const data : String) : string;
@@ -476,8 +476,6 @@ begin
 
   {xml := TStringList.Create;
   xml.LoadFromFile(caminhoEXE_com_barra_no_final + 'NFE\EMIT\' + nf + '-nfe.xml');
-
-
   te := Le_Nodo('emit', xml.GetText);
    }
   dm.IBselect.Close;
@@ -916,7 +914,7 @@ begin
       if ((cont > 9) or (ind = 0)) then break; //sai do while se vier em branco
     end;
 
-   funcoes.informacao(0, 0, 'Aguarde, Verificando Arquivos...', false, true, 5); 
+   funcoes.informacao(0, 0, 'Aguarde, Verificando Arquivos...', false, true, 5);
    try
      arq.Free;
    except
@@ -994,7 +992,7 @@ begin
   while not dm.IBselect.Eof do
     begin
       funcoes.informacao(dm.IBselect.RecNo, gf, 'Aguarde, Verificando Arquivos...', false, false, 5);
-     
+
       num := dm.IBselect.FieldByName('chave').AsString + '-nfe.xml'; //cria o nome do arquivo
 
       if FileExists(caminhoEXE_com_barra_no_final + 'NFE\EMIT\' + num) then begin
@@ -1141,7 +1139,6 @@ begin
   dm.IBselect.SQL.Add('select * from nfe where nota = :nota');
   dm.IBselect.ParamByName('nota').AsString := nf;
   dm.IBselect.Open;
-
   if dm.IBselect.IsEmpty then
     begin
       ShowMessage('Não foi Encontrado NFe com este Número de Nota');
@@ -1503,9 +1500,9 @@ begin
     begin
       totImp := calculaVlrAproxImpostos(Lista_Itens);
       OBS := OBS + 'Valor aprox. Impostos: '+ formataCurrency(totImp) +'('+ formataCurrency(totImp / (totalNota - totDesc) * 100) +'%) Fonte: IBPT ' + ';';
-    end;  
+    end;
 
-  
+
   IF INFO <> '' THEN INFO := ';' + INFO ;
   OBS := OBS + ' ' + (INFO);
 
@@ -1701,9 +1698,7 @@ begin
   Result := '';
   op := TOpenDialog.Create(self);
   op.Execute;
-
   arqXml := op.FileName;
-
   dm.ACBrNFe.DANFE := dm.ACBrNFeDANFERaveCB1;
   dm.ACBrNFeDANFERaveCB1.MostrarPreview := true;
   dm.ACBrNFeDANFERaveCB1.TipoDANFE := tiRetrato;
@@ -1720,14 +1715,12 @@ begin
       WWMessage(Result,mtError,[mbok],HexToTColor('FFD700'),true,false,HexToTColor('B22222'));
       exit;
     end;
-
   //DeleteFile(pasta_Acbr + 'SAI.txt');
   //GravarTexto(pasta_Acbr+'ENT.txt',texto);
   funcoes.Mensagem(Application.Title ,'Aguarde, Imprimindo...',15,'Courier New',false,0,clred);
  // funcoes.Mensagem('Aguarde, Imprimindo...',0);
   while not valida do
     begin
-
       Application.ProcessMessages;
       if FileExists(pasta_Acbr + 'SAI.txt') then
         begin
@@ -1799,20 +1792,17 @@ begin
 
  {      not4 := copy(ARQ_caminho, funcoes.PosFinal('\', ARQ_caminho) + 1, length(ARQ_caminho));
        tmp := copy(not4, 26, 9);
-
        dm.IBselect.Close;
        dm.IBselect.SQL.Clear;
        dm.IBselect.SQL.Add('select * from nfe where nota = :nota');
        dm.IBselect.ParamByName('nota').AsInteger := StrToIntDef(tmp, 0);
        dm.IBselect.Open;
-
        if dm.IBselect.IsEmpty then
          begin
            dm.IBQuery1.Close;
            dm.IBQuery1.SQL.Clear;
            dm.IBQuery1.SQL.ad
          end;
-
      end;
   }
 
@@ -2139,7 +2129,7 @@ begin
       valida := true;
       break;
     end;
-    
+
     contador := 0;
 end;
 
@@ -2970,7 +2960,6 @@ begin
         cfop1 := '5405';
         if (FIN_NFE1 = '4') then cfop1 := '5411';
       end;
-
       if ((item.CodAliq = 10) and (cfop1 = '6102')) then begin
         cfop1 := '6404';
         if (FIN_NFE1 = '4') then cfop1 := '6411';
@@ -3127,7 +3116,6 @@ begin
     ERRO_dados := ERRO_dados + 'Endereço Inválido ' + #13;
     INVALIDO := invalido + 1;
   end;
-
   if LENGTH(BAIRRO) < 2 then begin
     ERRO_dados := ERRO_dados + 'Bairro Inválido ' + #13;
     INVALIDO := invalido + 1;
@@ -3187,7 +3175,7 @@ begin
         end
       else if IE <> '' then indIEDest := '1'; //se for produtor rural
     end;
-    
+
   if Length(StrNum(CPF_CNPJ)) = 14 then
     begin
       indIEDest := '1';
@@ -3874,7 +3862,7 @@ begin
       end;
 
     GravarTexto(arq, xml1);
-    
+
     erro_dados := '';
     erro_dados := ValidarNfe(arq); // valida e envia o arquivo
 
@@ -3983,11 +3971,11 @@ begin
         exit;
       end;
     end;
-   
+
       i := 0;
       csta := 999;
 
-      //funcoes.Mensagem(Application.Title ,'Aguarde, Enviando NFe...',15,'Courier New',false,0,clred);
+      //funcoes.Mensagem(Application.Title ,'Aguarde, Enviando  NFe...',15,'Courier New',false,0,clred);
       Application.ProcessMessages;
       Application.ProcessMessages;
       funcoes.mensagemEnviandoNFCE('Aguarde, Enviando 0...', true, false);
@@ -4013,7 +4001,7 @@ begin
              csta := ACBrNFe.WebServices.Retorno.cstat;
            end;
 
-          if (((csta > 0) and (csta < 999)) or (i >= 4)) then break;
+          if (((csta > 0) and (csta < 999)) or (i >= 6)) then break;
           sleep(1500);
         end;
 
@@ -4049,16 +4037,26 @@ begin
 
 
       if csta = 217 then begin
-        ERRO_dados := 'Rejeição (217): NF-e não consta na base de dados da SEFAZ';
-        MessageDlg(erro_dados, mtError, [mbOK], 1);
+        ERRO_dados := 'Erro 4040:Rejeição (217): NF-e não consta na base de dados da SEFAZ';
+        Fechar_Datasets_limpar_Listas_e_variaveis;
         funcoes.mensagemEnviandoNFCE('', false, true);
+        MessageDlg(erro_dados, mtError, [mbOK], 1);
         exit;
       end;
 
       if ((csta = 0) and  (ERRO_dados = '')) then begin
-        ERRO_dados := 'Requisicao nao Enviada';
-        MessageDlg(erro_dados, mtError, [mbOK], 1);
+        ERRO_dados := 'Erro 4047:Requisicao nao Enviada';
+        Fechar_Datasets_limpar_Listas_e_variaveis;
         funcoes.mensagemEnviandoNFCE('', false, true);
+        MessageDlg(erro_dados, mtError, [mbOK], 1);
+        exit;
+      end;
+
+      if (csta = 0) then begin
+        ERRO_dados := 'Erro 4054: Requisicao nao Enviada. Tempo de Limite Esgotado e não houve Retorno da Sefaz';
+        Fechar_Datasets_limpar_Listas_e_variaveis;
+        funcoes.mensagemEnviandoNFCE('', false, true);
+        MessageDlg(erro_dados, mtError, [mbOK], 1);
         exit;
       end;
 
@@ -4103,7 +4101,7 @@ begin
             ACBrNFe.NotasFiscais.Clear;
             ACBrNFe.NotasFiscais.LoadFromFile(arq);
         end;
-  
+
     if Contido('-' + IntToStr(csta) + '-', '-100-204-110-205-301-302-') then//((csta = 301) or (csta = 302) or (csta = 110)) then
       begin
         funcoes.mensagemEnviandoNFCE('', false, true);
@@ -4126,7 +4124,6 @@ begin
         dm.IBQuery1.SQL.Text := 'update venda set entrga = ''N'', crc = :crc  where nota = :nota';
         dm.IBQuery1.ParamByName('crc').AsString  := buscaCRCdaChave(chaveNF);
         dm.IBQuery1.ParamByName('nota').AsString := StrNum(nota);
-
         try
           dm.IBQuery1.ExecSQL;
           dm.IBQuery1.Transaction.Commit;
@@ -4152,7 +4149,7 @@ begin
         ShowMessage('NF-e '+ ' Houve uma falha na Validação!'+#13+#10+#13+#10+
                   'Favor Corrigir: ' + dm.ACBrNFe.WebServices.Retorno.xMotivo + #13 +
                   'cStat=' + IntToStr(csta));//+qry.FieldByName('RECIBO_DESCSTATUS').AsString);
-        exit;          
+        exit;
       end;
 
     Fechar_Datasets_limpar_Listas_e_variaveis;
@@ -4455,7 +4452,7 @@ begin
 end;
 
 //???????????????????????????????????
-//PREENCHE O CAMPO INDFINAL PRA INDICAR: 
+//PREENCHE O CAMPO INDFINAL PRA INDICAR:
 //0=N? se aplica (por exemplo, para a Nota Fiscal complementar ou de ajuste);
 //1=Opera?o presencial;
 //2=Opera?o n? presencial, pela Internet;
@@ -4616,7 +4613,7 @@ begin
 
       imprimirNFe();
     end;
-    
+
   chavb.Free;
   vend.Free;
 end;
@@ -4635,7 +4632,7 @@ end;
 function TNfeVenda.arrendondaNFe(valor : currency; deci : integer) : currency;
 begin
   Result := ArredondaFinanceiro(valor, deci);
-  exit; 
+  exit;
   Result := Arredonda(valor, deci);
 end;
 
@@ -4673,7 +4670,7 @@ begin
   pICMSInter  := 12;
 
   if (picmsDest - pICMSInter) = 0 then exit;
-  
+
 
   vICMSUFDest  := ArredondaFinanceiro(item.base_icm * pICMSUFDest /100, 2);
   vICMSUFRemet := ArredondaFinanceiro(item.base_icm * pICMSInter  /100, 2);
@@ -4761,16 +4758,12 @@ begin
       '<vpag>' + Format_num(parc.valor) +  '</vpag>' +
       '</detPag>';
     end;
-
     detBoleto := '<pag>'+ detBoleto+'</pag>';
   end;
-
-
   if dm.ACBrNFe.Configuracoes.WebServices.Ambiente = taHomologacao then begin
     Result := detBoleto;
     exit;
   end;
-
                                         }
 
   if True then
@@ -4923,5 +4916,4 @@ end;
 
 
 end.
-
 
