@@ -1,3 +1,4 @@
+
 unit func;
 
 interface
@@ -138,6 +139,8 @@ type
     enviandoCupom, enviandoBackup: boolean;
     fonteRelatorioForm19: integer;
     NegritoRelatorioForm19, saiComEnter: boolean;
+    function BuscaNumeracaoNFeSerie(var nomeGen : String) : string;
+    function buscaChaveNFe(num, serie : String) : string;
     function CreateProcessSimple(cmd: string): boolean;
     procedure atualizaDataVendasFuturas(dataMov : tdate);
     procedure BackupRestoreFB();
@@ -2253,6 +2256,7 @@ begin
   begin
     cds := form20.ClientDataSet1;
     cds.First;
+    i := 0;
     while not cds.Eof do
     begin
       while true do
@@ -2299,9 +2303,20 @@ begin
         .AsCurrency) + #179, ' ', 12) + CRLF);
 
       tot := tot + cds.FieldByName('total').AsCurrency;
+      i   := i   + 1;
 
       cds.Next;
     end;
+
+
+    linhaFimServico := StrToIntDef(funcoes.LerConfig(form22.Pgerais.Values['conf_ter'], 13), 25) - i;
+      for i := 0 to linhaFimServico do begin
+        addRelatorioForm19(funcoes.CompletaOuRepete(#179, #179, ' ', 8) +
+            funcoes.CompletaOuRepete('', #179, ' ', 8) +
+            funcoes.CompletaOuRepete('', #179, ' ', 41) +
+            { aqui começa unitario } funcoes.CompletaOuRepete('', #179, ' ', 11)
+            + funcoes.CompletaOuRepete('', #179, ' ', 12) + CRLF);
+      end;
   end
   else
   begin
@@ -2325,8 +2340,9 @@ begin
       end;
 
       tot := 0;
-      while not dm.IBselect.Eof do
-      begin
+      i := 0;
+      while not dm.IBselect.Eof do begin
+        i := i + 1;
         tot := tot + dm.IBselect.FieldByName('total').AsCurrency;
         addRelatorioForm19(funcoes.CompletaOuRepete(#179,
           dm.IBselect.FieldByName('cod').AsString + #179, ' ', 8) +
@@ -2343,11 +2359,9 @@ begin
         dm.IBselect.Next;
       end;
 
-      if (ordem.venda <> 0) then
-      begin
+      if (ordem.venda <> 0) then begin
         tot := dm.IBselect.FieldByName('total1').AsCurrency;
-        if (dm.IBselect.FieldByName('desconto').AsCurrency <> 0) then
-        begin
+        if (dm.IBselect.FieldByName('desconto').AsCurrency <> 0) then begin
           addRelatorioForm19(funcoes.CompletaOuRepete(#179, #179, ' ', 8) +
             funcoes.CompletaOuRepete('', formataCurrency(0) + #179, ' ', 8) +
             funcoes.CompletaOuRepete('Desconto R$', #179, ' ', 41) +
@@ -2358,19 +2372,15 @@ begin
         end;
       end;
 
-      if dm.IBselect.IsEmpty then
-      begin
-        linhaFimServico := StrToIntDef(funcoes.LerConfig(form22.Pgerais.Values['conf_ter'], 13), 25);
-        for i := 0 to linhaFimServico do begin
-          addRelatorioForm19(funcoes.CompletaOuRepete(#179, #179, ' ', 8) +
+      linhaFimServico := StrToIntDef(funcoes.LerConfig(form22.Pgerais.Values['conf_ter'], 13), 25) - i;
+      for i := 0 to linhaFimServico do begin
+        addRelatorioForm19(funcoes.CompletaOuRepete(#179, #179, ' ', 8) +
             funcoes.CompletaOuRepete('', #179, ' ', 8) +
             funcoes.CompletaOuRepete('', #179, ' ', 41) +
             { aqui começa unitario } funcoes.CompletaOuRepete('', #179, ' ', 11)
             + funcoes.CompletaOuRepete('', #179, ' ', 12) + CRLF);
-        end;
-        // addRelatorioForm19(funcoes.CompletaOuRepete(#179 , #179, ' ', 8) + funcoes.CompletaOuRepete('' , #179, ' ', 8) + funcoes.CompletaOuRepete('', #179, ' ', 41) +
-        // {aqui começa unitario} funcoes.CompletaOuRepete('', #179, ' ', 11) + funcoes.CompletaOuRepete('', #179, ' ', 12) + CRLF);
       end;
+
       dm.IBselect.Close;
     end { fim not orcamento }
     else
@@ -27888,6 +27898,36 @@ begin
   dataMov := dm.IBselect.FieldByName('data_mov').AsDateTime;
   dm.IBselect.Close;
   result := true;
+end;
+
+function Tfuncoes.buscaChaveNFe(num, serie : String) : string;
+begin
+  Result := '';
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select chave from nfe where substring(chave from 26 for 9) = :nnf and substring(chave from 23 for 3) = :serie';
+  dm.IBselect.ParamByName('nnf').AsString   := strzero(num, 9);
+  dm.IBselect.ParamByName('serie').AsString := strzero(serie, 3);
+  dm.IBselect.Open;
+
+  if dm.IBselect.IsEmpty = false then begin
+    Result := dm.IBselect.FieldByName('chave').AsString;
+  end;
+  dm.IBselect.Close;
+end;
+
+
+function Tfuncoes.buscaNumeracaoNFeSerie(var nomeGen : String) : string;
+begin
+  nomeGen := 'NFE';
+  if ACBrNFe.Configuracoes.WebServices.Ambiente = taHomologacao then begin
+    nomeGen := 'NFEHOMOLOGA';
+  end;
+
+ if SerieNFe > 1 then begin
+   nomeGen := nomeGen + IntToStr(SerieNFe);
+ end;
+
+ Result := Incrementa_Generator(nomeGen, 0);
 end;
 
 

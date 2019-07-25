@@ -316,10 +316,6 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
     end
     object TabSheet3: TTabSheet
       Caption = 'Certificado'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object GroupBox3: TGroupBox
         Left = 0
         Top = 0
@@ -446,10 +442,6 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
     object TabSheet5: TTabSheet
       Caption = 'WebService'
       ImageIndex = 2
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object GroupBox7: TGroupBox
         Left = 0
         Top = 0
@@ -628,10 +620,6 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
     object TabSheet7: TTabSheet
       Caption = 'Email'
       ImageIndex = 4
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object GroupBox9: TGroupBox
         Left = 0
         Top = 0
@@ -745,10 +733,6 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
     object TabSheet1: TTabSheet
       Caption = 'Par'#226'metros'
       ImageIndex = 4
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object GroupBox1: TGroupBox
         Left = 0
         Top = 0
@@ -767,9 +751,16 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
         object Label8: TLabel
           Left = 25
           Top = 83
-          Width = 35
+          Width = 57
           Height = 13
-          Caption = 'S'#201'RIE:'
+          Caption = 'S'#233'rie NFCe:'
+        end
+        object Label33: TLabel
+          Left = 26
+          Top = 123
+          Width = 50
+          Height = 13
+          Caption = 'S'#233'rie NFe:'
         end
         object edtnucfop: TEdit
           Left = 24
@@ -785,15 +776,18 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
           Height = 21
           TabOrder = 1
         end
+        object serieNFe: TEdit
+          Left = 25
+          Top = 138
+          Width = 97
+          Height = 21
+          TabOrder = 2
+        end
       end
     end
     object TabSheet2: TTabSheet
       Caption = 'Impress'#227'o'
       ImageIndex = 5
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Label6: TLabel
         Left = 16
         Top = 8
@@ -1099,10 +1093,6 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
     object TabSheet6: TTabSheet
       Caption = 'Conex'#227'o'
       ImageIndex = 6
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Label11: TLabel
         Left = 8
         Top = 72

@@ -216,7 +216,7 @@ procedure GravarConfiguracao(certificadoCaminho, certificadoSenha,
   ArquivosPDF: String; ArquivosNFE: String; CDCFOP: String;
   idToken, Token: String; idxImpre, idxImpreNFe, tipoImpre: integer;
   preview: boolean; const portaBalanca, veloBal, tipoBal: string;
-  serie: String = '1'; qtdViasStr: String = '1'; tipoImp: String = '0';
+  serie: String = '1';serieNFe: String = '1'; qtdViasStr: String = '1'; tipoImp: String = '0';
   PortaImpNFCE: String = ''; previewNFCe: boolean = false);
 
 procedure CarregarConfiguracao();
@@ -309,7 +309,7 @@ var
   richedt: TRichEdit;
 
   indxImpressora: integer;
-  indxImpressoraNFE, serie2, tipoImp: integer;
+  indxImpressoraNFE, serie2, SerieNFe, tipoImp: integer;
 
   glbCFOP, glbNuCheque, glbNumeroDAV, glbNumeroIP, cliente, serie, cod_OP,
     NomeGeneratorSerie: string;
@@ -2403,7 +2403,7 @@ procedure GravarConfiguracao(certificadoCaminho, certificadoSenha,
   ArquivosPDF: String; ArquivosNFE: String; CDCFOP: String;
   idToken, Token: String; idxImpre, idxImpreNFe, tipoImpre: integer;
   preview: boolean; const portaBalanca, veloBal, tipoBal: string;
-  serie: String = '1'; qtdViasStr: String = '1'; tipoImp: String = '0';
+  serie: String = '1'; serieNFe: String = '1'; qtdViasStr: String = '1'; tipoImp: String = '0';
   PortaImpNFCE: String = ''; previewNFCe: boolean = false);
 var
   qtd: integer;
@@ -2454,6 +2454,7 @@ begin
     ini.WriteBool('Geral', 'preview', preview);
     ini.WriteBool('Geral', 'previewNFCe', previewNFCe);
     ini.WriteInteger('Geral', 'serie', StrToIntDef(serie, 1));
+    ini.WriteInteger('Geral', 'serieNFe', StrToIntDef(serieNFe, 1));
 
     ini.WriteString('Geral', 'PathSalvar', CaminhoLog);
     ini.WriteString('Geral', 'CFOP', CDCFOP);
@@ -2730,7 +2731,8 @@ begin
     indxImpressoraNFE := ini.ReadInteger('Geral', 'idxImpressoraNFe', 0);
     tipoIMPRESSAO := ini.ReadInteger('Geral', 'TipoImpressao', 0);
 
-    serie2 := StrToIntDef(trim(ini.ReadString('Geral', 'serie', '')), 1);;
+    serie2   := StrToIntDef(trim(ini.ReadString('Geral', 'serie', '')), 1);;
+    SerieNFe := StrToIntDef(trim(ini.ReadString('Geral', 'serieNFe', '')), 1);;
     usarCertificadoA3 := ini.ReadBool('SERVER', 'usarCertiA3', false);
 
     previewNFCe1 := ini.ReadBool('Geral', 'previewNFCe', false);
@@ -3349,7 +3351,10 @@ begin
           // se entrou aqui é pq passou do metodo acbr.Enviar
           ACBrNFe.WebServices.Retorno.Recibo :=
             ACBrNFe.WebServices.enviar.Recibo;
-          ACBrNFe.WebServices.Retorno.Executar;
+          try
+            ACBrNFe.WebServices.Retorno.Executar;
+          except
+          end;
 
           csta := ACBrNFe.WebServices.Retorno.cstat;
         end
@@ -3358,7 +3363,10 @@ begin
           // as vezes acbrNFeEnviar função retorna FALSE mas tem numero de recibo
           if ACBrNFe.WebServices.enviar.Recibo <> '' then
           begin
-            ACBrNFe.WebServices.Retorno.Executar;
+            try
+              ACBrNFe.WebServices.Retorno.Executar;
+            except
+            end;
           end;
 
           csta := ACBrNFe.WebServices.Retorno.cstat;
@@ -3860,7 +3868,14 @@ begin
               ACBrNFe.WebServices.enviar.Recibo;
             richED.Lines.Add('Recibo: ' + ACBrNFe.WebServices.enviar.Recibo);
             richED.Lines.Add('Consultando Recibo... ');
-            ACBrNFe.WebServices.Retorno.Executar;
+
+            try
+              ACBrNFe.WebServices.Retorno.Executar;
+            except
+              on e:exception do begin
+                richED.Lines.Add('Erro 3876: ' + e.Message);
+              end;
+            end;
 
             csta := ACBrNFe.WebServices.Retorno.cstat;
           end
@@ -3871,7 +3886,13 @@ begin
             begin
               richED.Lines.Add('Recibo: ' + ACBrNFe.WebServices.enviar.Recibo);
               richED.Lines.Add('Consultando Recibo... ');
-              ACBrNFe.WebServices.Retorno.Executar;
+              try
+                ACBrNFe.WebServices.Retorno.Executar;
+              except
+                on e:exception do begin
+                  richED.Lines.Add('Erro 3893: ' + e.Message);
+                end;
+              end;
             end;
 
             csta := ACBrNFe.WebServices.Retorno.cstat;
@@ -3933,7 +3954,14 @@ begin
         if ERRO_dados <> '' then
         begin
           estado := ERRO_dados;
-          ACBrNFe.WebServices.Retorno.Executar;
+          try
+            ACBrNFe.WebServices.Retorno.Executar;
+          except
+            on e:exception do begin
+              richED.Lines.Add('Erro 3876: ' + e.Message);
+            end;
+          end;
+
           csta   := ACBrNFe.WebServices.Retorno.cstat;
           estado :=  ACBrNFe.WebServices.Retorno.xMotivo;
           if csta <> 100 then
@@ -3943,7 +3971,14 @@ begin
       except
         On e: Exception do
         begin
-          ACBrNFe.WebServices.Retorno.Executar;
+          try
+              ACBrNFe.WebServices.Retorno.Executar;
+            except
+              on e:exception do begin
+                richED.Lines.Add('Erro 3971: ' + e.Message);
+              end;
+            end;
+
           csta := ACBrNFe.WebServices.Retorno.cstat;
 
           richED.Lines.Add('*** erro: ' + e.Message + #13 + 'cstat: ' +

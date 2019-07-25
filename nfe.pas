@@ -100,6 +100,8 @@ type
     valida : boolean;
     COFINS_ST, PIS_ST, PIS_NT, vST : currency;
     aliquotasGrupoDeICMS : TItensPISCOFINS;
+    function getSerieNFe : string;
+    function getNNF() : String;
     function verificaProtNFe(arquivoXML : String ) : boolean;
     procedure carregaConfigsNFe();
     procedure trataDuplicidadeNFe(erroDup : String; msg : boolean);
@@ -165,7 +167,6 @@ type
     TotalFrete, VLR_DESP : currency;
     pasta_Acbr, UF_EMI, UF_DEST, IND_FINAL, indIEDest, nodoFAT, ambienteProducao1homologacao2,
     generator : String;
-    //versao : String;
     procedure CriaLista_De_itens_Venda(var lista : Tlist);
     function abreDataSetIBselectPelaChave(chave : String) : boolean;
     function achaQTD(const preco, total : currency) : currency;
@@ -203,7 +204,6 @@ type
     function IMPRIME_NFE1(arqXml : string) : string;
     function IMPRIME_NFE2(arqXml : string) : string;
     FUNCTION NODO_INFADIC(INFO : string; PIS_NT, PIS_ST, COFINS_ST, _CFOP : currency) : String;
-    function Dados_do_Frete : TStringList;
     function substitui_Nodo(nome:string; conteudo : string; const texto :string) : String;
     procedure impremeCCE(const nota : string);
     procedure ReimprimeCCECompleta();
@@ -1417,20 +1417,20 @@ end;
 
 function TNfeVenda.Reimpressao1 : string;
 var
-  texto, nf, just, nfOri : string;
+  texto, nf, just, nfOri, serie, nomeGen : string;
 begin
-  nf := Incrementa_Generator('nfe', 0);
-  nf := IntToStr(StrToIntDef(nf, 1) -1);
+  nf := IntToStr(StrToIntDef(funcoes.BuscaNumeracaoNFeSerie(nomeGen), 1) -1);
   nf := funcoes.dialogo('generico',0,'1234567890'+#8,50,false,'','Control For Windows','Informe o Número da Nota Fiscal Eletrônica:', nf);
   if nf = '*' then exit;
 
+  serie := funcoes.dialogo('not', 0, '1234567890' + #8 + #32, 50, true, '',application.Title, 'Qual a Série ?', IntToStr(SerieNFe));
+  if serie = '*' then exit;
+
+  nf := funcoes.buscaChaveNFe(nf, serie);
 
   if nf = '' then nf := funcoes.buscaNFEsPorCPF_CNPJ('');
 
   nfOri := nf;
-  nf := funcoes.StrNum(nf);
-  nf := funcoes.recuperaChaveNFe(nf);
-
   if nf = '' then
     begin
       ShowMessage('Nota ' + nfOri + ' Não Encontrada');
@@ -1481,11 +1481,6 @@ begin
   end;
 end;
 
-
-function TNfeVenda.Dados_do_Frete : TStringList;
-begin
-
-end;
 
 FUNCTION TNfeVenda.NODO_INFADIC(INFO : string; PIS_NT, PIS_ST, COFINS_ST, _CFOP : currency) : String;
 var OBS : string;
@@ -1998,17 +1993,22 @@ end;
 
 function TNfeVenda.CancelamentoNFe1 : string;
 var
-  texto, nf, just, te, tmp, nnf, cstat : string;
+  texto, nf, just, te, tmp, nnf, cstat, nomeGen : string;
   data : tdate;
 begin
   carregaConfigsNFe();
-  te := Incrementa_Generator('nfe', 0);
-  te := IntToStr(StrToIntDef(te, 1) -1);
+  te := IntToStr(StrToIntDef(funcoes.BuscaNumeracaoNFeSerie(nomeGen), 1) -1);
   nf := funcoes.dialogo('generico',100,'1234567890'+#8,100,false,'','Control For Windows','Informe o Número da Nota Fiscal Eletrônica:',te);
   if nf = '*' then exit;
 
-  te := funcoes.StrNum(nf);
-  nf := funcoes.recuperaChaveNFe(te);
+  serie := funcoes.dialogo('not', 0, '1234567890' + #8 + #32, 50, true, '',application.Title, 'Qual a Série ?', IntToStr(SerieNFe));
+  if serie = '*' then exit;
+
+  nf := funcoes.buscaChaveNFe(nf, serie);
+  if nf = '' then begin
+    ShowMessage('Registro Não Encontrado');
+    exit;
+  end;
 
   if nf = '' then
     begin
@@ -2221,7 +2221,16 @@ begin
     if nf = '*' then exit;
 
     nf := funcoes.StrNum(nf);
-    nf := funcoes.recuperaChaveNFe(nf);
+    serie := funcoes.dialogo('not', 0, '1234567890' + #8 + #32, 50, true, '',application.Title, 'Qual a Série ?', IntToStr(SerieNFe));
+    if serie = '*' then exit;
+
+    nf := funcoes.buscaChaveNFe(nf, serie);
+    if nf = '' then begin
+      ShowMessage('Registro Não Encontrado');
+      exit;
+    end;
+
+    //nf := funcoes.recuperaChaveNFe(nf);
   end;
 
   contador := 0;
@@ -2537,8 +2546,6 @@ begin
   if usaNFe4ouMaior and (UF_EMI <> UF_DEST) then begin
     VEICULO := '';
   end;
-
-
 
   Result := '<transp><modFrete>' + TRIM(IntToStr(tipo_frete)) + '</modFrete><transporta>' +
   CPF_CNPJ + '<xNome>' + removeCarateresEspeciais(TRIM(FRETE1.Values['1'])) + '</xNome>' + IfThen(funcoes.STRNUM(FRETE1.Values['5']) <> '', '<IE>' + iesTransp + '</IE>', '') +
@@ -3014,6 +3021,26 @@ Procedure TNfeVenda.LerDados_Emit_Dest(codDest : string);
  var
    i : integer;
 begin
+  if dm.ACBrNFe.Configuracoes.WebServices.Ambiente = taProducao then generator := 'NFE'
+  else generator := 'NFEHOMOLOGA';
+
+  if StrToIntDef(getSerieNFe, 1) > 1 then begin
+    generator := generator + getSerieNFe;
+    if funcoes.VerSeExisteGeneratorPeloNome(generator) = false then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := 'create sequence ' + generator ;
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := 'alter sequence ' + generator  + ' restart with 1';
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+  end;
+
+
+
   dm.IBselect.Close;
   dm.IBselect.SQL.Clear;
   dm.IBselect.SQL.Add('select * from registro');
@@ -3022,10 +3049,6 @@ begin
   dadosEmitente := TStringList.Create;
   dadosDest := TStringList.Create;
 
-  if dm.ACBrNFe.Configuracoes.WebServices.Ambiente = taProducao then generator := 'NFE'
-  else generator := 'NFEHOMOLOGA';
-
-  //if recuperando = true then
    codNFe := Incrementa_Generator(generator, 0);
 
   dadosEmitente.Values['cod_mun'] := dm.IBselect.fieldbyname('cod_mun').AsString;
@@ -3399,7 +3422,7 @@ begin
   dHAtual := getDataHoraAtualXML;
 
   Result := '<ide><cUF>' + UF + '</cUF><cNF>' + funcoes.CompletaOuRepete('',nota,'0',8) + '</cNF><natOp>' + LeftStr(removeCarateresEspeciais(COD_CFOP), 50) + '</natOp>' +
-  '<indPag>' + IND_PAG  + '</indPag><mod>55</mod><serie>1</serie><nNF>' +
+  '<indPag>' + IND_PAG  + '</indPag><mod>55</mod><serie>'+getSerieNFe+'</serie><nNF>' +
   NUM_NF + '</nNF><dhEmi>' + dHAtual + '</dhEmi><dhSaiEnt>' + dHAtual + '</dhSaiEnt>' +
   '<tpNF>'+ IfThen(Contido(cod_OP[1], '567'), '1', '0') +'</tpNF><idDest>'+ idDest +'</idDest><cMunFG>' + COD_MUNIC + '</cMunFG>' +
    '<tpImp>1</tpImp><tpEmis>1</tpEmis><cDV>' + DV_NF +
@@ -3813,6 +3836,9 @@ begin
     LerDados_Emit_Dest(dest);
     CriaLista_De_itens_Venda(lista_itens);
   except
+    on e:exception do begin
+      ShowMessage('');
+    end;
   end;
 
   IF ((DEST_NFE = '2') AND (LeftStr(cod_OP, 1) = '7')) then
@@ -3989,13 +4015,19 @@ begin
           if acbrNFeEnviar(20) then begin
             //se entrou aqui é pq passou do metodo acbr.Enviar
             ACBrNFe.WebServices.Retorno.Recibo := ACBrNFe.WebServices.enviar.Recibo;
-            ACBrNFe.WebServices.Retorno.Executar;
+            try
+              ACBrNFe.WebServices.Retorno.Executar;
+            except
+            end;
             csta := ACBrNFe.WebServices.Retorno.cstat;
            end
            else begin
              //as vezes acbrNFeEnviar função retorna FALSE mas tem numero de recibo
              if ACBrNFe.WebServices.enviar.Recibo <> '' then begin
-               ACBrNFe.WebServices.Retorno.Executar;
+               try
+                 ACBrNFe.WebServices.Retorno.Executar;
+               except
+               end;
              end;
 
              csta := ACBrNFe.WebServices.Retorno.cstat;
@@ -4165,7 +4197,8 @@ begin
     Result := Result + FormatDateTime('yymm',form22.datamov); //ano e mes de emissao tamanho 04
     Result := Result + dadosEmitente.Values['cnpj']; //cnpj do emitente tamanho 14
     Result := Result + '55'; // modelo da nf 02
-    Result := Result + '001';//serie 03
+    //Result := Result + '001';//serie 03
+    Result := Result + strzero(getSerieNFe, 3);//serie 03
     Result := Result + funcoes.CompletaOuRepete('',dadosEmitente.Values['nf'],'0',9); //numero nota fiscal 09
     //Result := Result + funcoes.CompletaOuRepete('1',dadosEmitente.Values['nf'],'0',9);
     Result := Result + '1';
@@ -4475,6 +4508,10 @@ begin
     LerDados_Emit_Dest(dest);
     CriaLista_De_itens_Venda(lista_itens);
   except
+    on e:exception do begin
+      ShowMessage('Erro4495: ' + e.Message);
+      erro_dados := 'ERRO';
+    end;
   end;
 
   if erro_dados = 'ERRO' then exit;
@@ -4912,6 +4949,19 @@ begin
       'Tipo: ' + tpstring);
     end;
 end;
+
+
+function TNfeVenda.getSerieNFe : string;
+begin
+  if ((SerieNFe <= 0) or (SerieNFe = Null))  then SerieNFe := 1;
+  Result := IntToStr(SerieNFe);
+end;
+
+function TNfeVenda.getNNF() : String;
+begin
+
+end;
+
 
 
 

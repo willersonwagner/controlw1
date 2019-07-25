@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, Mask, JsEditCNPJ1, StdCtrls, JsEdit1, Buttons, ExtCtrls, ImgList,
-  JsEditInteiro1;
+  JsEditInteiro1, funcoesDAV;
 
 type
   TForm35 = class(TForm)
@@ -118,7 +118,7 @@ begin
       dm.IBQuery1.SQL.Clear;
       dm.IBQuery1.SQL.Add('update registro set empresa = :emp,registro=:reg,nome=:nome,cnpj=:cnpj,ies=:ies,ende=:ende,cep=:cep,telres=:telres,telcom=:telcom, cid = :cid,est=:est,obs=:obs,titular=:titular,crip=:crip,cod_mun=:mun, suframa = :suframa');
       //dm.IBQuery1.ParamByName('cod').AsString := funcoes.Criptografar(cod.Text);
-      dm.IBQuery1.ParamByName('emp').AsString := empresa.Text;
+      dm.IBQuery1.ParamByName('emp').AsString := REMOVE_ACENTO(empresa.Text);
 
       if demo1 then dm.IBQuery1.ParamByName('reg').AsInteger := trunc(StringToInteger(empresa.Text) / 2)
         else  dm.IBQuery1.ParamByName('reg').AsInteger := StringToInteger(empresa.Text);
@@ -490,12 +490,3 @@ begin
 end;
 
 end.
-
-
-
-
-
-
-
-
-

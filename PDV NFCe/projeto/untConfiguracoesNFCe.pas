@@ -134,6 +134,8 @@ type
     usarnfe40: TCheckBox;
     Label32: TLabel;
     casasDecimais: TEdit;
+    serieNFe: TEdit;
+    Label33: TLabel;
     procedure sbtnCaminhoCertClick(Sender: TObject);
     procedure sbtnGetCertClick(Sender: TObject);
     procedure BtnOKClick(Sender: TObject);
@@ -305,7 +307,7 @@ begin
 
  GravarConfiguracao(certificadoCaminho,certificadoSenha,certificadoNumeroSerie, FinalidadeNFe,DANFETipo,DANFEFormaEmissao,DANFELogomarca,ArqLog,CaminhoLog,
                     WebUF,WebAmbiente,WebVisualiza,ProxHost,ProxPorta,ProxUser,ProxSenha,EmailHost,EmailPorta,EmailUsuario,EmailSenha, EmailAssunto, MemMensagemEmail,EmailSSL,
-                    ArquivosPDF, ArquivosNFe, CFOP, IdToken, Token, indxImpressora, IndxImpNfe.ItemIndex, tipoImpressao, preview, 'COM1', '9600', '6', serie.Text,'1', IntToStr(ComboBox1.ItemIndex), PortaCOM.Text,
+                    ArquivosPDF, ArquivosNFe, CFOP, IdToken, Token, indxImpressora, IndxImpNfe.ItemIndex, tipoImpressao, preview, 'COM1', '9600', '6', serie.Text, serieNFe.Text,'1', IntToStr(ComboBox1.ItemIndex), PortaCOM.Text,
                     previewNFCe.Checked);
 
 
@@ -410,6 +412,7 @@ begin
    edtIDToken.Text                                      := Ini.ReadString('Geral','IDToken', '');
    edtToken.Text                                        := Ini.ReadString('Geral','Token', '');
    serie.Text                                           := Ini.ReadString('Geral','serie', '');
+   serieNFe.Text                                        := Ini.ReadString('Geral','serieNFe', '1');
 
    RadioButton3.Checked                                 := Ini.ReadBool  ('Geral','preview',False) ;
    previewNFCe.Checked                                  := Ini.ReadBool  ('Geral','previewNFCe',False) ;
