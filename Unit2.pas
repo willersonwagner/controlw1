@@ -18220,7 +18220,7 @@ begin
       dm.IBQuery1.SQL.Text := 'select nota,total from venda where nota = :nota';
       dm.IBQuery1.ParamByName('nota').AsInteger := dm.IBselect.FieldByName('venda').AsInteger;
       dm.IBQuery1.Open;
-      if dm.IBQuery1.IsEmpty = false then total := dm.IBQuery1.FieldByName('total').AsCurrency;      
+      if dm.IBQuery1.IsEmpty = false then total := dm.IBQuery1.FieldByName('total').AsCurrency;
     end;
 
     addRelatorioForm19('|' + formataDataDDMMYY(dm.ibselect.FieldByName('data').AsDateTime) +
@@ -21592,3 +21592,5 @@ begin
 end;
 
 end.
+
+

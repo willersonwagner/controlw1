@@ -551,7 +551,7 @@ begin
  acc := 0;
  while not DBGrid2.DataSource.DataSet.Eof do
    begin
-     acc := acc + funcoes.ArredondaFinanceiro(DBGrid2.DataSource.DataSet.fieldbyname('quant').AsCurrency * DBGrid2.DataSource.DataSet.fieldbyname('p_compra').AsCurrency,2);
+     acc := acc + funcoes.ArredondaFinanceiro(DBGrid2.DataSource.DataSet.fieldbyname('quant').AsFloat * DBGrid2.DataSource.DataSet.fieldbyname('p_compra').AsFloat,2);
      DBGrid2.DataSource.DataSet.Next;
     end;
 
@@ -1045,7 +1045,7 @@ end;
 
 procedure TForm17.DBGrid1KeyPress(Sender: TObject; var Key: Char);
 begin
-    if key=#46 then
+    if key = #46 then
   begin
    try
      ExcluiEntrada;
@@ -1067,6 +1067,7 @@ begin
    end;
 end;
 end;
+
 procedure TForm17.p_vendaExit(Sender: TObject);
 begin
   {form9 := tform9.Create(self);
@@ -1095,8 +1096,6 @@ if key=27 then data.SetFocus;
   end;
   
   if key = 113 then abreCadastro();
-
-
 end;
 
 procedure TForm17.DBGrid2Enter(Sender: TObject);
@@ -1138,8 +1137,8 @@ end;
 procedure TForm17.DBGrid2KeyUp(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
-if key=40 then produto.Caption := LerNome('','1',DBGrid2.Columns[0].Field.AsString,'');
-if key=38 then produto.Caption := LerNome('','1',DBGrid2.Columns[0].Field.AsString,'');
+if key = 40 then produto.Caption := LerNome('','1',DBGrid2.Columns[0].Field.AsString,'');
+if key = 38 then produto.Caption := LerNome('','1',DBGrid2.Columns[0].Field.AsString,'');
 end;
 
 procedure TForm17.JsBotao1Click(Sender: TObject);

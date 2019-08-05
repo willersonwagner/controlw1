@@ -7160,9 +7160,7 @@ begin
   end;
 
 
-  { if (chaveAtual <> '') and (chaveAtual <> chavt) and
-    (length(strnum(chavt)) = 44) then
-    begin
+   if (chaveAtual <> '') and (chaveAtual <> chavt) and (length(strnum(chavt)) = 44) then begin
     query1.Close;
     query1.SQL.text := 'delete from nfce where chave = :chave';
     query1.ParamByName('chave').AsString := chaveAtual;
@@ -7182,14 +7180,13 @@ begin
     query1.ParamByName('cliente').AsInteger := 0;
     query1.ParamByName('adic').AsString := '';
     query1.ParamByName('data').AsDate := now;
-    //query1.ParamByName('USUARIO').AsInteger := USUARIO1;
-
+   
     try
-    query1.ExecSQL;
-    query1.Transaction.Commit;
+     query1.ExecSQL;
+     query1.Transaction.Commit;
     except
     end;
-    end; }
+    end;
 
   if not FileExists(buscaPastaNFCe(chavt) + chavt + '-nfe.xml') then
   begin

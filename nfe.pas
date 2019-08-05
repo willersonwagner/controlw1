@@ -4033,7 +4033,7 @@ begin
              csta := ACBrNFe.WebServices.Retorno.cstat;
            end;
 
-          if (((csta > 0) and (csta < 999)) or (i >= 6)) then break;
+          if (((csta > 0) and (csta < 999)) or (i >= 15)) then break;
           sleep(1500);
         end;
 
@@ -4862,6 +4862,7 @@ begin
   CNPJ := dm.IBQuery2.FieldByName('cnpj').AsString;
   dm.IBQuery2.Close;
 
+  ACBrNFe.NotasFiscais.Clear;
   ACBrNFe.EventoNFe.Evento.Clear;
   ACBrNFe.EventoNFe.Evento.Add;
   with ACBrNFe.EventoNFe.Evento[0] do begin

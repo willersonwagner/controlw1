@@ -127,7 +127,7 @@ begin
   if (TOTvICMSDeson_Produtos > 0) and (StrToCurr(fe[5]) > 0) then begin
     tmp := vProd - (TOTvICMSDeson_Produtos + StrToCurr(fe[5]));
 
-   {{ ShowMessage('TOTvICMSDeson_Produtos=' + CurrToStr(TOTvICMSDeson_Produtos) + #13 +
+    {ShowMessage('TOTvICMSDeson_Produtos=' + CurrToStr(TOTvICMSDeson_Produtos) + #13 +
     'fe[5]=' + fe[5] + #13 + 'vProd=' + CurrToStr(vProd) + #13 +
     'tmp=' + CurrToStr(tmp) + #13 + 'totnota=' + CurrToStr(totnota) + #13 +
     'abs=' + CurrToStr(abs((tmp) - totnota)));}
@@ -269,7 +269,8 @@ begin
       dm.IBQuery4.ParamByName('nota').AsString       := ClientDataSet1.fieldbyname('nota').AsString;
       dm.IBQuery4.ParamByName('FORNEC').AsString     := fornecedor;
       dm.IBQuery4.ParamByName('quant').AsFloat       := quant1 + ClientDataSet1.fieldbyname('QUANTIDADE_NFE').AsFloat;
-      dm.IBQuery4.ParamByName('P_compra').AsFloat    := ClientDataSet1.fieldbyname('PRECO_NFE').AsFloat;
+      dm.IBQuery4.ParamByName('P_COMPRA').AsFloat    := ClientDataSet1.fieldbyname('PRECO_NFE').AsFloat;
+
       dm.IBQuery4.ParamByName('destino').AsInteger   := 1;
       dm.IBQuery4.ParamByName('usuario').AsString    := form22.codusario;
       dm.IBQuery4.ParamByName('total').AsCurrency    := ClientDataSet1.fieldbyname('total').AsCurrency;
@@ -518,11 +519,11 @@ begin
     ClientDataSet1.FieldByName('UNID_ENTRADA').AsString := cod;
     ClientDataSet1.FieldByName('UNID_VENDA').AsString   := (cod1);
     ClientDataSet1.FieldByName('mu').AsInteger          := trunc(qtd);
-    ClientDataSet1.FieldByName('QUANTIDADE_ENT').AsCurrency :=  Arredonda(qtd * ClientDataSet1.FieldByName('QUANTIDADE_NFE').AsCurrency, 3);
+    ClientDataSet1.FieldByName('QUANTIDADE_ENT').AsCurrency :=  Arredonda(qtd * ClientDataSet1.FieldByName('QUANTIDADE_NFE').AsFloat, 3);
 
-    valor := Arredonda((ClientDataSet1.FieldByName('PRECO_NFE').AsCurrency + (ClientDataSet1.FieldByName('PRECO_NFE').AsCurrency * ClientDataSet1.FieldByName('LUCRO').AsCurrency / 100)) /qtd, 2);
-    ClientDataSet1.FieldByName('PRECO_NOVO').AsCurrency   := valor;
-    ClientDataSet1.FieldByName('PRECO_COMPRA').AsCurrency := Arredonda(ClientDataSet1.FieldByName('PRECO_NFE').AsCurrency / StrToCurrDef(ClientDataSet1.FieldByName('mu').AsString, 1), 2);
+    valor := Arredonda((ClientDataSet1.FieldByName('PRECO_NFE').AsFloat + (ClientDataSet1.FieldByName('PRECO_NFE').AsFloat * ClientDataSet1.FieldByName('LUCRO').AsFloat / 100)) /qtd, 2);
+    ClientDataSet1.FieldByName('PRECO_NOVO').AsFloat   := valor;
+    ClientDataSet1.FieldByName('PRECO_COMPRA').AsFloat := Arredonda(ClientDataSet1.FieldByName('PRECO_NFE').AsFloat / StrToCurrDef(ClientDataSet1.FieldByName('mu').AsString, 1), 2);
     ClientDataSet1.Post;
     //verificaOK();
   finally
@@ -731,7 +732,7 @@ begin
           mu := StrToCurrDef(ClientDataSet1.FieldByName('mu').AsString, 1);
           ClientDataSet1.Edit;
           ClientDataSet1.FieldByName('LUCRO').AsCurrency      := StrToCurrDef(sim, 0);
-          ClientDataSet1.FieldByName('PRECO_NOVO').AsCurrency := Arredonda((ClientDataSet1.FieldByName('PRECO_NFE').AsCurrency + (ClientDataSet1.FieldByName('PRECO_NFE').AsCurrency * StrToCurrDef(sim, 0) / 100)) / mu, 2);
+          ClientDataSet1.FieldByName('PRECO_NOVO').AsCurrency := Arredonda((ClientDataSet1.FieldByName('PRECO_NFE').AsFloat + (ClientDataSet1.FieldByName('PRECO_NFE').AsFloat * StrToCurrDef(sim, 0) / 100)) / mu, 2);
           ClientDataSet1.Post;
         end;
 
@@ -889,7 +890,7 @@ begin
     ClientDataSet1.FieldByName('mu').AsCurrency            := funcoes.verValorUnidade(ClientDataSet1.FieldByName('UNID_ENTRADA').AsString);
     qtd := ClientDataSet1.FieldByName('mu').AsCurrency;
     ClientDataSet1.FieldByName('QUANTIDADE_ENT').AsCurrency := Arredonda( qtd * ClientDataSet1.FieldByName('QUANTIDADE_NFE').AsCurrency,2);
-    if qtd > 1 then ClientDataSet1.FieldByName('PRECO_COMPRA').AsCurrency  := Arredonda( ClientDataSet1.FieldByName('PRECO_NFE').AsCurrency / qtd, 2);
+    if qtd > 1 then ClientDataSet1.FieldByName('PRECO_COMPRA').AsCurrency  := Arredonda( ClientDataSet1.FieldByName('PRECO_NFE').AsFloat / qtd, 2);
 
     ClientDataSet1.Post;
     //verificaOK();
@@ -1015,7 +1016,7 @@ begin
           dm.IBQuery1.ParamByName('nome').AsString       := UpperCase(ClientDataSet1.FieldByName('DESCRICAO_ATUAL').AsString);
           dm.IBQuery1.ParamByName('p_venda').AsCurrency  := p_venda;//ClientDataSet1.FieldByName('PRECO_NOVO').AsCurrency;
           //dm.IBQuery1.ParamByName('p_compra').AsCurrency := Arredonda(ClientDataSet1.FieldByName('PRECO_NFE').AsCurrency / funcoes.verValorUnidade(ClientDataSet1.FieldByName('UNID_ENTRADA').AsString), 2);
-          if p_compra = 0 then p_compra := Arredonda(ClientDataSet1.FieldByName('PRECO_NFE').AsCurrency / funcoes.verValorUnidade(ClientDataSet1.FieldByName('UNID_ENTRADA').AsString), 2);
+          if p_compra = 0 then p_compra := Arredonda(ClientDataSet1.FieldByName('PRECO_NFE').AsFloat / funcoes.verValorUnidade(ClientDataSet1.FieldByName('UNID_ENTRADA').AsString), 2);
           dm.IBQuery1.ParamByName('p_compra').AsCurrency := p_compra;
           dm.IBQuery1.ParamByName('unid').AsString       := SomenteLetras(ClientDataSet1.FieldByName('UNID_VENDA').AsString);
           dm.IBQuery1.ParamByName('unid2').AsString      := ClientDataSet1.FieldByName('UNID_ENTRADA').AsString;
@@ -1300,7 +1301,7 @@ begin
           lista[i].PERC_ICM  := StrToCurrDef(ClientDataSet1.FieldByName('PRECO_ATUAL').AsString, 0);
           if lista[i].PERC_ICM = 0 then lista[i].PERC_ICM  := StrToCurrDef(ClientDataSet1.FieldByName('PRECO_NOVO').AsString, 0);
           lista[i].cod      := ClientDataSet1.fieldbyname('codigo').AsInteger;
-          lista[i].preco    := ClientDataSet1.fieldbyname('PRECO_NFE').AsCurrency;
+          lista[i].preco    := ClientDataSet1.fieldbyname('PRECO_NFE').AsFloat;
           lista[i].total    := ClientDataSet1.fieldbyname('total').AsCurrency;
           lista[i].unid     := ClientDataSet1.fieldbyname('UNID_ENTRADA').AsString;
           lista[i].unid2    := ClientDataSet1.fieldbyname('UNID_VENDA').AsString;
@@ -1308,7 +1309,7 @@ begin
           lista[i].nome     := ClientDataSet1.fieldbyname('REF_NFE').AsString;
           lista[i].temp     := nome;
           lista[i].quant    := qtd;
-          lista[i].BASE_ICM := ClientDataSet1.FieldByName('PRECO_COMPRA').AsCurrency;
+          lista[i].BASE_ICM := ClientDataSet1.FieldByName('PRECO_COMPRA').AsFloat;
           lista[i].CST_PIS  := ClientDataSet1.FieldByName('PIS').AsString;
           lista[i].COD_ISPIS  := ClientDataSet1.FieldByName('COD_ISPIS').AsString;
 
@@ -1317,8 +1318,8 @@ begin
 
           //lista[i].preco := StrToCurrDef(ClientDataSet1.FieldByName('PRECO_COMPRA').AsString, 0);
 
-          lista[i].preco := ClientDataSet1.FieldByName('PRECO_ATUAL').AsCurrency;
-          if lista[i].preco = 0 then lista[i].preco := Arredonda(ClientDataSet1.FieldByName('PRECO_NFE').AsCurrency / funcoes.verValorUnidade(ClientDataSet1.FieldByName('UNID_ENTRADA').AsString), 2);
+          lista[i].preco := ClientDataSet1.FieldByName('PRECO_ATUAL').AsFloat;
+          if lista[i].preco = 0 then lista[i].preco := Arredonda(ClientDataSet1.FieldByName('PRECO_NFE').AsFloat / funcoes.verValorUnidade(ClientDataSet1.FieldByName('UNID_ENTRADA').AsString), 2);
         end
       else
         begin
@@ -1403,7 +1404,7 @@ begin
             form48.ClientDataSet1.FieldByName('ALIQ').AsString :=
             dm.IBselect.FieldByName('aliquota').AsString;
             form48.ClientDataSet1.FieldByName('DESCRICAO_ATUAL').AsString :=
-            copy(dm.IBselect.FieldByName('nome').AsString, 1, 40);
+            dm.IBselect.FieldByName('nome').AsString;
             form48.ClientDataSet1.FieldByName('REFORI').AsString :=
             dm.IBselect.FieldByName('REFORI').AsString;
 

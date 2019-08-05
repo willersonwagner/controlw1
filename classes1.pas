@@ -127,7 +127,7 @@ type
     aliqCred : currency;
     preco    : currency;
     total    : currency;
-    BASE_ICM : currency;
+    BASE_ICM : Extended;
     PERC_ICM : currency;
     TOT_ICM  : currency;
     vPIS     : currency;

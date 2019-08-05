@@ -161,7 +161,8 @@ type
     procedure gravaCompra;
     procedure RecuperaCompra(numCompra: string);
     procedure AddProdutoCDS_Compra(quanti, valor: currency);
-    procedure AddProdutoCDS_Generico(cod: integer; quanti, valor: currency; permitirVendaNegativa : boolean = true);
+    procedure AddProdutoCDS_Generico(cod: integer; quanti, valor: currency;
+      permitirVendaNegativa: boolean = true);
     function somaDescontoVendaCDS: currency;
     function AdicionaListaSmall: boolean;
     procedure ordenaDatasetPorCampoBdgrid(campo, valor: String);
@@ -220,8 +221,8 @@ var
   sair: boolean;
   procura: string;
 
-//const
-  //: String = '|KG|ML|M|MP|MT|LT|M2|M3|';
+  // const
+  // : String = '|KG|ML|M|MP|MT|LT|M2|M3|';
 
 implementation
 
@@ -713,8 +714,7 @@ begin
     podeDarAcrescimo := 'S';
   end;
 
-  if tipoDesconto = 'S' then
-  begin
+  if tipoDesconto = 'S' then begin
     fim := CurrToStr(p_venda);
 
     if funcoes.buscaParamGeral(5, 'N') = 'S' then
@@ -729,6 +729,7 @@ begin
       else
         avista := p_venda;
       fim := CurrToStr(avista);
+      //fim := CurrToStr(p_venda);
     end;
 
     // fim := '-999999';
@@ -846,7 +847,6 @@ begin
       // ShowMessage('minimo=' + CurrToStr(minimo) + #13 + 'p_vendatemp=' +  CurrToStr(p_vendatemp) + 'p_venda=' + CurrToStr(p_venda) +
       // #13 + 'temp1=' + CurrToStr(temp1));
 
-
       if ((podeDarAcrescimo = 'S') and (temp1 > p_venda)) then
       begin
         break;
@@ -865,15 +865,15 @@ begin
         break;
       end;
 
-      {if ((podeDarAcrescimo = 'S') and (temp1 > p_venda)) then
+      { if ((podeDarAcrescimo = 'S') and (temp1 > p_venda)) then
         break;
-      if (((temp1 >= minimo) and (temp1 <= p_venda)) or
+        if (((temp1 >= minimo) and (temp1 <= p_venda)) or
         ((temp1 > p_venda) and
         VerificaAcesso_Se_Nao_tiver_Nenhum_bloqueio_true_senao_false)) then
-      begin
+        begin
         break;
-      end;
-      if ((temp1 < minimo) and
+        end;
+        if ((temp1 < minimo) and
         (VerificaAcesso_Se_Nao_tiver_Nenhum_bloqueio_true_senao_false)) then
         break; }
 
@@ -1168,7 +1168,8 @@ begin
   end;
 end;
 
-procedure TForm20.AddProdutoCDS_Generico(cod: integer; quanti, valor: currency; permitirVendaNegativa : boolean = true);
+procedure TForm20.AddProdutoCDS_Generico(cod: integer; quanti, valor: currency;
+  permitirVendaNegativa: boolean = true);
 begin
   if DBGrid1.DataSource.DataSet.Locate('cod', cod, []) = false then
   begin
@@ -1177,8 +1178,10 @@ begin
     exit;
   end;
 
-  if permitirVendaNegativa = false then begin
-    if limitar_QTD_Estoque(quanti, cod) = false then exit;
+  if permitirVendaNegativa = false then
+  begin
+    if limitar_QTD_Estoque(quanti, cod) = false then
+      exit;
   end;
 
   if buscaProdutoCDS(IntToStr(cod), valor, '', 0) then
@@ -1202,7 +1205,7 @@ begin
     ClientDataSet1CODIGO.AsInteger := dm.produto.FieldByName('cod').AsInteger;
     ClientDataSet1DESCRICAO.AsString :=
       dm.produto.FieldByName('descricao').AsString;
-    ClientDataSet1unid.AsString :=  dm.produto.FieldByName('unid').AsString;
+    ClientDataSet1unid.AsString := dm.produto.FieldByName('unid').AsString;
     ClientDataSet1Refori.AsString := dm.produto.FieldByName('codbar').AsString;
     ClientDataSet1QUANT.AsCurrency := quanti;
     ClientDataSet1PRECO.AsCurrency := valor;
@@ -1250,7 +1253,8 @@ begin
 
     dm.IBQuery2.Close;
     dm.IBQuery2.SQL.Text := 'select cod, unid from produto where cod = :cod';
-    dm.IBQuery2.ParamByName('cod').AsInteger := dm.produto.FieldByName('cod').AsInteger;
+    dm.IBQuery2.ParamByName('cod').AsInteger := dm.produto.FieldByName('cod')
+      .AsInteger;
     dm.IBQuery2.Open;
 
     ClientDataSet1unid.AsString := dm.IBQuery2.FieldByName('unid').AsString;
@@ -2856,21 +2860,29 @@ begin
 
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Clear;
-      dm.IBQuery1.SQL.Add('select unid, codbar, nome, fracao from produto where cod=' +
+      dm.IBQuery1.SQL.Add
+        ('select unid, codbar, nome, fracao from produto where cod=' +
         ClientDataSet1.FieldByName('codigo').AsString);
       dm.IBQuery1.Open;
 
       nomevol := 'Volumes:';
-      if funcoes.buscaParamGeral(109, 'N') = 'S' then begin
+      if funcoes.buscaParamGeral(109, 'N') = 'S' then
+      begin
         nomevol := 'Total M3:';
         p_venda0 := dm.IBQuery1.FieldByName('fracao').AsCurrency;
-        if p_venda0 > 0 then begin
-          sub := sub + (ClientDataSet1.FieldByName('quant').AsCurrency * p_venda0);
+        if p_venda0 > 0 then
+        begin
+          sub := sub + (ClientDataSet1.FieldByName('quant').AsCurrency *
+            p_venda0);
         end;
       end
-      else begin
-        if Contido('|'+dm.IBQuery1.FieldByName('unid').AsString + '|', form22.UnidInteiro) then sub := sub + 1
-        else sub := sub + ClientDataSet1.FieldByName('quant').AsCurrency;
+      else
+      begin
+        if contido('|' + dm.IBQuery1.FieldByName('unid').AsString + '|',
+          form22.UnidInteiro) then
+          sub := sub + 1
+        else
+          sub := sub + ClientDataSet1.FieldByName('quant').AsCurrency;
       end;
 
       if ClientDataSet1m2.AsInteger > 0 then
@@ -2923,13 +2935,15 @@ begin
     ClientDataSet1.First;
     ClientDataSet1.EnableControls;
 
-    if (Modo_Venda = true) then begin
+    if (Modo_Venda = true) then
+    begin
       try
         if funcoes.ExisteParcelamento(novocod) and
           (funcoes.buscaParamGeral(20, '') = 'S') then
         // (form22.Pgerais.Strings[20] = 'S') then
         begin
-          addRelatorioForm19('|      |      |       |                                  |        |          |'
+          addRelatorioForm19
+            ('|      |      |       |                                  |        |          |'
             + CRLF);
           funcoes.ImprimeParcelamento('|      |      |         |  ',
             '    |        |          |', FormatCurr('#,###,###0.00',
@@ -2943,11 +2957,15 @@ begin
         end;
       end;
     end
-    else begin
-      if (funcoes.buscaParamGeral(20, '') = 'S') then begin
-        addRelatorioForm19('|      |      |       |                                  |        |          |'+ CRLF);
-          funcoes.ImprimeParcelamentoOrca(Parcelamento, '|      |      |         |  ',
-            '    |        |          |');
+    else
+    begin
+      if (funcoes.buscaParamGeral(20, '') = 'S') then
+      begin
+        addRelatorioForm19
+          ('|      |      |       |                                  |        |          |'
+          + CRLF);
+        funcoes.ImprimeParcelamentoOrca(Parcelamento,
+          '|      |      |         |  ', '    |        |          |');
       end;
     end;
 
@@ -2975,8 +2993,9 @@ begin
     // end;
 
     form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-      Longint(PChar((funcoes.CompletaOuRepete('| '+nomevol+' ' +
-      funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00' + IfThen(contido('M3', nomevol), '00', ''), sub), ' ', 9),
+      Longint(PChar((funcoes.CompletaOuRepete('| ' + nomevol + ' ' +
+      funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00' +
+      IfThen(contido('M3', nomevol), '00', ''), sub), ' ', 9),
       funcoes.CompletaOuRepete('Total:', FormatCurr('#,###,###0.00', total1),
       '.', 28) + ' |', ' ', tam) + #13 + #10))));
 
@@ -3296,7 +3315,7 @@ begin
     ClientDataSet1.First;
     ClientDataSet1.EnableControls;
 
-    //if (Modo_Venda = true) then
+    // if (Modo_Venda = true) then
     if true then
 
     begin
@@ -4160,23 +4179,32 @@ begin
           ('', FormatCurr('0.00', total_item), ' ', 13) + #13 + #10))));
       end;
 
-
       dm.IBQuery2.Close;
-      dm.IBQuery2.SQL.Text := 'select unid, fracao from produto where cod = :cod';
-      dm.IBQuery2.ParamByName('cod').AsInteger := ClientDataSet1CODIGO.AsInteger;
+      dm.IBQuery2.SQL.Text :=
+        'select unid, fracao from produto where cod = :cod';
+      dm.IBQuery2.ParamByName('cod').AsInteger :=
+        ClientDataSet1CODIGO.AsInteger;
       dm.IBQuery2.Open;
 
       nomevol := 'VOLUMES:';
-      if funcoes.buscaParamGeral(109, 'N') = 'S' then begin
-        nomevol  := 'Total M3:';
+      if funcoes.buscaParamGeral(109, 'N') = 'S' then
+      begin
+        nomevol := 'Total M3:';
         p_venda0 := dm.IBQuery2.FieldByName('fracao').AsCurrency;
-        if p_venda0 > 0 then begin
-          totVolumes := totVolumes + (ClientDataSet1.FieldByName('quant').AsCurrency * p_venda0);
+        if p_venda0 > 0 then
+        begin
+          totVolumes := totVolumes + (ClientDataSet1.FieldByName('quant')
+            .AsCurrency * p_venda0);
         end;
       end
-      else begin
-        if Contido('|'+dm.IBQuery2.FieldByName('unid').AsString + '|', form22.UnidInteiro) then totVolumes := totVolumes + 1
-        else totVolumes := totVolumes + ClientDataSet1.FieldByName('quant').AsCurrency;
+      else
+      begin
+        if contido('|' + dm.IBQuery2.FieldByName('unid').AsString + '|',
+          form22.UnidInteiro) then
+          totVolumes := totVolumes + 1
+        else
+          totVolumes := totVolumes + ClientDataSet1.FieldByName('quant')
+            .AsCurrency;
       end;
 
       ClientDataSet1.Next;
@@ -4197,8 +4225,11 @@ begin
         Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 40) + #13
         + #10))));
 
-      if funcoes.buscaParamGeral(112, 'S') = 'S' then begin
-        addRelatorioForm19(funcoes.CompletaOuRepete(nomevol, FormatCurr('#,###,###0.00' + ifthen(contido('M3', nomevol), '00', ''),totVolumes), '.', 40) + CRLF);
+      if funcoes.buscaParamGeral(112, 'S') = 'S' then
+      begin
+        addRelatorioForm19(funcoes.CompletaOuRepete(nomevol,
+          FormatCurr('#,###,###0.00' + IfThen(contido('M3', nomevol), '00', ''),
+          totVolumes), '.', 40) + CRLF);
       end;
     end
     else
@@ -4207,9 +4238,12 @@ begin
         Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 40) + #13
         + #10))));
 
-      if funcoes.buscaParamGeral(112, 'S') = 'S' then begin
+      if funcoes.buscaParamGeral(112, 'S') = 'S' then
+      begin
         if Modo_Venda then
-          addRelatorioForm19(funcoes.CompletaOuRepete(nomevol, FormatCurr('#,###,###0.00' + ifthen(contido('M3', nomevol), '00', ''),totVolumes), '.', 40) + CRLF);
+          addRelatorioForm19(funcoes.CompletaOuRepete(nomevol,
+            FormatCurr('#,###,###0.00' + IfThen(contido('M3', nomevol), '00',
+            ''), totVolumes), '.', 40) + CRLF);
       end;
       addRelatorioForm19(funcoes.CompletaOuRepete('SUBTOTAL:',
         FormatCurr('#,##,###0.00', total1 - Desconto), '.', 40) + CRLF);
@@ -4279,22 +4313,24 @@ begin
       form19.RichEdit1.Perform(EM_REPLACESEL, 1,
         Longint(PChar(('* * *  *  *  *   COMPRA  *  *  *   * * *' +
         #13 + #10))))
-    else if Modo_Orcamento then begin
+    else if Modo_Orcamento then
+    begin
       form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-        Longint(PChar(('* * *          ORCAMENTO           * * *' +
-        #13 + #10))));
+        Longint(PChar(('* * *          ORCAMENTO           * * *' + #13
+        + #10))));
 
-      if Assigned(Parcelamento) then begin
-         if funcoes.buscaParamGeral(20, '') = 'S' then
-          funcoes.ImprimeParcelamentoOrca(Parcelamento,'', '');
+      if Assigned(Parcelamento) then
+      begin
+        if funcoes.buscaParamGeral(20, '') = 'S' then
+          funcoes.ImprimeParcelamentoOrca(Parcelamento, '', '');
       end;
-
 
     end
     else
       addRelatorioForm19('* * *   NAO  TEM  VALOR  FISCAL    * * *' + CRLF);
 
-    if Assigned(Parcelamento) then begin
+    if Assigned(Parcelamento) then
+    begin
       if funcoes.buscaParamGeral(20, '') = 'S' then
         funcoes.ImprimeParcelamento('', '', FormatCurr('#,###,###0.00',
           StrToCurrDef(Parcelamento.Values['entrada'], 0)), novocod);
@@ -4769,8 +4805,7 @@ begin
         ClientDataSet1Refori.AsString :=
           dm.produto.FieldByName('codbar').AsString;
 
-        ClientDataSet1unid.AsString :=
-          dm.produto.FieldByName('unid').AsString;
+        ClientDataSet1unid.AsString := dm.produto.FieldByName('unid').AsString;
         ClientDataSet1.FieldByName('grupo').AsInteger :=
           dm.IBQuery4.FieldByName('grupo').AsInteger;
 
@@ -5152,8 +5187,7 @@ begin
     qery.Locate('cod', cod, []);
   end;
 
-  m2 :=
-   1;
+  m2 := 1;
   if nome1 = '' then
   begin
     nome1 := qery.FieldByName('descricao').AsString;
@@ -6563,15 +6597,16 @@ begin
     dm.produto.SQL.Add
       ('select nome as Descricao, p_compra as preco, estoque as minimo, quant as estoque, deposito, sugestao, unid as unidade, refori as '
       + refori1 +
-      ', codbar, cod, aplic as Aplicacao, fracao, p_venda as preco_venda from produto order by ' +
-      ordem);
+      ', codbar, cod, aplic as Aplicacao, fracao, p_venda as preco_venda from produto order by '
+      + ordem);
     dm.produto.Open;
 
     funcoes.fetchDataSet(dm.produto);
 
     sqlVenda :=
       'select nome as Descricao, p_compra as preco, estoque as minimo, quant as estoque, deposito, sugestao, unid as unidade, refori as '
-      + refori1 + ', codbar, cod, aplic as Aplicacao, fracao, p_venda as preco_venda from produto';
+      + refori1 +
+      ', codbar, cod, aplic as Aplicacao, fracao, p_venda as preco_venda from produto';
 
     // dm.produto.FieldByName('sugestao').Visible := false;
     dm.produto.FieldByName('fracao').Visible := false;
@@ -6809,8 +6844,8 @@ begin
             exit;
           end;
 
-          //funcoes.baixaEstoqueSP(ClientDataSet1CODIGO.AsString,
-            //ClientDataSet1QUANT.AsCurrency, 1);
+          // funcoes.baixaEstoqueSP(ClientDataSet1CODIGO.AsString,
+          // ClientDataSet1QUANT.AsCurrency, 1);
 
           dm.IBQuery1.Close;
           dm.IBQuery1.Close;
@@ -7175,8 +7210,9 @@ begin
 
     if (DBGrid2.SelectedField.DisplayName = 'QUANT') then
     begin
-      if separaPecas then exit;
-       
+      if separaPecas then
+        exit;
+
       subTot := funcoes.dialogo('numero', 0, '1234567890,.' + #8, 3, false, '',
         'Control For Windows', 'Quantidade:', FormatCurr('#,###,###0.000',
         ClientDataSet1.FieldByName('quant').AsCurrency));
@@ -7867,19 +7903,19 @@ begin
 
       temp1 := StrToCurrDef(fim, 0);
 
-      //if ((funcoes.LerConfig(form22.Pgerais.Values['configu'], 8) = 'S') and (temp1 > total1)) then
-        //break;
+      // if ((funcoes.LerConfig(form22.Pgerais.Values['configu'], 8) = 'S') and (temp1 > total1)) then
+      // break;
 
       if (((temp1 >= total31) and (temp1 <= total1))) then
       begin
         break;
       end;
 
-      {if (((temp1 >= total31) and (temp1 <= total1)) or ((temp1 > total1) and
+      { if (((temp1 >= total31) and (temp1 <= total1)) or ((temp1 > total1) and
         VerificaAcesso_Se_Nao_tiver_Nenhum_bloqueio_true_senao_false)) then
-      begin
+        begin
         break;
-      end;}
+        end; }
 
       if ((temp1 < total31) and
         (VerificaAcesso_Se_Nao_tiver_Nenhum_bloqueio_true_senao_false)) then
@@ -8004,13 +8040,13 @@ begin
 
       temp1 := StrToCurrDef(fim, 0);
 
-      {if ((funcoes.LerConfig(form22.Pgerais.Values['configu'], 8) = 'S') and
+      { if ((funcoes.LerConfig(form22.Pgerais.Values['configu'], 8) = 'S') and
         (temp1 > total1)) then
-      begin
+        begin
         break;
-      end;  }
+        end; }
 
-      //se for maior que o minimo e menor que o total original, nao permite mais acrescimos na venda
+      // se for maior que o minimo e menor que o total original, nao permite mais acrescimos na venda
       if (((temp1 >= total31) and (temp1 <= total1))) then
       begin
         break;
@@ -8526,7 +8562,8 @@ begin
 
   if funcoes.LerConfig(form22.Pgerais.Values['configu'], 11) = 'N' then
   begin // permitir venda sem estoque disponivel
-    if qtd < 0 then begin
+    if qtd < 0 then
+    begin
       WWMessage('Venda de quantidade Negativa Não Permitida!', mtInformation,
         [mbok], HexToTColor('FFD700'), true, false, HexToTColor('B22222'));
       exit;
@@ -8545,6 +8582,7 @@ begin
     end;
   end;
 
+
   if funcoes.buscaParamGeral(107, 'N') = 'S' then
   begin
     // busca o preço promocional em PROMOC1 que é desconto por quantidade
@@ -8555,6 +8593,7 @@ begin
       v2 := tmp;
     end;
   end;
+
 
   // if valor <> 0 then v2 := valor;
   if valor = 0 then
@@ -8638,7 +8677,6 @@ begin
 
         if not saidaDeEstoque then
           totProd := Arredonda(qtd * v2, 2);
-
 
         ClientDataSet1.FieldByName('total').AsCurrency := totProd;
         // ClientDataSet1PRECO_ORIGI.AsCurrency := StrToCurr(FormatCurr('0.00', dm.produto.fieldbyname('preco').AsCurrency));

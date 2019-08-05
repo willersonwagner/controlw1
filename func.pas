@@ -68,12 +68,12 @@ type
     cod: integer;
     codigoFornecedor: String;
     numProd: integer;
-    nome: string[40];
-    quant: currency;
-    qtd: currency;
-    preco: currency;
-    preco1: currency;
-    total: currency;
+    nome: string[60];
+    quant: double;
+    qtd: double;
+    preco: double;
+    preco1: double;
+    total: double;
     p_icms: currency;
     vDeson: currency;
     totNota: currency;
@@ -139,6 +139,7 @@ type
     enviandoCupom, enviandoBackup: boolean;
     fonteRelatorioForm19: integer;
     NegritoRelatorioForm19, saiComEnter: boolean;
+    function buscaAtivacaoOK : boolean;
     function BuscaNumeracaoNFeSerie(var nomeGen : String) : string;
     function buscaChaveNFe(num, serie : String) : string;
     function CreateProcessSimple(cmd: string): boolean;
@@ -2934,6 +2935,9 @@ var
   dias : integer;
 begin
   Result := '';
+
+  if buscaAtivacaoOK then exit;
+
   { dm.IBselect.Close;
     dm.IBselect.SQL.Clear;
     dm.IBselect.SQL.Add('select empresa, telres, telcom, ende, bairro, cnpj from registro');
@@ -5022,7 +5026,7 @@ begin
 
   cnpjFOR := IfThen(funcoes.Contido('CNPJ', forn), Le_Nodo('CNPJ', forn),
     Le_Nodo('CPF', forn));
-  forn := copy(NfeVenda.Le_Nodo('xNome', forn), 1, 40);
+  forn := copy(NfeVenda.Le_Nodo('xNome', forn), 1, 60);
 
   cnpjFOR := ACHA_CODFORNEC(cnpjFOR, '');
   { if FileExists(caminhoEXE_com_barra_no_final + cnpjFOR + '-' + nota + '.xml') then
@@ -5049,8 +5053,7 @@ begin
 
   cont := 0;
   try
-    while true do
-    begin
+    while true do begin
       Application.ProcessMessages;
       txt1 := '';
       txt1 := NfeVenda.Le_Nodo('det nItem="' + IntToStr(item) + '"', t2);
@@ -5084,11 +5087,12 @@ begin
         item1.codigoFornecedor := StrNum(NfeVenda.Le_Nodo('cProd', txt1));
         item1.nome := NfeVenda.Le_Nodo('xProd', txt1);
         item1.nome := UpperCase(item1.nome);
-        item1.quant := StrToCurrDef(StringReplace(NfeVenda.Le_Nodo('qCom',
+        item1.quant := StrToFloatDef(StringReplace(NfeVenda.Le_Nodo('qCom',
           txt1), '.', ',', [rfReplaceAll, rfIgnoreCase]), 0);
-        item1.preco := StrToCurrDef(StringReplace(NfeVenda.Le_Nodo('vUnCom',
+        item1.preco := StrToFloatDef(StringReplace(NfeVenda.Le_Nodo('vUnCom',
           txt1), '.', ',', [rfReplaceAll, rfIgnoreCase]), 0);
-        item1.preco1 := StrToCurrDef(StringReplace(NfeVenda.Le_Nodo('vDesc',
+
+        item1.preco1 := StrToFloatDef(StringReplace(NfeVenda.Le_Nodo('vDesc',
           txt1), '.', ',', [rfReplaceAll, rfIgnoreCase]), 0);
         item1.qtd := item1.quant;
         item1.total := StrToCurrDef(StringReplace(NfeVenda.Le_Nodo('vProd',
@@ -5156,13 +5160,13 @@ begin
     form48.ClientDataSet1.FieldDefs.Add('CODIGO', ftInteger);
     form48.ClientDataSet1.FieldDefs.Add('DESCRICAO_FORNECEDOR', ftString, 60);
     form48.ClientDataSet1.FieldDefs.Add('DESCRICAO_ATUAL', ftString, 60);
-    form48.ClientDataSet1.FieldDefs.Add('PRECO_NFE', ftCurrency);
     form48.ClientDataSet1.FieldDefs.Add('LUCRO', ftCurrency);
-    form48.ClientDataSet1.FieldDefs.Add('PRECO_NOVO', ftCurrency);
-    form48.ClientDataSet1.FieldDefs.Add('PRECO_COMPRA', ftCurrency);
-    form48.ClientDataSet1.FieldDefs.Add('PRECO_ATUAL', ftCurrency);
-    form48.ClientDataSet1.FieldDefs.Add('QUANTIDADE_NFE', ftCurrency);
-    form48.ClientDataSet1.FieldDefs.Add('QUANTIDADE_ENT', ftCurrency);
+    form48.ClientDataSet1.FieldDefs.Add('PRECO_NFE', ftFloat);
+    form48.ClientDataSet1.FieldDefs.Add('PRECO_NOVO', ftFloat);
+    form48.ClientDataSet1.FieldDefs.Add('PRECO_COMPRA', ftFloat);
+    form48.ClientDataSet1.FieldDefs.Add('PRECO_ATUAL', ftFloat);
+    form48.ClientDataSet1.FieldDefs.Add('QUANTIDADE_NFE', ftFloat);
+    form48.ClientDataSet1.FieldDefs.Add('QUANTIDADE_ENT', ftFloat);
     form48.ClientDataSet1.FieldDefs.Add('CRED_ICMS', ftCurrency);
     form48.ClientDataSet1.FieldDefs.Add('UNID_NFE', ftString, 8);
     form48.ClientDataSet1.FieldDefs.Add('UNID_ENTRADA', ftString, 8);
@@ -5186,15 +5190,15 @@ begin
   begin
     form48.ClientDataSet1.FieldDefs.Add('CONT', ftInteger);
     form48.ClientDataSet1.FieldDefs.Add('CODIGO', ftInteger);
-    form48.ClientDataSet1.FieldDefs.Add('DESCRICAO_FORNECEDOR', ftString, 40);
-    form48.ClientDataSet1.FieldDefs.Add('DESCRICAO_ATUAL', ftString, 40);
-    form48.ClientDataSet1.FieldDefs.Add('PRECO_NFE', ftCurrency);
+    form48.ClientDataSet1.FieldDefs.Add('DESCRICAO_FORNECEDOR', ftString, 60);
+    form48.ClientDataSet1.FieldDefs.Add('DESCRICAO_ATUAL', ftString, 60);
+    form48.ClientDataSet1.FieldDefs.Add('PRECO_NFE', ftFloat);
     form48.ClientDataSet1.FieldDefs.Add('LUCRO', ftCurrency);
-    form48.ClientDataSet1.FieldDefs.Add('PRECO_NOVO', ftCurrency);
-    form48.ClientDataSet1.FieldDefs.Add('PRECO_COMPRA', ftCurrency);
-    form48.ClientDataSet1.FieldDefs.Add('PRECO_ATUAL', ftCurrency);
-    form48.ClientDataSet1.FieldDefs.Add('QUANTIDADE_NFE', ftCurrency);
-    form48.ClientDataSet1.FieldDefs.Add('QUANTIDADE_ENT', ftCurrency);
+    form48.ClientDataSet1.FieldDefs.Add('PRECO_NOVO', ftFloat);
+    form48.ClientDataSet1.FieldDefs.Add('PRECO_COMPRA', ftFloat);
+    form48.ClientDataSet1.FieldDefs.Add('PRECO_ATUAL', ftFloat);
+    form48.ClientDataSet1.FieldDefs.Add('QUANTIDADE_NFE', ftFloat);
+    form48.ClientDataSet1.FieldDefs.Add('QUANTIDADE_ENT', ftFloat);
     form48.ClientDataSet1.FieldDefs.Add('CRED_ICMS', ftCurrency);
     form48.ClientDataSet1.FieldDefs.Add('UNID_NFE', ftString, 8);
     form48.ClientDataSet1.FieldDefs.Add('UNID_ENTRADA', ftString, 8);
@@ -5262,19 +5266,15 @@ begin
   TOTvICMSDeson_Produtos := 0;
   fim := lista.count - 1;
   funcoes.informacao(0, fim, 'Aguarde, Lendo XML...', true, False, 5);
-  for ini := 0 to lista.count - 1 do
-  begin
+  for ini := 0 to lista.count - 1 do begin
     funcoes.informacao(ini, fim, 'Aguarde, Lendo XML...', False, False, 5);
     item1 := lista.Items[ini];
     form48.ClientDataSet1.Insert;
     form48.ClientDataSet1.FieldByName('CONT').AsInteger := item1.numProd;
     form48.ClientDataSet1.FieldByName('data').AsDateTime := dataEmissao;
-    form48.ClientDataSet1.FieldByName('DESCRICAO_FORNECEDOR').AsString :=
-      item1.nome;
-
+    form48.ClientDataSet1.FieldByName('DESCRICAO_FORNECEDOR').AsString := item1.nome;
     form48.ClientDataSet1.FieldByName('ALIQ').AsString := buscaAliqICMSxml(item1.CSTICMS, item1.ICMSOSN);
     form48.ClientDataSet1.FieldByName('PIS').AsString  := buscaAliqPISxml(item1.CSTPIS, item1.CSTPIS);
-
 
     TOTvICMSDeson_Produtos := TOTvICMSDeson_Produtos + item1.vDeson;
 
@@ -5284,20 +5284,20 @@ begin
     form48.ClientDataSet1.FieldByName('UNID_VENDA').AsString := '';
     form48.ClientDataSet1.FieldByName('CODBAR').AsString := item1.codbar;
     form48.ClientDataSet1.FieldByName('nota').AsString := item1.nota;
-    form48.ClientDataSet1.FieldByName('QUANTIDADE_NFE').AsCurrency :=
+    form48.ClientDataSet1.FieldByName('QUANTIDADE_NFE').AsFloat :=
       item1.quant;
-    form48.ClientDataSet1.FieldByName('QUANTIDADE_ENT').AsCurrency :=
+    form48.ClientDataSet1.FieldByName('QUANTIDADE_ENT').AsFloat :=
       item1.quant;
-    form48.ClientDataSet1.FieldByName('PRECO_NFE').AsCurrency := item1.preco;
-    form48.ClientDataSet1.FieldByName('PRECO_COMPRA').AsCurrency := item1.preco;
+    form48.ClientDataSet1.FieldByName('PRECO_NFE').AsFloat := item1.preco;
+    form48.ClientDataSet1.FieldByName('PRECO_COMPRA').AsFloat := item1.preco;
+
     form48.ClientDataSet1.FieldByName('TOTAL').AsCurrency := item1.total;
     form48.ClientDataSet1.FieldByName('TOTnota').AsCurrency := item1.totNota;
     form48.ClientDataSet1.FieldByName('NCM').AsString := item1.NCM;
     // form48.ClientDataSet1.FieldByName('CRED_ICMS').AsCurrency := item1.p_icms;
     form48.ClientDataSet1.FieldByName('CRED_ICMS').AsCurrency := 0;
     // form48.ClientDataSet1.FieldByName('REF_NFE').AsString       := IntToStr(item1.cod) + '|' + item1.codbar;
-    form48.ClientDataSet1.FieldByName('REF_NFE').AsString :=
-      item1.codigoFornecedor + '|' + form48.fornecedor;
+    form48.ClientDataSet1.FieldByName('REF_NFE').AsString := item1.codigoFornecedor + '|' + form48.fornecedor;
 
     dm.IBselect.Close;
     dm.IBselect.SQL.Clear;
@@ -5343,8 +5343,10 @@ begin
         dm.IBselect.FieldByName('p_venda').AsCurrency;
       form48.ClientDataSet1.FieldByName('ALIQ').AsString :=
         dm.IBselect.FieldByName('aliquota').AsString;
+
       form48.ClientDataSet1.FieldByName('DESCRICAO_ATUAL').AsString :=
-        copy(dm.IBselect.FieldByName('nome').AsString, 1, 40);
+      dm.IBselect.FieldByName('nome').AsString;
+
       form48.ClientDataSet1.FieldByName('REFORI').AsString :=
         dm.IBselect.FieldByName('REFORI').AsString;
 
@@ -27928,6 +27930,12 @@ begin
  end;
 
  Result := Incrementa_Generator(nomeGen, 0);
+end;
+
+function Tfuncoes.buscaAtivacaoOK : boolean;
+begin
+  Result := false;
+  if FileExists(ExtractFileDir(ParamStr(0)) + '\reg.dat') then Result := true;
 end;
 
 
