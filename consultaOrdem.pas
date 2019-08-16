@@ -151,11 +151,14 @@ begin
               dm.IBQuery3.ParamByName('saida').AsDate := StrToDateDef(data, form22.datamov);
               dm.IBQuery3.ParamByName('sai').AsTime   := StrToTimeDef(h_sai, now);
               dm.IBQuery3.ParamByName('cod').AsString := cod;
-              try
-               dm.IBQuery3.ExecSQL;
-               dm.IBQuery3.Transaction.Commit;
-              except
-              end;
+              dm.IBQuery3.ExecSQL;
+
+              dm.IBQuery3.Close;
+              dm.IBQuery3.SQL.Text := 'delete from os_itens where nota = :cod';
+              dm.IBQuery3.ParamByName('cod').AsString := cod;
+              dm.IBQuery3.ExecSQL;
+
+              dm.IBQuery3.Transaction.Commit;
 
               abretabela();
 

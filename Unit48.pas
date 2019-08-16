@@ -518,12 +518,14 @@ begin
     ClientDataSet1.Edit;
     ClientDataSet1.FieldByName('UNID_ENTRADA').AsString := cod;
     ClientDataSet1.FieldByName('UNID_VENDA').AsString   := (cod1);
-    ClientDataSet1.FieldByName('mu').AsInteger          := trunc(qtd);
+    ClientDataSet1.FieldByName('mu').AsFloat          := (qtd);
     ClientDataSet1.FieldByName('QUANTIDADE_ENT').AsCurrency :=  Arredonda(qtd * ClientDataSet1.FieldByName('QUANTIDADE_NFE').AsFloat, 3);
 
     valor := Arredonda((ClientDataSet1.FieldByName('PRECO_NFE').AsFloat + (ClientDataSet1.FieldByName('PRECO_NFE').AsFloat * ClientDataSet1.FieldByName('LUCRO').AsFloat / 100)) /qtd, 2);
     ClientDataSet1.FieldByName('PRECO_NOVO').AsFloat   := valor;
     ClientDataSet1.FieldByName('PRECO_COMPRA').AsFloat := Arredonda(ClientDataSet1.FieldByName('PRECO_NFE').AsFloat / StrToCurrDef(ClientDataSet1.FieldByName('mu').AsString, 1), 2);
+
+//    ShowMessage(ClientDataSet1.FieldByName('PRECO_NFE').AsString + #13 + ClientDataSet1.FieldByName('mu').AsString + #13 + CurrToStr(qtd));
     ClientDataSet1.Post;
     //verificaOK();
   finally
@@ -921,7 +923,7 @@ begin
   form48.ClientDataSet1.FieldByName('totnota').Visible        := false;
   if campoDataExiste then form48.ClientDataSet1.FieldByName('data').Visible           := false;
   //form48.ClientDataSet1.FieldByName('nota').Visible           := false;
-  form48.ClientDataSet1.FieldByName('mu').Visible             := false;
+  form48.ClientDataSet1.FieldByName('mu').Visible             := true;
   //form48.ClientDataSet1.FieldByName('cont').Visible           := false;
   form48.ClientDataSet1.FieldByName('TOTAL').Visible          := false;
   //form48.ClientDataSet1.FieldByName('QUANTIDADE_ENT').Visible := false;

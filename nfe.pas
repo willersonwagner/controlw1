@@ -95,7 +95,7 @@ type
     i, INVALIDO : integer;
     OK : BOOLEAN;
     TOTICM, TOT_BASEICM, TOT_PIS, TOT_COFINS,BASE_ICM, VLR_ICM, totalNota, totalNota_achado, totImp,
-    totalNotaORIGI, totDesc, totDesc1, TRIB_ALIQ_PIS, TRIB_ALIQ_COFINS, TOTvICMSUFDest, TOTvICMSUFRemet : currency;
+    totalNotaORIGI, totDesc, totAcres, totDesc1, TRIB_ALIQ_PIS, TRIB_ALIQ_COFINS, TOTvICMSUFDest, TOTvICMSUFRemet : currency;
     dadosEmitente,dadosDest : TStringList;
     valida : boolean;
     COFINS_ST, PIS_ST, PIS_NT, vST : currency;
@@ -2568,7 +2568,7 @@ begin
   '</vICMS><vBCST>0.00</vBCST><vST>'+Format_num(vst)+'</vST><vProd>' + FORMAT_NUM(TOTNOTA) +
   '</vProd><vFrete>'+ Format_num(TotalFrete) +'</vFrete><vSeg>0.00</vSeg><vDesc>' + FORMAT_NUM(TOTDESCICM + TOTDESC) + '</vDesc>' +
   '<vII>0.00</vII><vIPI>0.00</vIPI><vPIS>' + FORMAT_NUM(TOT_PIS) + '</vPIS><vCOFINS>' +
-  FORMAT_NUM(TOT_COFINS) + '</vCOFINS><vOutro>'+FORMAT_NUM(VLR_DESP)+'</vOutro><vNF>' + FORMAT_NUM(TOTNOTA - TOTDESC - TOTDESCICM + iif(tipo_frete <> 9, TotalFrete, 0) + VLR_DESP) +
+  FORMAT_NUM(TOT_COFINS) + '</vCOFINS><vOutro>'+FORMAT_NUM(VLR_DESP + totAcres)+'</vOutro><vNF>' + FORMAT_NUM(TOTNOTA - TOTDESC - TOTDESCICM + iif(tipo_frete <> 9, TotalFrete, 0) + VLR_DESP) +
   '</vNF><vICMSUFDest>'+FORMAT_NUM(TOTvICMSUFDest)+'</vICMSUFDest><vICMSUFRemet>'+FORMAT_NUM(TOTvICMSUFRemet)+'</vICMSUFRemet></ICMSTot></total>';
 
   totalNota := TOTNOTA - TOTDESC - TOTDESCICM + iif(tipo_frete <> 9, TotalFrete, 0) + VLR_DESP;
@@ -3003,7 +3003,7 @@ begin
       Format_num(item.p_venda, 8) + '</vUnCom><vProd>' + FORMAT_NUM(item.total) + '</vProd><cEANTrib>'+ barras +'</cEANTrib>' +
       '<uTrib>' + ve_unidTributavel(DEST_NFE, item.Ncm, item.unid) + '</uTrib><qTrib>' + Format_num(item.quant, 4) + '</qTrib><vUnTrib>' +
       Format_num(item.p_venda, 8) + '</vUnTrib>'+ IfThen(item.Vlr_Frete > 0, '<vFrete>'+ Format_num(item.Vlr_Frete)+'</vFrete>', '') + iif(item.Desconto = 0,'','<vDesc>' + FORMAT_NUM(item.Desconto) + '</vDesc>') +
-      IfThen(item.DespAcessorias > 0 ,'<vOutro>' + FORMAT_NUM(item.DespAcessorias) + '</vOutro>', '')+'<indTot>1</indTot></prod><imposto>' + NODO_ICMS(item, cstIcmCfop, _ORIGE) + NODO_PISCOFINS(item, cstpisCfop) + NODO_ICMS_UF_DEST(item) + '</imposto>' +
+      IfThen(item.DespAcessorias  > 0 ,'<vOutro>' + FORMAT_NUM(item.DespAcessorias) + '</vOutro>', '')+'<indTot>1</indTot></prod><imposto>' + NODO_ICMS(item, cstIcmCfop, _ORIGE) + NODO_PISCOFINS(item, cstpisCfop) + NODO_ICMS_UF_DEST(item) + '</imposto>' +
       infAdProd +'</det>'; //NODO_PISCOFINS(MAT, CSTPIS_CFP)
 
       {Result := Result + '<det nItem=' + LITERAL(TRIM(IntToStr(qtd))) + '><prod>' +
@@ -3444,7 +3444,8 @@ var
 begin
 //venda := Tvenda.Create;
   totalNota := 0;
-  totDesc := 0;
+  totDesc  := 0;
+  totAcres := 0;
   TOT1 := 0;
   totalNotaORIGI := 0;
   lista := TList.Create;
@@ -3482,7 +3483,13 @@ begin
 
       _FORMPG := dm.IBQuery2.fieldbyname('codhis').AsString;
 
-      totDesc := totDesc + abs(dm.IBQuery2.fieldbyname('desconto').AsCurrency);
+      //soma do acrescimo
+      if dm.IBQuery2.fieldbyname('desconto').AsCurrency > 0 then begin
+        VLR_DESP := VLR_DESP + abs(dm.IBQuery2.fieldbyname('desconto').AsCurrency);
+      end
+      else begin
+        totDesc := totDesc + abs(dm.IBQuery2.fieldbyname('desconto').AsCurrency);
+      end;
       totalNotaORIGI := totalNotaORIGI + abs(dm.IBQuery2.fieldbyname('total').AsCurrency);
     end;
 
@@ -3550,6 +3557,7 @@ begin
                  item.total   := abs(arrendondaNFe(query1.fieldbyname('total').AsCurrency, 2));
                  totalNota    := totalNota + abs(item.total);
 
+                 item.vOutro             := 0;
                  item.PercICMS           := 0;
                  item.VlrICMS            := 0;
                  item.DescICMS           := 0;
@@ -3688,9 +3696,6 @@ begin
 
   TOT1 := totalNota;
   venda.total := totalNota;
-
-  {ShowMessage('totalNota=' + CurrToStr(totalNota) + #13 +
-  'totDesc='+ CurrToStr(totDesc));}
 
    //rateio desconto
    if totDesc > 0 then
@@ -4112,6 +4117,9 @@ begin
           csta := 301;
         end;
 
+        //fecha a tela de carregando
+        funcoes.mensagemEnviandoNFCE('', false, true);
+
         if ((funcoes.Contido('DUPLICIDADE DE NF-E', UpperCase(erro_dados))) or (csta = 204) or (csta = 539)) THEN begin
 
             trataDuplicidadeNFe(dm.ACBrNFe.WebServices.Retorno.xMotivo, true);
@@ -4120,7 +4128,6 @@ begin
 
             //if chaveNF = chaveRecuperada then begin
             if true then begin
-              funcoes.mensagemEnviandoNFCE('', false, true);
               Fechar_Datasets_limpar_Listas_e_variaveis;
               MessageDlg('O Sistema Recuperou a NFe com Sucesso!', mtInformation, [mbOK], 1);
               exit;
@@ -4136,7 +4143,6 @@ begin
 
     if Contido('-' + IntToStr(csta) + '-', '-100-204-110-205-301-302-') then//((csta = 301) or (csta = 302) or (csta = 110)) then
       begin
-        funcoes.mensagemEnviandoNFCE('', false, true);
         ci       := 'E';
         situacao := 'E';
         if Contido('-' + IntToStr(csta) + '-', '-110-205-301-302-') then ci := 'D';
@@ -4177,7 +4183,6 @@ begin
 
     if csta > 200 then
       begin
-        funcoes.mensagemEnviandoNFCE('', false, true);
         ShowMessage('NF-e '+ ' Houve uma falha na Validação!'+#13+#10+#13+#10+
                   'Favor Corrigir: ' + dm.ACBrNFe.WebServices.Retorno.xMotivo + #13 +
                   'cStat=' + IntToStr(csta));//+qry.FieldByName('RECIBO_DESCSTATUS').AsString);
@@ -4641,14 +4646,18 @@ begin
   vend.chave := chavb.chave;
   if StrToIntDef(stat, 0) <= 200 then
     begin
-      insereRegistroDaNotaNaTabelaNFE1(IntToStr(ACBrNFe.NotasFiscais[0].NFe.Ide.nNF), chavb.chave, 'E', ACBrNFe.NotasFiscais[0].NFe.Ide.dEmi);
-      AtualizaCfop(cod_op);
+      try
+        insereRegistroDaNotaNaTabelaNFE1(IntToStr(ACBrNFe.NotasFiscais[0].NFe.Ide.nNF), chavb.chave, 'E', ACBrNFe.NotasFiscais[0].NFe.Ide.dEmi);
+        AtualizaCfop(cod_op);
 
-      ACBrNFe.NotasFiscais[0].GravarXML(chavb.chave + '-nfe.xml',pastaControlW+ 'nfe\emit\');
+        ACBrNFe.NotasFiscais[0].GravarXML(chavb.chave + '-nfe.xml',pastaControlW+ 'nfe\emit\');
 
-      funcoes.GRAVA_MOV(IntToStr(ACBrNFe.NotasFiscais[0].NFe.Ide.cUF), Form22.datamov, IntToStr(ACBrNFe.NotasFiscais[0].NFe.Ide.nNF), '90', dest, false);
+        funcoes.GRAVA_MOV(IntToStr(ACBrNFe.NotasFiscais[0].NFe.Ide.cUF), Form22.datamov, IntToStr(ACBrNFe.NotasFiscais[0].NFe.Ide.nNF), '90', dest, false);
 
-      imprimirNFe();
+        imprimirNFe();
+      except
+
+      end;
     end;
 
   chavb.Free;

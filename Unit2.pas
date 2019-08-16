@@ -1133,6 +1133,7 @@ begin
     lista.Add(dm.ACBrIBPTax1);
     lista.Add(dm.ACBrNFeDANFEFR1);
     lista.Add(dm.ACBrMail1);
+
     setQueryNFCe(lista);
 
     LerConfiguracaoNFCe();
@@ -12075,9 +12076,12 @@ procedure TForm2.FormasdePagamento1Click(Sender: TObject);
 var
   formpagto, vende, total, conf, pag, sim, semcliente, comcliente: string;
   valor, entrada, totVenda, recebido, entradaOrigi: currency;
+  atualizarData : boolean;
   err1, ini: integer;
   pagtos: TStringList;
 begin
+  atualizarData := false;
+
   while true do
   begin
     nota := funcoes.dialogo('generico', 0, '1234567890' + #8, 50, false, '',
@@ -12090,25 +12094,25 @@ begin
       semcliente :=
         'select v.nota, v.data, v.codhis as formapagto, a.nome as vendedor, v.desconto, v.total from venda v left join  vendedor a on (v.vendedor = a.cod) where (v.cancelado = 0) and ((v.ok = '
         + QuotedStr('') + ') or (v.ok = ' + QuotedStr('N') +
-        ' )) order by v.nota desc';
+        ' )) and (data = :data) order by v.nota desc';
       comcliente :=
         'select v.nota, v.data, v.codhis as formapagto, a.nome as vendedor, v.desconto, v.total, c.nome as cliente from ((venda v left join vendedor a on (v.vendedor = a.cod)) left join cliente c on (c.cod = v.cliente)) where (v.cancelado = 0) and ((v.ok = '
         + QuotedStr('') + ') or (v.ok = ' + QuotedStr('N') +
-        ' )) order by v.nota desc';
+        ' )) and (data = :data) order by v.nota desc';
       dm.IBQuery2.Close;
       dm.IBQuery2.SQL.Clear;
       if funcoes.buscaParamGeral(102, 'N') = 'S' then
         dm.IBQuery2.SQL.Add(comcliente)
       else
         dm.IBQuery2.SQL.Add(semcliente);
+      dm.IBQuery2.ParamByName('data').AsDate := form22.datamov;
       dm.IBQuery2.Open;
 
       dm.ibselect.Close;
       dm.ibselect.SQL.Clear;
       dm.ibselect.SQL.Add
         ('select p.cod, c.nome, p.quant, p.p_venda, p.total from item_venda p, produto c where (c.cod = p.cod) and (p.nota = :nota)');
-      dm.ibselect.ParamByName('nota').AsString :=
-        dm.IBQuery2.FieldByName('nota').AsString;
+      dm.ibselect.ParamByName('nota').AsString := dm.IBQuery2.FieldByName('nota').AsString;
       dm.ibselect.Open;
 
       form44 := TForm44.Create(self);
@@ -12141,12 +12145,15 @@ begin
         exit;
       end;
 
+
+
       dm.ibselect.Close;
       dm.ibselect.SQL.Clear;
       dm.ibselect.SQL.Add
-        ('select total, codhis, entrada from venda where (nota = :nota) and (cancelado = 0)');
+        ('select total, codhis, entrada, data from venda where (nota = :nota) and (cancelado = 0)');
       dm.ibselect.ParamByName('nota').AsString := nota;
       dm.ibselect.Open;
+
 
       valor := dm.ibselect.FieldByName('total').AsCurrency;
       formpagto := dm.ibselect.FieldByName('codhis').AsString;
@@ -12163,7 +12170,7 @@ begin
       dm.ibselect.Close;
       dm.ibselect.SQL.Clear;
       dm.ibselect.SQL.Add
-        ('select total, codhis, entrada from venda where (nota = :nota) and (cancelado = 0)');
+        ('select total, codhis, entrada, data from venda where (nota = :nota) and (cancelado = 0)');
       dm.ibselect.ParamByName('nota').AsString := nota;
       dm.ibselect.Open;
 
@@ -12172,6 +12179,28 @@ begin
         ShowMessage('A Venda ' + nota + ' Não Existe');
         dm.ibselect.Close;
         exit;
+      end;
+
+      //se a data da venda for diferente da data do sistema e se tiver o usuario tiver bloqueio
+      if (DateOf(dm.ibselect.FieldByName('data').AsDateTime) <> DateOf(form22.datamov)) then begin
+        if (VerificaAcesso_Se_Nao_tiver_Nenhum_bloqueio_true_senao_false = false)  then begin
+          MessageDlg('Esta Venda não pode ser Confirmada pelo o usuário atual, Somente Usuários sem bloqueios poderá receber essa venda!' + #13 +
+          'Nota : ' + nota + #13 +
+          'Data : ' + formataDataDDMMYY(dm.IBselect.FieldByName('data').AsDateTime) + #13 +
+          'Total: ' + formataCurrency(dm.IBselect.FieldByName('total').AsCurrency), mtError, [mbOK], 1 );
+          dm.IBselect.Close;
+          FormasdePagamento1.Click;
+          exit;
+        end;
+
+        sim := funcoes.dialogo('generico', 0, 'SN' + #8, 30, true, 'S', Application.Title, 'A Venda '+nota+' foi feita na Data '+formataDataDDMMYY(dm.ibselect.FieldByName('data').AsDateTime)+'. Tem Certeza que deseja Receber essa venda com a Data Atual ('+formataDataDDMMYY(form22.datamov)+') (S/N)?', 'N');
+        if sim = 'N' then begin
+          dm.IBselect.Close;
+          FormasdePagamento1.Click;
+          exit;
+        end;
+
+        atualizarData := true;
       end;
 
       valor := dm.ibselect.FieldByName('total').AsCurrency;
@@ -12285,13 +12314,18 @@ begin
     end;
 
     dm.IBQuery1.Close;
-    dm.IBQuery1.SQL.Clear;
-    dm.IBQuery1.SQL.Add('update venda set ok =' + QuotedStr(conf) +
-      ', codhis = :codhis, entrada = :entrada, usuario = :usu where nota = :nota');
-    dm.IBQuery1.ParamByName('nota').AsString := nota;
-    dm.IBQuery1.ParamByName('codhis').AsString := formpagto;
+    if atualizarData then begin
+      dm.IBQuery1.SQL.Text := ('update venda set data = :data, ok =' + QuotedStr(conf) + ', codhis = :codhis, entrada = :entrada, usuario = :usu where nota = :nota');
+      dm.IBQuery1.ParamByName('data').AsDate  := form22.datamov;
+    end
+    else begin
+      dm.IBQuery1.SQL.Text := ('update venda set ok =' + QuotedStr(conf) + ', codhis = :codhis, entrada = :entrada, usuario = :usu where nota = :nota');
+    end;
+
+    dm.IBQuery1.ParamByName('nota').AsString      := nota;
+    dm.IBQuery1.ParamByName('codhis').AsString    := formpagto;
     dm.IBQuery1.ParamByName('entrada').AsCurrency := entrada;
-    dm.IBQuery1.ParamByName('usu').AsString := form22.codusario;
+    dm.IBQuery1.ParamByName('usu').AsString       := form22.codusario;
     dm.IBQuery1.ExecSQL;
 
     try

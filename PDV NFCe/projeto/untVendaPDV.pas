@@ -107,6 +107,7 @@ type
     codCliente, valCert, qtdCupom : String;
     enviandoCupom, tecladoOK : boolean;
     cupons : TTWtheadEnviaCupons1;
+    procedure atualizaEntrada(nota, codhis : String; entrada : currency);
     procedure vendeVisualTodos();
     function FileAgeCreate(const fileName: string): TDateTime;
     function VerificaAcesso_Se_Nao_tiver_Nenhum_bloqueio_true_senao_false : boolean;
@@ -586,9 +587,8 @@ begin
   nota_venda := Incrementa_Generator('venda', 1);
 
   dtmMain.IBQuery1.Close;
-  dtmMain.IBQuery1.SQL.Clear;
-  dtmMain.IBQuery1.SQL.Add('insert into venda(ok,hora,vendedor,cliente,nota,data,total,codhis,desconto,prazo,entrada, EXPORTADO, USUARIO, cancelado, entrega)'+
-  ' values(:ok,:hora,:vend,:cliente,:nota,:data,:total,:pagto,:desc,:prazo,:entrada, :exportado, :USUARIO, :cancelado, ''E'')');
+  dtmMain.IBQuery1.SQL.Text := ('insert into venda(ok,hora,vendedor,cliente,nota,data,total,codhis,desconto,prazo,entrada, EXPORTADO, USUARIO, cancelado, entrega, recebido)'+
+  ' values(:ok,:hora,:vend,:cliente,:nota,:data,:total,:pagto,:desc,:prazo,:entrada, :exportado, :USUARIO, :cancelado, ''E'', :recebido)');
   dtmMain.IBQuery1.ParamByName('ok').AsString          := 'S';
   dtmMain.IBQuery1.ParamByName('hora').AsTime          := now;
   dtmMain.IBQuery1.ParamByName('vend').AsInteger       := StrToIntDef(StrNum(CodVendedorTemp), 0);
@@ -603,12 +603,17 @@ begin
   dtmMain.IBQuery1.ParamByName('exportado').AsInteger  := 0;
   dtmMain.IBQuery1.ParamByName('USUARIO').AsInteger    := StrToIntDef(StrNum(form1.codUsuario), 0);
   dtmMain.IBQuery1.ParamByName('cancelado').AsInteger  := IfThen(cancelado ,StrToIntDef(StrNum(form1.codUsuario), 1), 0);
+  dtmMain.IBQuery1.ParamByName('recebido').AsCurrency  := recebido1;
 
 
     dtmMain.IBQuery1.ExecSQL;
   except
     on e:exception do
       begin
+        ShowMessage('Ocorreu um Erro: ' + e.Message + #13 + 'Total= ' + CurrToStr(tot_ge) + #13 +
+        'desc=' + CurrToStr(desconto) + #13 + 'recebido=' + CurrToStr(recebido1) + #13 + 'vend=' + IntToStr(StrToIntDef(StrNum(CodVendedorTemp), 0)) + #13 +
+        'entrada=' + CurrToStr(entrada) + #13 + 'codhis=' + IntToStr(StrToIntDef(StrNum(codhis), 1)) + #13 + dtmMain.IBQuery1.ParamByName('USUARIO').AsString + #13 +
+        dtmMain.IBQuery1.ParamByName('cancelado').AsString);
         gravaERRO_LOG('', e.Message, 'Gravando Venda: ' + #13 + 'Nota: ' + StrNum(nota_venda)
         + #13 + 'Total: ' + CurrToStr(tot_ge) + #13 );
       end;
@@ -648,6 +653,7 @@ begin
           except
             on e:exception do
               begin
+                ShowMessage('Ocorreu um Erro: ' + e.Message );
                 gravaERRO_LOG('', e.Message, 'Gravando Item_venda: ' + #13 + 'Cod: ' + StrNum(IBClientDataSet1cod.AsString)
                 + #13 + 'Quant: ' + IBClientDataSet1quant.AsString + #13 );
               end;
@@ -801,8 +807,7 @@ begin
 
   tot1    := tot_ge;
 
-  if form1.pgerais.Values['37'] = 'S' then
-    begin
+  if form1.pgerais.Values['37'] = 'S' then begin
       totalTemp := somaTotalOriginal();
       lancaDesconto(desconto, tot_ge, configu, form1.pgerais.Values['2'], acessoUsuVenda, 0, totalTemp);
       desconto := - desconto;
@@ -1749,7 +1754,14 @@ var
 begin
   fechou := false;
   {a funcao ler os valores recebido por forma de pagamento e preenche o clientdataset}
+
   if not lerReceido() then exit;
+  {aki leu as formas de pagamento e preencheu o clientdataset com as formas
+  de pagamento e totais}
+
+  lerFormasParaGravarAVendaPreencheEntrada;
+
+  atualizaEntrada(nota_venda, codhis, entrada);
 
   obs := trim('Total Impostos Pagos R$' + formataCurrency(TotTributos) + '('+ formataCurrency((TotTributos / tot_ge) * 100) +'%)Fonte IBPT');
   mostraTroco();
@@ -1919,6 +1931,7 @@ begin
 
   totTemp1 := tot_ge;
   recebido := 0;
+  totTemp2 := 0;
 
   while true do
     begin
@@ -1966,7 +1979,10 @@ begin
 end;
 
 procedure TForm3.lerFormasParaGravarAVendaPreencheEntrada();
+var
+ outrosPagamentos : currency;
 begin
+  outrosPagamentos := 0;
   formasPagamento.First;
   entrada := 0;
   if formasPagamento.RecordCount = 1 then
@@ -1975,19 +1991,25 @@ begin
       exit;
     end;
 
-  while not formasPagamento.Eof do
-    begin
+  while not formasPagamento.Eof do begin
+    codhis := formasPagamento.FieldByName('cod').AsString;
+    if formasPagamento.FieldByName('cod').AsInteger = 1 then begin
+      entrada := entrada + formasPagamento.FieldByName('total').AsCurrency;
+    end
+    else begin
+      outrosPagamentos := outrosPagamentos + formasPagamento.FieldByName('total').AsCurrency;
       codhis := formasPagamento.FieldByName('cod').AsString;
-      if formasPagamento.FieldByName('cod').AsInteger = 1 then
-        begin
-          entrada := entrada + formasPagamento.FieldByName('total').AsCurrency;
-        end
-      else
-        begin
-          codhis := formasPagamento.FieldByName('cod').AsString;
-        end;
+    end;
+
       formasPagamento.Next;
     end;
+
+  //deu um erro no mercadao que colocavam entrada maior que o total e nao saia cupom
+  if (entrada > tot_ge) then entrada := tot_ge - outrosPagamentos;
+
+  //se mesmo com a nova instrução nao baixar entrada entao zera
+  if (entrada > tot_ge) then entrada := 0;
+
 end;
 
 procedure TForm3.descarregaFormasDePagamentoImpressora();
@@ -3027,6 +3049,17 @@ begin
   end;
 
   IBClientDataSet1.First;
+end;
+
+procedure TForm3.atualizaEntrada(nota, codhis : String; entrada : currency);
+begin
+  query1.Close;
+  query1.SQL.Text := 'update venda set entrada = :entrada, codhis = :codhis where nota = :nota';
+  query1.ParamByName('entrada').AsCurrency := entrada;
+  query1.ParamByName('codhis').AsString    := codhis;
+  query1.ParamByName('nota').AsString      := nota;
+  query1.ExecSQL;
+  query1.Transaction.Commit;
 end;
 
 end.

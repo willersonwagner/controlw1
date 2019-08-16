@@ -778,8 +778,7 @@ begin
   if query1.IsEmpty then
   begin
     query1.Close;
-    query1.SQL.text :=
-      'update or insert into nfce(chave, nota, data, cliente, adic, USUARIO, RECEBIDO) values(:chave, :nota, :data, :cliente, :adic, :USUARIO, :RECEBIDO) matching (chave)';
+    query1.SQL.text := 'update or insert into nfce(chave, nota, data, cliente, adic, USUARIO, RECEBIDO) values(:chave, :nota, :data, :cliente, :adic, :USUARIO, :RECEBIDO) matching (chave)';
     query1.ParamByName('chave').AsString := LeftStr(dados.chave, 44);
     query1.ParamByName('nota').AsInteger := dados.nota;
     query1.ParamByName('data').AsDate := now;
@@ -3280,8 +3279,7 @@ begin
   if enviar then
   begin
     try
-      ACBrNFe.NotasFiscais[0].GravarXML(CHAVENF + '-nfe.xml',
-        buscaPastaNFCe(CHAVENF, false));
+      ACBrNFe.NotasFiscais[0].GravarXML(CHAVENF + '-nfe.xml', buscaPastaNFCe(CHAVENF, false));
 
       ACBrNFe.NotasFiscais.Assinar;
 
@@ -3318,8 +3316,7 @@ begin
     ssChave := CHAVENF;
     venda.adic := 'OFF';
 
-    ACBrNFe.NotasFiscais[0].GravarXML(CHAVENF + '-nfe.xml',
-      buscaPastaNFCe(CHAVENF, false));
+    ACBrNFe.NotasFiscais[0].GravarXML(CHAVENF + '-nfe.xml', buscaPastaNFCe(CHAVENF, false));
 
     if (ACBrNFe.Configuracoes.WebServices.Ambiente = taHomologacao) then
     begin
@@ -3400,11 +3397,16 @@ begin
         end;
       end;
 
-      if csta = 217 then
-      begin
+      if csta = 217 then begin
         ERRO_dados :=
           'Rejeição (217): NF-e não consta na base de dados da SEFAZ';
       end;
+
+      {if csta = 781 then begin
+        ERRO_dados := 'Rejeição (781): Emissor nao habilitado para emissao NFC-e';
+        MessageDlg(ERRO_dados, mtError, [mbOK], 1);
+        exit;
+      end;}
 
       if ((csta = 0) and (ERRO_dados = '')) then
       begin
@@ -6187,6 +6189,7 @@ var
 begin
   tot := MAT.total - MAT.desconto;
   Result := '';
+
   // se a empresa é optante do simples nacional
   if pgerais.Values['10'] = '1' then
   begin

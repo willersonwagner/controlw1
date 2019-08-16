@@ -247,6 +247,7 @@ type
     Vlr_Frete : currency;
     vlr_imposto : currency;
     base_icm : currency;
+    vOutro : currency;
   end;
 
   Item_venda1 = class

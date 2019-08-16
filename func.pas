@@ -139,6 +139,7 @@ type
     enviandoCupom, enviandoBackup: boolean;
     fonteRelatorioForm19: integer;
     NegritoRelatorioForm19, saiComEnter: boolean;
+    procedure corrigeChaveNFCe(chaveAntiga, chaveNova : String; xml : string);
     function buscaAtivacaoOK : boolean;
     function BuscaNumeracaoNFeSerie(var nomeGen : String) : string;
     function buscaChaveNFe(num, serie : String) : string;
@@ -832,10 +833,13 @@ var
   ini, fim: integer;
 begin
   li2 := tstringList.Create;
+  li2 := li1;
+  exit;
+
   fim := li1.count - 1;
   for ini := 0 to fim do
   begin
-    li2.Values[IntToStr(ini)] := li1[ini];
+    //li2.Values[IntToStr(ini)] := li1[ini];
   end;
 end;
 
@@ -4968,7 +4972,7 @@ var
   lista: Tlist;
   ini, fim, cont: integer;
   dataEmissao: TDate;
-  TOTvICMSDeson_Produtos: currency;
+  TOTvICMSDeson_Produtos, valor: currency;
 begin
   { dial := TOpenDialog.Create(self);
     dial.Filter := 'Arquivo NFE|*.xml';;
@@ -5178,7 +5182,7 @@ begin
     form48.ClientDataSet1.FieldDefs.Add('REFORI', ftString, 15);
     form48.ClientDataSet1.FieldDefs.Add('REF_NFE', ftString, 25);
     form48.ClientDataSet1.FieldDefs.Add('NCM', ftString, 20);
-    form48.ClientDataSet1.FieldDefs.Add('mu', ftInteger);
+    form48.ClientDataSet1.FieldDefs.Add('mu', ftFloat);
     form48.ClientDataSet1.FieldDefs.Add('TOTAL', ftCurrency);
     form48.ClientDataSet1.FieldDefs.Add('nota', ftString, 20);
     form48.ClientDataSet1.FieldDefs.Add('totnota', ftCurrency);
@@ -5211,7 +5215,7 @@ begin
     form48.ClientDataSet1.FieldDefs.Add('REFORI', ftString, 15);
     form48.ClientDataSet1.FieldDefs.Add('REF_NFE', ftString, 20);
     form48.ClientDataSet1.FieldDefs.Add('NCM', ftString, 20);
-    form48.ClientDataSet1.FieldDefs.Add('mu', ftInteger);
+    form48.ClientDataSet1.FieldDefs.Add('mu', ftFloat);
     form48.ClientDataSet1.FieldDefs.Add('TOTAL', ftCurrency);
     form48.ClientDataSet1.FieldDefs.Add('nota', ftString, 20);
     form48.ClientDataSet1.FieldDefs.Add('totnota', ftCurrency);
@@ -5357,14 +5361,13 @@ begin
 
       if dm.IBselect.FieldByName('unid2').AsString <> '' then
       begin
-        form48.ClientDataSet1.FieldByName('UNID_ENTRADA').AsString :=
-          dm.IBselect.FieldByName('unid2').AsString;
-        form48.ClientDataSet1.FieldByName('mu').AsCurrency :=
-          verValorUnidade(dm.IBselect.FieldByName('unid2').AsString);
+        form48.ClientDataSet1.FieldByName('UNID_ENTRADA').AsString := dm.IBselect.FieldByName('unid2').AsString;
+        form48.ClientDataSet1.FieldByName('mu').AsCurrency := verValorUnidade(dm.IBselect.FieldByName('unid2').AsString);
 
-        form48.ClientDataSet1.FieldByName('QUANTIDADE_ENT').AsCurrency :=
-          ArredondaFinanceiro(form48.ClientDataSet1.FieldByName('mu').AsInteger
-          * form48.ClientDataSet1.FieldByName('QUANTIDADE_NFE').AsCurrency, 3);
+        form48.ClientDataSet1.FieldByName('QUANTIDADE_ENT').AsCurrency := ArredondaFinanceiro(form48.ClientDataSet1.FieldByName('mu').AsCurrency * form48.ClientDataSet1.FieldByName('QUANTIDADE_NFE').AsCurrency, 3);
+        valor := Arredonda((form48.ClientDataSet1.FieldByName('PRECO_NFE').AsFloat + (form48.ClientDataSet1.FieldByName('PRECO_NFE').AsFloat * form48.ClientDataSet1.FieldByName('LUCRO').AsFloat / 100)) / form48.ClientDataSet1.FieldByName('mu').AsCurrency, 2);
+        form48.ClientDataSet1.FieldByName('PRECO_NOVO').AsFloat   := valor;
+        form48.ClientDataSet1.FieldByName('PRECO_COMPRA').AsFloat := Arredonda(form48.ClientDataSet1.FieldByName('PRECO_NFE').AsFloat / StrToCurrDef(form48.ClientDataSet1.FieldByName('mu').AsString, 1), 2);
       end;
 
       form48.ClientDataSet1.FieldByName('UNID_VENDA').AsString :=
@@ -10435,7 +10438,6 @@ begin
       //dm.IBQuery1.Transaction.Commit;
     end;
 
-
     if not VerSeExistePROCEDUREPeloNome('ALTERA_CAIXA') then begin
       //dm.IBScript1.Close;
       dm.IBScript1.Script.Text := ('CREATE PROCEDURE ALTERA_CAIXA(cod integer, valor numeric(10, 4), entrada integer) returns (nota integer) as' +
@@ -10473,15 +10475,6 @@ begin
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Clear;
       dm.IBQuery1.SQL.Add('ALTER TABLE NFCE ADD RECEBIDO NUMERIC(4, 2) default 0');
-      dm.IBQuery1.ExecSQL;
-      dm.IBQuery1.Transaction.Commit;
-    end;
-
-
-    if not VerificaCampoTabela('RECEBIDO', 'VENDA') then begin
-      dm.IBQuery1.Close;
-      dm.IBQuery1.SQL.Clear;
-      dm.IBQuery1.SQL.Add('ALTER TABLE VENDA ADD RECEBIDO NUMERIC(12, 2) default 0');
       dm.IBQuery1.ExecSQL;
       dm.IBQuery1.Transaction.Commit;
     end;
@@ -10796,6 +10789,35 @@ begin
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Text := 'CREATE SEQUENCE MECANICO';
       dm.IBQuery1.ExecSQL;
+    end;
+
+    if VerSeExisteTRIGGERPeloNome('ALTERA_PRODUTO') then begin
+      dm.IBScript1.Script.Text := ('ALTER TRIGGER altera_produto active before insert position 0 ' +
+      ' AS BEGIN  if (new.origem <= 1) then begin  update produto set quant = quant - new.quant where cod = new.cod; ' +
+      ' end else begin  update produto set deposito = deposito - new.quant where cod = new.cod;  END  END');
+      dm.IBScript1.ExecuteScript;
+      dm.IBScript1.Transaction.Commit;
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := 'delete from os_itens o where (select venda from servico s where s.cod = o.nota) <> 0';
+      dm.IBQuery1.ExecSQL;
+    end;
+
+
+    dm.IBQuery1.Close;
+    dm.IBQuery1.SQL.text := 'update registro set versao1 = 0.3';
+    dm.IBQuery1.ExecSQL;
+    versao := 0.3;
+  end;
+
+
+  if versao <= 0.3 then begin
+    if retornaEscalaDoCampo('recebido', 'venda', 'PRECISAO') = 4 then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('ALTER TABLE venda alter RECEBIDO type NUMERIC(12, 2)');
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
     end;
 
     //VerificaVersao_do_bd
@@ -21993,40 +22015,44 @@ begin
      begin
       while true do begin
         temp := funcoes.dialogo('data', 0, '', 0, true, '', 'Confirmação de data - usuário normal - até 5 dias',
-        'Confirme a Data de Movimento:', FormatDateTime('dd/mm/yy', ultDataMov));
+        'Confirme a Data de Movimento:', FormatDateTime('dd/mm/yy', now));
         if temp = '*' then exit else ultDataMov := StrToDateDef(temp, ultDataMov);
         dias := Trunc(ultDataMov - dataMo);
         if (dias <= 5) then begin
-		       dataMo := ultDataMov;
+	       dataMo := ultDataMov;
            Result := gravaDataMov(ultDatamov);
-		       exit;
-		    end;
+	       exit;
+	    end;
     end;
   end;
 
   //se o usuário é o admin, deixa entrar com qualquer data
   if (form22.USUARIO = 'ADMIN') then begin
     temp := funcoes.dialogo('data', 0, '', 0, true, '', 'Confirmação de data - usuário ADMIN - qualquer data',
-    'Confirme a Data de Movimento:', FormatDateTime('dd/mm/yy', ultDataMov));
+    'Confirme a Data de Movimento:', FormatDateTime('dd/mm/yy', now));
     if temp = '*' then exit else ultDataMov := StrToDateDef(temp, ultDataMov);
     dataMo := ultDataMov;
     Result := gravaDataMov(ultDataMov);
   end;
 
- //Wagner, ache um lugar melhor pra a chamada dessa função. Coloque depois da chamada a validaDataHora assim:
- //if validaDataHora(dataMov, USUARIO) then funcoes.verificaPermissaoPagamento(false, false);
- // BomDia := funcoes.verificaPermissaoPagamento(false, false);
+  //Wagner, ache um lugar melhor pra a chamada dessa função. Coloque depois da chamada a validaDataHora assim:
+  //if validaDataHora(dataMov, USUARIO) then funcoes.verificaPermissaoPagamento(false, false);
+  // BomDia := funcoes.verificaPermissaoPagamento(false, false);
 
- //eliminei aquela mensagem de bom dia para o usuário.
+  //eliminei aquela mensagem de bom dia para o usuário.
 
-  end;
+  //se chegou até aqui, então a data de relógio é inválida
+  MessageDlg('Data Inválida: ' + DateToStr(now) + #13 + #10 + 'Verifique a data deste computador ou procure o suporte. ' +
+    #13 + #10 + 'Última data de movimento válida: ' + DateToStr(ultDataMov), mtError, [mbOK], 1);
+
+ end;
 
 
 function Tfuncoes.verificaNFCe(dataIni: String = ''; DataFim: String = '';
   sped: boolean = False): boolean;
 var
   arq: tstringList;
-  semProtocolo, pulos, erro, acc, puloInutilizado : String;
+  semProtocolo, pulos, erro, acc, puloInutilizado, ent1 : String;
   cont, serie, fi, i: integer;
 begin
   if dataIni = '' then
@@ -22210,8 +22236,14 @@ begin
       dm.IBselect.FieldByName('chave').AsString + '-nfe.xml') then
     begin
       try
-        arq.LoadFromFile(buscaPastaNFCe(dm.IBselect.FieldByName('chave')
-          .AsString) + dm.IBselect.FieldByName('chave').AsString + '-nfe.xml');
+        arq.LoadFromFile(buscaPastaNFCe(dm.IBselect.FieldByName('chave').AsString) + dm.IBselect.FieldByName('chave').AsString + '-nfe.xml');
+        ent1 := entraXMLeRetornaChave(arq.Text);
+        if StrNum(dm.IBselect.FieldByName('chave').AsString) <> ent1 then begin
+          //ShowMessage('chaveBD=' + dm.IBselect.FieldByName('chave').AsString + #13 +
+          //'chaveXML=' + ent1);
+          corrigeChaveNFCe(StrNum(dm.IBselect.FieldByName('chave').AsString), ENT1, arq.Text);
+        end;
+
 
         if Le_Nodo('Signature', arq.text) = '' then begin
             if verificaSePodeEmitirNFe
@@ -22925,9 +22957,9 @@ procedure Tfuncoes.mensagemEnviandoNFCE(const msg: String;
 begin
   if abrir then
   begin
-    form65 := tform65.Create(self);
     try
-      form65.RxGIFAnimator1.Image.LoadFromFile(ExtractFileDir(ParamStr(0)) +
+     form65 := tform65.Create(self);
+     form65.RxGIFAnimator1.Image.LoadFromFile(ExtractFileDir(ParamStr(0)) +
         '\c.gif');
       form65.label1.caption := msg;
       form65.RxGIFAnimator1.Animate := true;
@@ -22938,8 +22970,12 @@ begin
 
   if fechar then
   begin
-    form65.Close;
-    form65.Free;
+    try
+      form65.Close;
+      form65.Free;
+    except
+
+    end;
   end;
 end;
 
@@ -27938,5 +27974,29 @@ begin
   if FileExists(ExtractFileDir(ParamStr(0)) + '\reg.dat') then Result := true;
 end;
 
+
+procedure Tfuncoes.corrigeChaveNFCe(chaveAntiga, chaveNova : String; xml : string);
+var
+  data : TDate;
+begin
+  data := StrToDate(dataInglesToBrasil(leftstr(Le_Nodo('dhEmi', xml), 10)));
+  GravarTexto(buscaPastaNFCe(chaveNova, false) + chaveNova + '-nfe.xml', xml);
+
+  query1.Close;
+  query1.SQL.text := 'update or insert into nfce(chave, nota, data, cliente, adic, USUARIO, RECEBIDO) values(:chave, :nota, :data, :cliente, :adic, :USUARIO, :RECEBIDO) matching (chave)';
+  query1.ParamByName('chave').AsString := LeftStr(chaveNova, 44);
+  query1.ParamByName('nota').AsInteger := StrToIntDef(copy(chaveNova, 37, 7), 0);
+  query1.ParamByName('data').AsDate    := data;
+  query1.ParamByName('cliente').AsInteger := 0;
+  query1.ParamByName('adic').AsString     := 'OFF';
+  query1.ParamByName('USUARIO').AsInteger := 0;
+  QUERY1.ExecSQL;
+
+  query1.Close;
+  query1.SQL.text := 'DELETE FROM NFCE WHERE CHAVE = :CHAVE';
+  query1.ParamByName('chave').AsString := chaveAntiga;
+  QUERY1.ExecSQL;
+  query1.Transaction.Commit;
+end;
 
 end.

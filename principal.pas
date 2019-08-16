@@ -145,10 +145,10 @@ begin
   if (key = #13) then senha.SetFocus;
   if key= #27 then
     begin
-      if dm.execucaoEmail = 1  then begin
+      {if dm.execucaoEmail = 1  then begin
         ShowMessage('Aguarde, Enviando Backup!');
         exit;
-      end;
+      end;}
 
       dm.IBselect.Close;
       dm.IBQuery2.Close;
@@ -248,7 +248,7 @@ if key=#27 then
        UnidInteiro := funcoes.buscaUnidadesFracionadas;
 
        try
-         if ((funcoes.validaDataHoraW(datamov, usuario) = false) and (usuario <> 'ADMIN')) then begin
+         if ((funcoes.validaDataHora(datamov, usuario) = false) and (usuario <> 'ADMIN')) then begin
            self.Show;
            exit;
          end;
