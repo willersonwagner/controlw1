@@ -12255,6 +12255,10 @@ object Form2: TForm2
             Caption = 'Verificar NFCes'
             OnClick = VerificarNFCes1Click
           end
+          object ZerardiasdeBloqueios1: TMenuItem
+            Caption = 'Limpar Bloqueios'
+            OnClick = LimparBloqueios1Click
+          end
         end
       end
       object Nfe1: TMenuItem

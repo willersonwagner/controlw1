@@ -397,6 +397,8 @@ type
     ApagarMovimento1: TMenuItem;
     Manuteno1: TMenuItem;
     BackupRestore1: TMenuItem;
+    ZerardiasdeBloqueios1: TMenuItem;
+    procedure LimparBloqueios1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure CadastrarUsurio1Click(Sender: TObject);
     procedure FormKeyPress(Sender: TObject; var Key: Char);
@@ -4025,6 +4027,7 @@ begin
   form40.tipo.Add('110=normal');
   form40.tipo.Add('111=generico');
   form40.tipo.Add('112=generico');
+  form40.tipo.Add('113=generico');
 
   form40.troca := TStringList.Create;
   form40.troca.Add('0=S');
@@ -4143,6 +4146,7 @@ begin
   form40.troca.Add('110=');
   form40.troca.Add('111=S');
   form40.troca.Add('112=S');
+  form40.troca.Add('113=S');
 
   form40.teclas := TStringList.Create;
   form40.teclas.Add('0=FT');
@@ -4260,6 +4264,7 @@ begin
   form40.teclas.Add('110=1234567890ABCDEFGHIJLMNOPKXYZWQRSTUVXZ|' + #46);
   form40.teclas.Add('111=1234567890');
   form40.teclas.Add('112=SN');
+  form40.teclas.Add('113=SN');
 
   form40.ListBox1.Clear;
   form40.ListBox1.Items.Add
@@ -4451,6 +4456,7 @@ begin
   form40.ListBox1.Items.Add
     ('111=Usar Quantas Casas Decimais no Preço de Venda ?');
   form40.ListBox1.Items.Add('112=Imprimir Volumes no Ticket ?');
+  form40.ListBox1.Items.Add('113=Confirmar Cliente para Entrega ?(S/N)');
 
   form40.ListBox1.Selected[0] := true;
   form40.showmodal;
@@ -11609,8 +11615,8 @@ begin
     exit;
   end;
 
-  his := funcoes.dialogo('normal', 150, '', 300, false, '', application.Title,
-    'Qual o Histórico?', '');
+  //his := funcoes.dialogo('normal', 150, '', 300, false, '', application.Title,'Qual o Histórico?', '');
+  his := funcoes.buscaTexto;
   if his = '*' then
   begin
     dm.ibselect.Close;
@@ -17781,14 +17787,13 @@ begin
   TOT := 0;
   while not dm.ibselect.Eof do
   begin
-    addRelatorioForm19(funcoes.CompletaOuRepete('',
-      dm.ibselect.FieldByName('nota').AsString, '0', 7) + '  ' +
+    addRelatorioForm19(funcoes.CompletaOuRepete('', dm.ibselect.FieldByName('nota').AsString, '0', 9) + ' ' +
       funcoes.CompletaOuRepete(FormatDateTime('dd/mm/yyyy',
       dm.ibselect.FieldByName('data').AsDateTime), '', ' ', 11) +
       funcoes.CompletaOuRepete(FormatDateTime('dd/mm/yyyy',
       dm.ibselect.FieldByName('chegada').AsDateTime), '', ' ', 11) +
       CompletaOuRepete(LeftStr(dm.ibselect.FieldByName('fornec').AsString + '-'
-      + dm.ibselect.FieldByName('nome').AsString, 34), '', ' ', 34) +
+      + dm.ibselect.FieldByName('nome').AsString, 32), '', ' ', 32) +
       funcoes.CompletaOuRepete('',
       formataCurrency(dm.ibselect.FieldByName('total_nota').AsCurrency), ' ',
       12) + CRLF);
@@ -21623,6 +21628,26 @@ begin
   addRelatorioForm19(CompletaOuRepete('', '', '-', tam) + CRLF);
   form19.RichEdit1.SelStart := 1;
   form19.showmodal;
+end;
+
+procedure TForm2.LimparBloqueios1Click(Sender: TObject);
+var
+  valorDeChecagem : String;
+begin
+  Randomize;
+  valorDeChecagem := funcoes.GeraAleatorio(8);
+  if MessageDlg('O sistema está bloqueado, Deseja Inserir o código de Dessbloqueio ?' + #13 +
+  'Código de Verificação: ' + valorDeChecagem, mtConfirmation, [mbYes, mbNo], 1) = idyes then
+  begin
+    if funcoes.dialogo('normal',0,'',0,true,'',Application.Title,'Qual o Cód de desbloqueio ? Cod: ' + valorDeChecagem,'') =  IntToStr(trunc(StrToCurr(valorDeChecagem) / 87)) then
+      begin
+        funcoes.limpaBloqueado(query1);
+        ShowMessage('Desbloqueado Com Sucesso!');
+      end
+    else begin
+      ShowMessage('Codigo Inválido!');
+    end;
+  end;
 end;
 
 end.

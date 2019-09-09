@@ -139,6 +139,8 @@ type
     enviandoCupom, enviandoBackup: boolean;
     fonteRelatorioForm19: integer;
     NegritoRelatorioForm19, saiComEnter: boolean;
+    function imprimeEnderecoEntrega(tipoImp, cliente, clienteVenda : String) : String;
+    function buscaTexto : String;
     procedure corrigeChaveNFCe(chaveAntiga, chaveNova : String; xml : string);
     function buscaAtivacaoOK : boolean;
     function BuscaNumeracaoNFeSerie(var nomeGen : String) : string;
@@ -500,8 +502,8 @@ type
     procedure ImprimeParcelamento(ini, fim, entrada, nota: string);
     procedure ImprimeParcelamentoOrca(var parc : TStringList; ini, fim : String);
     function ExisteParcelamento(nota: string): boolean;
-    function QuebraLinhas(ini, fim, entrada: string;
-      qtdQuebra: integer): string;
+    function QuebraLinhas(ini, fim, entrada: string; qtdQuebra: integer): string;
+    function QuebraLinhas1(ini, fim, entrada: string; qtdQuebra: integer): string;
     procedure Traca_Nome_Rota;
     procedure GeraCarne(nota, tipo: String);
     procedure Ibquery_to_clienteDataSet(var ibquer: TIBQuery;
@@ -672,7 +674,7 @@ uses Unit1, Math, dialog, formpagtoformulario, StrUtils,
   subconsulta, vendas, nfe, Unit48, login, DateUtils, zlib, envicupom,
   untnfceForm,
   Unit57, cadCli, dadosTransp, cadproduto, gifAguarde, param,
-  caixaLista, unid, Unit69, consultaOrdem, Unit73, Unit76, email;
+  caixaLista, unid, Unit69, consultaOrdem, Unit73, Unit76, email, Unit81;
 
 {$R *.dfm}
 
@@ -2229,7 +2231,7 @@ begin
     funcoes.CompletaOuRepete(form22.nomesServico.Values['2'] + ': ' +
     ordem.marca, '', ' ', 23) + ' ' + form22.nomesServico.Values['3'] + ': ' +
     ordem.modelo, #179, ' ', 49) + funcoes.CompletaOuRepete
-    (form22.nomesServico.Values['5'] + ': ' + ordem.tecnico, #179, ' ',
+    (form22.nomesServico.Values['5'] + ': ' + LeftStr(ordem.tecnico, 20), #179, ' ',
     31) + CRLF);
   addRelatorioForm19(funcoes.CompletaOuRepete(#179 + ' ' +
     form22.nomesServico.Values['6'] + ': ' + ordem.defeito, #179, ' ', 49) +
@@ -2960,14 +2962,18 @@ begin
     quer.FieldByName('telcom').AsString + '_' + quer.FieldByName('ende')
     .AsString + '_' + quer.FieldByName('bairro').AsString, ' ', '_'), 195);
 
+
+  ende := trocaChar(ende, #39, '');//tira apostrofo
   th := 'emp=' + trim(emp1) + '&cnpj=' + cnpj + '&ende=' + ende ;
   th := trocaChar(trocaChar(th, '.', ''), ',', '');
   th := trocaChar(buscaNomeSite + '/si2/add.php?' + th, ' ', '_');
   th := trim(th);
 
-  { arq := TStringList.Create;
-    arq.Text := th;
-    arq.SaveToFile(ExtractFileDir(ParamStr(0) + '\tex.txt')); }
+  //ShowMessage(th);
+
+   {arq := TStringList.Create;
+   arq.Text := th;
+   arq.SaveToFile(ExtractFileDir(ParamStr(0) + '\tex.txt'));}
 
   dm.IBselect.Close;
   try
@@ -10820,6 +10826,23 @@ begin
       dm.IBQuery1.Transaction.Commit;
     end;
 
+    if not VerificaCampoTabela('cliente_entrega', 'venda') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('ALTER TABLE venda ADD cliente_entrega smallint DEFAULT 0 ');
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
+    if funcoes.retornaTamanhoDoCampoBD('TECNICO', 'SERVICO') = 15 then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add
+        ('alter table SERVICO alter TECNICO type VARCHAR(60)');
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
     //VerificaVersao_do_bd
   end;
 
@@ -11577,6 +11600,53 @@ begin
   end;
 end;
 
+function Tfuncoes.QuebraLinhas1(ini, fim, entrada: string;
+  qtdQuebra: integer): string;
+var
+  posi, i, a, fim1, c: integer;
+  nome, temp: string;
+begin
+  Result := '';
+
+  while length(entrada) <> 0 do
+  begin
+    if length(ini + entrada + fim) < qtdQuebra then
+    begin
+      Result := Result +(funcoes.CompletaOuRepete(ini + entrada, fim, ' ',
+        qtdQuebra) + #13 + #10);
+      exit;
+    end;
+
+    for i := qtdQuebra - 1 downto 1 do
+    begin
+      if length(funcoes.CompletaOuRepete(ini + copy(TrimRight(entrada), 1, c),
+        fim, ' ', qtdQuebra)) < qtdQuebra then
+      begin
+        c := 0;
+        break;
+      end;
+      if (entrada[i] = ' ') and (i < qtdQuebra) then
+      begin
+        c := i;
+        break;
+      end;
+    end;
+
+    // copy((entrada),1,c-1)
+    if length(funcoes.CompletaOuRepete(ini + copy((entrada), 1, c), fim, ' ',
+      qtdQuebra)) = qtdQuebra then
+      Result := Result +(funcoes.CompletaOuRepete(ini + copy((entrada), 1,
+        c - 1), fim, ' ', qtdQuebra)+ CRLF)
+    else
+      Result := Result + (funcoes.CompletaOuRepete(ini + copy(TrimRight(entrada),
+        1, c), fim, ' ', qtdQuebra) + CRLF);
+    if c = 0 then
+      Delete(entrada, 1, length(entrada))
+    else
+      Delete(entrada, 1, c);
+  end;
+end;
+
 function Tfuncoes.ExisteParcelamento(nota: string): boolean;
 begin
   Result := False;
@@ -12215,7 +12285,7 @@ function Tfuncoes.GeraNota(numNota: string; tipo: string;
   EnviarImpressora: string; opcao: Smallint): boolean;
 var
   total, sub, entrada, total_item, desco, recebido, troco, tot_item, fracao: currency;
-  refOriCodbar, tmp, impref, imprefxx, codigo1, nomevol: string;
+  refOriCodbar, tmp, impref, imprefxx, codigo1, nomevol, CLIENTE_ENTREGA, CLIENTE_VENDA: string;
   i, tam, tamDescri, linFIM: integer;
   rece, hora, txt, nome: String;
   controleEntrega: boolean;
@@ -12294,8 +12364,11 @@ begin
   if controleEntrega = False then
     form19.RichEdit1.Clear;
 
-  if opcao = 1 then
-    entrada := dm.IBselect.FieldByName('entrada').AsCurrency;
+  if opcao = 1 then begin
+    entrada         := dm.IBselect.FieldByName('entrada').AsCurrency;
+    CLIENTE_ENTREGA := dm.IBselect.FieldByName('CLIENTE_ENTREGA').AsString;
+    CLIENTE_VENDA   := dm.IBselect.FieldByName('CLIENTE').AsString;
+  end;
 
   if controleEntrega = False then
   begin
@@ -14514,6 +14587,11 @@ begin
       Longint(PChar((funcoes.CompletaOuRepete('+', '+', '-', tam) + #13
       + #10))));
 
+
+    if opcao = 1 then begin
+      addRelatorioForm19(funcoes.imprimeEnderecoEntrega(tipo, CLIENTE_ENTREGA, CLIENTE_VENDA));
+    end;
+
     if opcao = 1 then
     begin
       if funcoes.buscaParamGeral(88, 'N') = 'S' then
@@ -15234,6 +15312,8 @@ begin
       form19.RichEdit1.Perform(EM_REPLACESEL, 1,
         Longint(PChar(('* * *    R E I M P R E S S A O     * * *' + #13
         + #10))));
+
+      addRelatorioForm19(funcoes.imprimeEnderecoEntrega(tipo, CLIENTE_ENTREGA, CLIENTE_VENDA));
     end
     else if opcao = 2 then
     begin
@@ -27997,6 +28077,52 @@ begin
   query1.ParamByName('chave').AsString := chaveAntiga;
   QUERY1.ExecSQL;
   query1.Transaction.Commit;
+end;
+
+function Tfuncoes.buscaTexto : String;
+begin
+  Result := '';
+  form81 := tform81.Create(self);
+  form81.ShowModal;
+  if form81.retorno = '*' then begin
+    form81.Free;
+    Result := '*';
+    exit;
+  end;
+  Result := form81.Memo1.Text;
+  form81.Free
+end;
+
+function Tfuncoes.imprimeEnderecoEntrega(tipoImp, cliente, clienteVenda : String) : String;
+begin
+  Result := '';
+  if StrNum(cliente) = '0'            then exit;
+  if cliente = clienteVenda           then exit;
+  
+
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select cod,nome, ende, bairro, cid, telres, telcom from cliente where cod = :cod';
+  dm.IBselect.ParamByName('cod').AsInteger := StrToIntDef(StrNum(cliente), 0);
+  dm.IBselect.Open;
+
+  if dm.IBselect.IsEmpty then begin
+    exit;
+  end;
+
+  if (tipoImp = 'T') then begin
+    Result :=  'INFORMACOES DE ENTREGA: ' + #13 +
+               LeftStr('Cliente: ' + dm.IBselect.FieldByName('cod').AsString + '-' +dm.IBselect.FieldByName('nome').AsString, 40) + #13 +
+               QuebraLinhas1('', '',dm.IBselect.FieldByName('ende').AsString + ', ' + dm.IBselect.FieldByName('bairro').AsString + ' - ' + dm.IBselect.FieldByName('cid').AsString + ' '+
+               dm.IBselect.FieldByName('telres').AsString + '/' + dm.IBselect.FieldByName('telcom').AsString, 40) + #13;
+    exit;
+  end;
+
+  Result := CompletaOuRepete('|INFORMACOES DE ENTREGA: ','|',' ', 78)  + #13 +
+            CompletaOuRepete('|'+ LeftStr('Cliente: ' + dm.IBselect.FieldByName('cod').AsString + '-' +dm.IBselect.FieldByName('nome').AsString, 70),'|',' ', 78) + #13 +
+            QuebraLinhas1('|', '|',dm.IBselect.FieldByName('ende').AsString + ', ' + dm.IBselect.FieldByName('bairro').AsString + ' - ' + dm.IBselect.FieldByName('cid').AsString + ' '+
+            dm.IBselect.FieldByName('telres').AsString + '/' + dm.IBselect.FieldByName('telcom').AsString, 78) +
+            CompletaOuRepete('+', '+', '-', 78 );
+
 end;
 
 end.

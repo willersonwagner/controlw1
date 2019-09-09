@@ -115,7 +115,8 @@ uses
   Unit77 in 'Unit77.pas' {Form77},
   Unit78 in 'Unit78.pas' {Form78},
   dadosnfe in 'dadosnfe.pas' {Form79},
-  cadmecanico in 'cadmecanico.pas' {Form80};
+  cadmecanico in 'cadmecanico.pas' {Form80},
+  Unit81 in 'Unit81.pas' {Form81};
 
 {$R *.res}
 
@@ -135,6 +136,7 @@ begin
   Application.CreateForm(TForm73, Form73);
   Application.CreateForm(TForm74, Form74);
   Application.CreateForm(TForm75, Form75);
+  //Application.CreateForm(TForm81, Form81);
   //Application.CreateForm(TForm80, Form80);
   //Application.CreateForm(TForm79, Form79);
   //Application.CreateForm(TForm78, Form78);

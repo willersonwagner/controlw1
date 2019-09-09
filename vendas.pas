@@ -177,7 +177,7 @@ type
     ordenaCampos: boolean;
     tamanho_nota: integer;
     origem: integer;
-    tipoV: string;
+    tipoV, CLIENTE_ENTREGA, CLIENTE_VENDA: string;
     separaPecas, finaliza: boolean;
     Saiu, verificaCliente, Modo_Venda, Modo_Orcamento, atacado, Compra,
       saidaDeEstoque, separaVendaOrcamento: boolean;
@@ -2222,9 +2222,7 @@ begin
     dm.IBQuery2.SQL.Clear;
     dm.IBQuery2.SQL.Add('select * from registro');
     dm.IBQuery2.Open;
-    form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-      Longint(PChar((funcoes.CompletaOuRepete('+', '+', '-', tam) + #13
-      + #10))));
+    form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete('+', '+', '-', tam) + #13 + #10))));
     form19.RichEdit1.Perform(EM_REPLACESEL, 1,
       Longint(PChar((funcoes.CompletaOuRepete('| PEDIDO DE COMPRA Nr:' + novocod
       + '     PAGTO: ' + codhis + '-' + (funcoes.BuscaNomeBD(dm.IBQuery1,
@@ -2704,8 +2702,7 @@ begin
     tam := 78;
     // txt := '';
 
-    form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-      Longint(PChar((funcoes.CompletaOuRepete('', '', '-', tam) + CRLF))));
+    form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete('', '', '-', tam) + CRLF))));
     addRelatorioForm19
       ('*  *    *    *    *   S E M    V A L O R    F I S C A L   *    *    *     *  *'
       + CRLF);
@@ -2801,8 +2798,7 @@ begin
       end
       else
       begin
-        addRelatorioForm19
-          (funcoes.CompletaOuRepete(funcoes.CompletaOuRepete('|', '', ' ',
+        addRelatorioForm19(funcoes.CompletaOuRepete(funcoes.CompletaOuRepete('|', '', ' ',
           46) + funcoes.CompletaOuRepete('|Fone: ' + dm.IBQuery4.FieldByName
           ('telres').AsString, '', ' ', 29), '|', ' ', tam) + #13 + #10);
         addRelatorioForm19(funcoes.CompletaOuRepete('| Obs: ' +
@@ -2878,8 +2874,7 @@ begin
       end
       else
       begin
-        if contido('|' + dm.IBQuery1.FieldByName('unid').AsString + '|',
-          form22.UnidInteiro) then
+        if contido('|' + dm.IBQuery1.FieldByName('unid').AsString + '|', form22.UnidInteiro) then
           sub := sub + 1
         else
           sub := sub + ClientDataSet1.FieldByName('quant').AsCurrency;
@@ -3051,6 +3046,10 @@ begin
     form19.RichEdit1.Perform(EM_REPLACESEL, 1,
       Longint(PChar((funcoes.CompletaOuRepete('+', '+', '-', tam) + #13
       + #10))));
+
+    if Modo_Venda then begin
+      addRelatorioForm19(funcoes.imprimeEnderecoEntrega(tipo, CLIENTE_ENTREGA, JsEdit3.Text));
+    end;
 
     if Modo_Venda then
     begin
@@ -4251,6 +4250,7 @@ begin
         FormatCurr('#,###,###0.00', (Desconto * 100) / total) + '%):',
         FormatCurr('#,##,###0.00', Desconto), '.', 40) + CRLF);
     end;
+
     addRelatorioForm19(funcoes.CompletaOuRepete('TOTAL:',
       FormatCurr('#,##,###0.00', total1), '.', 40) + CRLF);
     form19.RichEdit1.Perform(EM_REPLACESEL, 1,
@@ -4328,6 +4328,10 @@ begin
     end
     else
       addRelatorioForm19('* * *   NAO  TEM  VALOR  FISCAL    * * *' + CRLF);
+
+    if Modo_Venda then begin
+      addRelatorioForm19(funcoes.imprimeEnderecoEntrega(tipo, CLIENTE_ENTREGA, JsEdit3.Text));
+    end;
 
     if Assigned(Parcelamento) then
     begin
@@ -5826,8 +5830,9 @@ begin
 
   dm.IBQuery1.Close;
   dm.IBQuery1.SQL.Text :=
-    ('insert into venda(datamov,hora,vendedor,cliente,nota,data,total,codhis,desconto,prazo,entrada, EXPORTADO, USUARIO, tipo)'
-    + ' values(:datamov, :hora,:vend,:cliente,:nota,:data,:total,:pagto,:desc,:prazo,:entrada, :exportado, :USUARIO, :tipo)');
+    ('insert into venda(CLIENTE_ENTREGA, datamov,hora,vendedor,cliente,nota,data,total,codhis,desconto,prazo,entrada, EXPORTADO, USUARIO, tipo)'
+    + ' values(:CLIENTE_ENTREGA, :datamov, :hora,:vend,:cliente,:nota,:data,:total,:pagto,:desc,:prazo,:entrada, :exportado, :USUARIO, :tipo)');
+  dm.IBQuery1.ParamByName('CLIENTE_ENTREGA').AsInteger := StrToIntDef(strnum(CLIENTE_ENTREGA), 0);
   dm.IBQuery1.ParamByName('datamov').AsDateTime := NOW;
   dm.IBQuery1.ParamByName('hora').AsTime := NOW;
   dm.IBQuery1.ParamByName('vend').AsInteger :=
@@ -6156,6 +6161,13 @@ begin
         gravaOrcamento;
       if Modo_Venda then
       begin
+        CLIENTE_ENTREGA := '0';
+        if funcoes.buscaParamGeral(113, 'N') = 'S' then begin
+          CLIENTE_ENTREGA := funcoes.dialogo('generico', 0, '1234567890,.' + #8, 50, false, '', application.Title, 'Qual o Cód do Cliente para Entrega ?', JsEdit3.Text);
+          if CLIENTE_ENTREGA = '*' then CLIENTE_ENTREGA := '0';
+          if (CLIENTE_ENTREGA = '') then CLIENTE_ENTREGA := funcoes.localizar('Localizar Cliente', 'cliente', 'cod,nome,telres,telcom,cnpj,bairro', 'cod,nome', '', 'nome', 'nome', true, false, false, '', 0, nil);
+        end;
+
         gravaVenda;
         if codhis = '2' then
         begin
@@ -8788,5 +8800,7 @@ begin
   ClientDataSet1.First;
   ClientDataSet1.EnableControls;
 end;
+
+
 
 end.

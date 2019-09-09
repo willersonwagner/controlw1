@@ -47,11 +47,11 @@ object Form58: TForm58
     Left = 24
     Top = 136
     Width = 464
-    Height = 144
+    Height = 120
     Caption = 
       'At'#233' o Momento n'#227'o registramos o Pagamento'#13#10'da Mensalidade.'#13#10'Caso' +
-      ' j'#225' tenha efetuado o Pagamento, favor '#13#10'consultar o Suporte.'#13#10'Ap' +
-      #243's o decorrido de 20 Dias de Atraso,'#13#10' o Sistema ser'#225' bloqueado.'
+      ' j'#225' tenha efetuado o Pagamento, favor'#13#10'informar ao suporte pelos' +
+      ' telefones que '#13#10'aparecem na tela de entrada do sistema.'
     Font.Charset = ANSI_CHARSET
     Font.Color = 256250
     Font.Height = -21
@@ -131,7 +131,7 @@ object Form58: TForm58
   object timerThread: TTimer
     Enabled = False
     OnTimer = timerThreadTimer
-    Left = 64
-    Top = 80
+    Left = 16
+    Top = 8
   end
 end
