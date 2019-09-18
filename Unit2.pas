@@ -9318,7 +9318,7 @@ procedure TForm2.PorNota1Click(Sender: TObject);
 var
   ini, fim, his, h1, imprimirtotaldia, notapul, grupo, imp_ent, h2, h3, data,
     tipoRegCaixa: string;
-  sepUsu, codigoUsu, h4, usuario: String;
+  sepUsu, codigoUsu, h4, h5, usuario: String;
   totais, caixa: TStringList;
   totalgeral, pendentes, ent, sai, TotalGeralFormas: currency;
   b, ContaNota, i, tam, fi: integer;
@@ -9652,32 +9652,46 @@ begin
 
       // totais.Values[dm.IBselect.fieldbyname('codhis').AsString] := CurrToStr(StrToCurrDef(totais.Values[dm.IBselect.fieldbyname('codhis').AsString], 0) + dm.IBselect.fieldbyname('total').AsCurrency );
 
-      if dm.ibselect.FieldByName('entrada').AsCurrency = 0 then
-      begin
-        totais.Values[dm.ibselect.FieldByName('codhis').AsString] :=
+      i := 0;
+      h5 := '';
+      if dm.ibselect.FieldByName('codhis').AsString = '99' then begin
+        dm.IBQuery1.Close;
+        dm.IBQuery1.SQL.Text := 'select f.nome, p.formapagto, p.valor from PAGAMENTOVENDA p left join FORMPAGTO f'+
+        ' on (f.cod = p.formapagto) where nota = ' +dm.ibselect.FieldByName('nota').AsString ;
+        dm.IBQuery1.Open;
+
+        if dm.IBQuery1.IsEmpty = false then begin
+          i := 1;
+          while not dm.IBQuery1.eof do begin
+            totais.Values[dm.IBQuery1.FieldByName('formapagto').AsString] :=
+            CurrToStr(StrToCurrDef(totais.Values[dm.IBQuery1.FieldByName('formapagto')
+            .AsString], 0) + dm.IBQuery1.FieldByName('valor').AsCurrency);
+
+            addRelatorioForm19( '>>> ' + strzero(dm.IBQuery1.FieldByName('formapagto').AsString, 2) + '-' + CompletaOuRepete(LeftStr(dm.IBQuery1.FieldByName('nome').AsString, 20), '', ' ', 21) + CompletaOuRepete('', formataCurrency(dm.IBQuery1.FieldByName('valor').AsCurrency), ' ', 12 ) + CRLF);
+
+            dm.IBQuery1.Next;
+          end;
+          addRelatorioForm19(CRLF);
+        end;
+
+      end;
+
+      if (i = 0) then begin
+        if dm.ibselect.FieldByName('entrada').AsCurrency = 0 then begin
+          totais.Values[dm.ibselect.FieldByName('codhis').AsString] :=
           CurrToStr(StrToCurrDef(totais.Values[dm.ibselect.FieldByName('codhis')
           .AsString], 0) + dm.ibselect.FieldByName('total').AsCurrency);
-      end
-      else
-      begin
-        totais.Values['1'] := CurrToStr(StrToCurrDef(totais.Values['1'], 0) +
+        end
+        else begin
+          totais.Values['1'] := CurrToStr(StrToCurrDef(totais.Values['1'], 0) +
           dm.ibselect.FieldByName('entrada').AsCurrency);
-        totais.Values[dm.ibselect.FieldByName('codhis').AsString] :=
+          totais.Values[dm.ibselect.FieldByName('codhis').AsString] :=
           CurrToStr(StrToCurrDef(totais.Values[dm.ibselect.FieldByName('codhis')
           .AsString], 0) + (dm.ibselect.FieldByName('total').AsCurrency -
           dm.ibselect.FieldByName('entrada').AsCurrency));
-
-        { if dm.IBselect.fieldbyname('codhis').AsInteger <> 2 then
-          begin
-          totais.Values['1'] := CurrToStr(StrToCurrDef(totais.Values['1'], 0) + dm.IBselect.fieldbyname('entrada').AsCurrency );
-          totais.Values[dm.IBselect.fieldbyname('codhis').AsString] := CurrToStr(StrToCurrDef(totais.Values[dm.IBselect.fieldbyname('codhis').AsString], 0) + (dm.IBselect.fieldbyname('total').AsCurrency - dm.IBselect.fieldbyname('entrada').AsCurrency));
-          end
-          else begin
-          totais.Values[dm.IBselect.fieldbyname('codhis').AsString] := CurrToStr(StrToCurrDef(totais.Values[dm.IBselect.fieldbyname('codhis').AsString], 0) + dm.IBselect.fieldbyname('total').AsCurrency );
-          end; }
-
-        // totais.Values[dm.IBselect.fieldbyname('codhis').AsString] := CurrToStr(StrToCurrDef(totais.Values[dm.IBselect.fieldbyname('codhis').AsString], 0) + dm.IBselect.fieldbyname('total').AsCurrency );
+        end;
       end;
+
     end
     else
     begin
@@ -9704,6 +9718,7 @@ begin
             'canc.:' + copy(funcoes.BuscaNomeBD(dm.IBQuery1, 'nome', 'usuario',
             'where cod=' + dm.ibselect.FieldByName('cancelado').AsString), 1,
             9), ' ', 15) + #13 + #10))));
+
         end
         else
           form19.RichEdit1.Perform(EM_REPLACESEL, 1,
@@ -9722,7 +9737,8 @@ begin
             funcoes.CompletaOuRepete('',
             'canc.:' + copy(funcoes.BuscaNomeBD(dm.IBQuery1, 'nome', 'usuario',
             'where cod=' + dm.ibselect.FieldByName('cancelado').AsString), 1,
-            9), ' ', 15) + #13 + #10))))
+            9), ' ', 15) + #13 + #10))));
+
       end;
     end;
 
@@ -12216,137 +12232,118 @@ begin
       dm.ibselect.Close;
     end;
 
-    err1 := 0;
-    total := '0';
-    entrada := 0;
-    pagtos := TStringList.Create;
-    totVenda := valor;
+    if formpagto = '99' then begin
+      funcoes.leformaDePagamentoMista(StrToInt(nota), 0);
+    end
+    else begin
+      err1 := 0;
+      total := '0';
+      entrada := 0;
+      pagtos := TStringList.Create;
+      totVenda := valor;
 
-    while true do
-    begin
-      formpagto := funcoes.LerFormPato(iif(StrToIntDef(formpagto, 0) - 1 >= 0,
-        StrToIntDef(formpagto, 0) - 1, 0), '', true, formpagto);
-      if formpagto = '*' then
-        exit;
+      while true do begin
+        formpagto := funcoes.LerFormPato(iif(StrToIntDef(formpagto, 0) - 1 >= 0,
+         StrToIntDef(formpagto, 0) - 1, 0), '', true, formpagto);
+        if formpagto = '*' then exit;
 
-      if (strnum(pag) <> '2') and (strnum(formpagto) = '2') then
-      begin
-        ShowMessage('Escolha outra forma de Pagamento');
-        err1 := err1 + 1;
-        pagtos.Clear;
-        exit;
-      end;
+        if (strnum(pag) <> '2') and (strnum(formpagto) = '2') then begin
+          ShowMessage('Escolha outra forma de Pagamento');
+          err1 := err1 + 1;
+          pagtos.Clear;
+          exit;
+        end;
 
-      if ((pag = '2')) then
-      begin
-        if formpagto <> '2' then
-        begin
-          ShowMessage
+        if ((pag = '2')) then begin
+         if formpagto <> '2' then begin
+            ShowMessage
             ('Forma de Pagamento a A PRAZO não pode ser trocada no recebimento. '
             + #13 + ' Escolha outra forma de Pagamento');
-          err1 := err1 + 1;
+            err1 := err1 + 1;
+            exit;
+         end;
+        end;
+
+        if err1 = 2 then begin
+          MessageDlg('Forma de Pagamento Inválida, Favor Escolha Outra Forma de Pagamento!',
+          mtInformation, [mbOK], 1);
           exit;
+        end;
+
+        total := funcoes.dialogo('numero', 0, '1234567890,.' + #8, 2, false, '','Control For Windows', 'Qual o Valor Recebido?',
+        FormatCurr('#,###,###0.00', valor));
+        if total = '*' then break;
+
+        pagtos.Add(formpagto + '=' + total);
+
+        valor := valor - StrToCurrDef(total, 0);
+
+        if valor <= 0 then break;
+      end;
+
+
+      entrada := 0;
+      recebido := 0;
+
+      if pagtos.Count >= 2 then begin
+        for ini := 0 to pagtos.Count - 1 do begin
+          if pagtos.Names[ini] = '1' then
+            entrada := entrada + StrToCurrDef(pagtos.ValueFromIndex[ini], 0);
+          if (pagtos.Names[ini] <> '2') and (pagtos.Names[ini] <> '1') then
+            formpagto := pagtos.Names[ini];
+
+          recebido := recebido + StrToCurrDef(pagtos.ValueFromIndex[ini], 0);
+        end;
+      end
+      else begin
+        for ini := 0 to pagtos.Count - 1 do begin
+          recebido := recebido + StrToCurrDef(pagtos.ValueFromIndex[ini], 0);
         end;
       end;
 
-      if err1 = 2 then
-      begin
-        MessageDlg
-          ('Forma de Pagamento Inválida, Favor Escolha Outra Forma de Pagamento!',
-          mtInformation, [mbOK], 1);
-        exit;
+      if entrada > totVenda then entrada := totVenda;
+      if entrada = totVenda then entrada := 0;
+
+      if (recebido) > totVenda then
+        funcoes.mostraValorDinheiroTela(recebido - totVenda);
       end;
 
-      total := funcoes.dialogo('numero', 0, '1234567890,.' + #8, 2, false, '',
-        'Control For Windows', 'Qual o Valor Recebido?',
-        FormatCurr('#,###,###0.00', valor));
-      if total = '*' then
-        break;
-
-      { if (Contido('-'+pag + '-', '-1-2-') = false) and (formpagto = '1') then
-        begin
-        entrada := entrada + StrToCurrDef(total, 0);
-        end; }
-
-      pagtos.Add(formpagto + '=' + total);
-
-      valor := valor - StrToCurrDef(total, 0);
-
-      if valor <= 0 then
-        break;
-    end;
-
-    entrada := 0;
-    recebido := 0;
-
-    if pagtos.Count >= 2 then
-    begin
-      for ini := 0 to pagtos.Count - 1 do
-      begin
-        if pagtos.Names[ini] = '1' then
-          entrada := entrada + StrToCurrDef(pagtos.ValueFromIndex[ini], 0);
-        if (pagtos.Names[ini] <> '2') and (pagtos.Names[ini] <> '1') then
-          formpagto := pagtos.Names[ini];
-
-        recebido := recebido + StrToCurrDef(pagtos.ValueFromIndex[ini], 0);
-      end;
-    end
-    else
-    begin
-      for ini := 0 to pagtos.Count - 1 do
-      begin
-        recebido := recebido + StrToCurrDef(pagtos.ValueFromIndex[ini], 0);
-      end;
-    end;
-
-    if entrada > totVenda then
-      entrada := totVenda;
-    if entrada = totVenda then
-      entrada := 0;
-
-    if (recebido) > totVenda then
-      funcoes.mostraValorDinheiroTela(recebido - totVenda);
-
-    conf := '';
-    conf := funcoes.dialogo('generico', 25, 'NS', 25, true, 'S',
+      conf := '';
+      conf := funcoes.dialogo('generico', 25, 'NS', 25, true, 'S',
       application.Title, 'Confirma O Recebimento da Venda ' + nota + ' ?', 'S');
-    if conf = '*' then
-      exit;
+      if conf = '*' then exit;
 
-    if pag = '2' then
-    begin
-      entrada := entradaOrigi;
-      formpagto := pag;
-    end;
+      if pag = '2' then begin
+        entrada := entradaOrigi;
+        formpagto := pag;
+      end;
 
-    dm.IBQuery1.Close;
-    if atualizarData then begin
-      dm.IBQuery1.SQL.Text := ('update venda set data = :data, ok =' + QuotedStr(conf) + ', codhis = :codhis, entrada = :entrada, usuario = :usu where nota = :nota');
-      dm.IBQuery1.ParamByName('data').AsDate  := form22.datamov;
-    end
-    else begin
-      dm.IBQuery1.SQL.Text := ('update venda set ok =' + QuotedStr(conf) + ', codhis = :codhis, entrada = :entrada, usuario = :usu where nota = :nota');
-    end;
+      dm.IBQuery1.Close;
+      if atualizarData then begin
+        dm.IBQuery1.SQL.Text := ('update venda set data = :data, ok =' + QuotedStr(conf) + ', codhis = :codhis, entrada = :entrada, usuario = :usu where nota = :nota');
+        dm.IBQuery1.ParamByName('data').AsDate  := form22.datamov;
+      end
+      else begin
+        dm.IBQuery1.SQL.Text := ('update venda set ok =' + QuotedStr(conf) + ', codhis = :codhis, entrada = :entrada, usuario = :usu where nota = :nota');
+      end;
 
-    dm.IBQuery1.ParamByName('nota').AsString      := nota;
-    dm.IBQuery1.ParamByName('codhis').AsString    := formpagto;
-    dm.IBQuery1.ParamByName('entrada').AsCurrency := entrada;
-    dm.IBQuery1.ParamByName('usu').AsString       := form22.codusario;
-    dm.IBQuery1.ExecSQL;
-
-    try
+      dm.IBQuery1.ParamByName('nota').AsString      := nota;
+      dm.IBQuery1.ParamByName('codhis').AsString    := formpagto;
+      dm.IBQuery1.ParamByName('entrada').AsCurrency := entrada;
+      dm.IBQuery1.ParamByName('usu').AsString       := form22.codusario;
+      dm.IBQuery1.ExecSQL;
       dm.IBQuery1.Transaction.Commit;
       dm.IBQuery1.Close;
+  end;
 
-      if MessageBox(handle, 'Deseja Emitir Cupom para Esta Venda',
-        'Cupom Eletrônico', MB_YESNO + MB_DEFBUTTON2) = idyes then
-      begin
+     try
+      if MessageBox(handle, 'Deseja Emitir Cupom para Esta Venda','Cupom Eletrônico', MB_YESNO + MB_DEFBUTTON2) = idyes then begin
         form22.enviNFCe(nota, '', recebido);
       end;
     except
       ShowMessage('Ocorreu um Erro. Tente Novamente');
     end;
-  end;
+
 end;
 
 procedure TForm2.AcertodeEstoque1Click(Sender: TObject);
@@ -14356,7 +14353,7 @@ begin
 
   dm.IBQuery2.Close;
   dm.IBQuery2.SQL.Clear;
-  dm.IBQuery2.SQL.Add('select cod,nome, unid, ' + base + ', p_compra, ' +
+  dm.IBQuery2.SQL.Add('select cod,nome, unid, classif, ' + base + ', p_compra, ' +
     selecao + ', deposito from produto where (substring(nome from 1 for 1) <> ''_'') '
     + fornec + estoqueZero + ' ' + ordem);
   dm.IBQuery2.Open;
@@ -14427,7 +14424,7 @@ begin
         if qtdade > 0 then
         begin
           addRelatorioForm19(funcoes.CompletaOuRepete('', '', ' ',
-            StrToIntDef(colIni, 0)) + funcoes.CompletaOuRepete('|', '|', ' ',
+            StrToIntDef(colIni, 0)) + funcoes.CompletaOuRepete('|' + LeftStr(dm.IBQuery2.FieldByName('classif').AsString, 12), '|', ' ',
             15) + funcoes.CompletaOuRepete(nome, '|', ' ', 49) +
             funcoes.CompletaOuRepete(dm.IBQuery2.FieldByName('unid').AsString,
             '|', ' ', 10) + funcoes.CompletaOuRepete('',
@@ -14441,7 +14438,7 @@ begin
       else
       begin
         addRelatorioForm19(funcoes.CompletaOuRepete('', '', ' ',
-          StrToIntDef(colIni, 0)) + funcoes.CompletaOuRepete('|', '|', ' ', 15)
+          StrToIntDef(colIni, 0)) + funcoes.CompletaOuRepete('|' + LeftStr(dm.IBQuery2.FieldByName('classif').AsString, 12), '|', ' ', 15)
           + funcoes.CompletaOuRepete(nome, '|', ' ', 49) +
           funcoes.CompletaOuRepete(dm.IBQuery2.FieldByName('unid').AsString,
           '|', ' ', 10) + funcoes.CompletaOuRepete('',
@@ -14965,13 +14962,10 @@ begin
 
   if funcoes.buscaParamGeral(33, '') = '' then
     caminho := 'E'
-  else
-    caminho := funcoes.buscaParamGeral(33, '');
-  caminho := funcoes.dialogo('generico', 0, 'ABCDEFGHIJLMNOPKXYZWQRSTUVXZ', 50,
-    false, 'S', application.Title,
-    'Confirme o Drive para Gerar a Exportação?', caminho);
-  if caminho = '*' then
-    exit;
+  else caminho := funcoes.buscaParamGeral(33, '');
+
+  caminho := funcoes.dialogo('generico', 0, 'ABCDEFGHIJLMNOPKXYZWQRSTUVXZ', 50, false, 'S', application.Title, 'Confirme o Drive para Gerar a Exportação?', caminho);
+  if caminho = '*' then exit;
 
   dm.ibselect.Close;
   dm.ibselect.SQL.Clear;
@@ -15193,8 +15187,7 @@ begin
     dm.ibselect.Close;
     dm.ibselect.SQL.Clear;
     dm.ibselect.SQL.Add('select cod from produto where cod = :cod');
-    dm.ibselect.ParamByName('cod').AsString := form33.ClientDataSet1.FieldByName
-      ('codigo').AsString;
+    dm.ibselect.ParamByName('cod').AsString := form33.ClientDataSet1.FieldByName('codigo').AsString;
     dm.ibselect.Open;
 
     if dm.ibselect.IsEmpty then

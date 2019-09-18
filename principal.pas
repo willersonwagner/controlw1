@@ -76,7 +76,8 @@ implementation
 
 uses Unit1,  func, Unit2, relatorio, minilocalizar, Math, Unit38,
   creceberposicao, registro, TypInfo, StrUtils, backup, dialog, nfe, spedfiscal,
-  Unit49, Unit48, cadCli, untConfiguracoesNFCe, U_Principal, gifAguarde;
+  Unit49, Unit48, cadCli, untConfiguracoesNFCe, U_Principal, gifAguarde,
+  pagamento;
 
 {$R *.dfm}                
 
@@ -463,7 +464,7 @@ end;
 
 procedure Tform22.Button1Click(Sender: TObject);
 begin
-  funcoes.apagaMovimento;
+  ShowMessage(funcoes.leformaDePagamentoMista(105914, 0).Text);
 end;
 
 function Tform22.enviNFCe(const perg : String = ''; nnf : String = ''; recebido : currency = 0) : boolean;

@@ -56,7 +56,6 @@ type
     procedure cfopKeyPress(Sender: TObject; var Key: Char);
     procedure despAcessoriasKeyPress(Sender: TObject; var Key: Char);
     procedure ButBaixarKeyPress(Sender: TObject; var Key: Char);
-    procedure ButBaixarClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure notaKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -85,6 +84,7 @@ type
     procedure cfopEnter(Sender: TObject);
     procedure notaExit(Sender: TObject);
     procedure clienteEnter(Sender: TObject);
+    procedure ButBaixarClick(Sender: TObject);
   private
     generator : String;
     nfeRefLista : tstringList;
@@ -102,6 +102,7 @@ type
     procedure atualizaNumeracaoGeneratorTela;
     function buscaCliente() : string;
     function buscaFornecedor() : string;
+    procedure emitenfe();
     { Private declarations }
   public
     FIN_NFE, nomeFIN_NFE, DOC_REF, NFE_REF, estorno, TAG_DOCREF, NUM_ECF, natOP1,
@@ -120,10 +121,11 @@ implementation
 
 uses func, cadcliente, nfe, buscaSelecao, Unit1, Unit73, dadosTransp, principal;
 
-procedure TForm79.ButBaixarClick(Sender: TObject);
+procedure TForm79.emitenfe();
 var
   situacao : String;
 begin
+  ButBaixar.Enabled := false;
   if cfop.Text = '' then begin
     acertaCFOP_Automatico;
   end;
@@ -222,6 +224,12 @@ begin
   NfeVenda.Free;
 
   if situacao = 'E' then close;
+  ButBaixar.Enabled := true;
+end;
+
+procedure TForm79.ButBaixarClick(Sender: TObject);
+begin
+  emitenfe;
 end;
 
 procedure TForm79.ButBaixarKeyDown(Sender: TObject; var Key: Word;
@@ -735,6 +743,15 @@ begin
         ('Nota de Devolução. É Obrigatório informar as chaves das NFes que Deseja Devolver.', 'XX');
       nfeRefLista := tstringList.Create;
       nfeRefLista.text := NFE_REF;
+
+      if finnfe.Text = '3' then begin
+        estorno := funcoes.dialogo('generico', 0, 'SN', 50, true, 'S',
+        Application.Title, 'Nota Fiscal de Estorno ?', 'S');
+        if estorno = '*' then begin
+          Result := '*';
+          exit;
+        end;
+      end;
 
       if trim(nfeRefLista.text) = '' then
       begin

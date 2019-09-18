@@ -139,6 +139,7 @@ type
     enviandoCupom, enviandoBackup: boolean;
     fonteRelatorioForm19: integer;
     NegritoRelatorioForm19, saiComEnter: boolean;
+    function leformaDePagamentoMista(nota : integer; valor : currency) : TStringList;
     function imprimeEnderecoEntrega(tipoImp, cliente, clienteVenda : String) : String;
     function buscaTexto : String;
     procedure corrigeChaveNFCe(chaveAntiga, chaveNova : String; xml : string);
@@ -674,7 +675,8 @@ uses Unit1, Math, dialog, formpagtoformulario, StrUtils,
   subconsulta, vendas, nfe, Unit48, login, DateUtils, zlib, envicupom,
   untnfceForm,
   Unit57, cadCli, dadosTransp, cadproduto, gifAguarde, param,
-  caixaLista, unid, Unit69, consultaOrdem, Unit73, Unit76, email, Unit81;
+  caixaLista, unid, Unit69, consultaOrdem, Unit73, Unit76, email, Unit81,
+  pagamento;
 
 {$R *.dfm}
 
@@ -10839,6 +10841,28 @@ begin
       dm.IBQuery1.SQL.Clear;
       dm.IBQuery1.SQL.Add
         ('alter table SERVICO alter TECNICO type VARCHAR(60)');
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
+    if NOT verSeExisteTabela('PAGAMENTOVENDA') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := 'CREATE TABLE PAGAMENTOVENDA (COD INTEGER NOT NULL,NOTA INTEGER,' +
+      'DATA DATE, FORMAPAGTO SMALLINT, VALOR NUMERIC(10,2))';
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := 'alter table PAGAMENTOVENDA add constraint PK_PAGAMENTOVENDA primary key (COD)';
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := 'CREATE SEQUENCE PAGAMENTOVENDA';
+      dm.IBQuery1.ExecSQL;
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := 'insert into FORMPAGTO(cod, nome) values(99, ''PAGAMENTO MISTO'')';
       dm.IBQuery1.ExecSQL;
       dm.IBQuery1.Transaction.Commit;
     end;
@@ -27804,6 +27828,7 @@ end;
 procedure Tfuncoes.checaAssinatura(arquivo : String);
 var
   arq : TStringList;
+  pasta : String;
 begin
   arq := TStringList.Create;
   arq.LoadFromFile(arquivo);
@@ -27814,11 +27839,24 @@ begin
   end;
 
   arq.Free;
-  ACBrNFe.NotasFiscais.Clear;
-  ACBrNFe.NotasFiscais.LoadFromFile(arquivo);
-  ACBrNFe.NotasFiscais[0].Assinar;
-  ACBrNFe.NotasFiscais[0].GravarXML(ExtractFileName(arquivo), ExtractFileDir(arquivo));
-  ACBrNFe.NotasFiscais.Clear;
+
+  try
+    ACBrNFe.NotasFiscais.Clear;
+    ACBrNFe.NotasFiscais.LoadFromFile(arquivo);
+    ACBrNFe.NotasFiscais[0].Assinar;
+    ACBrNFe.NotasFiscais[0].GravarXML(ExtractFileName(arquivo), ExtractFileDir(arquivo));
+    ACBrNFe.NotasFiscais.Clear;
+  except
+    on e:exception do begin
+      ShowMessage('Erro na ASSINATURA da NFe: ' + ExtractFileName(arquivo) + #13 + e.Message);
+      arq := TStringList.Create;
+      arq.LoadFromFile(arquivo);
+      pasta := caminhoEXE_com_barra_no_final + 'backup\' + FormatDateTime('dd-mm-yy', now) + '\';
+      criaPasta(pasta);
+      arq.SaveToFile(pasta + ExtractFileName(arquivo));
+      arq.Free;
+    end;
+  end;
 end;
 
 procedure Tfuncoes.alteraDataHoraLocal(var data1 : TDateTime);
@@ -28124,5 +28162,46 @@ begin
             CompletaOuRepete('+', '+', '-', 78 );
 
 end;
+
+
+function Tfuncoes.leformaDePagamentoMista(nota : integer; valor : currency) : TStringList;
+begin
+  Result := TStringList.Create;
+  form82 := tform82.Create(self);
+  form82.nota := nota;
+  form82.ShowModal;
+  if form82.finalizou <> 'S' then begin
+    form82.Free;
+    exit;
+  end;
+
+  dm.IBQuery1.Close;
+  dm.IBQuery1.SQL.Text := 'delete from PAGAMENTOVENDA where nota = :nota';
+  dm.IBQuery1.ParamByName('nota').AsInteger := nota;
+  dm.IBQuery1.ExecSQL;
+  dm.IBQuery1.Transaction.Commit;
+
+  while not form82.ClientDataSet1.Eof do begin
+    Result.Add(form82.ClientDataSet1.FieldByName('cod').AsString + '=' + form82.ClientDataSet1.FieldByName('valor').AsString);
+
+    dm.IBQuery1.Close;
+    dm.IBQuery1.SQL.Text := 'insert into PAGAMENTOVENDA(cod, nota, data, formapagto, valor) ' +
+    'values(gen_id(PAGAMENTOVENDA, 1), :nota, :data, :formpagto, :valor)';
+    dm.IBQuery1.ParamByName('nota').AsInteger := nota;
+    dm.IBQuery1.ParamByName('data').AsDate    := now;
+    dm.IBQuery1.ParamByName('formpagto').AsInteger := form82.ClientDataSet1.FieldByName('cod').AsInteger;
+    dm.IBQuery1.ParamByName('valor').AsCurrency    := form82.ClientDataSet1.FieldByName('valor').AsCurrency;
+    dm.IBQuery1.ExecSQL;
+    dm.IBQuery1.Transaction.Commit;
+
+
+    form82.ClientDataSet1.Next;
+  end;
+
+  form82.Free;
+end;
+
+
+
 
 end.

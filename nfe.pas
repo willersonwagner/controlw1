@@ -2503,10 +2503,20 @@ begin
   dm.IBselect.Close;
   dm.IBQuery2.Close;
   dm.IBQuery1.Close;
+  try
+    dadosEmitente.Free;
+  except
+  end;
 
-  dadosEmitente.Free;
-  dadosDest.Free;
-  Lista_Itens.Free;
+  try
+    dadosDest.Free;
+  except
+  end;
+
+  try
+    Lista_Itens.Free;
+  except
+  end;
 end;
 
 function TNfeVenda.CampoString(ent : string) : string;
@@ -4012,7 +4022,7 @@ begin
       funcoes.mensagemEnviandoNFCE('Aguarde, Enviando 0...', true, false);
 
       //tenta enviar 2 vezes em intervalo de 10s de espera, caso venha retorno entao sai do while
-        while true do begin
+      while true do begin
           i := i + 1;
 
           form65.Label1.Caption := 'Aguarde, Enviando '+IntToStr(i)+'...';
@@ -4025,7 +4035,7 @@ begin
             except
             end;
             csta := ACBrNFe.WebServices.Retorno.cstat;
-           end
+          end
            else begin
              //as vezes acbrNFeEnviar função retorna FALSE mas tem numero de recibo
              if ACBrNFe.WebServices.enviar.Recibo <> '' then begin
@@ -4040,15 +4050,15 @@ begin
 
           if (((csta > 0) and (csta < 999)) or (i >= 15)) then break;
           sleep(1500);
-        end;
+      end;
 
         form65.Label1.Caption := 'Aguarde, cSta: '+IntToStr(csta)+'...';
         form65.Label1.Update;
 
 
-        //se nao veio resposta entao consulta 3x pra ver se foi emitida ou o cstat veio com valor 999
-        //como foi iniciado a variavel, caso venha um cstat entao sai do while
-        if (Contido('(5)-', ERRO_dados) or (csta = 999) or (csta = 0) or (csta = 204))  then begin
+      //se nao veio resposta entao consulta 3x pra ver se foi emitida ou o cstat veio com valor 999
+      //como foi iniciado a variavel, caso venha um cstat entao sai do while
+      if (Contido('(5)-', ERRO_dados) or (csta = 999) or (csta = 0) or (csta = 204))  then begin
           i := 0;
           while true do begin
             i := i + 1;
@@ -4066,12 +4076,11 @@ begin
             if (((csta > 0) and (csta < 999)) or (i >= 3)) then break;
             sleep(1500);
           end;
-        end;
+      end;
 
       form65.Label1.Caption := 'Aguarde, cStat: '+IntToStr(csta)+'...';
       form65.Label1.Update;
       sleep(1500);
-
 
       if csta = 217 then begin
         ERRO_dados := 'Erro 4040:Rejeição (217): NF-e não consta na base de dados da SEFAZ';
@@ -4097,21 +4106,19 @@ begin
         exit;
       end;
 
-        if (i >= 5) then begin
-          MessageDlg('Tentativas de Envio Esgotadas, Verifique a Internet ou outros Problemas que estão Evitando o Envio da NFe' + #13 +
-          #13 + erro_dados,mtError,[mbOK],0);
-          funcoes.mensagemEnviandoNFCE('', false, true);
-          Fechar_Datasets_limpar_Listas_e_variaveis;
-          exit;
-        end;
+      if (i >= 5) then begin
+        MessageDlg('Tentativas de Envio Esgotadas, Verifique a Internet ou outros Problemas que estão Evitando o Envio da NFe' + #13 +#13 + erro_dados,mtError,[mbOK],0);
+        funcoes.mensagemEnviandoNFCE('', false, true);
+        Fechar_Datasets_limpar_Listas_e_variaveis;
+        exit;
+      end;
 
-        if (Contido('Rejeicao:', erro_dados) and (Contido('Duplicidade', erro_dados) = false)) then begin
-          MessageDlg('Erro: ' + erro_dados + #13 + 'xMotivo= ' + ACBrNFe.WebServices.Retorno.xMotivo + #13 + 'Cstat=' + IntToStr(ACBrNFe.WebServices.Retorno.cStat) + #13 + 'Esta NFe não pode ser transmitida.' + #13 + #13 +'Por Favor Tente Novamente',
-          mtError,[mbOK],0);
-          funcoes.mensagemEnviandoNFCE('', false, true);
-          Fechar_Datasets_limpar_Listas_e_variaveis;
-          exit;
-        end;
+      if (Contido('Rejeicao:', erro_dados) and (Contido('Duplicidade', erro_dados) = false)) then begin
+        MessageDlg('Erro: ' + erro_dados + #13 + 'xMotivo= ' + ACBrNFe.WebServices.Retorno.xMotivo + #13 + 'Cstat=' + IntToStr(ACBrNFe.WebServices.Retorno.cStat) + #13 + 'Esta NFe não pode ser transmitida.' + #13 + #13 +'Por Favor Tente Novamente',mtError,[mbOK],0);
+        funcoes.mensagemEnviandoNFCE('', false, true);
+        Fechar_Datasets_limpar_Listas_e_variaveis;
+        exit;
+      end;
 
         if funcoes.Contido('USO DENEGADO', UpperCase(erro_dados)) THEN begin
           csta := 301;
@@ -4121,73 +4128,43 @@ begin
         funcoes.mensagemEnviandoNFCE('', false, true);
 
         if ((funcoes.Contido('DUPLICIDADE DE NF-E', UpperCase(erro_dados))) or (csta = 204) or (csta = 539)) THEN begin
+          trataDuplicidadeNFe(dm.ACBrNFe.WebServices.Retorno.xMotivo, true);
 
-            trataDuplicidadeNFe(dm.ACBrNFe.WebServices.Retorno.xMotivo, true);
+          erro_dados := '';
 
-            erro_dados := '';
-
-            //if chaveNF = chaveRecuperada then begin
-            if true then begin
-              Fechar_Datasets_limpar_Listas_e_variaveis;
-              MessageDlg('O Sistema Recuperou a NFe com Sucesso!', mtInformation, [mbOK], 1);
-              exit;
-            end;
-
-
-            Fechar_Datasets_limpar_Listas_e_variaveis;
-            xml1 := GerarNFeTexto(arq);
-
-            ACBrNFe.NotasFiscais.Clear;
-            ACBrNFe.NotasFiscais.LoadFromFile(arq);
+          Fechar_Datasets_limpar_Listas_e_variaveis;
+          MessageDlg('O Sistema Recuperou a NFe com Sucesso!', mtInformation, [mbOK], 1);
+          exit;
         end;
 
-    if Contido('-' + IntToStr(csta) + '-', '-100-204-110-205-301-302-') then//((csta = 301) or (csta = 302) or (csta = 110)) then
-      begin
-        ci       := 'E';
-        situacao := 'E';
-        if Contido('-' + IntToStr(csta) + '-', '-110-205-301-302-') then ci := 'D';
+    if Contido('-' + IntToStr(csta) + '-', '-100-204-110-205-301-302-') then begin
+      ci       := 'E';
+      situacao := 'E';
+      if Contido('-' + IntToStr(csta) + '-', '-110-205-301-302-') then ci := 'D';
 
-        ACBrNFe.NotasFiscais[0].GravarXML(ExtractFileName(arq),ExtractFileDir(arq) + '\');
+      ACBrNFe.NotasFiscais[0].GravarXML(ExtractFileName(arq),ExtractFileDir(arq) + '\');
 
-        reStartGenerator(generator, ACBrNFe.NotasFiscais[0].NFe.Ide.nNF + 1);
-        insereRegistroDaNotaNaTabelaNFE(IntToStr(ACBrNFe.NotasFiscais[0].NFe.Ide.nNF), chaveNF, ci, ACBrNFe.NotasFiscais[0].NFe.Ide.dEmi, arq);
-        AtualizaCfop(cod_op);
+      reStartGenerator(generator, ACBrNFe.NotasFiscais[0].NFe.Ide.nNF + 1);
+      insereRegistroDaNotaNaTabelaNFE(IntToStr(ACBrNFe.NotasFiscais[0].NFe.Ide.nNF), chaveNF, ci, ACBrNFe.NotasFiscais[0].NFe.Ide.dEmi, arq);
+      AtualizaCfop(cod_op);
 
-        funcoes.GRAVA_MOV(IntToStr(ACBrNFe.NotasFiscais[0].NFe.Ide.cNF), Form22.datamov, IntToStr(ACBrNFe.NotasFiscais[0].NFe.Ide.nNF), '90', dest, false, ci);
+      funcoes.GRAVA_MOV(IntToStr(ACBrNFe.NotasFiscais[0].NFe.Ide.cNF), Form22.datamov, IntToStr(ACBrNFe.NotasFiscais[0].NFe.Ide.nNF), '90', dest, false, ci);
 
-        SendPostData(Form72.IdHTTP1, arq, 'E', IntToStr(csta));
+      SendPostData(Form72.IdHTTP1, arq, 'E', IntToStr(csta));
 
-        //gravaERRO_LOG1('nota=' + nota + #13 + 'buscaCRCdaChave('+chaveNF+')=' + buscaCRCdaChave(chaveNF),'','');
-        {dm.IBQuery1.Close;
-        dm.IBQuery1.SQL.Text := 'update venda set entrga = ''N'', crc = :crc  where nota = :nota';
-        dm.IBQuery1.ParamByName('crc').AsString  := buscaCRCdaChave(chaveNF);
-        dm.IBQuery1.ParamByName('nota').AsString := StrNum(nota);
-        try
-          dm.IBQuery1.ExecSQL;
-          dm.IBQuery1.Transaction.Commit;
-        except
-          on e:exception do begin
-            ShowMessage('Erro 3706: ' + e.Message);
-          end;
-        end;}
+      imprimirNFe();
 
-
-        imprimirNFe();
-
-        if funcoes.buscaParamGeral(85, 'S') = 'S' then begin
-          enviarPorEmail(chaveNF);
-        end;
-
-        csta := 0;
+      if funcoes.buscaParamGeral(85, 'S') = 'S' then begin
+        enviarPorEmail(chaveNF);
       end;
 
-    if csta > 200 then
-      begin
-        ShowMessage('NF-e '+ ' Houve uma falha na Validação!'+#13+#10+#13+#10+
+      csta := 0;
+
+    end else begin
+      ShowMessage('NF-e '+ ' Houve uma falha na Validação!'+#13+#10+#13+#10+
                   'Favor Corrigir: ' + dm.ACBrNFe.WebServices.Retorno.xMotivo + #13 +
                   'cStat=' + IntToStr(csta));//+qry.FieldByName('RECIBO_DESCSTATUS').AsString);
-        exit;
-      end;
+    end;
 
     Fechar_Datasets_limpar_Listas_e_variaveis;
 end;
