@@ -12245,6 +12245,13 @@ begin
       while true do begin
         formpagto := funcoes.LerFormPato(iif(StrToIntDef(formpagto, 0) - 1 >= 0,
          StrToIntDef(formpagto, 0) - 1, 0), '', true, formpagto);
+
+
+        if formpagto = '99' then begin
+          funcoes.leformaDePagamentoMista(StrToInt(nota), 0);
+          break;
+        end;
+
         if formpagto = '*' then exit;
 
         if (strnum(pag) <> '2') and (strnum(formpagto) = '2') then begin

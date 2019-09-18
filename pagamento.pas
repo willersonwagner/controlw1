@@ -38,6 +38,7 @@ type
     procedure DBGrid1KeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure FormKeyPress(Sender: TObject; var Key: Char);
   private
     function somaTotal : currency;
     function buscaForma(cod : String) : boolean;
@@ -97,7 +98,19 @@ begin
     else DBGrid1.SetFocus;
   end;
 
-  if key = 113 then begin //f2
+  {if key = 113 then begin //f2
+    if (somaTotal + JsEditNumero1.getValor) <> totalVenda then begin
+      if MessageDlg('O valor Pago é diferente do Valor Recebido, Deseja Finalizar Mesmo Assim ?', mtConfirmation, [mbyes, mbno], 1, mbno) = mrno then exit;
+      finalizou := 'N';
+    end
+    else finalizou := 'S';
+    close;
+  end; }
+end;
+
+procedure TForm82.FormKeyPress(Sender: TObject; var Key: Char);
+begin
+  if key = #27 then begin
     if (somaTotal + JsEditNumero1.getValor) <> totalVenda then begin
       if MessageDlg('O valor Pago é diferente do Valor Recebido, Deseja Finalizar Mesmo Assim ?', mtConfirmation, [mbyes, mbno], 1, mbno) = mrno then exit;
       finalizou := 'N';

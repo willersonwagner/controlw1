@@ -14,6 +14,7 @@ object Form82: TForm82
   OldCreateOrder = False
   Position = poScreenCenter
   OnKeyDown = FormKeyDown
+  OnKeyPress = FormKeyPress
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
@@ -147,7 +148,7 @@ object Form82: TForm82
     end
     object Label5: TLabel
       Left = 10
-      Top = 50
+      Top = 45
       Width = 48
       Height = 16
       Caption = 'C'#243'digo:'
@@ -160,7 +161,7 @@ object Form82: TForm82
     end
     object Label6: TLabel
       Left = 146
-      Top = 50
+      Top = 45
       Width = 39
       Height = 16
       Caption = 'Valor:'
@@ -172,11 +173,11 @@ object Form82: TForm82
       ParentFont = False
     end
     object Label7: TLabel
-      Left = 328
+      Left = 320
       Top = 4
-      Width = 176
+      Width = 185
       Height = 16
-      Caption = 'F8-Pagamentos F2-Finalizar'
+      Caption = 'F8-Pagamentos ESC-Finalizar'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -13
@@ -186,12 +187,12 @@ object Form82: TForm82
     end
     object Edit1: TEdit
       Left = 64
-      Top = 44
+      Top = 40
       Width = 57
-      Height = 24
+      Height = 27
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
-      Font.Height = -13
+      Font.Height = -16
       Font.Name = 'Tahoma'
       Font.Style = [fsBold]
       ParentFont = False
@@ -200,13 +201,13 @@ object Form82: TForm82
     end
     object JsEditNumero1: JsEditNumero
       Left = 191
-      Top = 44
+      Top = 40
       Width = 121
-      Height = 24
+      Height = 27
       CharCase = ecUpperCase
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
-      Font.Height = -13
+      Font.Height = -16
       Font.Name = 'Tahoma'
       Font.Style = [fsBold]
       ParentFont = False

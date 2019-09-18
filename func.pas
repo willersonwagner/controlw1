@@ -10862,7 +10862,7 @@ begin
       dm.IBQuery1.ExecSQL;
 
       dm.IBQuery1.Close;
-      dm.IBQuery1.SQL.Text := 'insert into FORMPAGTO(cod, nome) values(99, ''PAGAMENTO MISTO'')';
+      dm.IBQuery1.SQL.Text := 'insert into FORMPAGTO(cod, nome, codgru) values(99, ''PAGAMENTO MISTO'', ''99'')';
       dm.IBQuery1.ExecSQL;
       dm.IBQuery1.Transaction.Commit;
     end;
