@@ -11011,7 +11011,7 @@ var
   ulti_venc: TDateTime;
   fatura, sim: string;
 begin
-  nota := funcoes.dialogo('not', 0, '0123456789' + #8, 50, true, '',
+  nota := funcoes.dialogo('not', 150, '0123456789' + #8, 150, true, '',
     application.Title, 'Qual o Número da Nota de Pedido?', '');
   // nota := funcoes.dialogo('generico',0,'0123456789'+#8,30,false,'',Application.Title,'Qual o Número da Nota de Pedido?','');
   if (nota = '*') or (nota = '') then
@@ -11185,8 +11185,7 @@ begin
     funcoes.CompletaOuRepete('', #180, #196, 39) + #13#10);
   // addRelatorioForm19(funcoes.CompletaOuRepete(#179+'  SACADO: ',#179,' ',78)+#13+#10);
 
-  addRelatorioForm19(funcoes.CompletaOuRepete(#179 + '  SACADO: ' +
-    dm.IBQuery1.FieldByName('nome').AsString, #179, ' ', 78) + #13 + #10);
+  addRelatorioForm19(funcoes.CompletaOuRepete(#179 + '  SACADO: ' + LeftStr(dm.IBQuery1.FieldByName('cod').AsString+'-'+dm.IBQuery1.FieldByName('nome').AsString, 55), #179, ' ', 78) + #13 + #10);
   addRelatorioForm19(funcoes.CompletaOuRepete(#179 + '  ENDERECO: ' +
     dm.IBQuery1.FieldByName('ende').AsString + ' - ' + dm.IBQuery1.FieldByName
     ('bairro').AsString, #179, ' ', 78) + #13 + #10);
@@ -12246,7 +12245,6 @@ begin
         formpagto := funcoes.LerFormPato(iif(StrToIntDef(formpagto, 0) - 1 >= 0,
          StrToIntDef(formpagto, 0) - 1, 0), '', true, formpagto);
 
-
         if formpagto = '99' then begin
           funcoes.leformaDePagamentoMista(StrToInt(nota), 0);
           break;
@@ -12341,15 +12339,15 @@ begin
       dm.IBQuery1.ExecSQL;
       dm.IBQuery1.Transaction.Commit;
       dm.IBQuery1.Close;
-  end;
 
-     try
-      if MessageBox(handle, 'Deseja Emitir Cupom para Esta Venda','Cupom Eletrônico', MB_YESNO + MB_DEFBUTTON2) = idyes then begin
-        form22.enviNFCe(nota, '', recebido);
+      try
+        if MessageBox(handle, 'Deseja Emitir Cupom para Esta Venda','Cupom Eletrônico', MB_YESNO + MB_DEFBUTTON2) = idyes then begin
+         form22.enviNFCe(nota, '', recebido);
       end;
-    except
-      ShowMessage('Ocorreu um Erro. Tente Novamente');
-    end;
+      except
+        ShowMessage('Ocorreu um Erro. Tente Novamente');
+      end;
+  end;
 
 end;
 

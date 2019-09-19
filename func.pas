@@ -23090,7 +23090,7 @@ var
 begin
   if nota = '' then
   begin
-    nota := funcoes.dialogo('not', 0, '0123456789' + #8, 50, true, '',
+    nota := funcoes.dialogo('not', 150, '0123456789' + #8, 150, true, '',
       Application.Title, 'Qual o Número da Nota de Pedido?', '');
     if (nota = '*') or (nota = '') then
       exit;
@@ -23207,7 +23207,7 @@ var
 begin
   if nota = '' then
   begin
-    nota := funcoes.dialogo('not', 0, '0123456789' + #8, 50, true, '',
+    nota := funcoes.dialogo('not', 150, '0123456789' + #8, 150, true, '',
       Application.Title, 'Qual o Número da Nota de Pedido?', '');
     if (nota = '*') or (nota = '') then
       exit;
@@ -23346,8 +23346,7 @@ begin
       'DADOS DO SACADO', #191, #196, 66) + #13 + #10))));
     // form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete(#179,#179,' ',12)+funcoes.CompletaOuRepete(#179+ '  NOME: '+dm.IBQuery1.fieldbyname('nome').AsString,#179,' ',66)+#13+#10))));
     addRelatorioForm19(funcoes.CompletaOuRepete(#179, #179, ' ', 12) +
-      funcoes.CompletaOuRepete(#179 + 'NOME: ' + dm.IBQuery1.FieldByName('nome')
-      .AsString, #179, ' ', 66) + #13 + #10);
+      funcoes.CompletaOuRepete(#179 + 'NOME: ' +LeftStr(dm.IBQuery1.FieldByName('cod').AsString +'-'+ dm.IBQuery1.FieldByName('nome').AsString, 55), #179, ' ', 66) + #13 + #10);
     form19.RichEdit1.Perform(EM_REPLACESEL, 1,
       Longint(PChar((funcoes.CompletaOuRepete(#179, #179, ' ',
       12) + funcoes.CompletaOuRepete(#179 + 'END.: ' + dm.IBQuery1.FieldByName
