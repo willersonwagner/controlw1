@@ -763,15 +763,20 @@ begin
 
    if LeftStr(Trim(lin), 1) = '&' then
      begin
-       result := #18 + copy(lin, 2, length(lin));
+       result := #18 + copy(result, 2, length(result));
        printer.canvas.font.size := imprime.tamFontePadrao;
      end;
 
-   if LeftStr(Trim(lin), 1) = '%' then
-     begin
-       result := #15 + copy(lin, 2, length(lin));
-       printer.canvas.font.size := 7;
-     end;
+   if Contido('$', result) then begin
+     result := StringReplace(result, '$', '',[rfReplaceAll, rfIgnoreCase]);
+     Form19.RichEdit1.Font.Style := [fsbold];
+   end;
+
+
+   if Contido('%', result) then begin
+     result := StringReplace(result, '%', '',[rfReplaceAll, rfIgnoreCase]);
+     printer.canvas.font.size := 7;
+   end;
 
    if funcoes.Contido(#15, lin) then
      begin

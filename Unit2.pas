@@ -9756,6 +9756,13 @@ begin
     addRelatorioForm19('  DATA   Nr.Doc HISTORICO                                    VALOR' + CRLF);
     addRelatorioForm19('-------------------------------------------------------------------------------' + CRLF);
     end; }
+
+
+  if ini = fim then begin
+    funcoes.deletaRegistroVendaDoDiaDuplicado(StrToDate(ini));
+  end;
+
+
   if his <> '' then
     h1 := ' and (formpagto=' + his + ')';
 
@@ -11607,14 +11614,20 @@ procedure TForm2.ReciboAvulso1Click(Sender: TObject);
 var
   cliente, fatura, his, total, venc, sim: string;
 begin
-  cliente := funcoes.dialogo('generico', 0, '1234567890,.' + #8, 50, false, '',
-    application.Title, 'Qual o Cód do Cliente?', '');
-  if cliente = '*' then
-    exit;
-  if (cliente = '') then
-    cliente := funcoes.localizar('Localizar Cliente', 'cliente', 'cod,nome',
-      'cod', '', 'nome', 'nome', true, false, false, '', 0, nil);
-  if (cliente = '*') or (cliente = '') then
+  cliente := funcoes.dialogo('generico', 0, '1234567890,.' + #8, 50, false, '', application.Title, 'Qual o Cód do Cliente?', '');
+  if cliente = '*' then exit;
+
+  if (cliente = '') then begin
+    form16 := tform16.Create(self);
+    funcoes.CtrlResize(tform(form16));
+    form16.ShowModal;
+    cliente := form16.valor_a_retornar;
+    JsEdit.LiberaMemoria(form16);
+    form16.Free;
+  end;
+
+    //cliente := funcoes.localizar('Localizar Cliente', 'cliente', 'cod,nome','cod', '', 'nome', 'nome', true, false, false, '', 0, nil);
+  if ((cliente = '*') or (cliente = '')) then
     exit;
 
   dm.ibselect.Close;
@@ -11667,7 +11680,7 @@ begin
     (form22.Pgerais.Values['nota'] = 'R') or
     (form22.Pgerais.Values['nota'] = 'D')) then
   begin
-    addRelatorioForm19(funcoes.CompletaOuRepete(#218, #191, #196, 40) + CRLF);
+    addRelatorioForm19('%$'+funcoes.CompletaOuRepete(#218, #191, #196, 40) + CRLF);
     addRelatorioForm19(#179 + funcoes.centraliza(form22.Pgerais.Values
       ['empresa'], ' ', 38) + #179 + CRLF);
     addRelatorioForm19(funcoes.CompletaOuRepete(#195, #180, #196, 40) + CRLF);

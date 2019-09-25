@@ -139,6 +139,7 @@ type
     enviandoCupom, enviandoBackup: boolean;
     fonteRelatorioForm19: integer;
     NegritoRelatorioForm19, saiComEnter: boolean;
+    procedure deletaRegistroVendaDoDiaDuplicado(data : tdate);
     function leformaDePagamentoMista(nota : integer; valor : currency) : TStringList;
     function imprimeEnderecoEntrega(tipoImp, cliente, clienteVenda : String) : String;
     function buscaTexto : String;
@@ -26036,8 +26037,10 @@ begin
   begin
     TerminarProcesso('DavNfce.exe');
     arquivo := caminhoEXE_com_barra_no_final + 'IBPT.zip';
-    UnZip(caminhoEXE_com_barra_no_final + 'IBPT.zip',
-      caminhoEXE_com_barra_no_final);
+    try
+      UnZip(caminhoEXE_com_barra_no_final + 'IBPT.zip', caminhoEXE_com_barra_no_final);
+    except
+    end;
     excluiAqruivo(caminhoEXE_com_barra_no_final + 'IBPT.zip');
     GravaConfigNaPastaDoControlW('VersaoIBPT', FormatDateTime('dd/mm/yyyy',
       form22.dataMov));
@@ -27899,7 +27902,7 @@ begin
 
 
   try
-  gbakdir := caminhoEXE_com_barra_no_final + 'gfix.exe -shut -force 0 '+bdfbNovo+' -user sysdba -pass SYSTEMA1 ';
+  gbakdir := caminhoEXE_com_barra_no_final + 'gfix.exe -shut -force 0 '+bdfbNovo+' -user sysdba -pass ' + dm.bd.Params.Values['password'] ;
   CreateProcessSimple(gbakdir);
 
   if FileExists(caminhoEXE_com_barra_no_final + 'bd.old') then begin
@@ -27923,12 +27926,12 @@ begin
 
   bdfbNovo := caminhoEXE_com_barra_no_final + 'bd.old';
 
-  gbakdir := caminhoEXE_com_barra_no_final + 'gbak.exe -G -B -V -user sysdba -pass SYSTEMA1 '+bdfbNovo+' '+copy(bdfbNovo,1,PosFinal('\',bdfbNovo))+'bd.bkp';
+  gbakdir := caminhoEXE_com_barra_no_final + 'gbak.exe -G -B -V -user sysdba -pass '+dm.bd.Params.Values['password']+' '+bdfbNovo+' '+copy(bdfbNovo,1,PosFinal('\',bdfbNovo))+'bd.bkp';
   CreateProcessSimple(gbakdir);
 
   form70.memo1.Lines.Add('Aquivo .old criado');
   bdfbNovo := caminhoEXE_com_barra_no_final + 'bd.bkp';
-  gbakdir := 'gbak.exe -G -R -V -P 4096 -user sysdba -pass SYSTEMA1 '+ bdfbNovo +' '+ caminhoEXE_com_barra_no_final +'bd.fdb';
+  gbakdir := 'gbak.exe -G -R -V -P 4096 -user sysdba -pass '+dm.bd.Params.Values['password']+' '+ bdfbNovo +' '+ caminhoEXE_com_barra_no_final +'bd.fdb';
   CreateProcessSimple(gbakdir);
 
   form70.memo1.Lines.Add('gbak.exe -G -R -V -P 4096 -user sysdba -pass '+ bdfbNovo +' '+ caminhoEXE_com_barra_no_final +'bd.fdb');
@@ -28198,6 +28201,43 @@ begin
   end;
 
   form82.Free;
+end;
+
+
+procedure Tfuncoes.deletaRegistroVendaDoDiaDuplicado(data : tdate);
+var
+  codmov : string;
+begin
+  dm.IBQuery1.Close;
+  dm.IBQuery1.SQL.Text := 'select historico,entrada, codmov from caixa where (historico=''VENDAS DO DIA A VISTA'') and (cast(data as date) = :data)';
+  dm.IBQuery1.ParamByName('data').AsDate := data;
+  dm.IBQuery1.Open;
+  dm.IBQuery1.FetchAll;
+
+  if dm.IBQuery1.RecordCount <= 1 then begin
+    dm.IBQuery1.Close;
+    exit;
+  end;
+
+  codmov := '';
+
+  while not dm.IBQuery1.Eof do begin
+    if dm.IBQuery1.FieldByName('entrada').AsCurrency <= 0 then begin
+      codmov := dm.IBQuery1.FieldByName('codmov').AsString;
+      break;
+    end;
+
+    dm.IBQuery1.Next;
+  end;
+
+  if codmov <> '' then begin
+    dm.IBQuery1.Close;
+    dm.IBQuery1.SQL.Text := 'delete from caixa where codmov = :codmov';
+    dm.IBQuery1.ParamByName('codmov').AsInteger := StrToIntDef(codmov, -1);
+    dm.IBQuery1.ExecSQL;
+    dm.IBQuery1.Transaction.Commit;
+  end;
+
 end;
 
 

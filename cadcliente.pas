@@ -646,6 +646,11 @@ begin
   dm.IBselect.Open;
   cnpj.Text := dm.IBselect.fieldbyname('cnpj').AsString;
 
+
+  if cod.Text <> '0' then begin
+    valor_a_retornar := cod.Text;
+  end;
+  
   dm.IBselect.Close;
 end;
 

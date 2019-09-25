@@ -30,6 +30,7 @@ object Form81: TForm81
     Font.Style = []
     ParentFont = False
     TabOrder = 0
+    OnKeyPress = Memo1KeyPress
   end
   object JsBotao1: JsBotao
     Left = 0

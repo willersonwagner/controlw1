@@ -5712,6 +5712,7 @@ begin
         TimeOf(NOW);
       dm.IBQuery1.ParamByName('ent').AsCurrency := vlcaixa;
       dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.commit;
     end
     else
     begin

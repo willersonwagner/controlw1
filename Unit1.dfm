@@ -62,7 +62,8 @@ object dm: Tdm
     Top = 50
   end
   object bd: TIBDatabase
-    DatabaseName = 'C:\ControlW\bd.fdb'
+    Connected = True
+    DatabaseName = 'f:\ControlW\bd.fdb'
     Params.Strings = (
       'user_name=sysdba'
       'password=masterkey'
@@ -719,6 +720,7 @@ object dm: Tdm
       end>
   end
   object IBTransaction6: TIBTransaction
+    Active = True
     DefaultDatabase = bd
     Params.Strings = (
       'read_committed'
@@ -749,8 +751,6 @@ object dm: Tdm
     CasasDecimais.MaskvUnCom = ',0.00'
     EspessuraBorda = 1
     ExpandirDadosAdicionaisAuto = False
-    IncorporarBackgroundPdf = True
-    IncorporarFontesPdf = True
     BorderIcon = [biSystemMenu, biMinimize, biMaximize]
     Left = 264
     Top = 328

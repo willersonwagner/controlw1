@@ -13,6 +13,7 @@ type
     procedure JsBotao1Click(Sender: TObject);
     procedure FormKeyPress(Sender: TObject; var Key: Char);
     procedure FormShow(Sender: TObject);
+    procedure Memo1KeyPress(Sender: TObject; var Key: Char);
   private
     { Private declarations }
   public
@@ -43,6 +44,11 @@ end;
 procedure TForm81.JsBotao1Click(Sender: TObject);
 begin
   close;
+end;
+
+procedure TForm81.Memo1KeyPress(Sender: TObject; var Key: Char);
+begin
+  key := UpCase(key);
 end;
 
 end.
