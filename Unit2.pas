@@ -12132,7 +12132,7 @@ begin
       comcliente :=
         'select v.nota, v.data, v.codhis as formapagto, a.nome as vendedor, v.desconto, v.total, c.nome as cliente from ((venda v left join vendedor a on (v.vendedor = a.cod)) left join cliente c on (c.cod = v.cliente)) where (v.cancelado = 0) and ((v.ok = '
         + QuotedStr('') + ') or (v.ok = ' + QuotedStr('N') +
-        ' )) and (data = :data) order by v.nota desc';
+        ' )) and (v.data = :data) order by v.nota desc';
       dm.IBQuery2.Close;
       dm.IBQuery2.SQL.Clear;
       if funcoes.buscaParamGeral(102, 'N') = 'S' then
