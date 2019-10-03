@@ -6872,7 +6872,7 @@ begin
             'insert into EXCSERV(COD_SEQ, cod, quant, usuario, datahora, SERV)'
             + ' values(gen_id(EXCSERV, 1), :cod, :quant, :usuario, :datahora, :SERV)';
           dm.IBQuery1.ParamByName('cod').AsInteger :=
-            ClientDataSet1seqServ.AsInteger;
+            ClientDataSet1CODIGO.AsInteger;
           dm.IBQuery1.ParamByName('quant').AsCurrency :=
             ClientDataSet1QUANT.AsCurrency;
           dm.IBQuery1.ParamByName('usuario').AsInteger :=
@@ -8053,20 +8053,16 @@ begin
 
       temp1 := StrToCurrDef(fim, 0);
 
-      { if ((funcoes.LerConfig(form22.Pgerais.Values['configu'], 8) = 'S') and
-        (temp1 > total1)) then
-        begin
-        break;
-        end; }
+      if ((funcoes.LerConfig(form22.Pgerais.Values['configu'], 8) = 'S') and (temp1 > total1)) then
+       break;
 
       // se for maior que o minimo e menor que o total original, nao permite mais acrescimos na venda
-      if (((temp1 >= total31) and (temp1 <= total1))) then
+      if (((temp1 >= total31) and (temp1 <= total1)) or ((temp1 > total1) and VerificaAcesso_Se_Nao_tiver_Nenhum_bloqueio_true_senao_false)) then
       begin
         break;
       end;
 
-      if ((temp1 < total31) and
-        (VerificaAcesso_Se_Nao_tiver_Nenhum_bloqueio_true_senao_false)) then
+      if ((temp1 < total31) and (VerificaAcesso_Se_Nao_tiver_Nenhum_bloqueio_true_senao_false)) then
       begin
         break;
       end;

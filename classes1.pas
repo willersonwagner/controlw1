@@ -116,6 +116,7 @@ type
     cod      : integer;
     codStr   : String;
     temp     : String;
+    codbarAtual : String;
     COD_ISPIS: String;
     nome     : String[40];
     codbar   : String[16];

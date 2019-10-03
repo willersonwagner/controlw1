@@ -300,11 +300,12 @@ begin
     begin
       dm.IBQuery4.Close;
       dm.IBQuery4.SQL.Clear;
-      dm.IBQuery4.SQL.Add('update produto set p_venda = :p_venda, p_compra = :p_compra, unid2 = :unid2, REFNFE = :REFNFE, '+
+      dm.IBQuery4.SQL.Add('update produto set p_venda = :p_venda, codbar = :codbar, p_compra = :p_compra, unid2 = :unid2, REFNFE = :REFNFE, '+
       'classif = :ncm, fornec = :fornec, nome = :nome, IS_PIS = :IS_PIS, COD_ISPIS  = :COD_ISPIS  where cod = :cod');
 
       //dm.IBQuery4.ParamByName('quant').AsCurrency    := lista[i].quant;
       dm.IBQuery4.ParamByName('p_venda').AsCurrency  := lista[i].preco;
+      dm.IBQuery4.ParamByName('codbar').AsString     := lista[i].codbarAtual;
       dm.IBQuery4.ParamByName('p_compra').AsCurrency := lista[i].BASE_ICM;
       dm.IBQuery4.ParamByName('unid2').AsString      := lista[i].unid;
       dm.IBQuery4.ParamByName('REFNFE').AsString     := lista[i].nome;
@@ -1299,6 +1300,11 @@ begin
           nome := ClientDataSet1.fieldbyname('DESCRICAO_ATUAL').AsString;
           if trim(nome) = '' then nome := ClientDataSet1.fieldbyname('DESCRICAO_FORNECEDOR').AsString;
           nome := LeftStr(nome, 60);
+
+
+          lista[i].codbarAtual := ClientDataSet1.fieldbyname('CODBAR_ATUAL').AsString;
+          if trim(lista[i].codbarAtual) = '' then ClientDataSet1.fieldbyname('CODBAR').AsString;
+
 
           lista[i].PERC_ICM  := StrToCurrDef(ClientDataSet1.FieldByName('PRECO_ATUAL').AsString, 0);
           if lista[i].PERC_ICM = 0 then lista[i].PERC_ICM  := StrToCurrDef(ClientDataSet1.FieldByName('PRECO_NOVO').AsString, 0);

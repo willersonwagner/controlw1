@@ -632,6 +632,7 @@ end;
 procedure imprimirNfceESCPOS();
 begin
   try
+    DANFEEscPos.ImprimeNomeFantasia := true;
     ACBrNFe.DANFE := DANFEEscPos;
     ACBrNFe.NotasFiscais.Imprimir;
     DANFEEscPos.vTroco := 0;
