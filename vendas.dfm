@@ -279,6 +279,7 @@ object Form20: TForm20
       TitleFont.Name = 'MS Sans Serif'
       TitleFont.Style = []
       StyleElements = [seFont, seClient]
+      OnDrawColumnCell = DBGrid2DrawColumnCell
       OnEnter = DBGrid2Enter
       OnExit = DBGrid2Exit
       OnKeyDown = DBGrid2KeyDown

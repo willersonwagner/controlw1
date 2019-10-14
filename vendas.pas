@@ -116,6 +116,8 @@ type
     procedure FormKeyPress(Sender: TObject; var Key: Char);
     procedure ClientDataSet1AfterPost(DataSet: TDataSet);
     procedure ClientDataSet1AfterDelete(DataSet: TDataSet);
+    procedure DBGrid2DrawColumnCell(Sender: TObject; const Rect: TRect;
+      DataCol: Integer; Column: TColumn; State: TGridDrawState);
 
   private
     l1, l2, l3: TLabel;
@@ -175,7 +177,7 @@ type
     { Private declarations }
   public
     ordenaCampos: boolean;
-    tamanho_nota: integer;
+    tamanho_nota, finalizouServico: integer;
     origem: integer;
     tipoV, CLIENTE_ENTREGA, CLIENTE_VENDA: string;
     separaPecas, finaliza: boolean;
@@ -338,6 +340,7 @@ begin
   // baixaProdutosDeOrdemDeServicos(false);
   // primeiro baixa os produtos do estoque
 
+  finalizouServico := 1;
   vende := '';
   dm.IBQuery1.Close;
   dm.IBQuery1.SQL.Text := 'select vendedor from os_venda where nota = :nota';
@@ -6340,6 +6343,7 @@ begin
   finaliza := true;
   Compra := false;
   separaVendaOrcamento := false;
+  finalizouServico := 0;
   // StaticText2.Caption :=
 
 
@@ -7001,6 +7005,11 @@ begin
   // key = F2
   else if Key = 113 then
   begin
+    if ((finaliza) and (tipoVenda = 'SF')) then begin
+      ShowMessage('Operação Não Disponível, Entre na Rotina de Orçamento no Menu Serviços!');
+      exit;
+    end;
+
     if Label5.Caption = 'Itens da Venda' then
     begin
       if form2.Oramento1.Visible = false then
@@ -7418,6 +7427,30 @@ begin
   DBGrid1.Enabled := false;
 end;
 
+procedure TForm20.DBGrid2DrawColumnCell(Sender: TObject; const Rect: TRect;
+  DataCol: Integer; Column: TColumn; State: TGridDrawState);
+begin
+if DBGrid1.DataSource.DataSet.RecNo mod 2 = 0 then
+  begin
+    if not(Odd(DBGrid1.DataSource.DataSet.RecNo)) then // Se não for par
+      if not (gdSelected in State) then Begin // Se o estado da célula não é selecionado
+        with DBGrid1 do Begin
+            with Canvas do Begin
+                try
+                  Brush.Color := StringToColor(funcoes.buscaCorBDGRID_Produto); // Cor da célula
+                except
+                  Brush.Color := HexToTColor('F5F5F5');
+                end;
+                //Brush.Color := HexToTColor('7093DB'); // Cor da célula
+                //Brush.Color := HexToTColor('81DAF5');
+                 FillRect (Rect); // Pinta a célula
+            End; // with Canvas
+             DefaultDrawDataCell (Rect, Column.Field, State) // Reescreve o valor que vem do banco
+        End // With DBGrid1
+    End // if not (gdSelected in State)
+  end;
+end;
+
 procedure TForm20.DBGrid2Enter(Sender: TObject);
 begin
   DBGrid1.Enabled := true;
@@ -7534,25 +7567,24 @@ end;
 procedure TForm20.DBGrid1DrawColumnCell(Sender: TObject; const Rect: TRect;
   DataCol: integer; Column: TColumn; State: TGridDrawState);
 begin
-  { if DBGrid1.DataSource.DataSet.RecNo mod 2 = 0 then
-    begin
+  if DBGrid1.DataSource.DataSet.RecNo mod 2 = 0 then begin
     if not(Odd(DBGrid1.DataSource.DataSet.RecNo)) then // Se não for par
-    if not (gdSelected in State) then Begin // Se o estado da célula não é selecionado
-    with DBGrid1 do Begin
-    with Canvas do Begin
-    try
-    Brush.Color := StringToColor(funcoes.buscaCorBDGRID_Produto); // Cor da célula
-    except
-    Brush.Color := HexToTColor('F5F5F5');
-    end;
-    //Brush.Color := HexToTColor('7093DB'); // Cor da célula
-    //Brush.Color := HexToTColor('81DAF5');
-    FillRect (Rect); // Pinta a célula
-    End; // with Canvas
-    DefaultDrawDataCell (Rect, Column.Field, State) // Reescreve o valor que vem do banco
-    End // With DBGrid1
+      if not (gdSelected in State) then Begin // Se o estado da célula não é selecionado
+        with DBGrid1 do Begin
+            with Canvas do Begin
+                try
+                  Brush.Color := StringToColor(funcoes.buscaCorBDGRID_Produto); // Cor da célula
+                except
+                  Brush.Color := HexToTColor('F5F5F5');
+                end;
+                //Brush.Color := HexToTColor('7093DB'); // Cor da célula
+                //Brush.Color := HexToTColor('81DAF5');
+                 FillRect (Rect); // Pinta a célula
+            End; // with Canvas
+             DefaultDrawDataCell (Rect, Column.Field, State) // Reescreve o valor que vem do banco
+        End // With DBGrid1
     End // if not (gdSelected in State)
-    end; }
+  end;
 end;
 
 procedure TForm20.FormKeyDown(Sender: TObject; var Key: Word;
@@ -7567,10 +7599,14 @@ begin
       exit;
     end;
 
-    if Key = 115 then
-    begin
-      funcoes.executaCalculadora;
-      exit;
+    if (ssAlt in Shift) and (Key = 115) then begin
+
+    end
+    else begin
+      if Key = 115 then begin
+        funcoes.executaCalculadora;
+        exit;
+      end;
     end;
   end;
 

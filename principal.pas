@@ -464,7 +464,7 @@ end;
 
 procedure Tform22.Button1Click(Sender: TObject);
 begin
-  ShowMessage(funcoes.leformaDePagamentoMista(105914, 0).Text);
+  funcoes.acertaVendasDoDiaAVista;
 end;
 
 function Tform22.enviNFCe(const perg : String = ''; nnf : String = ''; recebido : currency = 0) : boolean;

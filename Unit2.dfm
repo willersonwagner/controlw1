@@ -11338,7 +11338,7 @@ object Form2: TForm2
         OnClick = NotaFiscalEletrnica1Click
       end
       object CupomEletrnicoCFe1: TMenuItem
-        Caption = 'Cupom Eletr'#244'nico CFe'
+        Caption = 'Cupom Eletr'#244'nico NCFe'
         OnClick = CupomEletrnicoCFe1Click
       end
       object ransferencia1: TMenuItem
@@ -12258,6 +12258,10 @@ object Form2: TForm2
           object ZerardiasdeBloqueios1: TMenuItem
             Caption = 'Limpar Bloqueios'
             OnClick = LimparBloqueios1Click
+          end
+          object RecalcularVendasaVistadoDia1: TMenuItem
+            Caption = 'Recalcular Vendas a Vista do Dia'
+            OnClick = RecalcularVendasaVistadoDia1Click
           end
         end
       end

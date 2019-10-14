@@ -398,6 +398,7 @@ type
     Manuteno1: TMenuItem;
     BackupRestore1: TMenuItem;
     ZerardiasdeBloqueios1: TMenuItem;
+    RecalcularVendasaVistadoDia1: TMenuItem;
     procedure LimparBloqueios1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure CadastrarUsurio1Click(Sender: TObject);
@@ -680,6 +681,7 @@ type
     procedure RelatrioTcnicoProdutos1Click(Sender: TObject);
     procedure ApagarMovimento1Click(Sender: TObject);
     procedure BackupRestore1Click(Sender: TObject);
+    procedure RecalcularVendasaVistadoDia1Click(Sender: TObject);
   private
     b, cont: integer;
     ini: Smallint;
@@ -6938,9 +6940,9 @@ end;
 
 procedure TForm2.LivrodeCaixa1Click(Sender: TObject);
 var
-  grupo, ini, fim, g1, saldo, caixa, resumo, ies, nome, cnpj: string;
+  grupo, ini, fim, g1, saldo, caixa, resumo, ies, nome, cnpj, tab: string;
   totalgeral, entrada, saida, totalentrada, totalsaida, acc: currency;
-  b, pag, i: integer;
+  b, pag, i, mult: integer;
   data: TDateTime;
   res: TStringList;
   resuC: TClientDataSet;
@@ -6973,10 +6975,8 @@ begin
   if not funcoes.Contido('*', grupo + ini + fim + saldo) then
     resumo := funcoes.dialogo('generico', 0, 'SN', 20, false, 'S',
       application.Title, 'Imprimir Resumo por Histórico?', 'N');
-  if not funcoes.Contido('*', grupo + ini + fim + saldo + caixa + resumo) then
-  begin
-    if resumo = 'S' then
-    begin
+  if not funcoes.Contido('*', grupo + ini + fim + saldo + caixa + resumo) then begin
+    if resumo = 'S' then begin
       // res   := tstringlist.Create;
       resuC := TClientDataSet.Create(self);
       resuC.FieldDefs.Add('cod', ftInteger);
@@ -6994,14 +6994,16 @@ begin
     cnpj := dm.IBQuery2.FieldByName('cnpj').AsString;
     dm.IBQuery2.Close;
 
-    if grupo <> '' then
-      g1 := '(codgru=' + grupo + ') and';
+    g1 := '';
+
+    if grupo <> '' then g1 := '(codgru=' + grupo + ') and';
 
     if saldo = 'S' then
     begin
       dm.IBQuery2.SQL.Clear;
       dm.IBQuery2.SQL.Add
         ('select (sum(entrada) - sum(saida)) as soma from caixa where ' + g1 +
+        //' (cast(data as date) < :d1) and (tipo <> ''E'')');
         ' (cast(data as date) < :d1)');
       dm.IBQuery2.ParamByName('d1').AsDateTime := StrToDate(ini);
       dm.IBQuery2.Open;
@@ -7041,7 +7043,8 @@ begin
     dm.ibselect.Close;
     dm.ibselect.SQL.Clear;
     dm.ibselect.SQL.Add('select * from caixa where ' + g1 +
-      ' ((cast(data as date) >= :v1) and (cast(data as date) <=:v2) ) and (tipo <> ''E'') order by data');
+      //' ((cast(data as date) >= :v1) and (cast(data as date) <=:v2) ) and (tipo <> ''E'') order by codmov');
+      ' ((cast(data as date) >= :v1) and (cast(data as date) <=:v2) ) order by data');
     dm.ibselect.ParamByName('v1').AsDateTime := StrToDate(ini);
     dm.ibselect.ParamByName('v2').AsDateTime := StrToDate(fim);
     dm.ibselect.Open;
@@ -7053,71 +7056,41 @@ begin
       FormatCurr('#,###,###0.00', acc) + '        |', ' ', 116) + #13 + #10))));
     funcoes.informacao(dm.ibselect.RecNo, dm.ibselect.RecordCount,
       'Carregando...', true, false, 5);
-    while not dm.ibselect.Eof do
-    begin
-      funcoes.informacao(dm.ibselect.RecNo, dm.ibselect.RecordCount,
-        'Carregando...', false, false, 5);
-      if resumo = 'S' then
-      begin
-        if dm.ibselect.FieldByName('entrada').AsCurrency = 0 then
-        begin
-          if resuC.FindKey([dm.ibselect.FieldByName('codhis').AsString]) then
-          begin
-            resuC.Edit;
-            resuC.FieldByName('saida').AsCurrency := resuC.FieldByName('saida')
-              .AsCurrency + dm.ibselect.FieldByName('saida').AsCurrency;
-            resuC.Post;
-          end
-          else
-          begin
-            resuC.Insert;
-            resuC.FieldByName('cod').AsString :=
-              dm.ibselect.FieldByName('codhis').AsString;
-            resuC.FieldByName('saida').AsCurrency :=
-              dm.ibselect.FieldByName('saida').AsCurrency;
-            resuC.Post;
-          end;
 
+    while not dm.ibselect.Eof do begin
+      funcoes.informacao(dm.ibselect.RecNo, dm.ibselect.RecordCount,'Carregando...', false, false, 5);
+      if resumo = 'S' then begin
+        mult := 1;
+        if dm.ibselect.FieldByName('entrada').AsCurrency = 0 then begin
+          tab  := 'saida';
+          mult := -1;
         end
-        else
-        begin
-          if resuC.FindKey([dm.ibselect.FieldByName('codhis').AsString]) then
-          begin
-            resuC.Edit;
-            resuC.FieldByName('entrada').AsCurrency :=
-              resuC.FieldByName('entrada').AsCurrency + dm.ibselect.FieldByName
-              ('entrada').AsCurrency;
-            resuC.Post;
-          end
-          else
-          begin
-            resuC.Insert;
-            resuC.FieldByName('cod').AsString :=
-              dm.ibselect.FieldByName('codhis').AsString;
-            resuC.FieldByName('entrada').AsCurrency :=
-              dm.ibselect.FieldByName('entrada').AsCurrency;
-            resuC.Post;
-          end;
+        else begin
+          tab := 'entrada';
+        end;
 
-          // entrada está preenchido
-          { if   res.Values[dm.IBselect.fieldbyname('codhis').AsString + '-1'] = '' then res.Add(dm.IBselect.fieldbyname('codhis').AsString+'-1' + '=' + CurrToStr(dm.IBselect.fieldbyname('entrada').AsCurrency))
-            else res.Values[dm.IBselect.fieldbyname('codhis').AsString + '-1'] := CurrToStr(StrToCurr(res.Values[dm.IBselect.fieldbyname('codhis').AsString+'-1']) + dm.IBselect.fieldbyname('entrada').AsCurrency);
-          } end;
+        if resuC.FindKey([dm.ibselect.FieldByName('codhis').AsString]) then begin
+          resuC.Edit;
+          resuC.FieldByName(tab).AsCurrency := resuC.FieldByName(tab).AsCurrency + (dm.ibselect.FieldByName(tab).AsCurrency * mult);
+          resuC.Post;
+        end
+        else begin
+          resuC.Insert;
+          resuC.FieldByName('cod').AsString := dm.ibselect.FieldByName('codhis').AsString;
+          resuC.FieldByName(tab).AsCurrency := (dm.ibselect.FieldByName(tab).AsCurrency * mult);
+          resuC.Post;
+        end;
+
       end;
 
-      if (caixa = 'S') and (data <> dm.ibselect.FieldByName('data').AsDateTime)
-      then
-      begin
+      if (caixa = 'S') and (FormatDateTime('dd/mm/yyyy', data) <> FormatDateTime('dd/mm/yyyy', dm.ibselect.FieldByName('data').AsDateTime)) then begin
         data := dm.ibselect.FieldByName('data').AsDateTime;
-        for i := form19.RichEdit1.Lines.Count to b do
-        begin
-          form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-            Longint(PChar((funcoes.CompletaOuRepete('|', '|', ' ', 116) + #13
-            + #10))));
+        for i := form19.RichEdit1.Lines.Count to b do begin
+          addRelatorioForm19(funcoes.CompletaOuRepete('|', '|', ' ', 116) + #13 + #10);
         end;
       end;
-      if form19.RichEdit1.Lines.Count >= b then
-      begin
+
+      if form19.RichEdit1.Lines.Count >= b then begin
         pag := pag + 1;
         b := b + 88;
         form19.RichEdit1.Perform(EM_REPLACESEL, 1,
@@ -7166,17 +7139,18 @@ begin
           Longint(PChar((funcoes.CompletaOuRepete('|Saldo Transportado =>',
           FormatCurr('#,###,###0.00', acc) + '        |', ' ', 116) + #13
           + #10))));
+
+
         entrada := 0;
         saida := 0;
       end;
-      acc := acc + (dm.ibselect.FieldByName('entrada').AsCurrency -
-        dm.ibselect.FieldByName('saida').AsCurrency);
-      totalgeral := totalgeral + dm.ibselect.FieldByName('entrada').AsCurrency;
-      entrada := entrada + dm.ibselect.FieldByName('entrada').AsCurrency;
-      saida := saida + dm.ibselect.FieldByName('saida').AsCurrency;
-      totalentrada := totalentrada + dm.ibselect.FieldByName('entrada')
-        .AsCurrency;
-      totalsaida := totalsaida + dm.ibselect.FieldByName('saida').AsCurrency;
+
+      acc          := acc + (dm.ibselect.FieldByName('entrada').AsCurrency - dm.ibselect.FieldByName('saida').AsCurrency);
+      totalgeral   := totalgeral + dm.ibselect.FieldByName('entrada').AsCurrency;
+      entrada      := entrada + dm.ibselect.FieldByName('entrada').AsCurrency;
+      saida        := saida + dm.ibselect.FieldByName('saida').AsCurrency;
+      totalentrada := totalentrada + dm.ibselect.FieldByName('entrada').AsCurrency;
+      totalsaida   := totalsaida + dm.ibselect.FieldByName('saida').AsCurrency;
 
       form19.RichEdit1.Perform(EM_REPLACESEL, 1,
         Longint(PChar((funcoes.CompletaOuRepete('|',
@@ -7192,8 +7166,11 @@ begin
         FormatCurr('#,###,###0.00', acc), ' ', 15) + '  ' +
         funcoes.CompletaOuRepete('', dm.ibselect.FieldByName('codgru').AsString
         + '|', ' ', 7) + #13 + #10))));
+
       dm.ibselect.Next;
     end;
+
+
     form19.RichEdit1.Perform(EM_REPLACESEL, 1,
       Longint(PChar((funcoes.CompletaOuRepete('+', '+', '-', 116) + #13
       + #10))));
@@ -9320,7 +9297,7 @@ var
     tipoRegCaixa: string;
   sepUsu, codigoUsu, h4, h5, usuario: String;
   totais, caixa: TStringList;
-  totalgeral, pendentes, ent, sai, TotalGeralFormas: currency;
+  totalgeral, pendentes, ent, sai, TotalGeralFormas, totEntradaCaixaNaVenda: currency;
   b, ContaNota, i, tam, fi: integer;
 begin
   ini := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,
@@ -9403,8 +9380,9 @@ begin
   imp_ent := funcoes.buscaParamGeral(57, 'S');
 
   b := 80;
-  totalgeral := 0;
-  pendentes := 0;
+  totalgeral             := 0;
+  pendentes              := 0;
+  totEntradaCaixaNaVenda := 0;
   form19.RichEdit1.Clear;
 
   data := FormatDateTime('hh:mm:ss', now);
@@ -9604,9 +9582,8 @@ begin
             .AsString, '0', 3) + ' ' + funcoes.CompletaOuRepete('',
             FormatCurr('0.00', dm.ibselect.FieldByName('total').AsCurrency -
             dm.ibselect.FieldByName('entrada').AsCurrency), ' ', 10) +
-            funcoes.CompletaOuRepete(IfThen(dm.ibselect.FieldByName('entrada')
-            .AsCurrency > 0, ' + ' + FormatCurr('0.00',
-            dm.ibselect.FieldByName('entrada').AsCurrency), ''), '', ' ', 10) +
+            funcoes.CompletaOuRepete(IfThen(dm.ibselect.FieldByName('entrada').AsCurrency > 0, ' +' + FormatCurr('0.00',dm.ibselect.FieldByName('entrada').AsCurrency), ''), '', ' ', 11) +
+
             funcoes.CompletaOuRepete('',
             iif(trim(dm.ibselect.FieldByName('ok').AsString) = '', '*',
             LeftStr(dm.ibselect.FieldByName('ok').AsString, 1)), ' ', 2) +
@@ -9628,12 +9605,9 @@ begin
             dm.ibselect.FieldByName('vendedor').AsString, '0', 3) + ' ' +
             funcoes.CompletaOuRepete('', dm.ibselect.FieldByName('codhis')
             .AsString, '0', 3) + funcoes.CompletaOuRepete('', FormatCurr('0.00',
-            dm.ibselect.FieldByName('total').AsCurrency -
-            dm.ibselect.FieldByName('entrada').AsCurrency), ' ',
-            10) + funcoes.CompletaOuRepete(IfThen(dm.ibselect.FieldByName
-            ('entrada').AsCurrency > 0, ' + ' + FormatCurr('0.00',
-            dm.ibselect.FieldByName('entrada').AsCurrency), ''), '', ' ',
-            10) + funcoes.CompletaOuRepete('',
+            dm.ibselect.FieldByName('total').AsCurrency - dm.ibselect.FieldByName('entrada').AsCurrency), ' ',10) +
+            funcoes.CompletaOuRepete(IfThen(dm.ibselect.FieldByName('entrada').AsCurrency > 0, ' +' + FormatCurr('0.00',dm.ibselect.FieldByName('entrada').AsCurrency), ''), '', ' ',011) +
+            funcoes.CompletaOuRepete('',
             iif(trim(dm.ibselect.FieldByName('ok').AsString) = '', '*',
             dm.ibselect.FieldByName('ok').AsString), ' ',
             5) + funcoes.CompletaOuRepete(' ' + dm.ibselect.FieldByName('prazo')
@@ -9683,8 +9657,8 @@ begin
           .AsString], 0) + dm.ibselect.FieldByName('total').AsCurrency);
         end
         else begin
-          totais.Values['1'] := CurrToStr(StrToCurrDef(totais.Values['1'], 0) +
-          dm.ibselect.FieldByName('entrada').AsCurrency);
+          //totais.Values['1'] := CurrToStr(StrToCurrDef(totais.Values['1'], 0) +
+          //dm.ibselect.FieldByName('entrada').AsCurrency);
           totais.Values[dm.ibselect.FieldByName('codhis').AsString] :=
           CurrToStr(StrToCurrDef(totais.Values[dm.ibselect.FieldByName('codhis')
           .AsString], 0) + (dm.ibselect.FieldByName('total').AsCurrency -
@@ -9778,9 +9752,9 @@ begin
   dm.ibselect.Close;
   dm.ibselect.SQL.Clear;
   dm.ibselect.SQL.Text :=
-    ('select entrada, saida, data, historico, documento, formpagto, fornec from caixa where '
+    ('select entrada, saida, data, historico, documento, formpagto, fornec, tipo from caixa where '
     + h2 + ' ' + grupo +
-    ' ((cast(data as date) >= :v1) and (tipo <> ''E'') and (cast(data as date) <= :v2) ) and (not historico like '
+    ' ((cast(data as date) >= :v1) and (cast(data as date) <= :v2) ) and (not historico like '
     + QuotedStr('%VENDAS DO DIA%') + ') ' + h1 + h4 + ' order by data');
   dm.ibselect.ParamByName('v1').AsDateTime := StrToDate(ini);
   dm.ibselect.ParamByName('v2').AsDateTime := StrToDate(fim);
@@ -9793,69 +9767,42 @@ begin
   sai := 0;
 
   caixa := TStringList.Create;
-  while not dm.ibselect.Eof do
-  begin
-    if dm.ibselect.FieldByName('entrada').AsCurrency = 0 then
-    begin
-      b := 1;
-      if (dm.ibselect.FieldByName('formpagto').AsInteger > 1) then
-      begin
-        totais.Values[dm.ibselect.FieldByName('formpagto').AsString] :=
-          CurrToStr(StrToCurr(totais.Values[dm.ibselect.FieldByName('formpagto')
-          .AsString]) - dm.ibselect.FieldByName('saida').AsCurrency);
-      end
-      else
-      begin
-        totais.Values['out'] := CurrToStr(StrToCurr(totais.Values['out']) -
-          dm.ibselect.FieldByName('saida').AsCurrency);
-        sai := sai + dm.ibselect.FieldByName('saida').AsCurrency;
-      end;
+  while not dm.ibselect.Eof do begin
+    if dm.ibselect.FieldByName('tipo').AsString = 'E' then begin
+      totais.Values['1'] := CurrToStr(StrToCurrDef(totais.Values['1'], 0) +
+      dm.ibselect.FieldByName('entrada').AsCurrency);
 
-      VLR_ICM := dm.ibselect.FieldByName('saida').AsCurrency;
+      totEntradaCaixaNaVenda := totEntradaCaixaNaVenda + dm.ibselect.FieldByName('entrada').AsCurrency;
     end
-    else
-    begin
-      b := 0;
-      if (dm.ibselect.FieldByName('formpagto').AsInteger > 1) then
-      begin
-        totais.Values[dm.ibselect.FieldByName('formpagto').AsString] :=
-          CurrToStr(StrToCurr(totais.Values[dm.ibselect.FieldByName('formpagto')
-          .AsString]) + dm.ibselect.FieldByName('entrada').AsCurrency);
+    else begin
+      if dm.ibselect.FieldByName('entrada').AsCurrency = 0 then begin
+        b := 1;
+        if (dm.ibselect.FieldByName('formpagto').AsInteger > 1) then begin
+          totais.Values[dm.ibselect.FieldByName('formpagto').AsString] :=
+          CurrToStr(StrToCurr(totais.Values[dm.ibselect.FieldByName('formpagto').AsString]) - dm.ibselect.FieldByName('saida').AsCurrency);
+        end
+        else begin
+          totais.Values['out'] := CurrToStr(StrToCurr(totais.Values['out']) - dm.ibselect.FieldByName('saida').AsCurrency);
+          sai := sai + dm.ibselect.FieldByName('saida').AsCurrency;
+        end;
+
+        VLR_ICM := dm.ibselect.FieldByName('saida').AsCurrency;
       end
-      else
-      begin
-        totais.Values['out'] := CurrToStr(StrToCurr(totais.Values['out']) +
+      else begin
+        b := 0;
+        if (dm.ibselect.FieldByName('formpagto').AsInteger > 1) then begin
+          totais.Values[dm.ibselect.FieldByName('formpagto').AsString] :=
+          CurrToStr(StrToCurr(totais.Values[dm.ibselect.FieldByName('formpagto').AsString]) + dm.ibselect.FieldByName('entrada').AsCurrency);
+        end
+        else begin
+          totais.Values['out'] := CurrToStr(StrToCurr(totais.Values['out']) +
           dm.ibselect.FieldByName('entrada').AsCurrency);
-        ent := ent + dm.ibselect.FieldByName('entrada').AsCurrency;
+          ent := ent + dm.ibselect.FieldByName('entrada').AsCurrency;
+        end;
+
+        VLR_ICM := dm.ibselect.FieldByName('entrada').AsCurrency;
       end;
-
-      VLR_ICM := dm.ibselect.FieldByName('entrada').AsCurrency;
     end;
-
-    /// // bloco original 05/06/2018
-    { if dm.IBselect.FieldByName('entrada').AsCurrency = 0 then
-      begin
-      b := 1;
-      totais.Values['out'] := CurrToStr(StrToCurr(totais.Values['out']) - dm.IBselect.fieldbyname('saida').AsCurrency);
-      VLR_ICM := dm.IBselect.fieldbyname('saida').AsCurrency;
-      end
-      else
-      begin
-      b := 0;
-
-      //if dm.IBselect.fieldbyname('fornec').AsInteger  0  then
-
-      totais.Values['out'] := CurrToStr(StrToCurr(totais.Values['out']) + dm.IBselect.fieldbyname('entrada').AsCurrency);
-      VLR_ICM := dm.IBselect.fieldbyname('entrada').AsCurrency;
-      end; }
-    /// bloco original 05/06/2018
-
-    { if form22.Pgerais.Values['nota'] = 'T' then
-      begin
-      form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((FormatDateTime('dd/mm/yy',dm.IBselect.fieldbyname('data').AsDateTime)+' '+funcoes.CompletaOuRepete('',dm.IBselect.fieldbyname('historico').AsString,' ',35)+funcoes.CompletaOuRepete('',FormatCurr('#,###,###0.00',VLR_ICM) + IfThen(b = 1, '-', '+'),' ',16)+#13+#10))));
-      end
-      else form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((FormatDateTime('dd/mm/yy',dm.IBselect.fieldbyname('data').AsDateTime)+' '+ strzero(dm.IBselect.fieldbyname('documento').AsString, 6) +' ' +funcoes.CompletaOuRepete(dm.IBselect.fieldbyname('historico').AsString,'',' ',35)+funcoes.CompletaOuRepete('',FormatCurr('#,###,###0.00', VLR_ICM) + IfThen(b = 1, '-', '+'),' ',16)+#13+#10))));
-    }
 
     if form22.Pgerais.Values['nota'] = 'T' then
     begin
@@ -10003,7 +9950,7 @@ begin
       Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10))));
 
   funcoes.acertaVendaDoDiaAVistaNoCaixa(ini, fim,
-    StrToCurr(totais.Values['1']));
+    StrToCurr(totais.Values['1']) - totEntradaCaixaNaVenda);
 
   addRelatorioForm19('EMISSAO: ' + FormatDateTime('DD/MM/YY', now) + ' ' + data
     + CRLF + CRLF);
@@ -15791,6 +15738,11 @@ begin
   if not funcoes.senhaDodia then
     exit;
   funcoes.VER_ESTOQUE('RECALCULA', 'Acertando Fichas de Produtos', 'Recalcul');
+end;
+
+procedure TForm2.RecalcularVendasaVistadoDia1Click(Sender: TObject);
+begin
+  funcoes.acertaVendasDoDiaAVista;
 end;
 
 procedure TForm2.AcertarEstoque1Click(Sender: TObject);

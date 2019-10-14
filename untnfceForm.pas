@@ -3993,8 +3993,6 @@ begin
             (csta = 204) or (csta = 613) THEN begin
 
 
-
-
             try
               richED.Lines.Add('(Tratando a Duplicidade) linha 3443');
               estado := '|ii| ' + e.Message + #13 +
@@ -5989,8 +5987,10 @@ begin
       '<xJust>NOTA FISCAL EMITIDA EM CONTINGENCIA</xJust>';
   end;
 
-  Result := '<ide><cUF>' + UF + '</cUF><cNF>' + CompletaOuRepete('', nota, '0',
-    8) + '</cNF><natOp>VENDA AO CONSUMIDOR</natOp>' + '<indPag>' +
+  nota := IntToStr(StrToInt(nota));
+ 
+  Result := '<ide><cUF>' + UF + '</cUF><cNF>'{+ CompletaOuRepete('', nota, '0',8)} + IfThen(NUM_NF = nota, CompletaOuRepete('9', nota, '0',8), CompletaOuRepete('', nota, '0',8))  +
+  '</cNF><natOp>VENDA AO CONSUMIDOR</natOp>' + '<indPag>' +
     IfThen(FORMPAG = '1', '0', '1') + '</indPag><mod>65</mod><serie>' +
     getSerieNFCe + '</serie><nNF>' + NUM_NF + '</nNF><dhEmi>' + dHAtual +
     '</dhEmi>' + '<tpNF>' + IfThen(Contido(COD_CFOP[1], '567'), '1', '0') +
@@ -6005,7 +6005,7 @@ end;
 function GeraChaveNf(nota: STRING): string;
 var
   seq: string;
-  i: integer;
+  i, a: integer;
   total, dv: currency;
   Data: TDateTime;
 begin
@@ -6013,6 +6013,8 @@ begin
   begin
     tpEmis := '9';
   end;
+
+  a := 0;
 
   Data := now;
   if chaveRecria <> '' then
@@ -6031,16 +6033,23 @@ begin
   Result := Result + '65'; // modelo da nf 02
   Result := Result + strzero(getSerieNFCe, 3);
   // '001';                    //serie 03
+
   Result := Result + CompletaOuRepete('', IntToStr(codNF), '0', 9);
   // numero nota fiscal 09
   Result := Result + tpEmis; // forma de emissao
-  Result := Result + CompletaOuRepete('', nota, '0', 8); // nota de venda
+
+  // nota de venda
+  if codNF = StrToInt(nota)  then begin
+     Result := Result + CompletaOuRepete('9', nota, '0', 8);
+     a := 1;
+  end
+  else Result := Result + CompletaOuRepete('', nota, '0', 8);
+
   seq := '';
   seq := '432' + CompletaOuRepete('', '', '98765432', 5);
   total := 0;
 
-  for i := 1 to length(Result) do
-  begin
+  for i := 1 to length(Result) do begin
     try
       total := total + StrToCurr(seq[i]) * StrToCurr(Result[i]);
     except
@@ -6056,7 +6065,17 @@ begin
   DigiVerifi := IntToStr(i);
   Result := Result + IntToStr(i);
   // Result := 'NFe' + Result;
+
   CHAVENF := Result;
+
+  if ((a = 1) and (chaveRecria <> CHAVENF)) then begin
+    query1.Close;
+    query1.SQL.Text := 'update nfce set chave = :nova where chave = :velha';
+    query1.ParamByName('nova').AsString  := CHAVENF;
+    query1.ParamByName('velha').AsString := chaveRecria;
+    query1.ExecSQL;
+    query1.Transaction.Commit;
+  end;
 end;
 
 FUNCTION NODO_ITENS(var lista: TList; CFOP, POS, CSTICM_CFP, CSTPIS_CFP,

@@ -767,13 +767,14 @@ begin
        printer.canvas.font.size := imprime.tamFontePadrao;
      end;
 
-   if Contido('$', result) then begin
+
+   if Contido('$', result) and (pos('$', Result) < 4) then begin
      result := StringReplace(result, '$', '',[rfReplaceAll, rfIgnoreCase]);
      Form19.RichEdit1.Font.Style := [fsbold];
    end;
 
 
-   if Contido('%', result) then begin
+   if Contido('%', result) and (pos('%', Result) < 4) then begin
      result := StringReplace(result, '%', '',[rfReplaceAll, rfIgnoreCase]);
      printer.canvas.font.size := 7;
    end;

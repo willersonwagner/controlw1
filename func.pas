@@ -139,6 +139,7 @@ type
     enviandoCupom, enviandoBackup: boolean;
     fonteRelatorioForm19: integer;
     NegritoRelatorioForm19, saiComEnter: boolean;
+    procedure acertaVendasDoDiaAVista();
     procedure deletaRegistroVendaDoDiaDuplicado(data : tdate);
     function leformaDePagamentoMista(nota : integer; valor : currency) : TStringList;
     function imprimeEnderecoEntrega(tipoImp, cliente, clienteVenda : String) : String;
@@ -1211,6 +1212,8 @@ begin
     FieldByName('cliente').AsString;
 
   form20.ShowModal;
+  if form20.finalizouServico = 0 then form20.Saiu := true;
+
   if form20.Saiu then
     Result := False;
   form20.Free;
@@ -1334,6 +1337,7 @@ begin
   form33.ClientDataSet1.FieldDefs.Add('QUANT', ftCurrency);
   form33.ClientDataSet1.FieldDefs.Add('SALDO', ftCurrency);
   form33.ClientDataSet1.FieldDefs.Add('cont', ftInteger);
+  form33.ClientDataSet1.FieldDefs.Add('soma', ftInteger);
 
   form33.DataSource1.dataset := form33.ClientDataSet1;
   form33.DBGrid1.DataSource  := form33.DataSource1;
@@ -1458,7 +1462,9 @@ begin
   if cod1 <> '2' then begin
     dm.IBselect.Close;
     dm.IBselect.SQL.Clear;
-    dm.IBselect.SQL.Text := 'select o.vendedor,o.p_venda,o.nota,o.cod, o.quant, s.venda, s.data as data1, o.data as data2 from os_itens o left join servico s on (s.COD = o.nota) where o.cod  = :cod and ((s.venda is null) or (S.VENDA = 0))';
+    dm.IBselect.SQL.Text := 'select o.vendedor,o.p_venda,o.nota,o.cod, o.quant, s.venda, s.data as data1, '+
+    'o.data as data2 from os_itens o left join servico s on (s.COD = o.nota) where '+
+    'o.cod  = :cod and ((s.venda is null) or (S.VENDA = 0))';
     dm.IBselect.ParamByName('cod').AsString := strnum(te);
     dm.IBselect.Open;
 
@@ -1573,7 +1579,7 @@ begin
   dm.IBselect.SQL.Clear;
   dm.IBselect.SQL.Add
     ('select i.data,i.p_venda,i.quant,i.total,i.nota, i.origem, (select nome from formpagto where cod=v.codhis) '
-    + 'from item_venda i,venda v where (v.cancelado = 0) and(i.nota=v.nota) and (i.cod = '
+    + ', v.cancelado from item_venda i,venda v where (i.nota=v.nota) and (i.cod = '
     + te + ') and ' + origem +' containing cast(i.origem as varchar(1)) order by data, nota');
   //dm.IBselect.ParamByName('ini').AsDateTime := datini;
   dm.IBselect.Open;
@@ -1587,6 +1593,7 @@ begin
 
   while not dm.IBselect.Eof do
   begin
+
     geral := geral + (-dm.IBselect.FieldByName('quant').AsCurrency);
 
     prod.nome := 'TOTAL PRECO DE VENDA: ';
@@ -1599,23 +1606,42 @@ begin
     if StrNum(orig) = '0' then orig := '1';
 
     if dm.IBselect.FieldByName('data').AsDateTime < datini then begin //saldo anterior
-      if origem = '1' then begin
-        saldoAnteriorLoja     := saldoAnteriorLoja - dm.IBselect.FieldByName('quant').AsCurrency;
-      end
-      else begin
-        saldoAnteriorDeposito := saldoAnteriorDeposito - dm.IBselect.FieldByName('quant').AsCurrency;
+      if dm.IBselect.FieldByName('cancelado').AsInteger <= 0 then begin
+        if origem = '1' then begin
+          saldoAnteriorLoja     := saldoAnteriorLoja - dm.IBselect.FieldByName('quant').AsCurrency;
+        end
+        else begin
+          saldoAnteriorDeposito := saldoAnteriorDeposito - dm.IBselect.FieldByName('quant').AsCurrency;
+        end;
       end;
     end
     else begin
       form33.ClientDataSet1.Open;
       form33.ClientDataSet1.Edit;
       form33.ClientDataSet1.Insert;
-      form33.ClientDataSet1.FieldByName('data').AsDateTime :=
-      dm.IBselect.FieldByName('data').AsDateTime;
-      form33.ClientDataSet1.FieldByName('historico').AsString := 'VENDA NOTA ' +
-      dm.IBselect.FieldByName('nota').AsString + ' ' + dm.IBselect.FieldByName
-      ('nome').AsString + iif(dm.IBselect.FieldByName('origem').AsInteger = 1,
-      ' LOJA', ' DEPOSITO');
+      form33.ClientDataSet1.FieldByName('data').AsDateTime := dm.IBselect.FieldByName('data').AsDateTime;
+
+      if dm.IBselect.FieldByName('cancelado').AsInteger > 0 then begin
+        dm.IBQuery1.Close;
+        dm.IBQuery1.SQL.Text := 'select nome from usuario where cod = ' + dm.IBselect.FieldByName('cancelado').AsString;
+        dm.IBQuery1.Open;
+
+        form33.ClientDataSet1.FieldByName('historico').AsString := 'VENDA NOTA ' +
+        dm.IBselect.FieldByName('nota').AsString + ' CANCEL: ' + dm.IBselect.FieldByName('cancelado').AsString + '-' +
+        dm.IBQuery1.FieldByName('nome').AsString;
+
+        dm.IBQuery1.Close;
+
+        form33.ClientDataSet1.FieldByName('soma').AsInteger := dm.IBselect.FieldByName('cancelado').AsInteger;
+      end
+      else begin
+        form33.ClientDataSet1.FieldByName('historico').AsString := 'VENDA NOTA ' +
+        dm.IBselect.FieldByName('nota').AsString + ' ' + dm.IBselect.FieldByName
+        ('nome').AsString + iif(dm.IBselect.FieldByName('origem').AsInteger = 1,
+        ' LOJA', ' DEPOSITO');
+      end;
+
+
       form33.ClientDataSet1.FieldByName('preco').AsCurrency :=
       dm.IBselect.FieldByName('p_venda').AsCurrency;
       form33.ClientDataSet1.FieldByName('quant').AsCurrency :=
@@ -1856,11 +1882,15 @@ begin
   form33.ClientDataSet1.Post;
 
   form33.ClientDataSet1.IndexFieldNames := 'data';
+  form33.ClientDataSet1.FieldByName('soma').Visible := false;
   form33.ClientDataSet1.First;
 
   while not form33.ClientDataSet1.Eof do
   begin
-    geral := geral + form33.ClientDataSet1.FieldByName('quant').AsCurrency;
+    if form33.ClientDataSet1.FieldByName('soma').IsNull then begin
+      geral := geral + form33.ClientDataSet1.FieldByName('quant').AsCurrency;
+    end;
+
     form33.ClientDataSet1.Edit;
     form33.ClientDataSet1.FieldByName('saldo').AsCurrency := geral;
     form33.ClientDataSet1.Post;
@@ -28238,6 +28268,54 @@ begin
     dm.IBQuery1.Transaction.Commit;
   end;
 
+end;
+
+
+procedure Tfuncoes.acertaVendasDoDiaAVista();
+var
+  lista : TStringList;
+  t : Cardinal;
+  ini, fim : integer;
+begin
+  t := GetTickCount();
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select data,sum(total) as total from venda where (codhis = 1) and cancelado = 0 group by data';
+  dm.IBselect.Open;
+
+  lista := TStringList.Create;
+
+  while not dm.IBselect.Eof do begin
+    lista.Add(dm.IBselect.FieldByName('data').AsString + '=' + dm.IBselect.FieldByName('total').AsString);
+    dm.IBselect.Next;
+  end;
+
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select v.nota,v.data, v.entrada, v.total, (select historico from caixa c where ' +
+  '(substring(c.historico from 1 for iif((position(''-'', c.historico) - 1) < 0, 0, position(''-'', c.historico) - 1))' +
+  ' = cast(v.nota as varchar(10))) and tipo = ''E'') from venda v where v.entrada > 0 and cancelado = 0';
+  dm.IBselect.Open;
+
+  while not dm.IBselect.Eof do begin
+    if dm.IBselect.FieldByName('historico').IsNull then begin
+      lista.Values[dm.IBselect.FieldByName('data').AsString] := CurrToStr(StrToCurrDef(lista.Values[dm.IBselect.FieldByName('data').AsString], 0) + dm.IBselect.FieldByName('total').AsCurrency) ;
+    end;
+
+    dm.IBselect.Next;
+  end;
+
+  fim := lista.Count -1;
+  for ini := 0 to fim do begin
+    dm.IBQuery1.Close;
+    dm.IBQuery1.SQL.Text := 'update caixa set entrada = :ent where cast(data as date) = :data and historico = ''VENDAS DO DIA A VISTA'' ';
+    dm.IBQuery1.ParamByName('ent').AsCurrency := StrToCurr(lista.ValueFromIndex[ini]);
+    dm.IBQuery1.ParamByName('data').AsDate    := StrToDate(lista.Names[ini]);
+    dm.IBQuery1.ExecSQL;
+  end;
+
+  dm.IBQuery1.Transaction.Commit;
+
+  t := GetTickCount() - t;
+  ShowMessage('Acerto de Caixa Executado em: ' + FormatFloat(',0 Segundos', t/1000));
 end;
 
 
