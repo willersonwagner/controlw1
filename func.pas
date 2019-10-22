@@ -22122,7 +22122,6 @@ begin
   // pega a data atual de movimento do bd e grava em ultDataMov. Se der erro já retortna daqui sem validar a data
   if (not leDataMov(ultDataMov)) then exit;
 
-
   //atualiza a variável de retorno da data de movimento
   dataMo := ultDataMov;
 
@@ -22130,17 +22129,17 @@ begin
   dias := Trunc(now - ultDataMov);
 
   //se a data de relógio é menor que a data_mov retorna falso e não valida a data
-  if ((dias < 0) and (form22.USUARIO <> 'ADMIN')) then
+  if ((dias < 0) and (form22.USUARIO <> 'ADMIN') and (formataDataDDMMYY(now) <> formataDataDDMMYY(ultDataMov))) then
     begin
-      MessageDlg('Data Inválida: ' + DateToStr(now) + #13 + #10 + 'Verifique a data deste computador ou procure o suporte. ' +
+      MessageDlg('1-Data Inválida: ' + DateToStr(now) + #13 + #10 + 'Verifique a data deste computador ou procure o suporte. ' +
 	    #13 + #10 + 'Última data de movimento válida: ' + DateToStr(ultDataMov), mtError, [mbOK], 1);
       exit;
 	  end;
 
 
   //se a data de relógio é igual à data_mov, então valida
-  if dias = 0 then
-    begin
+  //if dias = 0 then
+  if (formataDataDDMMYY(now) = formataDataDDMMYY(ultDataMov)) then begin
 	    Result := true;
       exit;
     end;
@@ -22177,7 +22176,7 @@ begin
   //eliminei aquela mensagem de bom dia para o usuário.
 
   //se chegou até aqui, então a data de relógio é inválida
-  MessageDlg('Data Inválida: ' + DateToStr(now) + #13 + #10 + 'Verifique a data deste computador ou procure o suporte. ' +
+  MessageDlg('2-Data Inválida: ' + DateToStr(now) + #13 + #10 + 'Verifique a data deste computador ou procure o suporte. ' +
     #13 + #10 + 'Última data de movimento válida: ' + DateToStr(ultDataMov), mtError, [mbOK], 1);
 
  end;

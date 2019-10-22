@@ -10519,11 +10519,12 @@ end;
 
 procedure TForm2.PorFornecedor1Click(Sender: TObject);
 var
-  ini, fim, minim: string;
+  ini, fim, minim, notas: string;
   totalgeral, totalCompra, totalVenda, totVendas, totcomp, somaDesc, descMedio,
     minima: currency;
   i, linhas: integer;
   quants, p_compra, p_venda, desconto, totais: TStringList;
+  lista : TItensAcumProd;
 begin
   fornec := funcoes.dialogo('generico', 0, '1234567890' + #8 + #27 + #13, 50,
     true, '', application.Title, 'Qual o fornecedor?', '');
@@ -10550,6 +10551,8 @@ begin
   desconto := TStringList.Create;
   totais := TStringList.Create;
 
+  lista := TItensAcumProd.Create;
+
   form19.RichEdit1.Clear;
   form19.RichEdit1.Perform(EM_REPLACESEL, 1,
     Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10))));
@@ -10572,13 +10575,11 @@ begin
     Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10))));
 
   dm.ibselect.Close;
-  dm.ibselect.SQL.Clear;
+  dm.ibselect.SQL.Text :=
+    'select i.cod, i.quant, i.p_compra, i.nota, v.desconto, i.total as p_venda, v.total, p.fornec from' +
+    ' item_venda i,venda v,produto p where (v.cancelado = 0) and ((v.data >= :v1) and (v.data <= :v2)) and (i.nota = v.nota) and (i.cod = p.cod) '
+    + iif(fornec <> '', 'and (p.fornec = ' + fornec + ')', '');
 
-  dm.ibselect.SQL.Add
-    ('select i.cod, i.quant, i.p_compra, i.nota, v.desconto, i.total as p_venda, v.total, p.fornec from');
-  dm.ibselect.SQL.Add
-    (' item_venda i,venda v,produto p where (v.cancelado = 0) and ((v.data >= :v1) and (v.data <= :v2)) and (i.nota = v.nota) and (i.cod = p.cod) '
-    + iif(fornec <> '', 'and (p.fornec = ' + fornec + ')', ''));
   dm.ibselect.ParamByName('v1').AsDateTime := StrToDate(ini);
   dm.ibselect.ParamByName('v2').AsDateTime := StrToDate(fim);
   dm.ibselect.Open;
@@ -10586,9 +10587,31 @@ begin
   totalgeral := 0;
   linhas := 55;
   dm.ibselect.FetchAll;
-  while not dm.ibselect.Eof do
-  begin
-    if quants.Values[dm.ibselect.FieldByName('cod').AsString] = '' then
+
+  notas := '-';
+  while not dm.ibselect.Eof do begin
+    i := lista.Find(dm.ibselect.FieldByName('cod').AsInteger);
+    if i = -1 then begin
+      i := lista.Add(TacumProd.Create);
+      lista[i].cod := dm.ibselect.FieldByName('cod').AsInteger;
+      lista[i].quant := 0;
+      lista[i].dep   := 0;
+      lista[i].val1  := 0;
+    end;
+
+    lista[i].quant :=  lista[i].quant + dm.ibselect.FieldByName('quant').AsCurrency;
+    lista[i].dep   :=  lista[i].dep   + dm.ibselect.FieldByName('p_compra').AsCurrency;
+    lista[i].val1  :=  lista[i].val1  + dm.ibselect.FieldByName('p_venda').AsCurrency;
+
+    if not Contido('-'+dm.ibselect.FieldByName('nota').AsString+'-', notas) then begin
+      desconto.Values[dm.ibselect.FieldByName('nota').AsString] := dm.ibselect.FieldByName('desconto').AsString;
+      totais.Values[dm.ibselect.FieldByName('nota').AsString]   := dm.ibselect.FieldByName('total').AsString;
+
+      notas := notas + dm.ibselect.FieldByName('nota').AsString + '-';
+    end;
+
+
+    {if quants.Values[dm.ibselect.FieldByName('cod').AsString] = '' then
       quants.Add(dm.ibselect.FieldByName('cod').AsString + '=' +
         dm.ibselect.FieldByName('quant').AsString)
     else
@@ -10619,17 +10642,15 @@ begin
           dm.ibselect.FieldByName('desconto').AsString;
         totais.Values[dm.ibselect.FieldByName('nota').AsString] :=
           dm.ibselect.FieldByName('total').AsString;
-      end;
+      end; }
     dm.ibselect.Next;
   end;
   totVendas := 0;
   totcomp := 0;
   somaDesc := 0;
   descMedio := 0;
-  if desconto.Count > 0 then
-  begin
-    for i := 0 to desconto.Count - 1 do
-    begin
+  if desconto.Count > 0 then begin
+    for i := 0 to desconto.Count - 1 do begin
       somaDesc := somaDesc + StrToCurr(desconto.Values[desconto.Names[i]]);
       descMedio := descMedio + (StrToCurr(desconto.Values[desconto.Names[i]]) *
         100) / StrToCurr(totais.Values[desconto.Names[i]]);
@@ -10647,6 +10668,59 @@ begin
       9) + '%' + #13 + #10))));
     totVendas := somaDesc;
   end;
+
+  for i := 0 to lista.Count - 1 do begin
+    if form19.RichEdit1.Lines.Count >= linhas then begin
+      linhas := linhas + 55;
+      form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+        Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 80) + #13
+        + #10))));
+      form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+        Longint(PChar((' ' + #12 + #13 + #10))));
+      form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+        Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 80) + #13
+        + #10))));
+      form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+        Longint(PChar((funcoes.CompletaOuRepete(funcoes.LerValorPGerais
+        ('empresa', form22.Pgerais), 'DATA: ' + FormatDateTime('dd/mm/yy',
+        now) + '|', ' ', 80) + #13 + #10))));
+      form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+        Longint(PChar((funcoes.CompletaOuRepete('VENDAS POR FORNECEDOR : ' +
+        fornec + ' - ' + FormatDateTime('dd/mm/yy', StrToDate(ini)) + ' A ' +
+        FormatDateTime('dd/mm/yy', StrToDate(fim)),
+        'HORA: ' + FormatDateTime('tt', now) + '|', ' ', 80) + #13 + #10))));
+      form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+        Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 80) + #13
+        + #10))));
+      form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+        Longint(PChar
+        (('CODIGO DESCRICAO                      QUANT.        CUSTO       VENDA    LUCRO'
+        + #13 + #10))));
+      form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+        Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 80) + #13
+        + #10))));
+    end;
+    if lista[i].quant >= minima then
+    begin
+      totalCompra := lista[i].dep;
+      totalVenda  := lista[i].val1;
+
+      totcomp := totcomp + totalCompra;
+      totVendas := totVendas + totalVenda;
+      form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+        Longint(PChar((funcoes.CompletaOuRepete('', IntToStr(lista[i].cod), ' ',
+        6) + '-' + funcoes.CompletaOuRepete(copy(funcoes.BuscaNomeBD
+        (dm.IBQuery2, 'nome', 'produto', 'where cod=' + IntToStr(lista[i].cod)), 1,
+        25), '', ' ', 25) + funcoes.CompletaOuRepete('', formataCurrency(lista[i].quant),
+        ' ', 12) + funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00',
+        totalCompra), ' ', 13) + funcoes.CompletaOuRepete('',
+        FormatCurr('#,###,###0.00', totalVenda), ' ',
+        13) + funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00',
+        100 - ((totalCompra * 100) / totalVenda)), ' ', 9) + '%' + #13
+        + #10))));
+    end;
+  end;   {
+
   funcoes.OrdenarValoresStringList(quants);
 
   for i := 0 to quants.Count - 1 do
@@ -10702,7 +10776,7 @@ begin
         100 - ((totalCompra * 100) / totalVenda)), ' ', 9) + '%' + #13
         + #10))));
     end;
-  end;
+  end;    }
 
   dm.ibselect.Close;
   form19.RichEdit1.Perform(EM_REPLACESEL, 1,
