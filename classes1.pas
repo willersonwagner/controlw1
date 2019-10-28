@@ -544,7 +544,10 @@ end;
 
 procedure TItensAcumProd.OrdenarLista(direcao : String = 'ASC');
 begin
-  Sort(OrdenaPorCodigoTacumProdASC);
+  if direcao = 'QUANTDESC' then begin
+    Sort(OrdenaPorQUANTTacumProd);
+  end
+  else Sort(OrdenaPorCodigoTacumProdASC);
 end;
 
 function TItensAcumProd.GetItems(Index: Integer): TacumProd;

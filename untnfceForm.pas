@@ -6647,7 +6647,6 @@ begin
   tmp := 0;
   if usaNFe4ouMaior then
   begin
-
     for i := 0 to listaPagamentos.Count - 1 do
     begin
       Result := Result + '<detPag>' + '<tpag>' + listaPagamentos[i].cod +

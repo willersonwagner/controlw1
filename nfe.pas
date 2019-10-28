@@ -3574,7 +3574,7 @@ begin
                  item.Aliq               := query2.fieldbyname('aliquota').AsString;
                  item.Reducao            := 0;
                  item.CodAliq            := StrToIntdef(StrNum(query1.fieldbyname('aliquota').AsString), 2);
-                 item.Total_Preco_Compra := arrendondaNFe(query1.fieldbyname('p_compra').AsCurrency * query1.fieldbyname('quant').AsCurrency,2);
+                 item.Total_Preco_Compra := abs(arrendondaNFe(query1.fieldbyname('p_compra').AsCurrency * query1.fieldbyname('quant').AsCurrency,2));
                  item.Pis                := query2.fieldbyname('is_pis').AsString;
                  item.codISPIS           := query2.fieldbyname('cod_ispis').AsString;
                  item.Desconto           := 0;
@@ -3592,7 +3592,7 @@ begin
                  totImp := totImp + VE_IMPOSTO(query2.FieldByName('p_compra').AsCurrency, query2.FieldByName('p_venda').AsCurrency, query1.fieldbyname('quant').AsCurrency);
                  item.Ncm := verNCM(item.cod);//IfThen((ConfParamGerais.Strings[26] = 'S') AND (StrToIntDef(dm.IBselect.fieldbyname('classif').AsString, 0) <> 0), StrToIntDef(dm.IBselect.fieldbyname('classif').AsString, 0), 98);
 
-                 item.p_compra := query1.fieldbyname('P_compra').AsCurrency;
+                 item.p_compra := abs(query1.fieldbyname('P_compra').AsCurrency);
                  item.Vlr_Frete := 0;
                  aliq := query1.fieldbyname('aliquota').AsString;
 

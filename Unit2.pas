@@ -9651,18 +9651,24 @@ begin
       end;
 
       if (i = 0) then begin
+        //se nao tiver entrada entao soma na sua respectiva forma de pagamento
         if dm.ibselect.FieldByName('entrada').AsCurrency = 0 then begin
           totais.Values[dm.ibselect.FieldByName('codhis').AsString] :=
           CurrToStr(StrToCurrDef(totais.Values[dm.ibselect.FieldByName('codhis')
           .AsString], 0) + dm.ibselect.FieldByName('total').AsCurrency);
         end
         else begin
-          //totais.Values['1'] := CurrToStr(StrToCurrDef(totais.Values['1'], 0) +
-          //dm.ibselect.FieldByName('entrada').AsCurrency);
-          totais.Values[dm.ibselect.FieldByName('codhis').AsString] :=
-          CurrToStr(StrToCurrDef(totais.Values[dm.ibselect.FieldByName('codhis')
-          .AsString], 0) + (dm.ibselect.FieldByName('total').AsCurrency -
-          dm.ibselect.FieldByName('entrada').AsCurrency));
+          //se for a prazo entao so dimunui do aprazo o valor avista
+          if dm.ibselect.FieldByName('codhis').AsInteger = 2 then begin
+            totais.Values[dm.ibselect.FieldByName('codhis').AsString] :=
+            CurrToStr(StrToCurrDef(totais.Values[dm.ibselect.FieldByName('codhis').AsString], 0) + (dm.ibselect.FieldByName('total').AsCurrency - dm.ibselect.FieldByName('entrada').AsCurrency));
+          end
+          else begin //se for outro tipo de forma de pagamento com entrada entao tira a entrada e soma o avista
+            totais.Values['1'] := CurrToStr(StrToCurrDef(totais.Values['1'], 0) +
+            dm.ibselect.FieldByName('entrada').AsCurrency);
+            totais.Values[dm.ibselect.FieldByName('codhis').AsString] :=
+            CurrToStr(StrToCurrDef(totais.Values[dm.ibselect.FieldByName('codhis').AsString], 0) + (dm.ibselect.FieldByName('total').AsCurrency - dm.ibselect.FieldByName('entrada').AsCurrency));
+          end;
         end;
       end;
 
@@ -9773,6 +9779,7 @@ begin
       dm.ibselect.FieldByName('entrada').AsCurrency);
 
       totEntradaCaixaNaVenda := totEntradaCaixaNaVenda + dm.ibselect.FieldByName('entrada').AsCurrency;
+      VLR_ICM := dm.ibselect.FieldByName('entrada').AsCurrency;
     end
     else begin
       if dm.ibselect.FieldByName('entrada').AsCurrency = 0 then begin
@@ -9806,9 +9813,8 @@ begin
 
     if form22.Pgerais.Values['nota'] = 'T' then
     begin
-      caixa.Add(FormatDateTime('dd/mm/yy', dm.ibselect.FieldByName('data')
-        .AsDateTime) + ' ' + funcoes.CompletaOuRepete('',
-        dm.ibselect.FieldByName('historico').AsString, ' ', 35) +
+      caixa.Add(FormatDateTime('dd/mm/yy', dm.ibselect.FieldByName('data').AsDateTime) +
+      ' ' + funcoes.CompletaOuRepete('',LeftStr(dm.ibselect.FieldByName('historico').AsString, 35), ' ', 35) +
         funcoes.CompletaOuRepete('', FormatCurr('0.00', VLR_ICM) + IfThen(b = 1,
         '-', '+'), ' ', 13) + IfThen((dm.ibselect.FieldByName('formpagto')
         .AsInteger > 2), ' ' + strzero(dm.ibselect.FieldByName('formpagto')
@@ -9817,8 +9823,7 @@ begin
     else
       caixa.Add(FormatDateTime('dd/mm/yy', dm.ibselect.FieldByName('data')
         .AsDateTime) + ' ' + strzero(dm.ibselect.FieldByName('documento')
-        .AsString, 6) + ' ' + funcoes.CompletaOuRepete
-        (dm.ibselect.FieldByName('historico').AsString, '', ' ', 35) +
+        .AsString, 6) + ' ' + funcoes.CompletaOuRepete(LeftStr(dm.ibselect.FieldByName('historico').AsString, 35), '', ' ', 35) +
         funcoes.CompletaOuRepete('', FormatCurr('0.00', VLR_ICM) + IfThen(b = 1,
         '-', '+'), ' ', 13) + IfThen((dm.ibselect.FieldByName('formpagto')
         .AsInteger > 2), ' ' + strzero(dm.ibselect.FieldByName('formpagto')
@@ -10536,12 +10541,14 @@ begin
     fim := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,
       'Qual a Data Final?', '');
 
-  minim := funcoes.dialogo('generico', 0, '1234567890' + #8 + #27 + #13, 50,
+  {minim := funcoes.dialogo('generico', 0, '1234567890' + #8 + #27 + #13, 50,
     true, '', application.Title, 'Qual a Quantidade Mínima Vendida?', '1');
   if minim = '*' then
     exit;
 
-  minima := StrToCurrDef(funcoes.ConverteNumerico(minim), 1);
+  minima := StrToCurrDef(funcoes.ConverteNumerico(minim), 1);}
+
+
   if funcoes.Contido('*', ini + fim) then
     exit;
 
@@ -10577,7 +10584,7 @@ begin
   dm.ibselect.Close;
   dm.ibselect.SQL.Text :=
     'select i.cod, i.quant, i.p_compra, i.nota, v.desconto, i.total as p_venda, v.total, p.fornec from' +
-    ' item_venda i,venda v,produto p where (v.cancelado = 0) and ((v.data >= :v1) and (v.data <= :v2)) and (i.nota = v.nota) and (i.cod = p.cod) '
+    ' item_venda i left join produto p on (i.cod = p.cod),venda v where (v.cancelado = 0) and ((v.data >= :v1) and (v.data <= :v2)) and (i.nota = v.nota) '
     + iif(fornec <> '', 'and (p.fornec = ' + fornec + ')', '');
 
   dm.ibselect.ParamByName('v1').AsDateTime := StrToDate(ini);
@@ -10658,9 +10665,9 @@ begin
 
     form19.RichEdit1.Perform(EM_REPLACESEL, 1,
       Longint(PChar((funcoes.CompletaOuRepete('', '0', ' ', 6) + '-' +
-      funcoes.CompletaOuRepete('DESCONTO MEDIO => ' +
-      FormatCurr('#,###,###0.00', descMedio / desconto.Count) + '%', '', ' ',
-      25) + funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00',
+      //funcoes.CompletaOuRepete('DESCONTO' + formataCurrency(descMedio / desconto.Count) + '%', '', ' ',25) +
+      funcoes.CompletaOuRepete('DESCONTOS ' , '', ' ',25) +
+      funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00',
       desconto.Count), ' ', 12) + funcoes.CompletaOuRepete('',
       FormatCurr('#,###,###0.00', 0), ' ', 13) + funcoes.CompletaOuRepete('',
       FormatCurr('#,###,###0.00', somaDesc), ' ', 13) + funcoes.CompletaOuRepete
@@ -10668,6 +10675,8 @@ begin
       9) + '%' + #13 + #10))));
     totVendas := somaDesc;
   end;
+
+  lista.OrdenarLista('QUANTDESC');
 
   for i := 0 to lista.Count - 1 do begin
     if form19.RichEdit1.Lines.Count >= linhas then begin
@@ -10700,8 +10709,8 @@ begin
         Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 80) + #13
         + #10))));
     end;
-    if lista[i].quant >= minima then
-    begin
+
+    //if lista[i].quant >= minima then begin
       totalCompra := lista[i].dep;
       totalVenda  := lista[i].val1;
 
@@ -10718,8 +10727,10 @@ begin
         13) + funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00',
         100 - ((totalCompra * 100) / totalVenda)), ' ', 9) + '%' + #13
         + #10))));
-    end;
-  end;   {
+    //end;
+  end;
+
+   {
 
   funcoes.OrdenarValoresStringList(quants);
 

@@ -15,6 +15,7 @@ Coordinates=150,922,103,168
 
 [DBGrid1]
 Coordinates=725,652,64,36
+Visible=True
 
 [dm.TabelaOrdem]
 Coordinates=10,10,114,564
@@ -47,7 +48,7 @@ Coordinates=1153,584,53,58
 Coordinates=618,815,136,36
 
 [ClientDataSet1]
-Coordinates=134,10,101,366
+Coordinates=134,10,101,476
 
 [JsEdit2]
 Coordinates=928,584,57,58
@@ -59,7 +60,7 @@ Coordinates=694,10,145,102
 Coordinates=121,1128,54,36
 
 [Panel2]
-Coordinates=995,584,54,58
+Coordinates=995,584,55,58
 
 [dm.Dsformpagto]
 Coordinates=318,683,109,278
@@ -98,7 +99,7 @@ Coordinates=1216,584,82,58
 Coordinates=566,584,53,58
 
 [Panel1]
-Coordinates=864,584,54,58
+Coordinates=864,584,55,58
 
 [dm.dsprod]
 Coordinates=148,1,93,300
@@ -125,7 +126,7 @@ Coordinates=618,870,134,36
 Coordinates=1059,584,84,58
 
 [Panel4]
-Coordinates=1046,10,54,58
+Coordinates=1046,10,55,58
 
 [dm.IBQuery4]
 Coordinates=466,584,90,58
@@ -188,5 +189,23 @@ Coordinates=73,584,83,58
 Coordinates=769,628,150,36
 
 []
-Coordinates=792,133,177,36
+Coordinates=35,55,91,36
+
+[ClientDataSet1unid]
+Coordinates=0,0,126,36
+
+[ClientDataSet1seqServ]
+Coordinates=254,1,148,36
+
+[ClientDataSet1DESCRICAO]
+Coordinates=254,56,177,36
+
+[ClientDataSet1estado]
+Coordinates=254,111,140,36
+
+[ClientDataSet1m2]
+Coordinates=440,1,119,36
+
+[ClientDataSet1vendedor]
+Coordinates=254,166,155,36
 

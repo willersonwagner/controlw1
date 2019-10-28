@@ -5767,7 +5767,7 @@ begin
           item.p_vendaEstoque), ' ', 14) + funcoes.CompletaOuRepete('',
           FormatCurr('##,###,###0.000', item.p_vendaSincronizacao), ' ', 14) +
           funcoes.CompletaOuRepete('', FormatCurr('0.00',
-          item.p_vendaEstoque - item.p_vendaSincronizacao), ' ', 12) +
+          item.p_vendaSincronizacao - item.p_vendaEstoque), ' ', 12) +
           #13 + #10);
       end;
 
@@ -15266,13 +15266,14 @@ begin
           .AsString + '-' + copy(dm.IBQuery2.FieldByName('nome').AsString, 1,
           37 - length(dm.IBQuery2.FieldByName('cod').AsString)), '', ' ',
           40) + #13 + #10))));
-        form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-          Longint(PChar((funcoes.CompletaOuRepete('=>QTD:', FormatCurr('0.00',
+
+        //addRelatorioForm19(funcoes.CompletaOuRepete('=>QTD:', FormatCurr('0.00',
+        addRelatorioForm19(funcoes.CompletaOuRepete('>'+LeftStr(dm.IBQuery2.FieldByName('unid').AsString, 4)+' ', FormatCurr('0.00',
           dm.IBQuery2.FieldByName('quant').AsCurrency), ' ',
           15) + funcoes.CompletaOuRepete('', FormatCurr('0.00',
           dm.IBQuery2.FieldByName('p_venda').AsCurrency), ' ',
           13) + funcoes.CompletaOuRepete('', FormatCurr('0.00', tot_item), ' ',
-          12) + #13 + #10))));
+          12) + #13 + #10);
       end;
 
       if funcoes.buscaParamGeral(109, 'N') = 'S' then begin

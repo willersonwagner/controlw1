@@ -109,14 +109,14 @@ type
     procedure DBGrid1Exit(Sender: TObject);
     procedure DBGrid2Enter(Sender: TObject);
     procedure DBGrid1KeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure DBGrid1DrawColumnCell(Sender: TObject; const Rect: TRect;
-      DataCol: integer; Column: TColumn; State: TGridDrawState);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure DBGrid2Exit(Sender: TObject);
     procedure FormKeyPress(Sender: TObject; var Key: Char);
     procedure ClientDataSet1AfterPost(DataSet: TDataSet);
     procedure ClientDataSet1AfterDelete(DataSet: TDataSet);
     procedure DBGrid2DrawColumnCell(Sender: TObject; const Rect: TRect;
+      DataCol: Integer; Column: TColumn; State: TGridDrawState);
+    procedure DBGrid1DrawColumnCell(Sender: TObject; const Rect: TRect;
       DataCol: Integer; Column: TColumn; State: TGridDrawState);
 
   private
@@ -4099,11 +4099,10 @@ begin
       total := total + total_item;
       subtotal := subtotal + ClientDataSet1TOT_ORIGI2.AsCurrency;
 
-      if funcoes.buscaParamGeral(5, '') = 'S' then
-      begin
+      if funcoes.buscaParamGeral(5, '') = 'S' then begin
         dm.IBselect.Close;
         dm.IBselect.SQL.Text :=
-          'select codbar,cod,refori, localiza from produto where cod = :cod';
+          'select codbar,cod,refori, localiza, unid from produto where cod = :cod';
         dm.IBselect.ParamByName('cod').AsInteger :=
           ClientDataSet1.FieldByName('codigo').AsInteger;
         dm.IBselect.Open;
@@ -4165,20 +4164,20 @@ begin
           ('', FormatCurr('0.00', total_item), ' ', 9) + CRLF);
         dm.IBselect.Close;
       end
-      else
-      begin
+      else begin
         form19.RichEdit1.Perform(EM_REPLACESEL, 1,
           Longint(PChar((funcoes.CompletaOuRepete(ClientDataSet1.FieldByName
           ('codigo').AsString + '-' + copy(ClientDataSet1.FieldByName
           ('descricao').AsString, 1,
           37 - length(ClientDataSet1.FieldByName('codigo').AsString)), '', ' ',
           40) + #13 + #10))));
-        form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-          Longint(PChar((funcoes.CompletaOuRepete('=>QTD:', FormatCurr('0.00',
+
+        //addRelatorioForm19(funcoes.CompletaOuRepete('=>QTD:', FormatCurr('0.00',
+        addRelatorioForm19(funcoes.CompletaOuRepete('>'+LeftStr(ClientDataSet1unid.AsString, 4)+' ', FormatCurr('0.00',
           ClientDataSet1.FieldByName('quant').AsCurrency), ' ',
           15) + funcoes.CompletaOuRepete('', FormatCurr('0.00',
           ClientDataSet1PRECO.AsCurrency), ' ', 12) + funcoes.CompletaOuRepete
-          ('', FormatCurr('0.00', total_item), ' ', 13) + #13 + #10))));
+          ('', FormatCurr('0.00', total_item), ' ', 13) + #13 + #10);
       end;
 
       dm.IBQuery2.Close;
@@ -7411,6 +7410,30 @@ begin
     Key := 0;
 end;
 
+procedure TForm20.DBGrid1DrawColumnCell(Sender: TObject; const Rect: TRect;
+  DataCol: Integer; Column: TColumn; State: TGridDrawState);
+begin
+  if DBGrid1.DataSource.DataSet.RecNo mod 2 = 0 then
+  begin
+    if not(Odd(DBGrid1.DataSource.DataSet.RecNo)) then // Se não for par
+      if not (gdSelected in State) then Begin // Se o estado da célula não é selecionado
+        with DBGrid1 do Begin
+            with Canvas do Begin
+                try
+                  Brush.Color := StringToColor(funcoes.buscaCorBDGRID_Produto); // Cor da célula
+                except
+                  Brush.Color := HexToTColor('F5F5F5');
+                end;
+                //Brush.Color := HexToTColor('7093DB'); // Cor da célula
+                //Brush.Color := HexToTColor('81DAF5');
+                 FillRect (Rect); // Pinta a célula
+            End; // with Canvas
+             DefaultDrawDataCell (Rect, Column.Field, State) // Reescreve o valor que vem do banco
+        End // With DBGrid1
+    End // if not (gdSelected in State)
+  end;
+end;
+
 procedure TForm20.DBGrid1Enter(Sender: TObject);
 begin
   JsEdit3.Enabled := false;
@@ -7430,11 +7453,11 @@ end;
 procedure TForm20.DBGrid2DrawColumnCell(Sender: TObject; const Rect: TRect;
   DataCol: Integer; Column: TColumn; State: TGridDrawState);
 begin
-if DBGrid1.DataSource.DataSet.RecNo mod 2 = 0 then
+if TDBGrid(sender).DataSource.DataSet.RecNo mod 2 = 0 then
   begin
-    if not(Odd(DBGrid1.DataSource.DataSet.RecNo)) then // Se não for par
+    if not(Odd(TDBGrid(sender).DataSource.DataSet.RecNo)) then // Se não for par
       if not (gdSelected in State) then Begin // Se o estado da célula não é selecionado
-        with DBGrid1 do Begin
+        with TDBGrid(sender) do Begin
             with Canvas do Begin
                 try
                   Brush.Color := StringToColor(funcoes.buscaCorBDGRID_Produto); // Cor da célula
@@ -7561,29 +7584,6 @@ begin
           avista) + CRLF + 'CARTÃO R$ ' + FormatCurr('#,###,###0.00', aprazo);
       end;
     end;
-  end;
-end;
-
-procedure TForm20.DBGrid1DrawColumnCell(Sender: TObject; const Rect: TRect;
-  DataCol: integer; Column: TColumn; State: TGridDrawState);
-begin
-  if DBGrid1.DataSource.DataSet.RecNo mod 2 = 0 then begin
-    if not(Odd(DBGrid1.DataSource.DataSet.RecNo)) then // Se não for par
-      if not (gdSelected in State) then Begin // Se o estado da célula não é selecionado
-        with DBGrid1 do Begin
-            with Canvas do Begin
-                try
-                  Brush.Color := StringToColor(funcoes.buscaCorBDGRID_Produto); // Cor da célula
-                except
-                  Brush.Color := HexToTColor('F5F5F5');
-                end;
-                //Brush.Color := HexToTColor('7093DB'); // Cor da célula
-                //Brush.Color := HexToTColor('81DAF5');
-                 FillRect (Rect); // Pinta a célula
-            End; // with Canvas
-             DefaultDrawDataCell (Rect, Column.Field, State) // Reescreve o valor que vem do banco
-        End // With DBGrid1
-    End // if not (gdSelected in State)
   end;
 end;
 
