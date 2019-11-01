@@ -4337,6 +4337,8 @@ FUNCTION TNfeVenda.SUB_NODO_END(ENDE : String) : string;
 var
   num : String;
 begin
+  if not Contido(',', ENDE) then ENDE := ENDE + ', 0';
+
   num := Trim(CampoString(RetornaNumero(ENDE)));
   if StrNum(num) = '0' then num := '0';
   Result := '<xLgr>' + CampoString(RetornaEndeRua(ENDE)) + '</xLgr>'+

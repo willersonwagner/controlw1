@@ -4173,8 +4173,8 @@ begin
           40) + #13 + #10))));
 
         //addRelatorioForm19(funcoes.CompletaOuRepete('=>QTD:', FormatCurr('0.00',
-        addRelatorioForm19(funcoes.CompletaOuRepete('>'+LeftStr(ClientDataSet1unid.AsString, 4)+' ', FormatCurr('0.00',
-          ClientDataSet1.FieldByName('quant').AsCurrency), ' ',
+        //addRelatorioForm19(funcoes.CompletaOuRepete('>'+LeftStr(ClientDataSet1unid.AsString, 4)+' ', FormatCurr('0.00',ClientDataSet1.FieldByName('quant').AsCurrency), ' ',
+        addRelatorioForm19(funcoes.CompletaOuRepete('=>', FormatCurr('0.00', ClientDataSet1.FieldByName('quant').AsCurrency) + ' ' + LeftStr(ClientDataSet1.FieldByName('unid').AsString, 4), ' ',
           15) + funcoes.CompletaOuRepete('', FormatCurr('0.00',
           ClientDataSet1PRECO.AsCurrency), ' ', 12) + funcoes.CompletaOuRepete
           ('', FormatCurr('0.00', total_item), ' ', 13) + #13 + #10);

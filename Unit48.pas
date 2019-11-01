@@ -211,6 +211,7 @@ end;
 
 procedure TForm48.insereEntrada();
 var
+  cnpj_filial : boolean;
   nota : string;
   total, quant1, p_compra, qtd, p_venda, QTD_UNIDADE : currency;
   lista : TItensProduto;
@@ -296,12 +297,20 @@ begin
 
   lerProdutosParaDarEntrada(lista);
 
+  cnpj_filial := false;
+  //se for filial entao nao atualiza o campo de fornecedor
+  if LeftStr(StrNum(fornec[0]), 8) = LeftStr(StrNum(form22.Pgerais.Values['cnpj']), 8) then begin
+    cnpj_filial := true;
+  end;
+
+
   for i := 0 to lista.Count -1 do
     begin
       dm.IBQuery4.Close;
       dm.IBQuery4.SQL.Clear;
       dm.IBQuery4.SQL.Add('update produto set p_venda = :p_venda, codbar = :codbar, p_compra = :p_compra, unid2 = :unid2, REFNFE = :REFNFE, '+
-      'classif = :ncm, fornec = :fornec, nome = :nome, IS_PIS = :IS_PIS, COD_ISPIS  = :COD_ISPIS  where cod = :cod');
+
+      'classif = :ncm, '+IfThen(cnpj_filial, '', 'fornec = :fornec,')+' nome = :nome, IS_PIS = :IS_PIS, COD_ISPIS  = :COD_ISPIS  where cod = :cod');
 
       //dm.IBQuery4.ParamByName('quant').AsCurrency    := lista[i].quant;
       dm.IBQuery4.ParamByName('p_venda').AsCurrency  := lista[i].preco;
@@ -310,7 +319,8 @@ begin
       dm.IBQuery4.ParamByName('unid2').AsString      := lista[i].unid;
       dm.IBQuery4.ParamByName('REFNFE').AsString     := lista[i].nome;
       dm.IBQuery4.ParamByName('ncm').AsString        := lista[i].ncm;
-      dm.IBQuery4.ParamByName('fornec').AsString     := StrNum(fornecedor);
+
+      if cnpj_filial = false then dm.IBQuery4.ParamByName('fornec').AsString     := StrNum(fornecedor);
       dm.IBQuery4.ParamByName('nome').AsString       := lista[i].temp;
       dm.IBQuery4.ParamByName('IS_PIS').AsString     := lista[i].CST_PIS;
       dm.IBQuery4.ParamByName('COD_ISPIS').AsString  := lista[i].COD_ISPIS;

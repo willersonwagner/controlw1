@@ -211,19 +211,42 @@ function TcadCliNFCe.verificaCamposOK() : boolean;
 begin
   Result := false;
   if nome.Text   = '' then nome.Text := 'CONSUMIDOR';
-  if ende.Text   = '' then
+  if Length(trim(ende.Text)) < 6 then
     begin
-      ShowMessage('Campo Endereço Deve ser Informado!');
+      ShowMessage('Campo Endereço Inválido ou Muito Curto!');
       ende.SetFocus;
       exit;
     end;
 
-  if bairro.Text = '' then
+  if Length(trim(bairro.Text)) < 6 then
     begin
-      ShowMessage('Campo Bairro Deve ser Informado!');
+      ShowMessage('Campo Bairro Inválido ou Muito Curto!');
       bairro.SetFocus;
       exit;
-    end;  
+    end;
+
+  if Length(trim(nome.Text)) < 6 then
+    begin
+      ShowMessage('Campo NOME Inválido ou Muito Curto!');
+      nome.SetFocus;
+      exit;
+    end;
+
+  if tipo.Text = '1' then begin
+    if not testacpf(cnpj.Text) then begin
+      MessageDlg('CPF Inválido!', mtError, [mbOK], 1);
+      cnpj.SetFocus;
+      exit;
+    end;
+  end
+  else begin
+    if not ValidaCNPJ(cnpj.Text) then begin
+      MessageDlg('CNPJ Inválido!', mtError, [mbOK], 1);
+      cnpj.SetFocus;
+      exit;
+    end;
+  end;
+
   Result := true;
 end;
 
@@ -259,8 +282,7 @@ end;
 
 procedure TcadCliNFCe.tipoKeyPress(Sender: TObject; var Key: Char);
 begin
-  if (key=#13) and ((tedit(sender).Text='0') or (tedit(sender).Text='')) then
- begin
+  if (key=#13) and ((tedit(sender).Text='0') or (tedit(sender).Text='')) then begin
    form39 := tform39.Create(self);
    form39.ListBox1.Items.Add('1 - PESSOA FÍSICA');
    form39.ListBox1.Items.Add('2 - PESSOA JURÍDICA');
@@ -281,6 +303,16 @@ begin
    key := #0;
 
   //tedit(sender).Text := funcoes.localizar('Tipo de Cliente','tipocli','cod,nome','cod','cod','nome','cod',false,false,false,'',300,sender);
+ end;
+
+ if (key=#13) and (tedit(sender).Text<> '') then begin
+   setMask;
+   cnpj.SetFocus;
+   key := #0;
+ end;
+
+ if (key=#13) and ((tedit(sender).Text='0') or (tedit(sender).Text='')) then begin
+   key := #0;
  end;
 end;
 

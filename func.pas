@@ -15268,8 +15268,8 @@ begin
           40) + #13 + #10))));
 
         //addRelatorioForm19(funcoes.CompletaOuRepete('=>QTD:', FormatCurr('0.00',
-        addRelatorioForm19(funcoes.CompletaOuRepete('>'+LeftStr(dm.IBQuery2.FieldByName('unid').AsString, 4)+' ', FormatCurr('0.00',
-          dm.IBQuery2.FieldByName('quant').AsCurrency), ' ',
+        //addRelatorioForm19(funcoes.CompletaOuRepete('>'+LeftStr(dm.IBQuery2.FieldByName('unid').AsString, 4)+' ', FormatCurr('0.00',
+        addRelatorioForm19(funcoes.CompletaOuRepete('=>', FormatCurr('0.00', dm.IBQuery2.FieldByName('quant').AsCurrency) + ' ' + LeftStr(dm.IBQuery2.FieldByName('unid').AsString, 4), ' ',
           15) + funcoes.CompletaOuRepete('', FormatCurr('0.00',
           dm.IBQuery2.FieldByName('p_venda').AsCurrency), ' ',
           13) + funcoes.CompletaOuRepete('', FormatCurr('0.00', tot_item), ' ',

@@ -1931,6 +1931,7 @@ begin
     arq00.Free;
   end;
 
+
   query1.Close;
 end;
 
@@ -6598,6 +6599,9 @@ end;
 
 FUNCTION SUB_NODO_END(ENDE: String): string;
 begin
+  if not Contido(',', ENDE) then ENDE := ENDE + ', 0';
+  
+
   Result := '<xLgr>' + trim(RetornaEndeRua(ENDE)) + '</xLgr><nro>' +
     trim(RetornaNumero(ENDE)) + '</nro>';
 end;
@@ -6805,6 +6809,7 @@ begin
   Result := '<dest>' + CPF_CNPJ + '<xNome>' + removeCarateresEspeciais(nome) +
     '</xNome>' + tmp + '<indIEDest>9</indIEDest></dest>';
 
+  //GravarTexto('nodo_ende.txt', Result);
   { Result := '<dest>' + CPF_CNPJ + '<xNome>' + trim(NOME) + '</xNome><enderDest>' +
     SUB_NODO_END(ENDE) + '<xBairro>' + BAIRRO +
     '</xBairro><cMun>' + COD_MUN + '</cMun><xMun>' + NOM_MUN + '</xMun>' +
