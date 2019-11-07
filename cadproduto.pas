@@ -155,6 +155,7 @@ type
   public
     entrada: integer;
     RecuperarCadastro: boolean;
+    produto_preco : string;
     function CALCPRE(var _LUCRO, _PVENDA, _DEBICM, _BASEDEB, _CREDICM, _PCOMPRA,
       _FRETE, _ENCARGO, _BASECRED, AGREG: JsEditNumero;
       icmsSubsti, descComp: currency): currency;
@@ -874,6 +875,7 @@ begin
   begin
     componenteRetorno.Text := valorRetorno;
   end;
+
 end;
 
 procedure TForm9.JsEditInteiro5Exit(Sender: TObject);
@@ -1081,7 +1083,10 @@ begin
     else
       descr := 'ALTERADO POR: ' + form22.codusario + '-' + form22.usuario;
 
-    codUlt := cod.Text;
+
+    produto_preco := '|' + cod.Text + '|' + CurrToStr(p_venda.getValor) + '|';
+
+    codUlt       := cod.Text;
     valorRetorno := JsEdit.GravaNoBD(self);
     atualizaCodBarAdicionais(valorRetorno);
     insereIgualProduto(valorRetorno, descr);
@@ -1882,7 +1887,7 @@ begin
   end;
 
   p_venda.setDecimais(StrToIntDef(funcoes.buscaParamGeral(111, '3'), 3));
-
+  
   //if p_venda.decimal > 9 then p_venda.setDecimais(3);
   
 end;

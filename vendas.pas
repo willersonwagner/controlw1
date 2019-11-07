@@ -3949,7 +3949,7 @@ begin
     else
       addRelatorioForm19('* * * SEM VALOR FISCAL * * *' + CRLF);
 
-    if Assigned(Parcelamento) then
+    if Assigned(Parcelamento) and (Modo_Venda) then
     begin
       if funcoes.buscaParamGeral(20, '') = 'S' then
         funcoes.ImprimeParcelamento('', '',
@@ -4323,7 +4323,7 @@ begin
 
       if Assigned(Parcelamento) then
       begin
-        if funcoes.buscaParamGeral(20, '') = 'S' then
+        if (funcoes.buscaParamGeral(20, '') = 'S') and (Parcelamento.Values['total'] <> '*') then
           funcoes.ImprimeParcelamentoOrca(Parcelamento, '', '');
       end;
 
@@ -4337,9 +4337,10 @@ begin
 
     if Assigned(Parcelamento) then
     begin
-      if funcoes.buscaParamGeral(20, '') = 'S' then
+      if (funcoes.buscaParamGeral(20, '') = 'S') and (Modo_Venda) then begin
         funcoes.ImprimeParcelamento('', '', FormatCurr('#,###,###0.00',
           StrToCurrDef(Parcelamento.Values['entrada'], 0)), novocod);
+      end;
     end;
 
     if Modo_Venda then
@@ -6105,16 +6106,24 @@ begin
       EXPORTADO := 0;
       // inicia exportado com zero( EXPORTADO = 0, NAO FOI EXPORTADO PARA O PAF. EXPORTADO = 1, FOI EXPORTADO PARA O PAF)
 
+
       if separaPecas then
       begin
         try
-          if separaVendaOrcamento then
-          begin
+          if separaVendaOrcamento then begin
             funcoes.lerServicoNoBdEcriaUmObjetoOrdem(COD_SERVICO, ordem1);
             ordem1.cliente := StrToIntDef(JsEdit3.Text, 0);
-            funcoes.imprimeOrdemDeServico(ordem1, true);
-            // close;
-            // exit;
+            funcoes.imprimeOrdemDeServico(ordem1, true, true);
+
+            sim := funcoes.dialogo('generico', 0, 'SN' + #8, 0, false, 'S','Control For Windows',
+            'Deseja Gravar esta Nota Como Orçamento ?', 'N');
+
+            if sim = 'S' then begin
+              gravaOrcamento;
+            end;
+
+            close;
+            exit;
           end
           else
           begin
@@ -7004,7 +7013,11 @@ begin
   // key = F2
   else if Key = 113 then
   begin
-    if ((finaliza) and (tipoVenda = 'SF')) then begin
+    if separaPecas and Modo_Venda then begin
+      separaVendaOrcamento := true;
+    end;
+
+    if ((finaliza) and (tipoVenda = 'SF')) and (separaPecas and Modo_Orcamento) then begin
       ShowMessage('Operação Não Disponível, Entre na Rotina de Orçamento no Menu Serviços!');
       exit;
     end;

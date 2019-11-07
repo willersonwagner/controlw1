@@ -298,7 +298,7 @@ begin
   lerProdutosParaDarEntrada(lista);
 
   cnpj_filial := false;
-  //se for filial entao nao atualiza o campo de fornecedor
+  //se for filial entao nao atualiza o campo de fornecedor pq é transferencia
   if LeftStr(StrNum(fornec[0]), 8) = LeftStr(StrNum(form22.Pgerais.Values['cnpj']), 8) then begin
     cnpj_filial := true;
   end;
@@ -550,8 +550,9 @@ end;
 procedure TForm48.DBGrid1KeyUp(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 var
-  cod    : string;
-  codTMP : integer;
+  cod, val : string;
+  codTMP   : integer;
+  mat : TStringList;
 begin
   if key = 113 then //F2
     begin
@@ -609,6 +610,7 @@ begin
         end;  _}
 
       form9 := tform9.Create(self);
+
       jsedit.SetTabelaDoBd(form9, 'produto', dm.IBQuery1);
       if ClientDataSet1.FieldByName('codigo').AsString <> '' then begin
         form9.cod.Text := ClientDataSet1.FieldByName('codigo').AsString;
@@ -618,8 +620,21 @@ begin
 
       end;
       form9.ShowModal;
+
+      val := form9.produto_preco;
+
       JsEdit.LiberaMemoria(form9);
       form9.Free;
+
+      LE_CAMPOS(mat, val, '|', true);
+
+      if (ClientDataSet1.FieldByName('CODIGO').AsString = mat.Values['0']) and (ClientDataSet1.FieldByName('PRECO_ATUAL').AsString <> mat.Values['1']) and (StrToCurrDef(mat.Values['1'], 0) > 0) then begin
+        ClientDataSet1.Edit;
+        ClientDataSet1.FieldByName('PRECO_ATUAL').AsCurrency := StrToCurrDef(mat.Values['1'], 0);
+        ClientDataSet1.Post;
+      end;
+
+      mat.Free;
     end;
 
   if key = 115 then //F4

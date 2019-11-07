@@ -372,7 +372,7 @@ begin
    form39.ListBox1.Items.Add('05 - NF-e ou CT-e - Numeração inutilizada');
    form39.ListBox1.Items.Add('06 - Documento Fiscal Complementar');
    form39.ListBox1.Items.Add('07 - Documento Fiscal Complementar extemporâneo');
-   form39.ListBox1.Items.Add('03 - Documento cancelado extemporâneo');
+   form39.ListBox1.Items.Add('08 - Documento Fiscal emitido com base em Regime Especial ou Norma Específica');
 
    form39.buscaListaBox(tedit(sender).Text);
    tedit(sender).Text := funcoes.lista(Sender, false, 5);

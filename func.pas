@@ -2008,7 +2008,7 @@ begin
 
     addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 40) + CRLF);
 
-    if (not orcamento) then
+    if (true) then
     begin
       if ordem.venda = 0 then
       begin
@@ -2034,8 +2034,7 @@ begin
       begin
         cds := form20.ClientDataSet1;
         cds.First;
-        while not cds.Eof do
-        begin
+        while not cds.Eof do begin
           while true do
           begin
             if (cds.FieldByName('estado').AsString = 'I') then
@@ -2183,6 +2182,13 @@ begin
       FormatCurr('0.00', tot - ordem.pago + desc), '.', 40) + CRLF);
 
     addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 40) + CRLF);
+
+    if orcamento then begin
+      addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 40) + CRLF);
+      addRelatorioForm19('     *  *  O R C A M E N T O *  *      ' + CRLF);
+      addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 40) + CRLF);
+    end;
+
 
     sim := funcoes.dialogo('generico', 20, 'SN', 20, False, 'S',
       Application.Title, 'Enviar para Impressora?(S/N)' + #13 + #10, 'S');
@@ -22584,7 +22590,7 @@ begin
   dm.IBselect.Close;
   dm.IBselect.SQL.text :=
     'select nota,chave, cast(substring(chave from 26 for 9) as integer) as nnf, cast(substring(chave from 23 for 3) as integer)'
-    + ' as serie,xml from nfe where chave <> '''' and data >= :ini and data <= :fim  and ((tipo <> ''3'') or (tipo is null)) '
+    + ' as serie,xml from nfe where chave <> '''' and data >= :ini and data <= :fim  and ((tipo <> ''2'') or (tipo is null)) '
     + 'order by cast(substring(chave from 23 for 3) as integer),cast(substring(chave from 26 for 9) as integer)';
   dm.IBselect.ParamByName('ini').AsDate := StrToDate(dataIni);
   dm.IBselect.ParamByName('fim').AsDate := StrToDate(DataFim);

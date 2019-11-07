@@ -200,17 +200,18 @@ begin
     begin
       if tedit(sender).Text = '' then
         begin
-          form16 := tform16.Create(self);
+          {form16 := tform16.Create(self);
           form16.setComponente_a_Retornar(cliente);
           funcoes.CtrlResize(tform(form16));
           form16.ShowModal;
           JsEdit.LiberaMemoria(form16);
           form16.Free;
-          key := #0;
+          key := #0;}
 
-          {tedit(sender).Text := funcoes.localizar('Localizar Cliente','cliente','cod,nome,telres,telcom,cnpj as cpfcnpj,bairro','cod','','nome','nome',false,false,false,'',450, nil);
+          tedit(sender).Text := funcoes.localizar('Localizar Cliente','cliente','cod,nome,telres,telcom,cnpj as cpfcnpj,bairro','cod','','nome','nome',false,false,false,'',450, nil);
           if tedit(sender).Text = '' then key := #0
-            else nome.Text := funcoes.BuscaNomeBD(dm.ibselect, 'nome', 'cliente', 'where cod = ' + cliente.Text);}
+            else nome.Text := funcoes.BuscaNomeBD(dm.ibselect, 'nome', 'cliente', 'where cod = ' + cliente.Text);
+          key := #0;
           exit;
         end;
 

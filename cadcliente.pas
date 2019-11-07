@@ -123,7 +123,7 @@ type
   private
     codEstado : string;
     componente_a_retornar : JsEdit;
-    procedure verificaCadastroExiste();
+    function verificaCadastroExiste(botaoGravar : boolean = false) : boolean;
     procedure defaultCampos();
     procedure setMask();
     FUNCTION VERIFICA_CONTAS_PENDENTES_TRUE_TEM(): currency;
@@ -243,7 +243,7 @@ var
 begin
   if validaDados = false then exit;
 
-  verificaCadastroExiste;
+  if verificaCadastroExiste(true) = false then exit;
   
   ies.Text := StrNum(ies.Text);
   att := ativo.Enabled;
@@ -672,18 +672,19 @@ function TForm16.validaDados() : boolean;
 var
   ie1 : String;
 begin
+  if trim(nome.Text) = '' then
+     begin
+       ShowMessage('Campo NOME Obrigatório');
+       nome.SetFocus;
+       exit;
+     end;
+
   if funcoes.buscaParamGeral(76, 'S') = 'N' then begin
     Result := true;
     exit;
   end;
 
   Result := false;
-  if nome.Text = '' then
-     begin
-       ShowMessage('Campo NOME Obrigatório');
-       nome.SetFocus;
-       exit;
-     end;
 
    if (usaSped) then begin
      if StrNum(tipo.Text) = '7' then begin //se for estrangeiro
@@ -842,10 +843,11 @@ begin
 end;
 
 
-procedure TForm16.verificaCadastroExiste();
+function TForm16.verificaCadastroExiste(botaoGravar : boolean = false) : boolean;
 var
   sim : string;
 begin
+  Result := true;
   if cod.Text <> '0' then exit;
   if tipo.Text = '7' then exit;
   if strnum(cnpj.Text) = '0' then exit;
@@ -857,11 +859,21 @@ begin
 
   if dm.IBselect.IsEmpty = false then begin
     sim := leftstr(dm.IBselect.FieldByName('cod').AsString + '-' + dm.IBselect.FieldByName('nome').AsString, 30);
-    sim := funcoes.dialogo('generico',0,'SN'+#8,0,false,'S','Control For Windows','Cliente '+sim+' Já Existe, Deseja Recuperar o Cadastro Existente ?S/N:','S') ;
 
-    if sim = 'S' then begin
+    if botaoGravar = false then begin
+      sim := funcoes.dialogo('generico',0,'SN'+#8,0,false,'S','Control For Windows','Cliente '+sim+' Já Existe, Deseja Recuperar o Cadastro Existente ?S/N:','S') ;
+
+      if sim = 'S' then begin
+        cod.Text := dm.IBselect.FieldByName('cod').AsString;
+        jsedit.SelecionaDoBD(self.Name);
+      end;
+    end
+    else begin
+      MessageDlg('Cliente '+sim+' Já Existe e não pode ser recadastrado, o Sistema irá recuperar o Cadastro!', mtInformation, [mbOK], 1);
       cod.Text := dm.IBselect.FieldByName('cod').AsString;
       jsedit.SelecionaDoBD(self.Name);
+      nome.SetFocus;
+      Result := false;
     end;
 
   end;
