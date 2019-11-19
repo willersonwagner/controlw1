@@ -1945,6 +1945,8 @@ begin
 
   if Contido(form22.Pgerais.Values['nota'], 'TD') then
   begin
+
+
     dm.IBselect.Close;
     dm.IBselect.SQL.text := 'select nome from usuario where cod = :cod';
     dm.IBselect.ParamByName('cod').AsInteger := ordem.USUARIO;
@@ -2035,9 +2037,11 @@ begin
         cds := form20.ClientDataSet1;
         cds.First;
         while not cds.Eof do begin
-          while true do
-          begin
-            if (cds.FieldByName('estado').AsString = 'I') then
+          while true do begin
+            sim := cds.FieldByName('estado').AsString;
+            if orcamento then sim := 'I';
+
+            if (sim = 'I') then
               break;
             if (cds.Eof) then
               exit;
@@ -2305,10 +2309,12 @@ begin
     i := 0;
     while not cds.Eof do
     begin
-      while true do
-      begin
-        if (cds.FieldByName('estado').AsString = 'I') then
-          break;
+      while true do begin
+        sim := cds.FieldByName('estado').AsString;
+        if orcamento then sim := 'I';
+
+        if (sim = 'I') then break;
+
         if (cds.Eof) then
           exit;
         cds.Next;
@@ -5017,7 +5023,7 @@ var
   lista: Tlist;
   ini, fim, cont: integer;
   dataEmissao: TDate;
-  TOTvICMSDeson_Produtos, valor: currency;
+  TOTvICMSDeson_Produtos, valor, tot_ICMS: currency;
 begin
   { dial := TOpenDialog.Create(self);
     dial.Filter := 'Arquivo NFE|*.xml';;
@@ -5062,9 +5068,9 @@ begin
   lista := Tlist.Create;
   erro := '';
 
-  chave := NfeVenda.entraXMLeRetornaChave(t2);
-  nota := Le_Nodo('nNF', t2);
-  forn := Le_Nodo('emit', t2);
+  chave    := NfeVenda.entraXMLeRetornaChave(t2);
+  nota     := Le_Nodo('nNF', t2);
+  forn     := Le_Nodo('emit', t2);
 
   axx := Le_Nodo('dEmi', t2);
   if axx = '' then
@@ -5091,8 +5097,7 @@ begin
     end;
   } tmptot := NfeVenda.Le_Nodo('ICMSTot', t2);
 
-  total := StringReplace(NfeVenda.Le_Nodo('vNF', t2), '.', ',',
-    [rfReplaceAll, rfIgnoreCase]);
+  total    := StringReplace(NfeVenda.Le_Nodo('vNF', t2), '.', ',',[rfReplaceAll, rfIgnoreCase]);
 
   funcoes.Mensagem(Application.Title, 'Aguarde, Lendo XML...', 15, 'Arial',
     False, 0, clBlack);
@@ -5148,9 +5153,12 @@ begin
           txt1), '.', ',', [rfReplaceAll, rfIgnoreCase]), 0);
         // item1.total  := item1.total - item1.preco1;
         item1.codbar := NfeVenda.Le_Nodo('cEAN', txt1);
+
+        if UpperCase(trim(item1.codbar)) = 'SEM GTIN' then item1.codbar := '';
+
+
         item1.unid := NfeVenda.Le_Nodo('uTrib', txt1);
-        item1.p_icms := StrToCurrDef(StringReplace(NfeVenda.Le_Nodo('pICMS',
-          txt1), '.', ',', [rfReplaceAll, rfIgnoreCase]), 0);
+        item1.p_icms := StrToCurrDef(StringReplace(NfeVenda.Le_Nodo('pICMS',txt1), '.', ',', [rfReplaceAll, rfIgnoreCase]), 0);
         item1.NCM := NfeVenda.Le_Nodo('NCM', txt1);
         item1.vDeson :=
           StrToCurrDef(StringReplace(NfeVenda.Le_Nodo('vICMSDeson', txt1), '.',
@@ -5343,7 +5351,7 @@ begin
     form48.ClientDataSet1.FieldByName('TOTAL').AsCurrency := item1.total;
     form48.ClientDataSet1.FieldByName('TOTnota').AsCurrency := item1.totNota;
     form48.ClientDataSet1.FieldByName('NCM').AsString := item1.NCM;
-    // form48.ClientDataSet1.FieldByName('CRED_ICMS').AsCurrency := item1.p_icms;
+    //form48.ClientDataSet1.FieldByName('CRED_ICMS').AsCurrency := item1.p_icms;
     form48.ClientDataSet1.FieldByName('CRED_ICMS').AsCurrency := 0;
     // form48.ClientDataSet1.FieldByName('REF_NFE').AsString       := IntToStr(item1.cod) + '|' + item1.codbar;
     form48.ClientDataSet1.FieldByName('REF_NFE').AsString := item1.codigoFornecedor + '|' + form48.fornecedor;
@@ -18485,6 +18493,7 @@ begin
   lista.Add('M=TB040310.TXT');
   lista.Add('X=TB040315.TXT');
   lista.Add('D=TB040317.TXT');
+  lista.Add('S=TB040316.TXT');
 
   nome := lista.Values[trim(_ISPIS)];
   if nome = '' then
@@ -22182,9 +22191,26 @@ begin
 
   //eliminei aquela mensagem de bom dia para o usuário.
 
+  if ajustaHoraPelaInternet(form22.dataMov) then begin
+    if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+    dm.IBQuery1.Close;
+    dm.IBQuery1.SQL.text := ('update registro set data_mov = :datamov');
+    dm.IBQuery1.ParamByName('datamov').AsDateTime := form22.dataMov;
+    try
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
+    except
+    end;
+
+    Result := true;
+
+    exit;
+  end;
+
   //se chegou até aqui, então a data de relógio é inválida
   MessageDlg('2-Data Inválida: ' + DateToStr(now) + #13 + #10 + 'Verifique a data deste computador ou procure o suporte. ' +
     #13 + #10 + 'Última data de movimento válida: ' + DateToStr(ultDataMov), mtError, [mbOK], 1);
+
 
  end;
 

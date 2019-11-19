@@ -11958,9 +11958,8 @@ begin
     if completo = 'N' then
       addRelatorioForm19(funcoes.CompletaOuRepete(dm.ibselect.FieldByName('cod')
         .AsString, '', ' ', 6) + ' ' + funcoes.CompletaOuRepete
-        (dm.ibselect.FieldByName('nome').AsString, '', ' ', 40) + '  ' +
-        funcoes.CompletaOuRepete(dm.ibselect.FieldByName('telres').AsString, '',
-        ' ', 13) + #13 + #10)
+        (LeftStr(dm.ibselect.FieldByName('nome').AsString, 40), '', ' ', 40) + '  ' +
+        funcoes.CompletaOuRepete(dm.ibselect.FieldByName('telres').AsString, '',' ', 13) + #13 + #10)
     else
     begin
       addRelatorioForm19(' ' + #13 + #10);
@@ -11970,7 +11969,7 @@ begin
         addRelatorioForm19
           (funcoes.CompletaOuRepete(dm.ibselect.FieldByName('cod').AsString, '',
           ' ', 6) + ' ' + funcoes.CompletaOuRepete
-          (dm.ibselect.FieldByName('nome').AsString, '', ' ', 40) + #13 + #10);
+          (LeftStr(dm.ibselect.FieldByName('nome').AsString, 40), '', ' ', 40) + #13 + #10);
         addRelatorioForm19('CPF: ' + funcoes.CompletaOuRepete
           (dm.ibselect.FieldByName('cnpj').AsString, '', ' ', 22) +
           ' Doc. Ident.: ' + funcoes.CompletaOuRepete
@@ -11987,7 +11986,7 @@ begin
         addRelatorioForm19
           (funcoes.CompletaOuRepete(dm.ibselect.FieldByName('cod').AsString, '',
           ' ', 6) + ' ' + funcoes.CompletaOuRepete
-          (dm.ibselect.FieldByName('nome').AsString, '', ' ', 40) + #13 + #10);
+          (LeftStr(dm.ibselect.FieldByName('nome').AsString, 40), '', ' ', 40) + #13 + #10);
         addRelatorioForm19('CPF: ' + funcoes.CompletaOuRepete
           (dm.ibselect.FieldByName('cnpj').AsString, '', ' ', 22) +
           ' INSC. EST.: ' + funcoes.CompletaOuRepete
@@ -12004,7 +12003,7 @@ begin
         addRelatorioForm19
           (funcoes.CompletaOuRepete(dm.ibselect.FieldByName('cod').AsString, '',
           ' ', 6) + ' ' + funcoes.CompletaOuRepete
-          (dm.ibselect.FieldByName('nome').AsString, '', ' ', 40) + #13 + #10);
+          (LeftStr(dm.ibselect.FieldByName('nome').AsString, 40), '', ' ', 40) + #13 + #10);
         addRelatorioForm19('CNPJ: ' + funcoes.CompletaOuRepete
           (dm.ibselect.FieldByName('cnpj').AsString, '', ' ', 22) +
           ' INSC. EST.: ' + funcoes.CompletaOuRepete
@@ -12019,6 +12018,7 @@ begin
     end;
     dm.ibselect.Next;
   end;
+
   // addRelatorioForm19(funcoes.CompletaOuRepete('','','-',80)+#13+#10);
   funcoes.informacao(i, fi, 'Aguarde, Gerando Relatório...', false, true, 5);
   funcoes.CharSetRichEdit(form19.RichEdit1);

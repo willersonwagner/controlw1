@@ -82,11 +82,12 @@ procedure TForm48.insereDadosAdic(const fornec : string);
 var
   tipo, serie, cfop, tipofrete, cod_sit : string;
   fe : TStringList;
-  vProd, totnota, tmp : currency;
+  vProd, totnota, tmp, tot_icms : currency;
 begin
   fe := funcoes.dadosAdicSped(xml.GetText);
-  vProd   := converteCurrencyNFe(Le_Nodo('vProd', Le_Nodo('ICMSTot', xml.GetText)));
-  totnota := converteCurrencyNFe(Le_Nodo('vNF', Le_Nodo('ICMSTot', xml.GetText)));
+  vProd    := converteCurrencyNFe(Le_Nodo('vProd', Le_Nodo('ICMSTot', xml.GetText)));
+  totnota  := converteCurrencyNFe(Le_Nodo('vNF', Le_Nodo('ICMSTot', xml.GetText)));
+  tot_icms := converteCurrencyNFe(Le_Nodo('vICMS', Le_Nodo('ICMSTot', xml.GetText)));
   fe[10] := copy(StrNum(fe[10]),1, 44);
   TOTvICMSDeson_Produtos := 0;
 
@@ -96,8 +97,8 @@ begin
   dm.IBQuery1.Close;
   dm.IBQuery1.SQL.Clear;
   dm.IBQuery1.SQL.Add('update or insert into SPEDDADOSADIC(nota, cod_sit, fornec, tipo, serie, cfop, tipofrete, totseg, totdesc, TOTDESCNT' +
-  ', TOTDESPACES, TOTPIS, TOTCONFINS, CREDICMS, CHAVENFE, TOTFRETE, TOTICMSST, TOTICMS_DESON) values(:nota, :cod_sit, :fornec, :tipo, :serie, :cfop, :tipofrete, :totseg,' +
-  ' :totdesc, :TOTDESCNT, :TOTDESPACES, :TOTPIS, :TOTCONFINS, :CREDICMS, :CHAVENFE, :TOTFRETE, :TOTICMSST, :TOTICMS_DESON) matching(CHAVENFE)');
+  ', TOTDESPACES, TOTPIS, TOTCONFINS, CREDICMS, CHAVENFE, TOTFRETE, TOTICMSST, TOTICMS_DESON, CREDICMS_REAIS) values(:nota, :cod_sit, :fornec, :tipo, :serie, :cfop, :tipofrete, :totseg,' +
+  ' :totdesc, :TOTDESCNT, :TOTDESPACES, :TOTPIS, :TOTCONFINS, :CREDICMS, :CHAVENFE, :TOTFRETE, :TOTICMSST, :TOTICMS_DESON, :CREDICMS_REAIS) matching(CHAVENFE)');
   dm.IBQuery1.ParamByName('nota').AsString          := nota;
   dm.IBQuery1.ParamByName('cod_sit').AsString       := cod_sit;
   dm.IBQuery1.ParamByName('fornec').AsString        := fornec;
@@ -115,6 +116,7 @@ begin
   dm.IBQuery1.ParamByName('CHAVENFE').AsString      := fe[10];
   dm.IBQuery1.ParamByName('TOTFRETE').AsCurrency    := StrToCurr(fe[11]);
   dm.IBQuery1.ParamByName('TOTICMSST').AsCurrency   := StrToCurr(fe[13]);
+  dm.IBQuery1.ParamByName('CREDICMS_REAIS').AsCurrency   := tot_icms;
 
   if StrToCurrDef(fe[14], 0) > 0 then begin
     TOTvICMSDeson_Produtos := StrToCurrDef(fe[14], 0);
@@ -594,8 +596,8 @@ begin
       if DBGrid1.SelectedField.FieldName = 'CODBAR_ATUAL' then
         begin
           ClientDataSet1.Edit;
-          ClientDataSet1.FieldByName('CODBAR_ATUAL').AsCurrency := ClientDataSet1.FieldByName('CODBAR').AsCurrency;
-          ClientDataSet1.Post; 
+          ClientDataSet1.FieldByName('CODBAR_ATUAL').AsString := ClientDataSet1.FieldByName('CODBAR').AsString;
+          ClientDataSet1.Post;
           exit;
         end;
     end;
@@ -980,6 +982,8 @@ var
   cod1, aliq : String;
   ini  : smallint;
   p_compra, p_venda : currency;
+  codbar : TStringList;
+  I: Integer;
 begin
   try
   ClientDataSet1.DisableControls;
@@ -1005,14 +1009,13 @@ begin
               ClientDataSet1.Post;
             end;
 
-          if ClientDataSet1.FieldByName('CODBAR_ATUAL').AsString = '' then
-            begin
+          if ClientDataSet1.FieldByName('CODBAR_ATUAL').AsString = '' then begin
               if ClientDataSet1.FieldByName('CODBAR').AsString <> 'SEM GTIN' then begin
                 ClientDataSet1.Edit;
                 ClientDataSet1.FieldByName('CODBAR_ATUAL').AsString := ClientDataSet1.FieldByName('CODBAR').AsString;
                 ClientDataSet1.Post;
               end;
-            end;
+          end;
 
           if StrToCurrDef(ClientDataSet1.FieldByName('PRECO_ATUAL').AsString, 0) = 0 then
             begin
@@ -1025,7 +1028,9 @@ begin
       ClientDataSet1.Next;
     end;
 
-  ClientDataSet1.First;  
+  ClientDataSet1.First;
+  codbar := TStringList.Create;
+
   while not ClientDataSet1.Eof do
     begin
       if ClientDataSet1.FieldByName('codigo').AsString = '' then
@@ -1051,7 +1056,13 @@ begin
           aliq := StrNum(ClientDataSet1.FieldByName('ALIQ').AsString);
           if StrToIntDef(aliq, 0) = 0 then aliq := '2';
           dm.IBQuery1.ParamByName('aliquota').AsString   := aliq;
-          dm.IBQuery1.ParamByName('codbar').AsString     := IfThen(ClientDataSet1.FieldByName('CODBAR_ATUAL').AsString = '', DIGEAN('789000' + funcoes.CompletaOuRepete('', cod1,'0',6)) ,ClientDataSet1.FieldByName('CODBAR_ATUAL').AsString);
+
+          if (trim(ClientDataSet1.FieldByName('CODBAR_ATUAL').AsString) = '') then begin
+            dm.IBQuery1.ParamByName('codbar').AsString    := DIGEAN('789000' + funcoes.CompletaOuRepete('', cod1,'0',6));
+            codbar.Add(cod1 + '=' + dm.IBQuery1.ParamByName('codbar').AsString);
+          end
+          else dm.IBQuery1.ParamByName('codbar').AsString := trim(ClientDataSet1.FieldByName('CODBAR_ATUAL').AsString);
+
           dm.IBQuery1.ParamByName('refori').AsString     := ClientDataSet1.FieldByName('refori').AsString;
           dm.IBQuery1.ParamByName('classif').AsString    := ClientDataSet1.FieldByName('NCM').AsString;
           dm.IBQuery1.ParamByName('REFNFE').AsString     := ClientDataSet1.FieldByName('REF_NFE').AsString;
@@ -1087,6 +1098,23 @@ begin
 
       ClientDataSet1.Next;
     end;
+
+  ClientDataSet1.First;
+  while not ClientDataSet1.Eof do begin
+    for I := 0 to codbar.Count -1 do begin
+      if ClientDataSet1.FieldByName('codigo').AsString = codbar.Names[i] then begin
+        ClientDataSet1.Edit;
+        ClientDataSet1.FieldByName('CODBAR_ATUAL').AsString := codbar.ValueFromIndex[i];
+        ClientDataSet1.Post;
+      end;
+    end;
+
+    ClientDataSet1.Next;
+  end;
+
+  codbar.Free;
+
+
 
   if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
 

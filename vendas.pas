@@ -6115,6 +6115,7 @@ begin
             ordem1.cliente := StrToIntDef(JsEdit3.Text, 0);
             funcoes.imprimeOrdemDeServico(ordem1, true, true);
 
+
             sim := funcoes.dialogo('generico', 0, 'SN' + #8, 0, false, 'S','Control For Windows',
             'Deseja Gravar esta Nota Como Orçamento ?', 'N');
 
@@ -7013,8 +7014,13 @@ begin
   // key = F2
   else if Key = 113 then
   begin
+    {ShowMessage(BoolToStr(separaPecas) + #13 +
+                BoolToStr(Modo_Venda)  + #13 +
+                BoolToStr(separaVendaOrcamento) + #13 +
+                BoolToStr(finaliza) );}
     if separaPecas and Modo_Venda then begin
       separaVendaOrcamento := true;
+      finaliza             := false;
     end;
 
     if ((finaliza) and (tipoVenda = 'SF')) and (separaPecas and Modo_Orcamento) then begin
