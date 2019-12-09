@@ -12263,6 +12263,10 @@ object Form2: TForm2
             Caption = 'Recalcular Vendas a Vista do Dia'
             OnClick = RecalcularVendasaVistadoDia1Click
           end
+          object IntegridadedeContasaReceber1: TMenuItem
+            Caption = 'Integridade de Contas a Receber'
+            OnClick = IntegridadedeContasaReceber1Click
+          end
         end
       end
       object Nfe1: TMenuItem

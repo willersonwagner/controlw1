@@ -7845,7 +7845,7 @@ var
   ini, LIN, fim: integer;
   VALIDO: string;
 begin
-  VALIDO := ',.-/0123456789ABCDEFGHIJKLMNOPQRSTUVXWYZ';
+  VALIDO := ',.-/0123456789ABCDEFGHI&JKLMNOPQRSTUVXWYZ';
   Result := '';
   fim := length(PAR);
   FOR ini := 1 TO fim do
@@ -9376,8 +9376,7 @@ begin
       dm.IBQuery1.ExecSQL;
     end;
 
-    if NOT verSeExisteTabela('ACERTO') then
-    begin
+    if NOT verSeExisteTabela('ACERTO') then begin
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Clear;
       dm.IBQuery1.SQL.Add('CREATE TABLE ACERTO (' +
@@ -10910,6 +10909,48 @@ begin
       dm.IBQuery1.SQL.Text := 'insert into FORMPAGTO(cod, nome, codgru) values(99, ''PAGAMENTO MISTO'', ''99'')';
       dm.IBQuery1.ExecSQL;
       dm.IBQuery1.Transaction.Commit;
+    end;
+
+
+    if not VerificaCampoTabela('ACERTO_SEQ', 'ACERTO') then begin
+      try
+        dm.IBQuery1.Close;
+        dm.IBQuery1.SQL.text := 'ALTER TABLE ACERTO DROP CONSTRAINT PK_ACERTO';
+        dm.IBQuery1.ExecSQL;
+        dm.IBQuery1.Transaction.Commit;
+      except
+      end;
+
+      try
+        dm.IBQuery1.Close;
+        dm.IBQuery1.SQL.text := 'alter table ACERTO add ACERTO_SEQ integer NOT NULL';
+        //ALTER TABLE venda ADD cliente_entrega smallint DEFAULT 0 ');
+        dm.IBQuery1.ExecSQL;
+        dm.IBQuery1.Transaction.Commit;
+      except
+      end;
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.text := 'alter table ACERTO ' +
+        'add constraint PK_ACERTO1 ' + 'primary key (ACERTO_SEQ)';
+      dm.IBQuery1.ExecSQL;
+
+      try
+        dm.IBQuery1.Close;
+        dm.IBQuery1.SQL.Clear;
+        dm.IBQuery1.SQL.Add('CREATE SEQUENCE ACERTO');
+        dm.IBQuery1.ExecSQL;
+      except
+      end;
+
+      try
+        dm.IBQuery1.Close;
+        dm.IBQuery1.SQL.Clear;
+        dm.IBQuery1.SQL.Add('CREATE SEQUENCE ACERTO_SEQ');
+        dm.IBQuery1.ExecSQL;
+        dm.IBQuery1.Transaction.Commit;
+      except
+      end;
     end;
 
     //VerificaVersao_do_bd

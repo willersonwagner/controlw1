@@ -147,7 +147,7 @@ procedure criaXMLsComDATA(nota1, nnf, chav4, Data: String);
 procedure LimpaVariaveis();
 function verificaExisteNFCe(const nota2: String;
   imprime: boolean = false): string;
-function buscaChaveErroDeDuplicidade(erro: String): String;
+function buscaChaveErroDeDuplicidade(erro: String; consulta : boolean = false): String;
 
 function GRAVA_NODO_PROT_NFE1(ARQ_caminho: string): string;
 procedure geraPgerais(var lis: TStringList);
@@ -3906,6 +3906,8 @@ begin
             break;
         end;
 
+        csta := 0;
+
         // se nao veio resposta entao consulta 3x pra ver se foi emitida ou o cstat veio com valor 999
         // como foi iniciado a variavel, caso venha um cstat entao sai do while
         if (Contido('(5)-', ERRO_dados) or (csta = 999) or (csta = 204) or
@@ -3930,6 +3932,28 @@ begin
               break;
           end;
         end;
+
+
+        if csta = 613 then begin
+          if ((ACBrNFe.WebServices.Consulta.cStat = 613) and (Length(buscaChaveErroDeDuplicidade(ACBrNFe.WebServices.Consulta.XMotivo, true)) = 44)) then begin
+            query1.Close;
+            query1.SQL.Text := 'update nfce set chave = :chave where chave = :chavevelha';
+            query1.ParamByName('chave').AsString      := buscaChaveErroDeDuplicidade(ACBrNFe.WebServices.Consulta.XMotivo, true);
+            query1.ParamByName('chavevelha').AsString := ACBrNFe.WebServices.Consulta.NFeChave;
+            query1.ExecSQL;
+            query1.Transaction.Commit;
+
+            richED.Lines.Add('xMotivo=' + ACBrNFe.WebServices.Consulta.xmotivo);
+            richED.Lines.Add('');
+            richED.Lines.Add('Troca de Chave ok: ' + #13 + #13 +
+            'Chave Velha: ' + ACBrNFe.WebServices.Consulta.NFeChave + #13 +
+            'Chave Nova : ' +buscaChaveErroDeDuplicidade(ACBrNFe.WebServices.Consulta.XMotivo, true));
+            exit;
+          end;
+        end;
+
+
+
 
         if csta = 217 then
         begin
@@ -4304,10 +4328,29 @@ begin
   finally
     ACBrNFe.Configuracoes.WebServices.Visualizar := false;
   end;
+
+  if ((ACBrNFe.WebServices.Consulta.cStat = 613) and (Length(buscaChaveErroDeDuplicidade(ACBrNFe.WebServices.Consulta.XMotivo, true)) = 44)) then begin
+    query1.Close;
+    query1.SQL.Text := 'update nfce set chave = :chave where chave = :chavevelha';
+    query1.ParamByName('chave').AsString      := buscaChaveErroDeDuplicidade(ACBrNFe.WebServices.Consulta.XMotivo, true);
+    query1.ParamByName('chavevelha').AsString := ACBrNFe.WebServices.Consulta.NFeChave;
+    query1.ExecSQL;
+    query1.Transaction.Commit;
+
+    ShowMessage('Troca de Chave ok: ' + #13 + #13 +
+    'Chave Velha: ' + ACBrNFe.WebServices.Consulta.NFeChave + #13 +
+    'Chave Nova : ' +buscaChaveErroDeDuplicidade(ACBrNFe.WebServices.Consulta.XMotivo, true));
+  end;
+
   { if acbrNFeConsultar(25) = false then begin
     ShowMessage(ERRO_dados);
     exit;
     end; }
+
+
+  //ShowMessage(ACBrNFe.WebServices.Consulta.NFeChave + #13 + buscaChaveErroDeDuplicidade(ACBrNFe.WebServices.Consulta.XMotivo, true));
+
+  //gravartexto('consulta.xml',ACBrNFe.WebServices.Consulta.RetornoWS);
   ACBrNFe.Configuracoes.WebServices.Visualizar := visuali;
   ACBrNFe.NotasFiscais[0].GravarXML(ExtractFileName(numeroNota),
     ExtractFileDir(numeroNota));
@@ -6483,8 +6526,7 @@ begin
   IF CSTPIS_CFOP = 'S' then
   begin
     VLR_PIS := Arredonda(item1.Total_Preco_Compra * TRIB_ALIQ_PIS / 100, 2);
-    VLR_COFINS := Arredonda(item1.Total_Preco_Compra * TRIB_ALIQ_COFINS
-      / 100, 2);
+    VLR_COFINS := Arredonda(item1.Total_Preco_Compra * TRIB_ALIQ_COFINS / 100, 2);
     PIS_ST := PIS_ST + VLR_PIS;
     COFINS_ST := COFINS_ST + VLR_COFINS;
     Result := '<PIS>' + PIS_ALIQ + '<PISST><vBC>' +
@@ -6546,19 +6588,9 @@ begin
   // PRODUTO - SE JA RECOLHEU PIS/COFINS POR SUBSTITUICAO TRIBUTARIA
   IF ((item1.pis = 'S') and (length(strnum(item1.codISPIS)) = 3)) then
   begin
-    VLR_PIS := Arredonda(item1.Total_Preco_Compra * TRIB_ALIQ_PIS / 100, 2);
-    VLR_COFINS := Arredonda(item1.Total_Preco_Compra * TRIB_ALIQ_COFINS
-      / 100, 2);
-    PIS_ST := PIS_ST + VLR_PIS;
-    COFINS_ST := COFINS_ST + VLR_COFINS;
-
-    Result := '<PIS>' + PIS_ALIQ + '<PISST><vBC>' +
-      Format_num(item1.Total_Preco_Compra) + '</vBC>' + '<pPIS>' +
-      Format_num(TRIB_ALIQ_PIS) + '</pPIS>' + '<vPIS>' + Format_num(VLR_PIS) +
-      '</vPIS></PISST></PIS>' + '<COFINS>' + COF_ALIQ + '<COFINSST><vBC>' +
-      Format_num(item1.Total_Preco_Compra) + '</vBC>' + '<pCOFINS>' +
-      Format_num(TRIB_ALIQ_COFINS) + '</pCOFINS>' + '<vCOFINS>' +
-      Format_num(VLR_COFINS) + '</vCOFINS></COFINSST></COFINS>';
+    PIS_NT := PIS_NT + tot;
+    Result := '<PIS>' + '<PISNT><CST>08</CST></PISNT></PIS>' + '<COFINS>' +
+      '<COFINSNT><CST>08</CST></COFINSNT></COFINS>';
     exit;
   end;
 
@@ -7347,11 +7379,17 @@ begin
   vend.Free;
 end;
 
-function buscaChaveErroDeDuplicidade(erro: String): String;
+function buscaChaveErroDeDuplicidade(erro: String; consulta : boolean = false): String;
 var
   ini, fim: integer;
 begin
-  ini := POS('[chNFe:', erro) + 7;
+
+  if consulta then begin
+     ini := POS('[', erro) + 1;
+  end
+  else begin
+    ini := POS('[chNFe:', erro) + 7;
+  end;
   fim := POS(']', erro);
   Result := copy(erro, ini, fim - ini);
 end;

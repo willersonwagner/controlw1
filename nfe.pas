@@ -2724,21 +2724,12 @@ begin
      end;
 
    //PRODUTO - SE JA RECOLHEU PIS/COFINS POR SUBSTITUICAO TRIBUTARIA
-   IF item1.Pis = 'S' then
-     begin
-       VLR_PIS := arrendondaNFe(item1.Total_Preco_Compra * TRIB_ALIQ_PIS /100, 2);
-       VLR_COFINS := arrendondaNFe(item1.Total_Preco_Compra * TRIB_ALIQ_COFINS /100, 2);
-       PIS_ST := PIS_ST + VLR_PIS;
-       COFINS_ST := COFINS_ST + VLR_COFINS;
-
-       Result :=  '<PIS>' + PIS_ALIQ + '<PISST><vBC>' + FORMAT_NUM(item1.Total_Preco_Compra) + '</vBC>' +
-       '<pPIS>' + FORMAT_NUM(TRIB_ALIQ_PIS) + '</pPIS>' +
-       '<vPIS>' + FORMAT_NUM(VLR_PIS) + '</vPIS></PISST></PIS>' +
-       '<COFINS>' + COF_ALIQ + '<COFINSST><vBC>' + FORMAT_NUM(item1.Total_Preco_Compra) + '</vBC>' +
-       '<pCOFINS>' + FORMAT_NUM(TRIB_ALIQ_COFINS) + '</pCOFINS>' +
-       '<vCOFINS>' + FORMAT_NUM(VLR_COFINS) + '</vCOFINS></COFINSST></COFINS>' ;
-       exit;
-     end;
+   IF item1.Pis = 'S' then begin
+       PIS_NT := PIS_NT + tot;
+       Result := '<PIS>' + '<PISNT><CST>08</CST></PISNT></PIS>' + '<COFINS>' +
+      '<COFINSNT><CST>08</CST></COFINSNT></COFINS>';
+      exit;
+   end;
 
    try
      TRIB_ALIQ_PIS := StrToCurr(funcoes.buscaParamGeral(11, '0,65'));

@@ -399,6 +399,7 @@ type
     BackupRestore1: TMenuItem;
     ZerardiasdeBloqueios1: TMenuItem;
     RecalcularVendasaVistadoDia1: TMenuItem;
+    IntegridadedeContasaReceber1: TMenuItem;
     procedure LimparBloqueios1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure CadastrarUsurio1Click(Sender: TObject);
@@ -682,6 +683,7 @@ type
     procedure ApagarMovimento1Click(Sender: TObject);
     procedure BackupRestore1Click(Sender: TObject);
     procedure RecalcularVendasaVistadoDia1Click(Sender: TObject);
+    procedure IntegridadedeContasaReceber1Click(Sender: TObject);
   private
     b, cont: integer;
     ini: Smallint;
@@ -1081,6 +1083,12 @@ begin
   data.Caption := UpperCase(data.Caption[1]) + copy(data.Caption, 2,
     length(data.Caption));
   b := 1;
+
+ RelatrioPClientes1.Visible := false;
+  RelatrioEncerradas1.Visible := false;
+  RelatrioPSitDiag1.Visible := false;
+
+
   funcoes.CentralizaNoFormulario(twincontrol(empresa), TForm(self));
   // Label1.Caption := dm.bd.DatabaseName;
   // Label1.Left := SpeedButton1.Left + SpeedButton1.Width + 10;
@@ -9809,25 +9817,29 @@ begin
 
         VLR_ICM := dm.ibselect.FieldByName('entrada').AsCurrency;
       end;
-    end;
+    end; //if dm.ibselect.FieldByName('tipo').AsString <> 'E' then begin
 
     if form22.Pgerais.Values['nota'] = 'T' then
     begin
-      caixa.Add(FormatDateTime('dd/mm/yy', dm.ibselect.FieldByName('data').AsDateTime) +
-      ' ' + funcoes.CompletaOuRepete('',LeftStr(dm.ibselect.FieldByName('historico').AsString, 35), ' ', 35) +
+      if dm.ibselect.FieldByName('tipo').AsString <> 'E' then begin
+        caixa.Add(FormatDateTime('dd/mm/yy', dm.ibselect.FieldByName('data').AsDateTime) +
+        ' ' + funcoes.CompletaOuRepete('',LeftStr(dm.ibselect.FieldByName('historico').AsString, 35), ' ', 35) +
         funcoes.CompletaOuRepete('', FormatCurr('0.00', VLR_ICM) + IfThen(b = 1,
         '-', '+'), ' ', 13) + IfThen((dm.ibselect.FieldByName('formpagto')
         .AsInteger > 2), ' ' + strzero(dm.ibselect.FieldByName('formpagto')
         .AsInteger, 3), ''));
+      end;
     end
     else
-      caixa.Add(FormatDateTime('dd/mm/yy', dm.ibselect.FieldByName('data')
+      if dm.ibselect.FieldByName('tipo').AsString <> 'E' then begin
+        caixa.Add(FormatDateTime('dd/mm/yy', dm.ibselect.FieldByName('data')
         .AsDateTime) + ' ' + strzero(dm.ibselect.FieldByName('documento')
         .AsString, 6) + ' ' + funcoes.CompletaOuRepete(LeftStr(dm.ibselect.FieldByName('historico').AsString, 35), '', ' ', 35) +
         funcoes.CompletaOuRepete('', FormatCurr('0.00', VLR_ICM) + IfThen(b = 1,
         '-', '+'), ' ', 13) + IfThen((dm.ibselect.FieldByName('formpagto')
         .AsInteger > 2), ' ' + strzero(dm.ibselect.FieldByName('formpagto')
         .AsInteger, 3), ''));
+      end;
 
     dm.ibselect.Next;
   end;
@@ -14460,10 +14472,8 @@ begin
 
     reg := 0;
 
-    for reg := 0 to 87 do
-    begin
-      if dm.IBQuery2.Eof then
-        break;
+    for reg := 0 to 87 do begin
+      if dm.IBQuery2.Eof then break;
       qtdade := dm.IBQuery2.FieldByName('quant').AsCurrency;
       preco1 := dm.IBQuery2.FieldByName('p_venda').AsCurrency;
       total1 := Arredonda(qtdade * preco1, 2);
@@ -14491,8 +14501,7 @@ begin
           StrToIntDef(colIni, 0)) + funcoes.CompletaOuRepete('|' + LeftStr(dm.IBQuery2.FieldByName('classif').AsString, 12), '|', ' ', 15)
           + funcoes.CompletaOuRepete(nome, '|', ' ', 49) +
           funcoes.CompletaOuRepete(dm.IBQuery2.FieldByName('unid').AsString,
-          '|', ' ', 10) + funcoes.CompletaOuRepete('',
-          FormatCurr('#,###,###0.00', qtdade) + '|', ' ', 13) +
+          '|', ' ', 10) + funcoes.CompletaOuRepete('',FormatCurr('#,###,###0.00', qtdade) + '|', ' ', 13) +
           funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00', preco1) +
           '|', ' ', 12) + funcoes.CompletaOuRepete('',
           FormatCurr('#,###,###0.00', total1) + '|', ' ', 13) + #13 + #10);
@@ -20064,6 +20073,57 @@ begin
   end;
 
   funcoes.mensagem('', '', 25, 'Courier New', false, 0, clRed, true);
+end;
+
+procedure TForm2.IntegridadedeContasaReceber1Click(Sender: TObject);
+var
+  lista : TStringList;
+  i : integer;
+begin
+  lista := TStringList.Create;
+
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select cr.*, valor + (select sum(entrada) from caixa c where c.historico = cr.historico) as vlrconta from contasreceber cr where total <> '+
+  'valor and pago = 0 and (total <> (valor + (select sum(entrada) from caixa c where c.historico = cr.historico))) order by vencimento';
+  dm.IBselect.Open;
+
+  form19.RichEdit1.Clear;
+  addRelatorioForm19(CompletaOuRepete('', '', '-', 80) + CRLF);
+  addRelatorioForm19(CompletaOuRepete('  Relatorio de Integridade de Contas a Receber', '', ' ', 80) + CRLF);
+  addRelatorioForm19(CompletaOuRepete('', '', '-', 80) + CRLF);
+  addRelatorioForm19(CompletaOuRepete('VENCTO   HISTORICO                                 TOTAL   VLR ATUAL VLR CORRETO', '', ' ', 80) + CRLF);
+  addRelatorioForm19(CompletaOuRepete('', '', '-', 80) + CRLF);
+
+  while not dm.IBselect.Eof do begin
+    addRelatorioForm19(formataDataDDMMYY(dm.IBselect.FieldByName('vencimento').AsDateTime) + ' '+
+     CompletaOuRepete(dm.IBselect.FieldByName('historico').AsString, '', ' ', 35) + CompletaOuRepete('', formataCurrency(dm.IBselect.FieldByName('total').AsCurrency), ' ', 12)  +
+     CompletaOuRepete('', formataCurrency(dm.IBselect.FieldByName('valor').AsCurrency), ' ', 12) +
+     CompletaOuRepete('', formataCurrency(dm.IBselect.FieldByName('vlrconta').AsCurrency), ' ', 12) +CRLF);
+
+    lista.Add(dm.IBselect.FieldByName('cod').AsString + '=' + dm.IBselect.FieldByName('vlrconta').AsString);
+
+    dm.IBselect.Next;
+  end;
+
+  addRelatorioForm19(CompletaOuRepete('', '', '-', 80) + CRLF);
+
+  form19.ShowModal;
+
+  if MessageDlg('Deseja alterar os valores para os valores corretos ?', mtConfirmation, [mbYes, mbNo], 1, mbNo) = idno then exit;
+
+  for i := 0 to lista.Count -1 do begin
+    dm.IBQuery1.Close;
+    dm.IBQuery1.SQL.Text := 'update contasreceber set valor = :valor where cod = :cod';
+    dm.IBQuery1.ParamByName('valor').AsCurrency := StrToCurr(lista.ValueFromIndex[i]);
+    dm.IBQuery1.ParamByName('cod').AsInteger    := StrToInt(lista.Names[i]);
+    dm.IBQuery1.ExecSQL;
+  end;
+
+  if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+
+  ShowMessage(IntToStr(lista.Count) + ' Registros Alterados');
+
+  lista.Free;
 end;
 
 procedure TForm2.InutilizaesNFeNFCe1Click(Sender: TObject);

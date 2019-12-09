@@ -1070,7 +1070,7 @@ begin
 
   for ini := 1 to length(texto) do
     begin
-      if texto[ini] in['0'..'9','a'..'z','A'..'Z', ' ', '.', ',', '-', '/', '(', ')' , '%', '$', ';'] then Result := Result + texto[ini];
+      if texto[ini] in['0'..'9','a'..'z','A'..'Z', ' ', '.', ',', '-', '/', '(', ')' , '%', '&', '$', ';'] then Result := Result + texto[ini];
     end;
 
   Result := trim(Result);
