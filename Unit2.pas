@@ -4038,6 +4038,7 @@ begin
   form40.tipo.Add('111=generico');
   form40.tipo.Add('112=generico');
   form40.tipo.Add('113=generico');
+  form40.tipo.Add('114=generico');
 
   form40.troca := TStringList.Create;
   form40.troca.Add('0=S');
@@ -4157,6 +4158,7 @@ begin
   form40.troca.Add('111=S');
   form40.troca.Add('112=S');
   form40.troca.Add('113=S');
+  form40.troca.Add('114=S');
 
   form40.teclas := TStringList.Create;
   form40.teclas.Add('0=FT');
@@ -4275,6 +4277,7 @@ begin
   form40.teclas.Add('111=1234567890');
   form40.teclas.Add('112=SN');
   form40.teclas.Add('113=SN');
+  form40.teclas.Add('114=12');
 
   form40.ListBox1.Clear;
   form40.ListBox1.Items.Add
@@ -4467,6 +4470,7 @@ begin
     ('111=Usar Quantas Casas Decimais no Preço de Venda ?');
   form40.ListBox1.Items.Add('112=Imprimir Volumes no Ticket ?');
   form40.ListBox1.Items.Add('113=Confirmar Cliente para Entrega ?(S/N)');
+  form40.ListBox1.Items.Add('114=Qual a Ordem da Tabela de Venda e Consulta (1-Nome 2-Codigo) ?');
 
   form40.ListBox1.Selected[0] := true;
   form40.showmodal;
@@ -9933,12 +9937,11 @@ begin
     else
     begin
       if StrToCurrDef(totais.Values[totais.Names[b]], 0) <> 0 then
-        form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-          Longint(PChar((funcoes.CompletaOuRepete(totais.Names[b] + ' - ' +
+        addRelatorioForm19(funcoes.CompletaOuRepete(strzero(totais.Names[b], 3) + ' - ' +
           copy(funcoes.BuscaNomeBD(dm.IBQuery1, 'nome', 'formpagto',
           'where cod=' + totais.Names[b]), 1, 15), '', ' ',
           27) + funcoes.CompletaOuRepete('-', FormatCurr('#,###,###0.00',
-          StrToCurr(totais.Values[totais.Names[b]])), ' ', 14) + #13 + #10))));
+          StrToCurr(totais.Values[totais.Names[b]])), ' ', 14) + #13 + #10);
     end;
   end;
 

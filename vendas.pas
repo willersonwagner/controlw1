@@ -4533,6 +4533,7 @@ begin
   busca := funcoes.busca(dm.IBQuery2, busca, '', 'cod', 'descricao');
   if busca = '' then
     exit;
+
   funcoes.ordernaDataSetVenda('descricao', busca, sqlVenda, DBGrid1, '',
     ordenaCampos);
 
@@ -6456,6 +6457,12 @@ begin
   if trim(ordem) = '' then
     ordem := 'order by nome';
 
+  if funcoes.buscaParamGeral(114, '1') = '2' then begin
+    ordem := 'order by cod';
+  end;
+
+
+
   ordenaCampos := true;
 
   DBGrid1.Enabled := false;
@@ -6480,8 +6487,7 @@ begin
     dm.produto.SQL.Add
       ('select codbar,nome as Descricao,iif(p_venda1 <> 0,p_venda1,p_venda) as preco,'
       + campoEstoque + ',refori as ' + refori1 +
-      ',unid,cod,aplic as Aplicacao,localiza as Localizacao from produto ' +
-      ordem);
+      ',unid,cod,aplic as Aplicacao,localiza as Localizacao from produto ' +  ordem);
     sqlVenda :=
       'select codbar,nome as Descricao,iif(p_venda1 <> 0,p_venda1,p_venda) as preco,'
       + campoEstoque + ',refori as ' + refori1 +
@@ -6506,7 +6512,7 @@ begin
       dm.produto.SQL.Text :=
         ('select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '
         + refori1 +
-        ',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao, p_compra as custo from produto order by nome');
+        ',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao, p_compra as custo from produto  ' +  ordem);
       sqlVenda :=
         'select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '
         + refori1 +
@@ -6517,7 +6523,7 @@ begin
       dm.produto.SQL.Text :=
         ('select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '
         + refori1 +
-        ',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao,igual as Equivalente from produto order by nome asc;');
+        ',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao,igual as Equivalente from produto  ' +  ordem);
       sqlVenda :=
         'select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '
         + refori1 +
@@ -6528,7 +6534,7 @@ begin
         dm.produto.SQL.Text :=
           ('select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '
           + refori1 +
-          ',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao, p_compra as custo from produto order by nome');
+          ',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao, p_compra as custo from produto  ' +  ordem);
         sqlVenda :=
           'select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '
           + refori1 +

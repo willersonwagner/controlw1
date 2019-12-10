@@ -80,7 +80,7 @@ type
     procedure abreDataSetOrdenando();
        { Private declarations }
   public
-    sqlVenda : String;
+    sqlVenda, ordem : String;
     retorno, BuscaCOd  : string;
     cosultaRetorna : boolean;
     { Public declarations }
@@ -420,6 +420,14 @@ begin
   dm.produto.close;
   dm.produto.SQL.Clear;
   sim := 'N';
+
+  if trim(ordem) = '' then
+    ordem := 'order by nome';
+
+  if funcoes.buscaParamGeral(114, '1') = '2' then begin
+    ordem := 'order by cod';
+  end;
+
   try
     sim := funcoes.buscaParamGeral(43, '');
   except
@@ -428,16 +436,16 @@ begin
 
   if sim = 'S' then
     begin
-      dm.produto.SQL.Add('select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '+ refori1 +',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao,igual as Equivalente, p_compra as custo from produto order by nome asc;');
+      dm.produto.SQL.Add('select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '+ refori1 +',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao,igual as Equivalente, p_compra as custo from produto ' +  ordem);
       sqlVenda := 'select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '+ refori1 +',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao,igual as Equivalente, p_compra as custo from produto';
     end
    else
      begin
-       dm.produto.SQL.Add('select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '+ refori1 +',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao,igual as Equivalente from produto order by nome asc;');
+       dm.produto.SQL.Add('select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '+ refori1 +',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao,igual as Equivalente from produto ' +  ordem);
        sqlVenda := 'select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '+ refori1 +',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao,igual as Equivalente from produto';
 
        if ((sim = 'C') and (RetornaAcessoUsuario = 0)) then begin
-         dm.produto.SQL.Text := ('select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '+ refori1 +',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao, p_compra as custo from produto order by nome');
+         dm.produto.SQL.Text := ('select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '+ refori1 +',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao, p_compra as custo from produto ' +  ordem);
          sqlVenda := 'select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '+ refori1 +',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao, p_compra as custo from produto';
        end;
      end;
