@@ -1343,7 +1343,15 @@ begin
 
                   //RATEIA DESCONTO NT
                   //LIDO := ARREDONDA((dsProduto.FieldByName('total').AsCurrency / TOT) * DADOS_ADIC[4], 2);
+
+
                   LIDO := ArredondaTrunca((listaProdutos[ini].total / TOT) * (DADOS_ADIC[4] + DADOS_ADIC[10]), 2);
+
+                  {ShowMessage(CurrToStr(DADOS_ADIC[4] + DADOS_ADIC[10]) + #13 +
+                  CurrToStr(LIDO) + #13 +
+                  CurrToStr(QTD1));}
+                  Sleep(1);
+
 			            IF LIDO > 0 then
                     begin
                       IF LIDO <= QTD1 then
@@ -1455,6 +1463,12 @@ begin
        //ACUMULA NOS TOTALIZADORES DE ALIQUOTA E CFOP
        //totDespAcess := dsProduto.fieldbyname('despAces').AsCurrency - dsProduto.fieldbyname('descCom').AsCurrency - dsProduto.fieldbyname('descNT').AsCurrency;
        totDespAcess := listaProdutos[ini].despAces - listaProdutos[ini].descCom - listaProdutos[ini].descNT;
+       if totDespAcess < 0 then totDespAcess := 0;
+       
+
+       if TRIB = '41' then begin
+         //ShowMessage(linha + #13 + #13 + CurrToStr(totDespAcess) + #13 + CurrToStr(TOT_ICM));
+       end;
 
        ret := listaTOT_PIS.Find(ALIQ_CFOP);
 
@@ -1500,7 +1514,9 @@ begin
 
    //TOTAL DA NOTA = SOMA DOS VALORES DO ITENS (JA TIRADOS OS DESCONTOS) + SOMA DOS DADOS ADICIONAIS
    // VAL_ALIQCFOP tem o total dos itens
-   POS1 :=  (TOT + TOT_ADIC() - DADOS_ADIC[3]) - DADOS_ADIC[4] - DADOS_ADIC[10];
+   //POS1 :=  (TOT + TOT_ADIC() - DADOS_ADIC[3]) - DADOS_ADIC[4] - DADOS_ADIC[10];
+   //POS1 :=  (TOT + TOT_ADIC() - DADOS_ADIC[3]);
+   POS1 :=  (TOT + TOT_ADIC());
 
    if NOTA =14629 then begin
      ShowMessage('total Geral='+ CurrToStr(POS1) +#13+ 'TOT=' + CurrToStr(tot) + #13 +

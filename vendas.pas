@@ -649,6 +649,8 @@ begin
   res := dm.produtotemp.FieldByName('cod').AsString;
   funcoes.ordernaDataSetVenda(refori1, res, sqlVenda, DBGrid1, '',
     ordenaCampos);
+  funcoes.BuscaResizeDBgrid(DBGrid1, 'FORM20');
+
 
   { form25 := tform25.Create(self);
     funcoes.CtrlResize(tform(form25));
@@ -6214,6 +6216,8 @@ begin
       end;
 
       funcoes.OrdenaCamposVenda(funcoes.buscaParamGeral(1, ''));
+      funcoes.BuscaResizeDBgrid(DBGrid1, 'FORM20');
+
       form22.Pgerais.Values['configu'] := configUsuario;
 
       if Modo_Venda then
@@ -6374,6 +6378,7 @@ var
   cont, i: integer;
   sim: String;
 begin
+
   JsEdit1.SetTabelaDoBd(self, 'tf', query1);
   // if trim(funcoes.LerConfig(form22.Pgerais.Values['configu'], 2) = '' then begin
   // form22.Pgerais.Values['configu'] := GravarConfig(form22.Pgerais.Values['configu'], 'S', 2);
@@ -6494,6 +6499,7 @@ begin
       ',unid,cod,aplic as Aplicacao,localiza as Localizacao from produto ';
     dm.produto.Open;
     funcoes.fetchDataSet(dm.produto);
+    funcoes.BuscaResizeDBgrid(DBGrid1, 'FORM20');
   end
   else
   begin
@@ -6546,7 +6552,6 @@ begin
     try
       funcoes.fetchDataSet(dm.produto);
     finally
-
     end;
   end;
 
@@ -6596,6 +6601,7 @@ begin
   end;
 
   funcoes.OrdenaCamposVenda(funcoes.buscaParamGeral(1, ''));
+  funcoes.BuscaResizeDBgrid(DBGrid1, 'FORM20');
 
   if (separaPecas) then
   begin
@@ -7461,7 +7467,7 @@ end;
 
 procedure TForm20.DBGrid1Enter(Sender: TObject);
 begin
-  JsEdit3.Enabled := false;
+  if JsEdit1.getValor > 0 then JsEdit3.Enabled := false;
   DBGrid1.Repaint;
 
   if funcoes.buscaParamGeral(77, '') = 'S' then // busca por código de barras
@@ -7685,13 +7691,16 @@ begin
   begin
     funcoes.ordernaDataSetVenda('codbar', res, sqlVenda, DBGrid1, '',
       ordenaCampos);
+
     funcoes.OrdenaCamposVenda(ordemCompra, true);
+    funcoes.BuscaResizeDBgrid(DBGrid1, 'FORM20');
+
     DBGrid1.SelectedIndex := funcoes.buscaFieldDBgrid1('codbar', DBGrid1);
   end
   else
     funcoes.ordernaDataSetVenda('codbar', res, sqlVenda, DBGrid1, '',
       ordenaCampos);
-
+    funcoes.BuscaResizeDBgrid(DBGrid1, 'FORM20');
   exit;
   dm.produtotemp.Close;
   dm.produtotemp.SQL.Text :=

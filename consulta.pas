@@ -342,10 +342,12 @@ begin
     if funcoes.buscaParamGeral(5, '') = 'S' then
       begin
         BuscaCodBar_F6_AutoPecas1;
+        funcoes.BuscaResizeDBgrid(DBGrid1, 'FORM20');
         exit;
       end;
 
     BuscaCodBar_F6_AutoPecas('');
+    funcoes.BuscaResizeDBgrid(DBGrid1, 'FORM20');
     exit;
 
   //  busca := funcoes.dialogo('normal',0,'',0,false,'','Control For Windows','Informe um Código','');
@@ -408,6 +410,7 @@ begin
    If (key = #32) and (DBGrid1.SelectedField.DisplayLabel='REFORI') then
      begin
        buscaReferencia;
+       funcoes.BuscaResizeDBgrid(DBGrid1, 'FORM20');
      end;
 
 end;
@@ -459,6 +462,8 @@ begin
   funcoes.OrdenaCamposVenda(funcoes.buscaParamGeral(1, ''));
   funcoes.FormataCampos(dm.produto,2,'ESTOQUE',3);
   DBGrid1.DataSource := dm.dsprod;
+
+  funcoes.BuscaResizeDBgrid(DBGrid1, 'FORM20');
   cont := 1;
 
   funcoes.aumentaFonte(self, true, 0);

@@ -916,12 +916,27 @@ begin
 end;
 
 procedure TForm79.acertaCFOP_Automatico;
+var
+  tipo1 : String;
 begin
   dm.IBselect.Close;
   dm.IBselect.SQL.text := 'select est from registro';
   dm.IBselect.Open;
 
   UF_EMI := dm.IBselect.FieldByName('est').AsString;
+  dm.IBselect.Close;
+  dm.IBselect.SQL.text := 'select cod,nome,tipo from cliente where cod = :cod';
+  dm.IBselect.ParamByName('cod').AsInteger := StrToIntDef(cliente.Text, 0);
+  dm.IBselect.Open;
+
+  tipo1 := dm.IBselect.FieldByName('tipo').AsString;
+  dm.IBselect.Close;
+
+  if ((tipo1 = '7') and (destMercadoria.Text = '1')) then begin
+    cfop.Text := '5102';
+    UF_DEST := UF_EMI;
+    exit;
+  end;
 
 
   if UF_EMI = UF_DEST then begin
@@ -934,6 +949,7 @@ begin
       cfop.Text := '1102';
       if finnfe.Text = '4' then cfop.Text := '1202';
     end;
+
   end
   else begin
     if Contido(tiponfe.Text, 'ST') then begin

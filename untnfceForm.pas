@@ -3781,7 +3781,7 @@ begin
     end;
 
     if (FormatDateTime('yymm', now) <> chaveDetalhe.anoMesYYMM) and
-      (csta <> 100) and (false) then
+      (csta <> 100) and (TRUE) then
     begin
       csta := 0;
 
@@ -3800,6 +3800,13 @@ begin
 
       try
         richED.Lines.Add('Troca de Chave ' + ssChave + ' Para ' + CHAVENF);
+        query1.Close;
+        query1.SQL.Text := 'update nfce set chave = :chave where chave = :chavev';
+        query1.ParamByName('chave').AsString  := CHAVENF;
+        query1.ParamByName('chavev').AsString := ssChave;
+        query1.ExecSQL;
+        query1.Transaction.Commit;
+
       finally
 
       end;

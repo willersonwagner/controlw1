@@ -171,7 +171,8 @@ begin
   erro12 := '1';
   QueryControlProd.Close;
   QueryControlProd.SQL.Text :=
-    'select nota, chave, data from nfce where ((adic = ''OFF'') and (substring(chave from 23 for 3) = :serie)) and (right(extract(YEAR from current_date), 2) = substring(chave from 3 for 2)) and tentativa < 10 ';
+    //'select nota, chave, data from nfce where ((adic = ''OFF'') and (substring(chave from 23 for 3) = :serie)) and (right(extract(YEAR from current_date), 2) = substring(chave from 3 for 2)) and tentativa < 10 ';
+    'select nota, chave, data from nfce where ((adic = ''OFF'') and (substring(chave from 23 for 3) = :serie))  and tentativa < 10 ';
   QueryControlProd.ParamByName('serie').AsString := strzero(getSerieNFCe, 3);
   try
     QueryControlProd.Open;

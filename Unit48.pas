@@ -116,7 +116,8 @@ begin
   dm.IBQuery1.ParamByName('CHAVENFE').AsString      := fe[10];
   dm.IBQuery1.ParamByName('TOTFRETE').AsCurrency    := StrToCurr(fe[11]);
   dm.IBQuery1.ParamByName('TOTICMSST').AsCurrency   := StrToCurr(fe[13]);
-  dm.IBQuery1.ParamByName('CREDICMS_REAIS').AsCurrency   := tot_icms;
+  //dm.IBQuery1.ParamByName('CREDICMS_REAIS').AsCurrency   := tot_icms;
+  dm.IBQuery1.ParamByName('CREDICMS_REAIS').AsCurrency   := 0;
 
   if StrToCurrDef(fe[14], 0) > 0 then begin
     TOTvICMSDeson_Produtos := StrToCurrDef(fe[14], 0);

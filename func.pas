@@ -139,6 +139,7 @@ type
     enviandoCupom, enviandoBackup: boolean;
     fonteRelatorioForm19: integer;
     NegritoRelatorioForm19, saiComEnter: boolean;
+    procedure BuscaResizeDBgrid(var dbgrid : TDBGrid; form : String);
     procedure acertaVendasDoDiaAVista();
     procedure deletaRegistroVendaDoDiaDuplicado(data : tdate);
     function leformaDePagamentoMista(nota : integer; valor : currency) : TStringList;
@@ -5351,8 +5352,8 @@ begin
     form48.ClientDataSet1.FieldByName('TOTAL').AsCurrency := item1.total;
     form48.ClientDataSet1.FieldByName('TOTnota').AsCurrency := item1.totNota;
     form48.ClientDataSet1.FieldByName('NCM').AsString := item1.NCM;
-    //form48.ClientDataSet1.FieldByName('CRED_ICMS').AsCurrency := item1.p_icms;
-    form48.ClientDataSet1.FieldByName('CRED_ICMS').AsCurrency := 0;
+    form48.ClientDataSet1.FieldByName('CRED_ICMS').AsCurrency := item1.p_icms;
+    //form48.ClientDataSet1.FieldByName('CRED_ICMS').AsCurrency := 0;
     // form48.ClientDataSet1.FieldByName('REF_NFE').AsString       := IntToStr(item1.cod) + '|' + item1.codbar;
     form48.ClientDataSet1.FieldByName('REF_NFE').AsString := item1.codigoFornecedor + '|' + form48.fornecedor;
 
@@ -7845,7 +7846,7 @@ var
   ini, LIN, fim: integer;
   VALIDO: string;
 begin
-  VALIDO := ',.-/0123456789ABCDEFGHI&JKLMNOPQRSTUVXWYZ';
+  VALIDO := ',.-/0123456789ABCDEFGHI&JKLMNOPQRSTUVXWYZ;';
   Result := '';
   fim := length(PAR);
   FOR ini := 1 TO fim do
@@ -16411,6 +16412,11 @@ begin
       lab.Caption := 'I - Imprime,  T - Total';
       lab.Font.Style := [fsbold]; }
   end;
+
+  if ((campobusca = 'cod') and (camposdataset = 'descricao')) then begin
+    funcoes.BuscaResizeDBgrid(form33.DBGrid1, 'FORM33');
+  end;
+
   form33.ShowModal;
 
   if UpperCase(campobusca) = 'CODMOV' then
@@ -20862,14 +20868,19 @@ begin
       Cliente := funcoes.localizar('Localizar Cliente', 'cliente',
         'cod,nome,telres,telcom,cnpj as cpfcnpj,bairro', 'cod', '', 'nome',
         'nome', False, False, False, '', 450, nil);
-    if (Cliente = '*') then
-    begin
+
+    if (Cliente = '*') then begin
       ShowMessage('Para emitir uma NFe é necessario um cliente.');
       exit;
     end;
 
+    dm.IBQuery1.Close;
+    dm.IBQuery1.SQL.Text := 'select cod, nome, tipo from cliente where cod = :cod';
+    dm.IBQuery1.ParamByName('cod').AsInteger := StrToIntDef(Cliente, 0);
+    dm.IBQuery1.Open;
+
     exterior := False;
-    if DEST_NFE = '2' then
+    if ((DEST_NFE = '2') or (dm.IBQuery1.FieldByName('tipo').AsString = '7')) then
       exterior := true;
 
     if verificaDadosClienteNFe(StrNum(Cliente), exterior) then
@@ -20884,7 +20895,7 @@ begin
 
   dm.IBselect.Close;
   dm.IBselect.SQL.text :=
-    'select cnpj, ies, est, cod_mun from cliente where cod = :cod';
+    'select cnpj, ies, est, cod_mun, tipo from cliente where cod = :cod';
   dm.IBselect.ParamByName('cod').AsString := StrNum(Cliente);
   dm.IBselect.Open;
 
@@ -20903,9 +20914,13 @@ begin
   end;
 
   UF_DEST := dm.IBselect.FieldByName('est').AsString;
-  dm.IBselect.Close;
 
-  if DEST_NFE = '2' then
+
+  if (dm.IBselect.FieldByName('tipo').AsString = '7') and (DEST_NFE <> '2') then begin
+    cOp := '5102';
+    UF_DEST := UF_EMI;
+  end
+  else if DEST_NFE = '2' then
     cOp := '7102'
   else if (UF_EMI = UF_DEST) then
   begin
@@ -20925,6 +20940,8 @@ begin
       cOp := '6202';
     // if cupom = 1 then cOp := '6929';
   end;
+
+  dm.IBselect.Close;
 
   OK := False;
   if simplificado = False then
@@ -25615,9 +25632,12 @@ begin
           SQL := SQL + ' matching(nota, FORNEC, COD)';
         end;
 
-        if ((tabela = 'PGERAIS')) then
-        begin
+        if ((tabela = 'PGERAIS')) then begin
           SQL := SQL + ' matching(COD)';
+        end;
+
+        if ((tabela = 'NFE') or (tabela = 'NFCE')) then begin
+          SQL := SQL + ' matching(CHAVE)';
         end;
 
         if Contido(tabela, 'ACESSO-REGISTRO') then
@@ -28392,6 +28412,42 @@ begin
 end;
 
 
+procedure Tfuncoes.BuscaResizeDBgrid(var dbgrid : TDBGrid; form : String);
+var
+  arq, lista : TStringList;
+  linha : String;
+  i : integer;
+begin
+  form := form + '-col';
 
+  arq := TStringList.Create;
+
+  //se nao existe entao cria
+  if FileExists(caminhoEXE_com_barra_no_final + 'fonte.dat') = false then
+    arq.SaveToFile(caminhoEXE_com_barra_no_final + 'fonte.dat');
+
+  arq.LoadFromFile(caminhoEXE_com_barra_no_final + 'fonte.dat');
+  linha := arq.Values[form];
+  if trim(linha) = '' then begin
+    arq.Free;
+    linha := '';
+    form  := '';
+    exit;
+  end;
+
+  if LeftStr(linha, 1)  <> ',' then linha := ',' + linha;
+  if RightStr(linha, 1) <> ',' then linha := linha + ',';
+
+  LE_CAMPOS(lista, linha, ',', true);
+
+  for i := 0 to dbgrid.Columns.Count -1 do begin
+    if trim(lista.Values[IntToStr(i)]) <> '' then begin
+      dbgrid.Columns[i].Width := StrToIntDef(lista.Values[IntToStr(i)], 10);
+    end;
+  end;
+
+  lista.Free;
+  arq.Free;
+end;
 
 end.

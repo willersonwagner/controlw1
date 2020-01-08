@@ -3076,14 +3076,14 @@ begin
   dadosDest.Values['tipo']    := trim(dm.IBselect.fieldbyname('tipo').AsString);
   dadosDest.Values['cnpj']    := funcoes.StrNum(dm.IBselect.fieldbyname('cnpj').AsString);
 
-  IF ((Length(dadosDest.Values['cnpj']) = 11) OR (DEST_NFE = '2')) THEN
+  IF ((Length(dadosDest.Values['cnpj']) = 11) OR (DEST_NFE = '2') or (dadosDest.Values['tipo'] = '7')) THEN
     BEGIN
       tipoPessoa := 'F';
       IND_FINAL  := '1';
     END
     ELSE IND_FINAL := '0';
 
-  dadosDest.Values['nome']    := trim(dm.IBselect.fieldbyname('nome').AsString);
+  dadosDest.Values['nome']    := dm.IBselect.fieldbyname('nome').AsString;
   dadosDest.Values['ende']    := trim(dm.IBselect.fieldbyname('ende').AsString);
   dadosDest.Values['est']     := trim(dm.IBselect.fieldbyname('est').AsString);
   dadosDest.Values['bairro']  := removeCarateresEspeciais(dm.IBselect.fieldbyname('bairro').AsString);
@@ -3126,9 +3126,6 @@ begin
       OK := VALIDACNPJ(CNPJ);
       CPF_CNPJ := '<CNPJ>' + CNPJ + '</CNPJ>';
     end;
-
-  if True then
-
 
   //SE O CODIGO DO MUNICIPIO ESTA EM BRANCO, USA O CODIGO DO MUNICIPIO DO EMITENTE
   IF (COD_MUN = '') then COD_MUN := CODMUN_EMI;
@@ -3209,7 +3206,7 @@ begin
       end;
     end;
 
-  if DEST_NFE = '2' then
+  if ((DEST_NFE = '2') or (tipo = '7')) then
     begin
       INVALIDO := 0;
       erro_dados := '';
@@ -3219,7 +3216,12 @@ begin
       idEstrangeiro := StrNum(tmp);
       IE := '';
 
-      if codPaisDest <> '1058' then begin
+      if (tipo = '7') and (DEST_NFE <> '2') then begin
+        UF      := dadosEmitente.Values['est'];
+        COD_MUN := dadosEmitente.Values['cod_mun'];
+      end;
+
+      if ((codPaisDest <> '1058') or (tipo = '7')) then begin
         dm.IBselect.Close;
         dm.IBselect.SQL.Text := 'select nome from paises where cod = ' + strnum(codPaisDest);
         dm.IBselect.Open;
@@ -3235,13 +3237,12 @@ begin
       end;
     end;
 
-  if dm.ACBrNFe.Configuracoes.WebServices.Ambiente = taHomologacao then
+  {if dm.ACBrNFe.Configuracoes.WebServices.Ambiente = taHomologacao then
     begin
       nome := 'NF-E EMITIDA EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL';
-    end;
+    end;}
 
   if length(xpais) < 5 then xpais := 'BRASIL';
-
 
   Result := '<dest>' + CPF_CNPJ + '<xNome>' + CampoString(NOME) + '</xNome><enderDest>' +
   SUB_NODO_END(ENDE) + '<xBairro>' + removeCarateresEspeciais(BAIRRO) +
@@ -4152,6 +4153,7 @@ begin
       csta := 0;
 
     end else begin
+      ACBrNFe.NotasFiscais[0].GravarXML(ExtractFileName(arq),ExtractFileDir(arq) + '\');
       ShowMessage('NF-e '+ ' Houve uma falha na Validação!'+#13+#10+#13+#10+
                   'Favor Corrigir: ' + dm.ACBrNFe.WebServices.Retorno.xMotivo + #13 +
                   'cStat=' + IntToStr(csta));//+qry.FieldByName('RECIBO_DESCSTATUS').AsString);
@@ -4280,14 +4282,17 @@ begin
   aliquotasGrupoDeICMS[i].cod    := '2016';
   aliquotasGrupoDeICMS[i].pis    := 40; //vICMSUFDest
   aliquotasGrupoDeICMS[i].cofins := 60; //vICMSUFRemet
+
   i := aliquotasGrupoDeICMS.Add(TacumPis.Create);
   aliquotasGrupoDeICMS[i].cod    := '2017';
   aliquotasGrupoDeICMS[i].pis    := 60; //vICMSUFDest
   aliquotasGrupoDeICMS[i].cofins := 40; //vICMSUFRemet
+
   i := aliquotasGrupoDeICMS.Add(TacumPis.Create);
   aliquotasGrupoDeICMS[i].cod    := '2018';
   aliquotasGrupoDeICMS[i].pis    := 80; //vICMSUFDest
   aliquotasGrupoDeICMS[i].cofins := 20; //vICMSUFRemet
+
   i := aliquotasGrupoDeICMS.Add(TacumPis.Create);
   aliquotasGrupoDeICMS[i].cod    := '2019';
   aliquotasGrupoDeICMS[i].pis    := 100; //vICMSUFDest
@@ -4657,6 +4662,7 @@ var
   vICMSUFDest, vICMSUFRemet,picmsDest, pIcmsEmit : currency;
   pICMSUFDest, pICMSInter, DIFAL : currency;
   i : integer;
+  ano : String;
 begin
   Result := '';
 
@@ -4667,8 +4673,12 @@ begin
 
 
   //IF not Contido(UF_DEST, UF_PARTILHAICMS) then exit;
+  ano := FormatDateTime('yyyy', now);
+  if StrToInt(ano) >= 2019 then begin
+    ano := '2019';
+  end;
 
-  i := aliquotasGrupoDeICMS.Find(FormatDateTime('yyyy', now));
+  i := aliquotasGrupoDeICMS.Find(ano);
 
   if i = -1 then begin
     picmsDest := 40;

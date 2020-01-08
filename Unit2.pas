@@ -21550,7 +21550,7 @@ begin
   dm.ibselect.Close;
   dm.ibselect.SQL.Text :=
     'select i.cod, p.nome, i.quant, p.fracao, i.p_venda, i.total from item_venda i inner join produto p on (p.cod = i.cod and p.fracao > 0 '
-    + h1 + ') where i.data >= :ini and data <= :fim ';
+    + h1 + ') where i.data >= :ini and data <= :fim and cancelado = 0';
   dm.ibselect.ParamByName('ini').AsDate := StrToDate(dini);
   dm.ibselect.ParamByName('fim').AsDate := StrToDate(dfim);
   dm.ibselect.Open;
