@@ -684,6 +684,10 @@ begin
     exit;
   end;
 
+  if funcoes.buscaParamGeral(76, '') = 'S' then begin
+    UsaSped := true;
+  end;
+
   Result := false;
 
    if (usaSped) then begin
@@ -708,6 +712,12 @@ begin
      Result := true;
      exit;
    end;
+
+   {if (length(StrNum(cnpj.Text)) <> 14) and (length(StrNum(cnpj.Text)) <> 11) and (funcoes.buscaParamGeral(76, '') = 'S') then begin
+     ShowMessage('CPF/CNPJ Inválido!');
+     cnpj.SetFocus;
+     exit;
+   end;}
 
 
      if (length(StrNum(cnpj.Text)) = 14) then begin
@@ -763,6 +773,12 @@ begin
      if length(bairro.Text) < 2 then begin
        ShowMessage('Bairro Inválido!');
        bairro.SetFocus;
+       exit;
+     end;
+
+     if length(telres.Text) < 2 then begin
+       ShowMessage('Telefone Inválido!');
+       telres.SetFocus;
        exit;
      end;
 

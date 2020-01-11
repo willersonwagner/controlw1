@@ -4041,7 +4041,7 @@ begin
               if not Contido('Duplicidade de', erro2) then
                 erro2 := e.Message;
 
-              trataDuplicidade1(erro2, false, false, false, CHAVENF);
+              trataDuplicidade1(ACBrNFe.WebServices.Retorno.xmotivo, false, false, false, CHAVENF);
               gravaERRO_LOG1('', 'Fim trataDuplicidade1' +
                 FormatDateTime('dd/mm/yyyy', now) + FormatDateTime('hh:mm:ss',
                 now), 'trataDuplicidade1');
@@ -7201,7 +7201,7 @@ begin
   Ler_dados_pela_chave(chavb);
 
   try
-    richedt.Lines.Add('');
+    richedt.Lines.Add('erro=(' + erroDup+ ')');
     richedt.Lines.Add('chaveAtual=' + chaveAtual);
     richedt.Lines.Add('chavt=     ' + chavt);
     richedt.Lines.Add('');
