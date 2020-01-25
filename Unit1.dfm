@@ -66,7 +66,7 @@ object dm: Tdm
     DatabaseName = 'f:\ControlW\bd.fdb'
     Params.Strings = (
       'user_name=sysdba'
-      'password=masterkey'
+      'password=SYSTEMA1'
       '')
     LoginPrompt = False
     DefaultTransaction = IBTransaction2
@@ -76,6 +76,7 @@ object dm: Tdm
     Top = 2
   end
   object IBTransaction2: TIBTransaction
+    Active = True
     DefaultDatabase = bd
     Params.Strings = (
       'read_committed'
@@ -208,6 +209,7 @@ object dm: Tdm
     Top = 161
   end
   object IBTransaction3: TIBTransaction
+    Active = True
     DefaultDatabase = bd
     Params.Strings = (
       'read_committed'
@@ -508,6 +510,12 @@ object dm: Tdm
     MargemSuperior = 0.800000000000000000
     MargemEsquerda = 0.600000000000000000
     MargemDireita = 0.510000000000000000
+    ExpandeLogoMarcaConfig.Altura = 0
+    ExpandeLogoMarcaConfig.Esquerda = 0
+    ExpandeLogoMarcaConfig.Topo = 0
+    ExpandeLogoMarcaConfig.Largura = 0
+    ExpandeLogoMarcaConfig.Dimensionar = False
+    ExpandeLogoMarcaConfig.Esticar = True
     CasasDecimais.Formato = tdetInteger
     CasasDecimais.qCom = 2
     CasasDecimais.vUnCom = 2
@@ -515,6 +523,7 @@ object dm: Tdm
     CasasDecimais.MaskvUnCom = ',0.00'
     ACBrNFe = ACBrNFe
     TipoDANFE = tiNFCe
+    FormularioContinuo = True
     TamanhoLogoHeight = 0
     TamanhoLogoWidth = 0
     FonteLinhaItem.Charset = DEFAULT_CHARSET
@@ -543,6 +552,12 @@ object dm: Tdm
     MargemSuperior = 0.700000000000000000
     MargemEsquerda = 0.700000000000000000
     MargemDireita = 0.700000000000000000
+    ExpandeLogoMarcaConfig.Altura = 0
+    ExpandeLogoMarcaConfig.Esquerda = 0
+    ExpandeLogoMarcaConfig.Topo = 0
+    ExpandeLogoMarcaConfig.Largura = 0
+    ExpandeLogoMarcaConfig.Dimensionar = False
+    ExpandeLogoMarcaConfig.Esticar = True
     CasasDecimais.Formato = tdetInteger
     CasasDecimais.qCom = 2
     CasasDecimais.vUnCom = 2
@@ -594,6 +609,12 @@ object dm: Tdm
     MargemSuperior = 0.800000000000000000
     MargemEsquerda = 0.600000000000000000
     MargemDireita = 0.510000000000000000
+    ExpandeLogoMarcaConfig.Altura = 0
+    ExpandeLogoMarcaConfig.Esquerda = 0
+    ExpandeLogoMarcaConfig.Topo = 0
+    ExpandeLogoMarcaConfig.Largura = 0
+    ExpandeLogoMarcaConfig.Dimensionar = False
+    ExpandeLogoMarcaConfig.Esticar = True
     CasasDecimais.Formato = tdetInteger
     CasasDecimais.qCom = 2
     CasasDecimais.vUnCom = 2
@@ -601,6 +622,7 @@ object dm: Tdm
     CasasDecimais.MaskvUnCom = ',0.00'
     TipoDANFE = tiSemGeracao
     ImprimeDescAcrescItem = False
+    FormularioContinuo = True
     PosPrinter = ACBrPosPrinter1
     Left = 432
     Top = 384
@@ -620,7 +642,7 @@ object dm: Tdm
     Configuracoes.WebServices.AguardarConsultaRet = 0
     Configuracoes.WebServices.Tentativas = 10
     Configuracoes.WebServices.QuebradeLinha = '|'
-    Configuracoes.WebServices.SSLType = LT_SSLv3
+    Configuracoes.WebServices.SSLType = LT_TLSv1_2
     Configuracoes.RespTec.IdCSRT = 0
     DANFE = DANFE
     Left = 432
@@ -688,6 +710,7 @@ object dm: Tdm
     Top = 8
   end
   object IBTransaction5: TIBTransaction
+    Active = True
     DefaultDatabase = bd
     Params.Strings = (
       'read_committed'
@@ -744,13 +767,18 @@ object dm: Tdm
     MargemSuperior = 0.800000000000000000
     MargemEsquerda = 0.600000000000000000
     MargemDireita = 0.510000000000000000
+    ExpandeLogoMarcaConfig.Altura = 0
+    ExpandeLogoMarcaConfig.Esquerda = 0
+    ExpandeLogoMarcaConfig.Topo = 0
+    ExpandeLogoMarcaConfig.Largura = 0
+    ExpandeLogoMarcaConfig.Dimensionar = False
+    ExpandeLogoMarcaConfig.Esticar = True
     CasasDecimais.Formato = tdetInteger
     CasasDecimais.qCom = 2
     CasasDecimais.vUnCom = 2
     CasasDecimais.MaskqCom = ',0.00'
     CasasDecimais.MaskvUnCom = ',0.00'
     EspessuraBorda = 1
-    ExpandirDadosAdicionaisAuto = False
     BorderIcon = [biSystemMenu, biMinimize, biMaximize]
     Left = 264
     Top = 328

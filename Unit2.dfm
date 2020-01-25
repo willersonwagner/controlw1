@@ -11890,7 +11890,7 @@ object Form2: TForm2
         end
         object Oramento2: TMenuItem
           Caption = 'Or'#231'amento'
-          Visible = False
+          OnClick = Oramento2Click
         end
         object SerialdeMercadorias1: TMenuItem
           Caption = 'Serial de Mercadorias'

@@ -1083,7 +1083,7 @@ var
   cont : integer;
   prec : currency;
   prodcodbar : TprodutoVendaCodBar;
-  pesquisaCodbar : boolean;
+  pesquisaCodbar, servico : boolean;
 begin
   if trim(form1.pgerais.Values['38']) = '' then form1.pgerais.Values['38'] := '1';
   //tipo de leitura de codigo de barras 1-preco total 2-quantidade 3-nenhum
@@ -1163,7 +1163,7 @@ begin
   if dtmMain.IBQuery2.fieldbyname('p_venda').AsCurrency = 0 then
     begin
       vendendoECF := false;
-      MessageDlg('O Preço do Produto '+ copy(dtmMain.IBQuery2.fieldbyname('nome').AsString, 1, 40) +' pode ser 0', mtError, [mbOK], 1);
+      MessageDlg('O Preço do Produto '+ copy(dtmMain.IBQuery2.fieldbyname('nome').AsString, 1, 40) +' Não pode ser 0', mtError, [mbOK], 1);
       exit;
     end;
 
@@ -1172,7 +1172,11 @@ begin
   qutd := currtostr(quant.getValor);
   preco1 := currtostr(prec);
   preco.setValor(prec);
-  preco1 := confirmaPrecoProduto(dtmMain.IBQuery2.fieldbyname('cod').Asstring, qutd, preco1, 1, false);
+
+  servico := false;
+  if Contido('*', dtmMain.IBQuery2.fieldbyname('nome').AsString) then servico := true;
+
+  preco1 := confirmaPrecoProduto(dtmMain.IBQuery2.fieldbyname('cod').Asstring, qutd, preco1, 1, servico);
 
   if preco1 = '*' then exit;
   
@@ -2803,10 +2807,13 @@ var
   atacado : boolean;
 begin
   Result := valor;
-  if form1.pgerais.Values['104'] <> 'S' then exit;
+  if (form1.pgerais.Values['104'] <> 'S') and (servico = false) then exit;
 
   tipoDesconto     := LerConfig(configu, 2);
-  if contido(tipoDesconto, 'SP') = false then exit;
+  if (contido(tipoDesconto, 'SP') = false) and (servico = false) then exit;
+
+  if servico  then tipoDesconto := 'S';
+  
 
   valor  := '0';
   Result := '0';

@@ -3781,7 +3781,7 @@ var
   wNomeArquivo: WideString;
   MeuRegistro: TRegIniFile;
 begin
-  exit;
+  //exit;
   // Cria e instancia os objetos usados para criar o atalho
 
   MeuObjeto := CreateComObject(CLSID_ShellLink);
@@ -10953,6 +10953,15 @@ begin
       except
       end;
     end;
+
+    {if retornaEscalaDoCampo('p_compra', 'ITEM_entrada') <> 10 then
+    begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add
+        ('ALTER TABLE ITEM_entrada ALTER p_compra TYPE NUMERIC(15,10)');
+      dm.IBQuery1.ExecSQL;
+    end;  }
 
     //VerificaVersao_do_bd
   end;

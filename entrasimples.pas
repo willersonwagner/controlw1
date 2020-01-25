@@ -1361,14 +1361,15 @@ begin
 
       if DBGrid2.SelectedField.DisplayName = 'P_COMPRA' then
         begin
-          custo := funcoes.dialogo('numero',0,'',5,false,'',Application.Title,'Qual o Novo Valor de Custo',FormatCurr('#,###,###0.00000',
-          DBGrid2.DataSource.DataSet.fieldbyname('p_compra').AsCurrency));
+          custo := funcoes.dialogo('numero',10,'',10,false,'',Application.Title,'Qual o Novo Valor de Custo',FormatFloat('#,###,###0.0000000000',
+          DBGrid2.DataSource.DataSet.fieldbyname('p_compra').Asfloat));
 
           if custo = '*' then exit;
+
           
           dm.IBQuery3.Close;
           dm.IBQuery3.SQL.Text := 'update item_entrada set p_compra = :custo, total = quant * :custo where (CODENTRADA = :cod)';
-          dm.IBQuery3.ParamByName('custo').AsCurrency := StrToCurr(custo);
+          dm.IBQuery3.ParamByName('custo').AsFloat    := StrToFloat(custo);
           dm.IBQuery3.ParamByName('cod').AsString     := DBGrid2.DataSource.DataSet.fieldbyname('CODENTRADA').AsString;
           dm.IBQuery3.ExecSQL;
 

@@ -137,7 +137,7 @@ type
     Function LITERAL(ent : string) : string;
     FUNCTION NODO_ICMS(var MAT : Item_venda; CSTICM_CFOP, _ORIGE : string) : string;
     FUNCTION FORMAT_QTD(VALOR : currency) : string;
-    FUNCTION NODO_PISCOFINS(var item1 : Item_venda; CSTPIS_CFOP : string) : string;
+    FUNCTION NODO_PISCOFINS(var item1 : Item_venda; CSTPIS_CFOP : string; cfop : String) : string;
     FUNCTION NODO_TOTAL(TOTNOTA, TOT_BASEICM, TOT_ICM, TOT_PIS, TOT_COFINS, TOTDESCICM, TOTDESC : currency) : string;
     FUNCTION NODO_TRANSP(var FRETE1 : TStringList) : string;
 
@@ -2585,20 +2585,28 @@ begin
   //ShowMessage(CurrToStr(TOTNOTA) + #13 + CurrToStr(TOTDESCICM) + #13 + CurrToStr(totDesc));
 end;
 
-FUNCTION tnfevenda.NODO_PISCOFINS(var item1 : Item_venda; CSTPIS_CFOP : string) : string;
+FUNCTION tnfevenda.NODO_PISCOFINS(var item1 : Item_venda; CSTPIS_CFOP : string; cfop : String) : string;
 VAR
    COF_ALIQ, PIS_ALIQ : string;
   tot, VLR_COFINS, VLR_PIS : currency;
 begin
   TOT := item1.total - item1.Desconto;
   //SE FOR OPTANTE DO SIMPLES NACIONAL, NAO USA TAG PIS/COFINS
-  IF (Contido(funcoes.buscaParamGeral(10, ''), '1-2')) and (trim(item1.Pis) = '')  then begin
+  IF (((Contido(funcoes.buscaParamGeral(10, ''), '1-2')) and (trim(item1.Pis) = '')) or (contido('<refNFe>', TAG_DOCREF)))  then begin
     Result := '<PIS><PISAliq><CST>01</CST><vBC>0.00</vBC><pPIS>0.00</pPIS>' +
     '<vPIS>0.00</vPIS></PISAliq></PIS>' +
     '<COFINS><COFINSAliq><CST>01</CST><vBC>0.00</vBC>' +
     '<pCOFINS>0.00</pCOFINS><vCOFINS>0.00</vCOFINS></COFINSAliq></COFINS>';
     exit;
   end;
+
+  if ChecaIsencaoPis_Cst_49_Devoluções(cfop) then begin
+    PIS_NT := PIS_NT + TOT;
+    Result := '<PIS>' + '<PISNT><CST>49</CST></PISNT></PIS>' +
+    '<COFINS>' + '<COFINSNT><CST>49</CST></COFINSNT></COFINS>';
+    exit;
+  end;
+
 
   PIS_ALIQ := '<PISAliq><CST>02</CST><vBC>' + FORMAT_NUM(TOT) + '</vBC><pPIS>0.00</pPIS>' +
   '<vPIS>0.00</vPIS></PISAliq>';
@@ -3004,7 +3012,8 @@ begin
       Format_num(item.p_venda, 8) + '</vUnCom><vProd>' + FORMAT_NUM(item.total) + '</vProd><cEANTrib>'+ barras +'</cEANTrib>' +
       '<uTrib>' + ve_unidTributavel(DEST_NFE, item.Ncm, item.unid) + '</uTrib><qTrib>' + Format_num(item.quant, 4) + '</qTrib><vUnTrib>' +
       Format_num(item.p_venda, 8) + '</vUnTrib>'+ IfThen(item.Vlr_Frete > 0, '<vFrete>'+ Format_num(item.Vlr_Frete)+'</vFrete>', '') + iif(item.Desconto = 0,'','<vDesc>' + FORMAT_NUM(item.Desconto) + '</vDesc>') +
-      IfThen(item.DespAcessorias  > 0 ,'<vOutro>' + FORMAT_NUM(item.DespAcessorias) + '</vOutro>', '')+'<indTot>1</indTot></prod><imposto>' + NODO_ICMS(item, cstIcmCfop, _ORIGE) + NODO_PISCOFINS(item, cstpisCfop) + NODO_ICMS_UF_DEST(item) + '</imposto>' +
+      IfThen(item.DespAcessorias  > 0 ,'<vOutro>' + FORMAT_NUM(item.DespAcessorias) + '</vOutro>', '')+'<indTot>1</indTot></prod><imposto>' + NODO_ICMS(item, cstIcmCfop, _ORIGE) +
+      NODO_PISCOFINS(item, cstpisCfop, cfop1) + NODO_ICMS_UF_DEST(item) + '</imposto>' +
       infAdProd +'</det>'; //NODO_PISCOFINS(MAT, CSTPIS_CFP)
 
       {Result := Result + '<det nItem=' + LITERAL(TRIM(IntToStr(qtd))) + '><prod>' +
@@ -4019,6 +4028,8 @@ begin
 
           form65.Label1.Caption := 'Aguarde, Enviando '+IntToStr(i)+'...';
           form65.Label1.Update;
+          //ACBrNFe.enviar(0, true);
+          //if false then begin
           if acbrNFeEnviar(20) then begin
             //se entrou aqui é pq passou do metodo acbr.Enviar
             ACBrNFe.WebServices.Retorno.Recibo := ACBrNFe.WebServices.enviar.Recibo;
@@ -4039,7 +4050,7 @@ begin
 
              csta := ACBrNFe.WebServices.Retorno.cstat;
            end;
-
+          //ShowMessage(erro_dados + #13 + ACBrNFe.WebServices.Retorno.xMotivo + #13 + ACBrNFe.WebServices.Retorno.Msg);
           if (((csta > 0) and (csta < 999)) or (i >= 15)) then break;
           sleep(1500);
       end;
@@ -4075,7 +4086,7 @@ begin
       sleep(1500);
 
       if csta = 217 then begin
-        ERRO_dados := 'Erro 4040:Rejeição (217): NF-e não consta na base de dados da SEFAZ';
+        ERRO_dados := 'Erro 4040:Rejeição (217): NF-e não consta na base de dados da SEFAZ' ;
         Fechar_Datasets_limpar_Listas_e_variaveis;
         funcoes.mensagemEnviandoNFCE('', false, true);
         MessageDlg(erro_dados, mtError, [mbOK], 1);
@@ -4083,7 +4094,7 @@ begin
       end;
 
       if ((csta = 0) and  (ERRO_dados = '')) then begin
-        ERRO_dados := 'Erro 4047:Requisicao nao Enviada';
+        ERRO_dados := 'Erro 4047:Requisicao nao Enviada' + #13 + 'envi=' +ACBrNFe.WebServices.Enviar.xMotivo+ #13 + 'ret=' + ACBrNFe.WebServices.Consulta.XMotivo;
         Fechar_Datasets_limpar_Listas_e_variaveis;
         funcoes.mensagemEnviandoNFCE('', false, true);
         MessageDlg(erro_dados, mtError, [mbOK], 1);

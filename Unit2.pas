@@ -684,6 +684,7 @@ type
     procedure BackupRestore1Click(Sender: TObject);
     procedure RecalcularVendasaVistadoDia1Click(Sender: TObject);
     procedure IntegridadedeContasaReceber1Click(Sender: TObject);
+    procedure Oramento2Click(Sender: TObject);
   private
     b, cont: integer;
     ini: Smallint;
@@ -11039,6 +11040,96 @@ begin
   Form20.Free;
 end;
 
+procedure TForm2.Oramento2Click(Sender: TObject);
+var
+  cds: TClientDataSet;
+  merc, pastaMala, linha, data, _HOJE, nome, nota: string;
+  F: TextFile;
+  fim1: integer;
+  produtos : TStringList;
+begin
+  nota := funcoes.dialogo('generico', 100, '1234567890' + #8, 100, false, '', application.Title, 'Qual o Cód do Orçamento ?', '');
+  if nota = '*' then exit;
+
+  nome := 'ORCAMENTO.TXT';
+
+  dm.ibselect.Close;
+  dm.ibselect.SQL.Clear;
+  dm.ibselect.SQL.Add
+    ('select * from orcamento where nota = :nota');
+  dm.ibselect.ParamByName('nota').AsInteger := StrToInt(nota);
+  dm.ibselect.Open;
+
+  if dm.IBselect.IsEmpty then begin
+    ShowMessage('Nenhum Orçamento Encontrado com Num. de Nota ' + nota);
+    dm.IBselect.Close;
+    exit;
+  end;
+
+  pastaMala := caminhoEXE_com_barra_no_final + 'Mala Direta\';
+
+  funcoes.CriaDiretorio(pastaMala);
+  funcoes.CriarAtalho(pastaMala, '', 'C:\', 'Mala Direta ControlW', 'c:\');
+
+  if FileExists(pastaMala + NOME) then
+    DeleteFile(pastaMala + NOME);
+
+  AssignFile(F, pastaMala + NOME);
+  Rewrite(F);
+
+  dm.IBQuery1.Close;
+  dm.IBQuery1.SQL.Text := 'select * from cliente where cod = :cod';
+  dm.IBQuery1.ParamByName('cod').AsInteger :=  dm.IBselect.FieldByName('cliente').AsInteger;
+  dm.IBQuery1.Open;
+
+  LINHA := 'Codigo|Nome|Endereco|Bairro|Cep|Cidade|CPF_CNPJ|Telefone|Hoje|data|Valor_Total|Extenso|nota|Mercadorias' + CRLF;
+  Write(F, linha);
+
+
+  _HOJE := FormatDateTime('d', now) + ' de ' + funcoes.primeiraLetraMaiuscula
+    (FormatDateTime('mmmm', now)) + ' de ' + FormatDateTime('yyyy', now);
+
+  LINHA := dm.IBQuery1.FieldByName('cod').AsString + '|' + trim(dm.IBQuery1.FieldByName('nome').AsString) + '|' +
+  TRIM(dm.IBQuery1.FieldByName('ende').AsString) + '|' + TRIM(dm.IBQuery1.FieldByName('bairro').AsString) + '|' + dm.IBQuery1.FieldByName('cep').AsString +
+  '|' + TRIM(dm.IBQuery1.FieldByName('cid').AsString) + '-' + TRIM(dm.IBQuery1.FieldByName('est').AsString) + '|' +
+  dm.IBQuery1.FieldByName('cnpj').AsString + '|' + dm.IBQuery1.FieldByName('telres').AsString + '|' + _HOJE + '|' + formataDataDDMMYY(dm.IBselect.FieldByName('data').AsDateTime) + '|';
+
+  LINHA := LINHA + formataCurrency(dm.IBselect.FieldByName('total').AsCurrency) + '|' + funcoes.valorPorExtenso(dm.IBselect.FieldByName('total').AsCurrency) + '|' + dm.IBselect.FieldByName('nota').AsString + '|';
+  merc  := '';
+
+  produtos := TStringList.Create;
+  produtos.Add('cod|nome|codbar|refori|quant|p_venda|total|unidade');
+
+  dm.ibselect.Close;
+  dm.ibselect.SQL.Clear;
+  dm.ibselect.SQL.Add
+    ('select i.cod, p.nome, p.unid, i.quant, p.codbar, p.refori, i.p_venda, i.total, i.vendedor from item_orcamento i left join produto p on (p.cod = i.cod) where i.nota = :nota');
+  dm.ibselect.ParamByName('nota').AsInteger := StrToInt(nota);
+  dm.ibselect.Open;
+
+  while not dm.ibselect.Eof do begin
+    produtos.Add(strzero(dm.ibselect.FieldByName('cod').AsString, 6) + '|' + dm.ibselect.FieldByName('nome').AsString + '|' +dm.ibselect.FieldByName('codbar').AsString +'|'+ dm.ibselect.FieldByName('refori').AsString + '|' +
+    FormatCurr('#,###,###0.000', dm.ibselect.FieldByName('quant').AsCurrency)+ '|' + formataCurrency(dm.ibselect.FieldByName('p_venda').AsCurrency) + '|' + formataCurrency(dm.ibselect.FieldByName('total').AsCurrency) + '|' + dm.ibselect.FieldByName('unid').AsString);
+
+    MERC := merc + CompletaOuRepete(dm.ibselect.FieldByName('cod').AsString, '', ' ', 6) + ' ' + CompletaOuRepete(LeftStr(dm.ibselect.FieldByName('nome').AsString, 40), '', ' ', 40)  + ' ' +
+      IfThen(trim(dm.ibselect.FieldByName('unid').AsString) = '', 'UN  ', CompletaOuRepete(LeftStr(dm.ibselect.FieldByName('unid').AsString, 4),'', ' ', 4 )) + ' ' +
+      CompletaOuRepete('',FormatCurr('#,###,###0.000', dm.ibselect.FieldByName('quant').AsCurrency), ' ', 10)  + ' ' +
+      CompletaOuRepete('',formataCurrency(dm.ibselect.FieldByName('p_venda').AsCurrency), ' ', 10)  +
+      CompletaOuRepete('',formataCurrency(dm.ibselect.FieldByName('total').AsCurrency), ' ', 10)  + #13;
+
+    dm.ibselect.Next;
+  end;
+
+  LINHA := LINHA + MERC + CRLF;
+  Write(F, linha);
+  produtos.SaveToFile(pastaMala + 'PRODUTOS_ORCAMENTO.TXT');
+  produtos.Free;
+  dm.ibselect.Close;
+  CloseFile(F);
+  ShowMessage('O arquivo foi criado em:' + #13 + pastaMala + nome + #13
+    + 'Está disponível um atalho na area de trabalho.');
+end;
+
 procedure TForm2.Nfe1Click(Sender: TObject);
 begin
   // nfeverda := tnfeverda.Create(self);
@@ -14268,7 +14359,7 @@ end;
 procedure TForm2.InventEstoque1Click(Sender: TObject);
 var
   dataInv, base, estoqueZero, fornec, fabric, codigo, aliquota, grupo, ordem,
-    selecao, arredond, cond, tmp, impri, colIni, seqIni, nome: String;
+    selecao, arredond, cond, tmp, impri, colIni, seqIni, nome, h1, h2: String;
   pag, tam: integer;
   reg: Smallint;
   qtdade, preco1, total1, totGeral: currency;
@@ -14416,11 +14507,19 @@ begin
   if fornec <> '' then
     fornec := ' and (fornec = ' + fornec + ') ';
 
+  h1 := '';
+  h2 := '';
+  if grupo <> ''  then h1 := ' and (grupo = '+StrNum(grupo)+')';
+  if fabric <> '' then h2 := ' and (fabric = '+StrNum(fabric)+')';
+
+  
+
+
   dm.IBQuery2.Close;
   dm.IBQuery2.SQL.Clear;
   dm.IBQuery2.SQL.Add('select cod,nome, unid, classif, ' + base + ', p_compra, ' +
     selecao + ', deposito from produto where (substring(nome from 1 for 1) <> ''_'') '
-    + fornec + estoqueZero + ' ' + ordem);
+    + fornec + h1 + h2 + estoqueZero + ' ' + ordem);
   dm.IBQuery2.Open;
   dm.IBQuery2.FetchAll;
 

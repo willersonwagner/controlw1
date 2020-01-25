@@ -71,7 +71,7 @@ type matrizCurrency = array of currency;
      dsProduto, dsAliq, arqTemp : TClientDataSet;
      codProd : TItensAcumProd;
      dataIni, CODCLI, DataFim, mes, ano, arqSPED, sim, TRIB, COD, _CFOP, _FRETE, TIPO, _CHNFE, _SER, linha, DESC, UNID, ss : String;
-     UF_EMPRESA, COD_ALIQ, ISPIS, COD_ISPIS, ALIQ_CFOP, ACUM_COD_FOR : String;
+     UF_EMPRESA, COD_ALIQ, ISPIS, COD_ISPIS, ALIQ_CFOP, ACUM_COD_FOR, Arquivo_CFOP_ISENTOS : String;
      NUM_ALIQ, NOTA, COD_FOR : integer;
      QTD, QTD1,POS1, POS2, ALIQ, TOT, LIDO, TOT_ITEM, PERC_ICMS, BASE_ICM, TOT_ICM,
      TOT_PISST_ENT, BASE_PIS_RD, BASE_PIS_ST, BASE_PIS_ISENTO : currency;
@@ -91,6 +91,7 @@ type matrizCurrency = array of currency;
      TOT_ECF         : TItensAliqSped;
 
 procedure checaISPIS_CODISPIS(var ispis1, codPIS1 : String; codProduto : integer);
+function ChecaIsencaoPis_Cst_49_Devoluções(CFOP : String) : boolean;
 function insereClientePeloNodo(nodo_dest : String) : String;
 procedure leNfesImportadasDeOutroSistema();
 procedure restauraCadastroProduto(cod2 : String; msg : boolean);
@@ -1794,6 +1795,10 @@ begin
       MODELO := '003';
       IF StrToDateTime(dataIni) >= StrToDateTime('01/06/2018') THEN MODELO := '004';
       IF StrToDateTime(dataIni) >= StrToDateTime('01/01/2019') THEN MODELO := '005';
+      IF StrToDateTime(dataIni) >= StrToDateTime('01/01/2020') THEN MODELO := '006';
+      IF StrToDateTime(dataIni) >= StrToDateTime('01/01/2021') THEN MODELO := '007';
+      IF StrToDateTime(dataIni) >= StrToDateTime('01/01/2022') THEN MODELO := '008';
+      IF StrToDateTime(dataIni) >= StrToDateTime('01/01/2023') THEN MODELO := '009';
       LINHA := '|0000|'+ MODELO +'|0|||' + DATA_BRA_FULL(StrToDateTime(dataIni)) + '|' + DATA_BRA_FULL(StrToDateTime(DataFim)) + '|';
 
       dm.IBselect.Close;
@@ -2967,6 +2972,11 @@ begin
 	 ELSE IF ((_ISPIS = 'B') OR (CST_PIS = '02')) then
      begin
        Result := '02|' + FORM_NUM1(TOT_ITEM) + '|0|||0|02|' + FORM_NUM1(TOT_ITEM) + '|0|||0';
+       BASE_PIS_RD := BASE_PIS_RD + TOT_ITEM;
+     end
+   ELSE IF (CST_PIS = '49') then
+     begin
+       Result := '49|' + FORM_NUM1(TOT_ITEM) + '|0|||0|49|' + FORM_NUM1(TOT_ITEM) + '|0|||0';
        BASE_PIS_RD := BASE_PIS_RD + TOT_ITEM;
      end
 	 ELSE
@@ -4473,8 +4483,7 @@ begin
               if _CFOP    = '' then _CFOP := '5102';
               CSTPIS_CFOP := VE_CSTPISCFOP(_CFOP);
 
-              if StrToIntDef(LeftStr(_CFOP, 1), 0) >= 5 then
-              begin
+              if StrToIntDef(LeftStr(_CFOP, 1), 0) >= 5 then begin
 
               for ini := 0 to fim do
                 begin
@@ -4489,6 +4498,13 @@ begin
                     end;
 
                   checaISPIS_CODISPIS(listaProdutos[ini].CST_PIS, COD_ISPIS, listaProdutos[ini].cod);
+
+                  {if ChecaIsencaoPis_Cst_49_Devoluções(listaProdutos[ini].CFOP) then begin
+                    listaProdutos[ini].CST_PIS := '49';
+                    COD_ISPIS   := '';
+                    CSTPIS_CFOP := '';
+                    ISPIS       := '';
+                  end;}
 
                   TOT_ITEM := listaProdutos[ini].total;  
 
@@ -4515,6 +4531,7 @@ begin
 
                   _CFOP := listaProdutos[ini].CFOP;
                   ALIQ_CFOP := TRIB + '|' +  _CFOP + '|' + FORM_NUM1(ALIQ);
+
                   //ACUMULA_ALIQCFOP(ALIQ_CFOP, listaProdutos[ini].total, BASE_ICM, TOT_ICM, 0);
 
                   //ACUMULA CFOP
@@ -5645,6 +5662,9 @@ end;
 
 procedure checaISPIS_CODISPIS(var ispis1, codPIS1 : String; codProduto : integer);
 begin
+  if ispis1 = '49' then exit;
+  
+
   if trim(ispis1) = '' then begin
     ispis1  := '01';
     codPIS1 := '';
@@ -5668,6 +5688,23 @@ begin
     ispis1  := '01';
     codPIS1 := '';
     exit;
+  end;
+end;
+
+function ChecaIsencaoPis_Cst_49_Devoluções(CFOP : String) : boolean;
+var
+  arq : TStringList;
+begin
+  Result := false;
+  if trim(Arquivo_CFOP_ISENTOS) = '' then begin
+    arq := TStringList.Create;
+    arq.LoadFromFile(caminhoEXE_com_barra_no_final + 'CFOP_ISENTOS.DAT');
+    Arquivo_CFOP_ISENTOS := arq.Text;
+    arq.Free;
+  end;
+
+  if Contido(cfop, Arquivo_CFOP_ISENTOS) then begin
+    Result := true;
   end;
 end;
 

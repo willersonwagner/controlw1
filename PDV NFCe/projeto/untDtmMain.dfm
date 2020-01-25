@@ -7,7 +7,7 @@ object dtmMain: TdtmMain
     Left = 33
     Top = 3
     Bitmap = {
-      494C01019500A000280010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C01019500A0002C0010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000006002000001002000000000000060
       0200000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -5046,6 +5046,12 @@ object dtmMain: TdtmMain
     MargemSuperior = 0.800000000000000000
     MargemEsquerda = 1.000000000000000000
     MargemDireita = 0.510000000000000000
+    ExpandeLogoMarcaConfig.Altura = 0
+    ExpandeLogoMarcaConfig.Esquerda = 0
+    ExpandeLogoMarcaConfig.Topo = 0
+    ExpandeLogoMarcaConfig.Largura = 0
+    ExpandeLogoMarcaConfig.Dimensionar = False
+    ExpandeLogoMarcaConfig.Esticar = True
     CasasDecimais.Formato = tdetInteger
     CasasDecimais.qCom = 2
     CasasDecimais.vUnCom = 2
@@ -5053,6 +5059,7 @@ object dtmMain: TdtmMain
     CasasDecimais.MaskvUnCom = ',0.00'
     ACBrNFe = ACBrNFe
     TipoDANFE = tiNFCe
+    FormularioContinuo = True
     TamanhoLogoHeight = 0
     TamanhoLogoWidth = 0
     FonteLinhaItem.Charset = DEFAULT_CHARSET
@@ -5139,6 +5146,12 @@ object dtmMain: TdtmMain
     MargemSuperior = 0.800000000000000000
     MargemEsquerda = 0.600000000000000000
     MargemDireita = 0.510000000000000000
+    ExpandeLogoMarcaConfig.Altura = 0
+    ExpandeLogoMarcaConfig.Esquerda = 0
+    ExpandeLogoMarcaConfig.Topo = 0
+    ExpandeLogoMarcaConfig.Largura = 0
+    ExpandeLogoMarcaConfig.Dimensionar = False
+    ExpandeLogoMarcaConfig.Esticar = True
     CasasDecimais.Formato = tdetInteger
     CasasDecimais.qCom = 2
     CasasDecimais.vUnCom = 2
@@ -5146,6 +5159,7 @@ object dtmMain: TdtmMain
     CasasDecimais.MaskvUnCom = ',0.00'
     TipoDANFE = tiSemGeracao
     ImprimeDescAcrescItem = False
+    FormularioContinuo = True
     PosPrinter = ACBrPosPrinter1
     Left = 288
     Top = 56
@@ -5297,6 +5311,12 @@ object dtmMain: TdtmMain
     MargemSuperior = 0.700000000000000000
     MargemEsquerda = 0.700000000000000000
     MargemDireita = 0.700000000000000000
+    ExpandeLogoMarcaConfig.Altura = 0
+    ExpandeLogoMarcaConfig.Esquerda = 0
+    ExpandeLogoMarcaConfig.Topo = 0
+    ExpandeLogoMarcaConfig.Largura = 0
+    ExpandeLogoMarcaConfig.Dimensionar = False
+    ExpandeLogoMarcaConfig.Esticar = True
     CasasDecimais.Formato = tdetInteger
     CasasDecimais.qCom = 2
     CasasDecimais.vUnCom = 2
@@ -5321,7 +5341,7 @@ object dtmMain: TdtmMain
     Configuracoes.WebServices.AguardarConsultaRet = 0
     Configuracoes.WebServices.Tentativas = 10
     Configuracoes.WebServices.QuebradeLinha = '|'
-    Configuracoes.WebServices.SSLType = LT_SSLv3
+    Configuracoes.WebServices.SSLType = LT_TLSv1_2
     Configuracoes.RespTec.IdCSRT = 0
     DANFE = DANFE
     Left = 120
@@ -5333,6 +5353,12 @@ object dtmMain: TdtmMain
     MargemSuperior = 0.800000000000000000
     MargemEsquerda = 0.600000000000000000
     MargemDireita = 0.510000000000000000
+    ExpandeLogoMarcaConfig.Altura = 0
+    ExpandeLogoMarcaConfig.Esquerda = 0
+    ExpandeLogoMarcaConfig.Topo = 0
+    ExpandeLogoMarcaConfig.Largura = 0
+    ExpandeLogoMarcaConfig.Dimensionar = False
+    ExpandeLogoMarcaConfig.Esticar = True
     CasasDecimais.Formato = tdetInteger
     CasasDecimais.qCom = 2
     CasasDecimais.vUnCom = 2
@@ -5340,9 +5366,6 @@ object dtmMain: TdtmMain
     CasasDecimais.MaskvUnCom = ',0.00'
     TipoDANFE = tiSemGeracao
     EspessuraBorda = 1
-    ExpandirDadosAdicionaisAuto = False
-    IncorporarBackgroundPdf = True
-    IncorporarFontesPdf = True
     BorderIcon = [biSystemMenu, biMinimize, biMaximize]
     Left = 384
     Top = 184
@@ -5365,12 +5388,19 @@ object dtmMain: TdtmMain
     MargemSuperior = 0.800000000000000000
     MargemEsquerda = 0.600000000000000000
     MargemDireita = 0.510000000000000000
+    ExpandeLogoMarcaConfig.Altura = 0
+    ExpandeLogoMarcaConfig.Esquerda = 0
+    ExpandeLogoMarcaConfig.Topo = 0
+    ExpandeLogoMarcaConfig.Largura = 0
+    ExpandeLogoMarcaConfig.Dimensionar = False
+    ExpandeLogoMarcaConfig.Esticar = True
     CasasDecimais.Formato = tdetInteger
     CasasDecimais.qCom = 2
     CasasDecimais.vUnCom = 2
     CasasDecimais.MaskqCom = ',0.00'
     CasasDecimais.MaskvUnCom = ',0.00'
     TipoDANFE = tiSemGeracao
+    FormularioContinuo = True
     Left = 216
     Top = 320
   end

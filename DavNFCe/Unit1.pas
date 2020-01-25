@@ -500,7 +500,8 @@ begin
         assinaNotas;
 
         RichEdit1.Lines.Add('Verificando NFCes...');
-        verificaNFCeNovo(DateToStr(StartOfTheMonth(now)), DateToStr(EndOfTheMonth(now)), false);
+        //verificaNFCeNovo(DateToStr(StartOfTheMonth(now)), DateToStr(EndOfTheMonth(now)), false);
+        RichEdit1.Lines.Add('Verificado!');
 
         try
           sincronizaEstoque;
@@ -2741,6 +2742,8 @@ begin
     RichEdit1.Lines.Add('Sem Protocolo :');
     RichEdit1.Lines.Add(semProtocolo);
   end;
+
+  RichEdit1.Lines.Add('Analise de NFCe Concluida!');
 
   pulos := '';
   semProtocolo := '';

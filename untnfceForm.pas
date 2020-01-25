@@ -729,7 +729,7 @@ begin
   begin
     DANFE_Fast := TACBrNFeDANFEFR(lista.Items[9]);
     // DANFE_Fast.ShowDialog := true;
-    DANFE_Fast.ImprimeEmUmaLinha := true;
+    //DANFE_Fast.ImprimeEmUmaLinha := true;
   end;
 
   if 10 <= fim then
@@ -2390,8 +2390,11 @@ begin
     ACBrNFe.Configuracoes.Geral.ModeloDF := moNFCe;
     ACBrNFe.Configuracoes.WebServices.Visualizar := true;
     ACBrNFe.WebServices.StatusServico.Executar;
-  finally
-    ACBrNFe.Configuracoes.WebServices.Visualizar := false;
+  except
+    on e:exception do begin
+      ACBrNFe.Configuracoes.WebServices.Visualizar := false;
+      ShowMessage(e.Message);
+    end;
   end;
 end;
 
