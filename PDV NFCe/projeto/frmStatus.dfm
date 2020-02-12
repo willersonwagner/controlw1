@@ -54,4 +54,12 @@ object mfd: Tmfd
     TabOrder = 2
     OnClick = BitBtn2Click
   end
+  object CheckBox1: TCheckBox
+    Left = 224
+    Top = 353
+    Width = 97
+    Height = 17
+    Caption = 'Negrito'
+    TabOrder = 3
+  end
 end

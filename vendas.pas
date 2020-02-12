@@ -5618,6 +5618,9 @@ var
   i: integer;
   vencimento: TDateTime;
 begin
+  //se tem mais de 1 parcela entao o sistema atribui pagamento mensal
+  if (StrToInt(Parcelamento.Values['qtd']) > 1) then Parcelamento.Values['periodo'] := '30';
+
   for i := 1 to StrToInt(Parcelamento.Values['qtd']) do
   begin
     if i = 1 then
@@ -5632,6 +5635,7 @@ begin
       funcoes.PreparaData(FormatDateTime('dd/mm/yyyy', form22.datamov));
     if i <> 1 then
     begin
+
       // vencimento := vencimento + strtocurr(Parcelamento.Values['periodo']);
       if Parcelamento.Values['periodo'] = '30' then
         vencimento := IncMonth(vencimento, 1)

@@ -136,6 +136,8 @@ type
     casasDecimais: TEdit;
     serieNFe: TEdit;
     Label33: TLabel;
+    MargemEsquerdaNFe: JsEditNumero;
+    Label34: TLabel;
     procedure sbtnCaminhoCertClick(Sender: TObject);
     procedure sbtnGetCertClick(Sender: TObject);
     procedure BtnOKClick(Sender: TObject);
@@ -437,7 +439,8 @@ begin
    espacoEntreLinhas.Text := Ini.ReadString('SERVER','espacoEntreLinhas', '50');
    casasDecimais.Text  := Ini.ReadString('SERVER','casasDecimais', '2');
 
-   MargemEsquerda.Text := Ini.ReadString('SERVER','MargemEsquerda', CurrToStr(DANFE_Fast.MargemEsquerda));
+   MargemEsquerda.Text    := Ini.ReadString('SERVER','MargemEsquerda', CurrToStr(DANFE_Fast.MargemEsquerda));
+   MargemEsquerdaNFe.Text := Ini.ReadString('SERVER','MargemEsquerdaNFe', CurrToStr(DANFE_Rave.MargemEsquerda));
    velocidade.Text     := Ini.ReadString('SERVER','velocidade', '9600');
    impDescontoNFCe.Checked      := Ini.ReadBool  ('SERVER','impDescProduto',False) ;
    imprimirNomeFantasia.Checked := Ini.ReadBool  ('SERVER','imprimirNomeFantasia',False) ;
@@ -554,6 +557,8 @@ begin
   Ini.WriteBool('SERVER', 'usarTLS' , usarTLS.Checked);
 
   Ini.WriteString('SERVER', 'MargemEsquerda'    , MargemEsquerda.Text);
+  Ini.WriteString('SERVER', 'MargemEsquerdaNFe'    , MargemEsquerdaNFe.Text);
+
   Ini.WriteString('SERVER', 'velocidade'    , velocidade.Text);
 
   if espacoEntreLinhas.Text = '' then espacoEntreLinhas.Text := '50';

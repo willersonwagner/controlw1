@@ -1317,6 +1317,7 @@ begin
 
   codCliente := ACHA_CODCLIENTE(cnpj);
 
+
   dm.IBselect.Close;
   dm.IBselect.SQL.Text := 'select email from cliente where cod = :cod';
   dm.IBselect.ParamByName('cod').AsInteger := StrToInt(StrNum(codCliente));
@@ -1334,6 +1335,8 @@ begin
   end;
 
   email := LowerCase(email);
+  dm.ACBrMail1.Clear;
+  dm.ACBrMail1.ClearAttachments;
   dm.ACBrMail1.FromName := email;
 
   dm.IBQuery1.Close;

@@ -1463,8 +1463,17 @@ begin
 
        //ACUMULA NOS TOTALIZADORES DE ALIQUOTA E CFOP
        //totDespAcess := dsProduto.fieldbyname('despAces').AsCurrency - dsProduto.fieldbyname('descCom').AsCurrency - dsProduto.fieldbyname('descNT').AsCurrency;
+
        totDespAcess := listaProdutos[ini].despAces - listaProdutos[ini].descCom - listaProdutos[ini].descNT;
-       if totDespAcess < 0 then totDespAcess := 0;
+
+       {if NOTA = 152  then begin
+
+       ShowMessage('listaProdutos[ini].despAces=' + CurrToStr(listaProdutos[ini].despAces) + #13 +
+       'listaProdutos[ini].descCom=' + CurrToStr(listaProdutos[ini].descCom) + #13 + 'listaProdutos[ini].descNT=' + CurrToStr(listaProdutos[ini].descNT));
+       end;}
+
+
+       //if totDespAcess < 0 then totDespAcess := 0;
        
 
        if TRIB = '41' then begin
@@ -1515,16 +1524,19 @@ begin
 
    //TOTAL DA NOTA = SOMA DOS VALORES DO ITENS (JA TIRADOS OS DESCONTOS) + SOMA DOS DADOS ADICIONAIS
    // VAL_ALIQCFOP tem o total dos itens
-   //POS1 :=  (TOT + TOT_ADIC() - DADOS_ADIC[3]) - DADOS_ADIC[4] - DADOS_ADIC[10];
-   //POS1 :=  (TOT + TOT_ADIC() - DADOS_ADIC[3]);
-   POS1 :=  (TOT + TOT_ADIC());
 
-   if NOTA =14629 then begin
+   POS1 :=  (TOT + TOT_ADIC() - DADOS_ADIC[3]) - DADOS_ADIC[4] - DADOS_ADIC[10];
+   //POS1 :=  (TOT + TOT_ADIC() - DADOS_ADIC[3]) - DADOS_ADIC[4] ;
+   //POS1 :=  (TOT + TOT_ADIC() - DADOS_ADIC[3]);
+   //POS1 :=  (TOT + TOT_ADIC() - DADOS_ADIC[10]);
+   //POS1 :=  (TOT + TOT_ADIC());
+
+   {if NOTA =151 then begin
      ShowMessage('total Geral='+ CurrToStr(POS1) +#13+ 'TOT=' + CurrToStr(tot) + #13 +
      'TOT_ADIC()='+ CurrToStr(TOT_ADIC()) + #13 + 'DADOS_ADIC[3]='+ CurrToStr(DADOS_ADIC[3])+#13+
 
       'DADOS_ADIC[4]='+ CurrToStr(DADOS_ADIC[4]) + #13 +  'DADOS_ADIC[10]=' + CurrToStr(DADOS_ADIC[10]));
-   end;
+   end;}
 
 
    //if BASE_ICM > POS1 then BASE_ICM := POS1;
@@ -1535,7 +1547,8 @@ begin
    DATA_BRA_FULL(_DAT1) + '|' + DATA_BRA_FULL(_DAT2) + '|' +   FORM_NUM1(POS1) + '|0|' +
     FORM_NUM1(DADOS_ADIC[3]) + '|' + FORM_NUM1(DADOS_ADIC[4] + DADOS_ADIC[10]) + '|' + FORM_NUM1(TOT) +
     '|' + _FRETE + '|' + FORM_NUM1(DADOS_ADIC[1]) + '|' + FORM_NUM1(DADOS_ADIC[2]) +  '|' + FORM_NUM1(DADOS_ADIC[5]) + '|' +
-   FORM_NUM1(BASE_ICM) + '|' + FORM_NUM1(TOT_ICM) + '|0|0|0|0|0|' + FORM_NUM1(DADOS_ADIC[6]) + '|' + FORM_NUM1(DADOS_ADIC[7]) + '|';
+// {21}  FORM_NUM1(BASE_ICM) + '|' + FORM_NUM1(TOT_ICM) + '|0|'+FORM_NUM1(DADOS_ADIC[9])+'|0|0|0|' + FORM_NUM1(DADOS_ADIC[6]) + '|' + FORM_NUM1(DADOS_ADIC[7]) + '|';
+ {21}  FORM_NUM1(BASE_ICM) + '|' + FORM_NUM1(TOT_ICM) + '|0|0|0|0|0|' + FORM_NUM1(DADOS_ADIC[6]) + '|' + FORM_NUM1(DADOS_ADIC[7]) + '|';
 
    GRAVA_SPED(ARQ_TMP, LINHA);
 
@@ -1555,6 +1568,7 @@ begin
    //TOTALIZA A NOTA COM VÁRIOS SUB-TOTAIS SEPARADOS POR ALIQUOTAS DIFERENTES
    FOR ini := 0 TO fim do begin
      TOT := listaTOT_PIS[ini].total + listaTOT_PIS[ini].cofins;
+
      LINHA := '|C190|0' + listaTOT_PIS[ini].cod + '|' + FORM_NUM1(TOT) + '|' +
      FORM_NUM1(listaTOT_PIS[ini].Base) + '|'  + FORM_NUM1(listaTOT_PIS[ini].icms) + '|'  +
      '0|0|0|0||';
@@ -1778,7 +1792,8 @@ function bloco1() : String;
 begin
   LINHA := '|1001|0|';
   GRAVA_SPED(ARQ_TMP, LINHA);
-  LINHA := '|1010|N|N|N|N|N|N|N|N|N|' + ifthen(StrToDateTime(dataIni) >= StrToDateTime('01/01/2019'),'N|N|N|', '');
+  LINHA := '|1010|N|N|N|N|N|N|N|N|N|' + ifthen(StrToDateTime(dataIni) >= StrToDateTime('01/01/2019'),'N|N|N|', '') +
+  ifthen(StrToDateTime(dataIni) >= StrToDateTime('01/01/2020'),'N|', '');
   GRAVA_SPED(ARQ_TMP, LINHA);
   //TOTALIZA REGISTROS DO TIPO D - 1 DIGITO APENAS PORQUE É PARCIAL, SE FOR TOTAL, INFORMAM-SE 4 DIGITO
 end;

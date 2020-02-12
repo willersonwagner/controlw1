@@ -59,8 +59,6 @@ object Form13: TForm13
     Align = alBottom
     ParentColor = True
     TabOrder = 1
-    ExplicitTop = 159
-    ExplicitWidth = 379
     object JsBotao1: JsBotao
       Left = 0
       Top = 2

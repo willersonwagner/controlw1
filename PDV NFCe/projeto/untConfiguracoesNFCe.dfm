@@ -3,7 +3,7 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
   Top = 55
   BorderStyle = bsDialog
   Caption = 'Configura'#231#245'es do NFC-e'
-  ClientHeight = 588
+  ClientHeight = 616
   ClientWidth = 433
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -19,13 +19,14 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
   TextHeight = 13
   object Panel5: TPanel
     Left = 0
-    Top = 531
+    Top = 559
     Width = 433
     Height = 57
     Align = alBottom
     BevelInner = bvLowered
     BevelOuter = bvLowered
     TabOrder = 1
+    ExplicitTop = 531
     object BtnOK: TBitBtn
       Left = 88
       Top = 16
@@ -87,30 +88,34 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
     Left = 0
     Top = 0
     Width = 433
-    Height = 531
+    Height = 559
     Align = alClient
     TabOrder = 2
+    ExplicitHeight = 531
   end
   object PageControl3: TPageControl
     Left = 0
     Top = 0
     Width = 433
-    Height = 531
+    Height = 559
     ActivePage = TabSheet4
     Align = alClient
     MultiLine = True
     TabOrder = 0
+    ExplicitHeight = 531
     object TabSheet4: TTabSheet
       Caption = 'Geral'
       ImageIndex = 1
+      ExplicitHeight = 503
       object GroupBox6: TGroupBox
         Left = 0
         Top = 0
         Width = 425
-        Height = 503
+        Height = 531
         Align = alClient
         Caption = 'Geral'
         TabOrder = 0
+        ExplicitHeight = 503
         object Label15: TLabel
           Left = 8
           Top = 217
@@ -316,15 +321,11 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
     end
     object TabSheet3: TTabSheet
       Caption = 'Certificado'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object GroupBox3: TGroupBox
         Left = 0
         Top = 0
         Width = 425
-        Height = 503
+        Height = 531
         Align = alClient
         Caption = 'Certificado'
         TabOrder = 0
@@ -446,10 +447,7 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
     object TabSheet5: TTabSheet
       Caption = 'WebService'
       ImageIndex = 2
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
+      ExplicitHeight = 503
       object GroupBox7: TGroupBox
         Left = 0
         Top = 0
@@ -562,7 +560,7 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
         Left = 0
         Top = 141
         Width = 425
-        Height = 362
+        Height = 390
         Align = alClient
         Caption = 'Proxy'
         TabOrder = 1
@@ -628,15 +626,11 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
     object TabSheet7: TTabSheet
       Caption = 'Email'
       ImageIndex = 4
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object GroupBox9: TGroupBox
         Left = 0
         Top = 0
         Width = 425
-        Height = 503
+        Height = 531
         Align = alClient
         Caption = 'Email'
         TabOrder = 0
@@ -749,7 +743,7 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
         Left = 0
         Top = 0
         Width = 425
-        Height = 503
+        Height = 531
         Align = alClient
         Caption = 'Valores Padr'#227'o'
         TabOrder = 0
@@ -800,10 +794,7 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
     object TabSheet2: TTabSheet
       Caption = 'Impress'#227'o'
       ImageIndex = 5
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
+      ExplicitHeight = 503
       object Label6: TLabel
         Left = 16
         Top = 8
@@ -895,8 +886,8 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
         end
       end
       object RadioButton3: TCheckBox
-        Left = 22
-        Top = 483
+        Left = 20
+        Top = 511
         Width = 121
         Height = 17
         Caption = 'Mostar Preview NFe'
@@ -942,8 +933,8 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
         Text = 'ComboBox1'
       end
       object previewNFCe: TCheckBox
-        Left = 164
-        Top = 483
+        Left = 162
+        Top = 511
         Width = 129
         Height = 17
         Caption = 'Mostar Preview NFCe'
@@ -953,7 +944,7 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
         Left = 16
         Top = 231
         Width = 345
-        Height = 194
+        Height = 228
         Caption = 'Logo Marca'
         TabOrder = 8
         object Label23: TLabel
@@ -1005,6 +996,13 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
           Height = 13
           Caption = 'Casas Decimais QTD NFe:'
         end
+        object Label34: TLabel
+          Left = 18
+          Top = 141
+          Width = 112
+          Height = 13
+          Caption = 'Margem Esquerda NFe:'
+        end
         object LOGOWIDTH: TEdit
           Left = 16
           Top = 40
@@ -1035,7 +1033,7 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
         end
         object expandirLogo: TCheckBox
           Left = 16
-          Top = 161
+          Top = 210
           Width = 121
           Height = 15
           Caption = 'Expandir Logo'
@@ -1074,10 +1072,23 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
           Height = 21
           TabOrder = 7
         end
+        object MargemEsquerdaNFe: JsEditNumero
+          Left = 18
+          Top = 160
+          Width = 121
+          Height = 21
+          CharCase = ecUpperCase
+          TabOrder = 8
+          Text = '0,00'
+          FormularioComp = 'frmConfiguracoesNFe'
+          Indice = 0
+          TipoDeDado = teNumero
+          CasasDecimais = 2
+        end
       end
       object impDescontoNFCe: TCheckBox
-        Left = 22
-        Top = 460
+        Left = 20
+        Top = 488
         Width = 147
         Height = 17
         Caption = 'Imprimir Desconto NFCe'
@@ -1098,8 +1109,8 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
         TabOrder = 11
       end
       object imprimirNomeFantasia: TCheckBox
-        Left = 22
-        Top = 437
+        Left = 20
+        Top = 465
         Width = 147
         Height = 17
         Caption = 'Imprimir Nome Fantasia'
@@ -1109,10 +1120,6 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
     object TabSheet6: TTabSheet
       Caption = 'Conex'#227'o'
       ImageIndex = 6
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Label11: TLabel
         Left = 8
         Top = 72

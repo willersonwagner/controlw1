@@ -1560,7 +1560,7 @@ begin
   if not funcoes.Contido('*', grupo + fornec + fabric) then
   begin
     sim := funcoes.dialogo('generico', 0, 'SN' + #8, 0, false, 'S',
-      'Control For Windows', 'Imprimir Quantidade em Estoque?S/N:', 'N');
+      'Control For Windows', 'Imprimir Quantidade em Estoque(S/N)?', 'N');
   end;
 
   if (sim = 'S') and (sim <> '*') then
@@ -1655,6 +1655,7 @@ begin
       dm.ProdutoQY.Next;
     end;
   end;
+
   if not funcoes.Contido('*', grupo + fornec + fabric + sim) then
   begin
     grupo := '';
@@ -3643,10 +3644,7 @@ end;
 
 procedure TForm2.Button2Click(Sender: TObject);
 begin
-  form79 := tform79.Create(self);
-  form79.showmodal;
-  form79.Free;
-
+  funcoes.ajustaHoraPelaInternet(form22.datamov);
   // ShowMessage(funcoes.LerConfig(form22.Pgerais.Values['configu'], 12));
   exit;
   form71 := TForm71.Create(self);
@@ -4040,6 +4038,9 @@ begin
   form40.tipo.Add('112=generico');
   form40.tipo.Add('113=generico');
   form40.tipo.Add('114=generico');
+  form40.tipo.Add('115=generico');
+  form40.tipo.Add('116=normal');
+  form40.tipo.Add('117=generico');
 
   form40.troca := TStringList.Create;
   form40.troca.Add('0=S');
@@ -4160,6 +4161,9 @@ begin
   form40.troca.Add('112=S');
   form40.troca.Add('113=S');
   form40.troca.Add('114=S');
+  form40.troca.Add('115=S');
+  form40.troca.Add('116=');
+  form40.troca.Add('117=S');
 
   form40.teclas := TStringList.Create;
   form40.teclas.Add('0=FT');
@@ -4279,6 +4283,9 @@ begin
   form40.teclas.Add('112=SN');
   form40.teclas.Add('113=SN');
   form40.teclas.Add('114=12');
+  form40.teclas.Add('115=SN');
+  form40.teclas.Add('116=ABCDEFGHIJLMNOPKXYZWQRSTUVXZ' + #32 + #46);
+  form40.teclas.Add('117=SN');
 
   form40.ListBox1.Clear;
   form40.ListBox1.Items.Add
@@ -4472,6 +4479,9 @@ begin
   form40.ListBox1.Items.Add('112=Imprimir Volumes no Ticket ?');
   form40.ListBox1.Items.Add('113=Confirmar Cliente para Entrega ?(S/N)');
   form40.ListBox1.Items.Add('114=Qual a Ordem da Tabela de Venda e Consulta (1-Nome 2-Codigo) ?');
+  form40.ListBox1.Items.Add('115=Abrir Cadastro de Cliente no Lançamento de Ordem de Serviço ?');
+  form40.ListBox1.Items.Add('116=Qual o Nome Impresso no Relatorio de Comissoes(padrao: Comissoes) ?');
+  form40.ListBox1.Items.Add('117=Confirmar Venda e tranferi-la para a Data Atual na Rotina Forma de Pagamento ?');
 
   form40.ListBox1.Selected[0] := true;
   form40.showmodal;
@@ -9467,8 +9477,7 @@ begin
     end;
   end;
 
-  if his <> '' then
-    h1 := ' and (codhis=' + his + ')';
+  if his <> '' then h1 := ' and (codhis=' + his + ')';
 
   //modificação josenir 17/07/2019 para sempre aparecer as vendas futuras
   //IF StrToDate(fim) = DateOf(form22.datamov) then fim := ('31/12/2068');
@@ -9812,10 +9821,10 @@ begin
         b := 0;
         if (dm.ibselect.FieldByName('formpagto').AsInteger > 1) then begin
           totais.Values[dm.ibselect.FieldByName('formpagto').AsString] :=
-          CurrToStr(StrToCurr(totais.Values[dm.ibselect.FieldByName('formpagto').AsString]) + dm.ibselect.FieldByName('entrada').AsCurrency);
+          CurrToStr(StrToCurrDef(totais.Values[dm.ibselect.FieldByName('formpagto').AsString], 0) + dm.ibselect.FieldByName('entrada').AsCurrency);
         end
         else begin
-          totais.Values['out'] := CurrToStr(StrToCurr(totais.Values['out']) +
+          totais.Values['out'] := CurrToStr(StrToCurrDef(totais.Values['out'], 0) +
           dm.ibselect.FieldByName('entrada').AsCurrency);
           ent := ent + dm.ibselect.FieldByName('entrada').AsCurrency;
         end;
@@ -9848,6 +9857,7 @@ begin
 
     dm.ibselect.Next;
   end;
+
 
   if form22.Pgerais.Values['nota'] = 'T' then
   begin
@@ -9912,6 +9922,7 @@ begin
   end
   else
     addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', tam) + #13 + #10);
+
 
   TotalGeralFormas := 0;
   for b := 0 to totais.Count - 1 do
@@ -12317,8 +12328,6 @@ begin
         exit;
       end;
 
-
-
       dm.ibselect.Close;
       dm.ibselect.SQL.Clear;
       dm.ibselect.SQL.Add
@@ -12354,7 +12363,7 @@ begin
       end;
 
       //se a data da venda for diferente da data do sistema e se tiver o usuario tiver bloqueio
-      if (DateOf(dm.ibselect.FieldByName('data').AsDateTime) <> DateOf(form22.datamov)) then begin
+      if ((DateOf(dm.ibselect.FieldByName('data').AsDateTime) <> DateOf(form22.datamov)) and (funcoes.buscaParamGeral(117, 'N') = 'S')) then begin
         if (VerificaAcesso_Se_Nao_tiver_Nenhum_bloqueio_true_senao_false = false)  then begin
           MessageDlg('Esta Venda não pode ser Confirmada pelo o usuário atual, Somente Usuários sem bloqueios poderá receber essa venda!' + #13 +
           'Nota : ' + nota + #13 +
@@ -12582,7 +12591,7 @@ end;
 
 procedure TForm2.Geral1Click(Sender: TObject);
 var
-  dif, atra, avis, dini, dfim, venda, vended: string;
+  dif, atra, avis, dini, dfim, venda, vended, NOME_REL: string;
   i, fim: integer;
   total, totVende, desconto, totcomiAvista, TOT, totcomiAprazo, diferen,
     comiAvista, comiAprazo, totrel: currency;
@@ -12617,6 +12626,10 @@ begin
   if dfim = '*' then
     exit;
 
+  NOME_REL := FUNCOES.buscaParamGeral(116, '');
+  if trim(NOME_REL) = '' then NOME_REL := 'COMISSOES';
+  
+
   comiAvista := StrToCurr(avis);
   comiAprazo := StrToCurr(atra);
 
@@ -12624,7 +12637,7 @@ begin
   addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10);
   addRelatorioForm19(funcoes.CompletaOuRepete(form22.Pgerais.Values['empresa'],
     FormatDateTime('dd/mm/yy', form22.datamov), ' ', 80) + #13 + #10);
-  addRelatorioForm19(funcoes.CompletaOuRepete('RELATORIO DE COMISSOES DE ' +
+  addRelatorioForm19(funcoes.CompletaOuRepete('RELATORIO DE '+NOME_REL+' DE ' +
     dini + ' ATE ' + dfim, FormatDateTime('tt', now), ' ', 80) + #13 + #10);
   addRelatorioForm19(funcoes.CompletaOuRepete('', '+', '-', 17) +
     funcoes.CompletaOuRepete('', '', '-', 11) + funcoes.CompletaOuRepete('',
@@ -12822,7 +12835,7 @@ begin
   end;
 
   addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10);
-  addRelatorioForm19(funcoes.CompletaOuRepete('TOTAL COMISSOES =>',
+  addRelatorioForm19(funcoes.CompletaOuRepete('TOTAL '+NOME_REL+' =>',
     FormatCurr('#,###,###0.00', total), ' ', 30) + #13 + #10);
   addRelatorioForm19(funcoes.CompletaOuRepete('TOTAL VENDAS    =>',
     FormatCurr('#,###,###0.00', totrel), ' ', 30) + #13 + #10);
@@ -13032,7 +13045,7 @@ end;
 
 procedure TForm2.APrazo1Click(Sender: TObject);
 var
-  dif, atra, vende, dini, dfim, h1, vendeAtual: string;
+  dif, atra, vende, dini, dfim, h1, vendeAtual, NOME_REL: string;
   notas: TStringList;
   i, fim, linhas: integer;
   total, tot_ge: currency;
@@ -13069,6 +13082,9 @@ begin
   h1 := '';
   if vende <> '' then
     h1 := '(v.vendedor = ' + strnum(vende) + ') and ';
+
+  NOME_REL := FUNCOES.buscaParamGeral(116, '');
+  if trim(NOME_REL) = '' then NOME_REL := 'COMISSOES';
 
   form19.RichEdit1.Clear;
   { form19.RichEdit1.Clear;
@@ -13146,7 +13162,7 @@ begin
       addRelatorioForm19(funcoes.CompletaOuRepete(form22.Pgerais.Values
         ['empresa'], FormatDateTime('dd/mm/yy', form22.datamov), ' ', 80) +
         #13 + #10);
-      addRelatorioForm19(funcoes.CompletaOuRepete('COMISSAO A PRAZO  VENDEDOR: '
+      addRelatorioForm19(funcoes.CompletaOuRepete(NOME_REL+' A PRAZO  VENDEDOR: '
         + vendeAtual + ' ' + dini + ' A ' + dfim, FormatDateTime('tt', now),
         ' ', 80) + #13 + #10);
       addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10);

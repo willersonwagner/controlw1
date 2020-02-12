@@ -254,7 +254,7 @@ function inutilizacaoNFCE(ini, fim, modelo: integer; just: String;
 procedure setVersaoNFCe();
 procedure setVersaoNFe();
 function validaCFOP(const CFOP: String): boolean;
-function acertaDataSite(var Data: TDateTime): boolean;
+function acertaDataSite(var Data: TDateTime;var retorno : String;  cnpj : String = ''): boolean;
 
 procedure Carrega_NotaFiscal_ArquivoXML(OpenDialog: TOpenDialog;
   var NotaFiscal: String; var CFOP: String; var CondPagto: String;
@@ -273,6 +273,7 @@ procedure Carrega_NotaFiscal_ArquivoXML(OpenDialog: TOpenDialog;
   var ListaProdutos: TStrings);
 
 var
+  WebAmbiente: integer;
   listaPagamentos: TItensPISCOFINS;
   minhaThreadTeste: TIdThreadComponent;
   EmailMsg: TStringList;
@@ -2526,7 +2527,6 @@ var
   ArqLog: boolean;
   CaminhoLog: String;
   WebUF: String;
-  WebAmbiente: integer;
   WebVisualiza: boolean;
   ProxHost: String;
   ProxPorta: String;
@@ -2699,11 +2699,9 @@ begin
     TipoAmbiente := IntToStr(WebAmbiente);
     WebVisualiza := ini.ReadBool('WebService', 'Visualizar', false);
     ACBrNFe.Configuracoes.WebServices.UF := WebUF;
-    ACBrNFe.Configuracoes.WebServices.Ambiente :=
-      StrToTpAmb(ok, IntToStr(WebAmbiente));
+    ACBrNFe.Configuracoes.WebServices.Ambiente := StrToTpAmb(ok, IntToStr(WebAmbiente));
 
-    if WebAmbiente = 1 then
-    begin
+    if WebAmbiente = 1 then begin
       ACBrNFe.Configuracoes.WebServices.Ambiente := taProducao;
       ACBrNFe.Configuracoes.Geral.CamposFatObrigatorios := false;
     end
@@ -2777,19 +2775,17 @@ begin
       // ACBrNFe.DANFE.Logo       := DANFELogomarca;
     end;
 
-    if DANFE_Rave <> nil then
-    begin
+    if DANFE_Rave <> nil then begin
+      DANFE_Rave.MargemEsquerda := StrToFloat(Ini.ReadString('SERVER','MargemEsquerdaNFe', CurrToStr(DANFE_Rave.MargemEsquerda)));
       DANFE_Rave.Sistema := 'Controlw Sistemas';
       DANFE_Rave.ExibeCampoFatura := true;
       DANFE_Rave.logo := DANFELogomarca;
 
-      DANFE_Rave.CasasDecimais.qCom := ini.ReadInteger('SERVER',
-        'casasDecimais', 2);
+      DANFE_Rave.CasasDecimais.qCom := ini.ReadInteger('SERVER','casasDecimais', 2);
 
       if FileExists(DANFELogomarca) then
       begin
-        DANFE_Rave.ExpandeLogoMarca := ini.ReadBool('SERVER',
-          'expandirLogo', false);
+        DANFE_Rave.ExpandeLogoMarca := ini.ReadBool('SERVER','expandirLogo', false);
         expLogoMarca := ini.ReadBool('SERVER', 'expandirLogo', false);
         DANFE_Rave.TamanhoLogoHeight := ini.ReadInteger('SERVER',
           'FonteOutCampos', 10);
@@ -2807,8 +2803,7 @@ begin
 
     margemEsquerda := ini.ReadString('SERVER', 'MargemEsquerda', '0,1');
     DANFE.margemEsquerda := StrToCurrDef(margemEsquerda, 0.1);
-    if DANFE.margemEsquerda = 0.6 then
-      DANFE.margemEsquerda := 0.1;
+    if DANFE.margemEsquerda = 0.6 then DANFE.margemEsquerda := 0.1;
     DANFE.LarguraBobina := 280;
     //
 
@@ -3457,8 +3452,7 @@ begin
 
         if Contido('Rejeicao: ', e.Message) then
         begin
-          if Contido('Duplicidade', e.Message) = false then
-          begin
+          if Contido('Duplicidade', e.Message) = false then begin
             gravaERRO_LOG1('', e.Message,
               'if Contido(Duplicidade, e.Message) = false then');
             Status := e.Message;
@@ -3479,7 +3473,7 @@ begin
           e.Message) or (csta = 539) or (csta = 204)) THEN
         begin
           try
-            trataDuplicidade1(e.Message, false, false, false);
+            trataDuplicidade1(e.Message, false, false, true);
             ACBrNFe.NotasFiscais.Clear;
           except
             on e: Exception do
@@ -3783,7 +3777,9 @@ begin
       end;
     end;
 
-    if (FormatDateTime('yymm', now) <> chaveDetalhe.anoMesYYMM) and
+    if false then begin
+
+    {if (FormatDateTime('yymm', now) <> chaveDetalhe.anoMesYYMM) and
       (csta <> 100) and (TRUE) then
     begin
       csta := 0;
@@ -3828,7 +3824,7 @@ begin
       gravaERRO_LOG1('', 'Acabou: ' + FormatDateTime('hh:mm:ss', now),
         'Nova Criação de XML');
       novo := true;
-      // end;
+      // end;}
     end
     else
     begin
@@ -3870,13 +3866,10 @@ begin
         ACBrNFe.WebServices.enviar.Clear;
 
         // tenta enviar 2 vezes em intervalo de 10s de espera, caso venha retorno entao sai do while
-        while true do
-        begin
+        while true do begin
           a := a + 1;
-          form65.Label1.Caption := 'Aguarde, Enviando ' + IntToStr(a) + '...';
-          form65.Label1.Update;
-          if acbrNFeEnviar(10) then
-          begin
+          richED.Lines.Add('Aguarde, Enviando ' + IntToStr(a) + '...');
+          if acbrNFeEnviar(10) then begin
             // se entrou aqui é pq passou do metodo acbr.Enviar
             ACBrNFe.WebServices.Retorno.Recibo :=
               ACBrNFe.WebServices.enviar.Recibo;
@@ -3896,8 +3889,7 @@ begin
           else
           begin
             // as vezes acbrNFeEnviar função retorna FALSE mas tem numero de recibo
-            if ACBrNFe.WebServices.enviar.Recibo <> '' then
-            begin
+            if ACBrNFe.WebServices.enviar.Recibo <> '' then begin
               richED.Lines.Add('Recibo: ' + ACBrNFe.WebServices.enviar.Recibo);
               richED.Lines.Add('Consultando Recibo... ');
               try
@@ -3912,11 +3904,10 @@ begin
             csta := ACBrNFe.WebServices.Retorno.cstat;
           end;
 
-          if (((csta > 0) and (csta < 999)) or (a >= 4)) then
-            break;
-        end;
+          if (((csta > 0) and (csta < 999)) or (a >= 4)) then break;
+        end;// fim while enviar
 
-        csta := 0;
+        //csta := 0;
 
         // se nao veio resposta entao consulta 3x pra ver se foi emitida ou o cstat veio com valor 999
         // como foi iniciado a variavel, caso venha um cstat entao sai do while
@@ -3928,9 +3919,7 @@ begin
           begin
             a := a + 1;
             csta := 0;
-            form65.Label1.Caption := 'Aguarde, Consultando ' +
-              IntToStr(a) + '...';
-            form65.Label1.Update;
+            richED.Lines.Add('Aguarde, Consultando ' + IntToStr(a) + '...');
             if acbrNFeConsultar(10) then
             begin
               csta := ACBrNFe.NotasFiscais[0].nfe.procNFe.cstat;
@@ -3943,6 +3932,8 @@ begin
           end;
         end;
 
+        richED.Lines.Add('Retorno: ' + IntToStr(csta));
+
 
         if csta = 613 then begin
           if ((ACBrNFe.WebServices.Consulta.cStat = 613) and (Length(buscaChaveErroDeDuplicidade(ACBrNFe.WebServices.Consulta.XMotivo, true)) = 44)) then begin
@@ -3954,7 +3945,7 @@ begin
             query1.Transaction.Commit;
 
             richED.Lines.Add('xMotivo=' + ACBrNFe.WebServices.Consulta.xmotivo);
-            richED.Lines.Add('');
+            richED.Lines.Add('Cstat=613');
             richED.Lines.Add('Troca de Chave ok: ' + #13 + #13 +
             'Chave Velha: ' + ACBrNFe.WebServices.Consulta.NFeChave + #13 +
             'Chave Nova : ' +buscaChaveErroDeDuplicidade(ACBrNFe.WebServices.Consulta.XMotivo, true));
@@ -7279,10 +7270,8 @@ begin
     // criaXMLs(IntToStr(chavb.codNF), '', chavb.chave);
   end;
 
-  if modificaGenerator then
-  begin
-    // if chavb.nnf = StrToInt(Incrementa_Generator('nfce', 0)) then
-    // Incrementa_Generator('nfce', 1);
+  if modificaGenerator then begin
+     if chavb.nnf = StrToInt(Incrementa_Generator(NomeGeneratorSerie, 0)) then Incrementa_Generator(NomeGeneratorSerie, 1);
   end;
 
   arq := TStringList.Create;
@@ -7425,6 +7414,15 @@ procedure carregaConfigsNFCe;
 begin
   ACBrNFe.Configuracoes.Geral.ModeloDF := moNFCe;
   ACBrNFe.Configuracoes.WebServices.TimeOut := 5000;
+
+  if WebAmbiente = 1 then begin
+    ACBrNFe.Configuracoes.WebServices.Ambiente := taProducao;
+    ACBrNFe.Configuracoes.Geral.CamposFatObrigatorios := false;
+  end
+  else begin
+    ACBrNFe.Configuracoes.WebServices.Ambiente := taHomologacao;
+    ACBrNFe.Configuracoes.Geral.CamposFatObrigatorios := true;
+  end;
 end;
 
 procedure atualizaProtocoloXML(const caminhoxml: String);
@@ -8784,7 +8782,7 @@ begin
     Result := true;
 end;
 
-function acertaDataSite(var Data: TDateTime): boolean;
+function acertaDataSite(var Data: TDateTime;var retorno : String;  cnpj : String = ''): boolean;
 var
   th, site: String;
   arq: TStringList;
@@ -8792,8 +8790,11 @@ var
 begin
   Result := false;
   th := '';
+
   try
-    site := 'http://controlw.blog.br/si2/data.php';
+    if cnpj <> '' then site := 'http://controlw.blog.br/si2/data.php?cnpj=' + cnpj
+    else site := 'http://controlw.blog.br/si2/data.php'  ;
+
     Form72.IdHTTP1.Request.UserAgent :=
       'Mozilla/5.0 (Windows NT 5.1; rv:2.0b8) Gecko/20100101 Firefox/4.0b8';
     Form72.IdHTTP1.HTTPOptions := [hoForceEncodeParams];
@@ -8806,6 +8807,8 @@ begin
   begin
     if StrToIntDef(ContaChar(th, '|'), 0) < 6 then
       exit;
+
+    retorno := th;
 
     Result := true;
     arq := TStringList.Create;

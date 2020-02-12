@@ -11,6 +11,7 @@ type
     RichEdit1: TRichEdit;
     BitBtn1: TBitBtn;
     BitBtn2: TBitBtn;
+    CheckBox1: TCheckBox;
     procedure FormKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure RichEdit1KeyPress(Sender: TObject; var Key: Char);
@@ -91,6 +92,7 @@ begin
 
   fim := RichEdit1.Lines.Count -1;
   AssignPrn(PrintText);
+  Printer.Canvas.Font.Style := [fsBold];
   Printer.Canvas.Font.Name := 'Courier New';
   printer.Canvas.Font.Size := 8;
   printer.title := 'Impressão Relatório: Rel de Vendas';
@@ -111,6 +113,7 @@ procedure Tmfd.imprimeESCPOS();
 var
   ini, fim  : integer;
   PrintText : TextFile;
+  lin : String;
 begin
   fim := RichEdit1.Lines.Count -1;
   for ini := 0 to fim do
@@ -120,7 +123,11 @@ begin
       except
       end;
 
-      dtmMain.ACBrPosPrinter1.ImprimirLinha(RichEdit1.Lines[ini]);
+      lin := RichEdit1.Lines[ini];
+      if CheckBox1.Checked then lin := '<n>' + lin + '</n>'
+      else lin := '<fn>' + lin;
+
+      dtmMain.ACBrPosPrinter1.ImprimirLinha(lin);
     end;
     
   dtmMain.ACBrPosPrinter1.PularLinhas(5);

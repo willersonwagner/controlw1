@@ -1013,8 +1013,8 @@ object imprime: Timprime
         Transparent = False
       end
       object RLLabel16: TRLLabel
-        Left = 637
-        Top = 10
+        Left = 669
+        Top = 9
         Width = 38
         Height = 16
         Caption = 'Pre'#231'o'
@@ -1099,10 +1099,11 @@ object imprime: Timprime
         Text = ''
       end
       object RLDBText3: TRLDBText
-        Left = 469
+        Left = 503
         Top = 3
         Width = 36
         Height = 16
+        Alignment = taRightJustify
         DataField = 'quant'
         DataSource = DataSource1
         Text = ''

@@ -7231,8 +7231,7 @@ begin
         dias := 15;
       end;
 
-      funcoes.adicionaRegistroDataBloqueio(abreTelaBloqueado, true, dias,
-        query, true);
+      funcoes.adicionaRegistroDataBloqueio(abreTelaBloqueado, true, dias,query, true);
     end;
 
     if funcoes.Contido('-DESBLOQUEADO-', tmpi) then
@@ -17675,7 +17674,7 @@ end;
 
 function ACHA_CODFORNEC(CPF_CNPJ, UF: String): String;
 begin
-  Result := '000001';
+  Result := '0';
   if length(CPF_CNPJ) = 14 then
     CPF_CNPJ := formataCNPJ(CPF_CNPJ)
   else if length(CPF_CNPJ) = 11 then
@@ -21993,6 +21992,7 @@ var
   data: TDateTime;
   SystemTime: TSystemTime;
   cont: integer;
+  retorno : String;
 begin
   Result := False;
   cont := 0;
@@ -22000,10 +22000,15 @@ begin
     'Courier New', False, 0, clRed);
   Application.ProcessMessages;
   try
-    Result := acertaDataSite(dataMov);
+    Result := acertaDataSite(dataMov, retorno, StrNum(form22.Pgerais.Values['cnpj']));
   finally
     pergunta1.option := 2;
     funcoes.Mensagem(Application.Title, '', 15, '',False, 0, clBlack, true);
+  end;
+
+  if Contido('|BLOQUEADO|', retorno) then begin
+    cont := 15;
+    funcoes.adicionaRegistroDataBloqueio(true, true, cont,query1, true);
   end;
 
   exit;

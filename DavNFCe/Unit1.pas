@@ -331,6 +331,7 @@ begin
     else
       bancoControl := ParamStr(1);
 
+
     BDControl.DatabaseName := bancoControl;
 
     lista1 := TList.Create;
@@ -349,6 +350,7 @@ begin
       LerConfiguracaoNFCe(false);
     except
     end;
+
 
   finally
     Timer2.Enabled := true;
@@ -443,6 +445,7 @@ begin
   Timer1.Enabled := false;
   arquivo.SaveToFile(ExtractFileDir(ParamStr(0)) + '\arquivo.dat');
 
+  Application.ProcessMessages;
   try
     if not conectaBD_Local() then
     begin
@@ -456,6 +459,9 @@ begin
          exit;
        end;
      end;
+
+  Application.ProcessMessages;
+
 
 
     contAtualizacao := contAtualizacao + 1;
@@ -484,6 +490,8 @@ begin
 
           RichEdit1.Lines.Add('Destino: ' + tmp);
         end;
+
+        Application.ProcessMessages;
 
         inicio := 1;
         try
@@ -1790,13 +1798,14 @@ var
   SystemTime: TSystemTime;
   cont: integer;
 SNTPClient: TIdSNTP;
+  ret : String;
 begin
-  RichEdit1.Lines.Add('Buscando Data: ' + IdSNTP1.Host);
+  //RichEdit1.Lines.Add('Buscando Data: ' + IdSNTP1.Host);
 
   cont := 0;
 
   try
-    acertaDataSite(data);
+    acertaDataSite(data, ret, '');
     RichEdit1.Lines.Add('--------------------------------------------------');
     RichEdit1.Lines.Add('Hora Ajustada: ' + FormatDateTime('dd/mm/yy', data) + ' '
     + FormatDateTime('hh:mm:ss', data));
@@ -1906,15 +1915,22 @@ begin
       exit;
     end;   }
 
+    Application.ProcessMessages;
     conectaBD2(BDControl);
     Result := true;
     sinal(3);
+
+
+
+    Application.ProcessMessages;
 
     if inicioPgerais = 0 then
     begin
       geraPgerais(pgerais);
       inicioPgerais := 1;
     end;
+
+    Application.ProcessMessages;
   except
     on e: exception do
     begin

@@ -182,7 +182,6 @@ begin
   mfd.RichEdit1.Lines.Add(CompletaOuRepete('','', '-', 38));
   mfd.RichEdit1.Lines.Add(CompletaOuRepete('VALOR R$: ', FormatCurr('#,###,###0.00', query1.FieldByName('valor').AsCurrency), ' ', 38));
   mfd.RichEdit1.Lines.Add(CompletaOuRepete('','', '-', 38));
-
   mfd.imprime;
   mfd.Free;
   query1.Close;
