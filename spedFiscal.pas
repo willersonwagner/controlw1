@@ -2461,6 +2461,9 @@ begin
                   TRIB := Trim(listaProdutos[ini].CST);
                   TRIB := IfThen(Length(TRIB) = 2, trib, '41');  //CST - VERIFICA SE O CST DA NF-E   VALIDO, SEN? PEGA 41-N? TRIBUTADO
 
+                  if ((TRIB = '60') and (listaProdutos[ini].CFOP = '5102')) then listaProdutos[ini].CFOP := '5405';
+                  if ((TRIB = '60') and (listaProdutos[ini].CFOP = '6102')) then listaProdutos[ini].CFOP := '6404';
+
                   TOT_ICM  := TOT_ICM  + listaProdutos[ini].TOT_ICM;
                   ACUM_IcmsCstCFOP(listaProdutos.Items[ini], listaPIS, BASE_ICM);
 
@@ -3697,6 +3700,8 @@ begin
 
                   DADOS_PROD(IntToStr(listaProdutos[ini].cod) , DESC, UNID, COD_ALIQ, TRIB, ISPIS, COD_ISPIS, PERC_ICMS, BASE_PIS_RD, false);
 
+                  if ((listaProdutos.Items[ini].CST = '60') and (listaProdutos[ini].CFOP = '5102')) then listaProdutos[ini].CFOP := '5405';
+
                   TOT_ITEM := listaProdutos[ini].total;
                   SOMA_MOV(listaProdutos[ini].cod, - listaProdutos[ini].quant);
                   //ALIQUOTA DE ICMS (PEGA A ALIQUOTA INTERESTADUAL)
@@ -4533,6 +4538,9 @@ begin
 
                   TRIB := Trim(listaProdutos[ini].CST);
                   TRIB := IfThen(Length(TRIB) = 2, trib, '41');  //CST - VERIFICA SE O CST DA NF-E   VALIDO, SEN? PEGA 41-N? TRIBUTADO
+
+                  if ((TRIB = '60') and (listaProdutos[ini].CFOP = '5102')) then listaProdutos[ini].CFOP := '5405';
+                  if ((TRIB = '60') and (listaProdutos[ini].CFOP = '6102')) then listaProdutos[ini].CFOP := '6404';
 
                   //CALCULA O VALOR DO CREDITO DE ICMS, SE TIVER
                   //BASE_ICM := IfThen(TRIB = '00', TOT_ITEM - dsProduto.fieldbyname('descCom').AsCurrency, 0);//MAT_ITENS[INI, 4] - MAT_ITENS[INI, 6], 0) //TIRANDO APENAS DESCONTO COMERCIAL DA BASE DE CALCULO
