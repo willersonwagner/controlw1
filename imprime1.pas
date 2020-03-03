@@ -110,6 +110,33 @@ type
     RLDraw12: TRLDraw;
     RLPDFFilter1: TRLPDFFilter;
     RLPreviewSetup1: TRLPreviewSetup;
+    RelLivroCaixa: TRLReport;
+    RLBand9: TRLBand;
+    RLLabel17: TRLLabel;
+    RLLabel18: TRLLabel;
+    RLLabel19: TRLLabel;
+    RLLabel20: TRLLabel;
+    RLBand10: TRLBand;
+    RLLabel21: TRLLabel;
+    RLLabel22: TRLLabel;
+    RLLabel23: TRLLabel;
+    RLLabel24: TRLLabel;
+    RLBand11: TRLBand;
+    RLDBText5: TRLDBText;
+    RLDBText6: TRLDBText;
+    RLDBText7: TRLDBText;
+    RLDBText8: TRLDBText;
+    RLBand12: TRLBand;
+    RLSystemInfo2: TRLSystemInfo;
+    RLDraw13: TRLDraw;
+    RLLabel25: TRLLabel;
+    RLLabel26: TRLLabel;
+    RLLabel27: TRLLabel;
+    RLLabel28: TRLLabel;
+    RLLabel29: TRLLabel;
+    RLDBText9: TRLDBText;
+    RLDBText10: TRLDBText;
+    RLDBText11: TRLDBText;
     procedure Timer1Timer(Sender: TObject);
     procedure RLBand7BeforePrint(Sender: TObject; var PrintIt: Boolean);
     procedure RLReport2AfterPrint(Sender: TObject);
@@ -595,7 +622,7 @@ begin
       PrintRichEdit('IMPRESSAO', FORM19.RichEdit1);
       EXIT;
     end;
-  
+
   if funcoes.LerConfig(form22.Pgerais.Values['imp'], 1) = '5' then
     begin
       impTxtMatricialUSB(ImplinhasFinal);
@@ -788,6 +815,12 @@ begin
    if funcoes.Contido(#18, lin) then
      begin
        printer.canvas.font.size := 11;
+     end;
+
+   if funcoes.Contido('/n', lin) then
+     begin
+       result := StringReplace(result, '/n', '',[rfReplaceAll, rfIgnoreCase]);
+       Writeln(PrintText, #12);
      end;
 
 
@@ -992,7 +1025,7 @@ end;
 
 procedure Timprime.AtivarACBrETQ ;
 begin
-  if dm.ACBrETQ1.Ativo then dm.ACBrETQ1.Desativar; 
+  if dm.ACBrETQ1.Ativo then dm.ACBrETQ1.Desativar;
   with dm.ACBrETQ1 do
   begin
      DPI           := dpi203;
@@ -1063,4 +1096,5 @@ begin
 end;
 
 end.
+
 

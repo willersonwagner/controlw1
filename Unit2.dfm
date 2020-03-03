@@ -11582,6 +11582,11 @@ object Form2: TForm2
           Caption = 'Livro de Caixa'
           OnClick = LivrodeCaixa1Click
         end
+        object LivrodeCaixaGrfico1: TMenuItem
+          Caption = 'Livro de Caixa Gr'#225'fico'
+          Visible = False
+          OnClick = LivrodeCaixaGrfico1Click
+        end
         object ResumoFinanceiro1: TMenuItem
           Caption = 'Resumo Financeiro'
           OnClick = ResumoFinanceiro1Click

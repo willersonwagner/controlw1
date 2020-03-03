@@ -12304,7 +12304,7 @@ begin
 
   dm.IBselect.Close;
   dm.IBselect.SQL.Clear;
-  dm.IBselect.SQL.Add('select empresa, versao, cnpj, substring(cod_mun from 1 for 2) as codest from registro');
+  dm.IBselect.SQL.Add('select nome,empresa, versao, cnpj, substring(cod_mun from 1 for 2) as codest from registro');
   dm.IBselect.Open;
   arr.Add('cnpj=' + trim(UpperCase(dm.IBselect.FieldByName('cnpj')
     .AsString)));
@@ -12312,6 +12312,9 @@ begin
     .AsString)));
   arr.Add('empresa=' + trim(UpperCase(dm.IBselect.FieldByName('empresa')
     .AsString)));
+  arr.Add('razaoS=' + trim(UpperCase(dm.IBselect.FieldByName('nome').AsString)));
+  arr.Add('ies=' + trim(UpperCase(dm.IBselect.FieldByName('nome').AsString)));
+
   arr.Values['codigo_seq'] := dm.IBselect.FieldByName('versao').AsString;
   dm.IBselect.Close;
 

@@ -1145,6 +1145,267 @@ object imprime: Timprime
       end
     end
   end
+  object RelLivroCaixa: TRLReport
+    Left = 40
+    Top = 43
+    Width = 794
+    Height = 1123
+    Margins.LeftMargin = 2.000000000000000000
+    Margins.TopMargin = 2.000000000000000000
+    DataSource = DataSource1
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clBlack
+    Font.Height = -13
+    Font.Name = 'Arial'
+    Font.Style = []
+    AfterPrint = RLReport2AfterPrint
+    object RLBand9: TRLBand
+      Left = 8
+      Top = 69
+      Width = 748
+      Height = 24
+      BandType = btHeader
+      Borders.Sides = sdAll
+      Borders.Width = 2
+      Color = clWhite
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -13
+      Font.Name = 'Arial'
+      Font.Style = []
+      ParentColor = False
+      ParentFont = False
+      Transparent = False
+      object RLLabel17: TRLLabel
+        Left = 24
+        Top = 3
+        Width = 31
+        Height = 16
+        Caption = 'Data'
+        Transparent = False
+      end
+      object RLLabel18: TRLLabel
+        Left = 75
+        Top = 3
+        Width = 52
+        Height = 16
+        Caption = 'Nr. Doc.'
+        Transparent = False
+      end
+      object RLLabel19: TRLLabel
+        Left = 141
+        Top = 3
+        Width = 55
+        Height = 16
+        Caption = 'Hist'#243'rico'
+        Transparent = False
+      end
+      object RLLabel20: TRLLabel
+        Left = 685
+        Top = 3
+        Width = 39
+        Height = 16
+        Caption = 'Grupo'
+        Transparent = False
+      end
+      object RLLabel27: TRLLabel
+        Left = 405
+        Top = 3
+        Width = 49
+        Height = 16
+        Caption = 'Entrada'
+        Transparent = False
+      end
+      object RLLabel28: TRLLabel
+        Left = 501
+        Top = 3
+        Width = 37
+        Height = 16
+        Caption = 'Sa'#237'da'
+        Transparent = False
+      end
+      object RLLabel29: TRLLabel
+        Left = 573
+        Top = 3
+        Width = 71
+        Height = 16
+        Caption = 'Saldo Atual'
+        Transparent = False
+      end
+    end
+    object RLBand10: TRLBand
+      Left = 8
+      Top = 8
+      Width = 748
+      Height = 61
+      BandType = btHeader
+      Color = clSilver
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -13
+      Font.Name = 'Arial'
+      Font.Style = [fsBold]
+      ParentColor = False
+      ParentFont = False
+      Transparent = False
+      object RLLabel21: TRLLabel
+        Left = 3
+        Top = 3
+        Width = 353
+        Height = 16
+        Caption = 'Raz'#227'o Social:DEEP TRATOR PECAS COM. E REP. LTDA'
+        Transparent = False
+      end
+      object RLLabel22: TRLLabel
+        Left = 3
+        Top = 23
+        Width = 339
+        Height = 16
+        Caption = 'CNPJ:84.020.817/0001-11            INSC. EST.:240020831'
+        Transparent = False
+      end
+      object RLLabel23: TRLLabel
+        Left = 677
+        Top = 3
+        Width = 68
+        Height = 16
+        Caption = '31/08/2018'
+        Transparent = False
+      end
+      object RLLabel24: TRLLabel
+        Left = 691
+        Top = 43
+        Width = 54
+        Height = 16
+        Caption = '15:23:01'
+        Transparent = False
+      end
+      object RLLabel25: TRLLabel
+        Left = 3
+        Top = 43
+        Width = 417
+        Height = 16
+        Caption = 'Livro de Registros do Movimento de Caixa de: 01/01/20 a 02/03/20'
+        Transparent = False
+      end
+    end
+    object RLBand11: TRLBand
+      AlignWithMargins = True
+      Left = 8
+      Top = 93
+      Width = 748
+      Height = 19
+      AlignToBottom = True
+      AutoSize = True
+      Completion = ctFullPage
+      BeforePrint = RLBand7BeforePrint
+      object RLDBText5: TRLDBText
+        Left = 23
+        Top = 3
+        Width = 30
+        Height = 16
+        Alignment = taCenter
+        DataField = 'data'
+        DataSource = DataSource1
+        Text = ''
+      end
+      object RLDBText6: TRLDBText
+        Left = 59
+        Top = 3
+        Width = 68
+        Height = 16
+        Alignment = taRightJustify
+        DataField = 'documento'
+        DataSource = DataSource1
+        Text = ''
+      end
+      object RLDBText7: TRLDBText
+        Left = 407
+        Top = 3
+        Width = 47
+        Height = 16
+        Alignment = taRightJustify
+        DataField = 'entrada'
+        DataSource = DataSource1
+        DisplayMask = '#,###,###0.00'
+        Text = ''
+      end
+      object RLDBText8: TRLDBText
+        Left = 688
+        Top = 3
+        Width = 36
+        Height = 16
+        Alignment = taRightJustify
+        DataField = 'grupo'
+        DataSource = DataSource1
+        DisplayMask = '000###'
+        Text = ''
+      end
+      object RLDBText9: TRLDBText
+        Left = 143
+        Top = 3
+        Width = 53
+        Height = 16
+        DataField = 'historico'
+        DataSource = DataSource1
+        Text = ''
+      end
+      object RLDBText10: TRLDBText
+        Left = 503
+        Top = 3
+        Width = 35
+        Height = 16
+        Alignment = taRightJustify
+        DataField = 'saida'
+        DataSource = DataSource1
+        DisplayMask = '#,###,###0.00'
+        Text = ''
+      end
+      object RLDBText11: TRLDBText
+        Left = 609
+        Top = 3
+        Width = 35
+        Height = 16
+        Alignment = taRightJustify
+        DataField = 'saldo'
+        DataSource = DataSource1
+        DisplayMask = '#,###,###0.00'
+        Text = ''
+      end
+    end
+    object RLBand12: TRLBand
+      Left = 8
+      Top = 112
+      Width = 748
+      Height = 29
+      BandType = btFooter
+      object RLSystemInfo2: TRLSystemInfo
+        Left = 57
+        Top = 11
+        Width = 87
+        Height = 16
+        Info = itPageNumber
+        Text = ''
+      end
+      object RLDraw13: TRLDraw
+        Left = 0
+        Top = 0
+        Width = 748
+        Height = 8
+        Align = faTop
+        DrawKind = dkLine
+        Pen.Width = 2
+      end
+      object RLLabel26: TRLLabel
+        Left = 3
+        Top = 10
+        Width = 48
+        Height = 16
+        Caption = 'P'#225'gina:'
+        Transparent = False
+      end
+    end
+  end
   object Timer1: TTimer
     Enabled = False
     OnTimer = Timer1Timer
