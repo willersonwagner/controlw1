@@ -22410,6 +22410,15 @@ begin
 
     while true do
     begin
+      sleep(1);
+      {if cont = 159200 then ShowMessage(IntToStr(cont) + #13 + dm.IBselect.FieldByName('nnf').AsString)
+      else if cont = 159400 then ShowMessage(IntToStr(cont) + #13 + dm.IBselect.FieldByName('nnf').AsString)
+      else if cont = 159600 then ShowMessage(IntToStr(cont) + #13 + dm.IBselect.FieldByName('nnf').AsString)
+      else if cont = 159800 then ShowMessage(IntToStr(cont) + #13 + dm.IBselect.FieldByName('nnf').AsString);
+
+      if cont > 160130 then
+
+      ShowMessage(IntToStr(cont) + #13 + dm.IBselect.FieldByName('nnf').AsString);}
       if dm.IBselect.Eof then
         break;
       if cont <> dm.IBselect.FieldByName('nnf').AsInteger then

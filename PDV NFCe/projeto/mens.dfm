@@ -30,12 +30,13 @@ object mensagem: Tmensagem
     BorderStyle = bsSingle
     Ctl3D = False
     ParentBiDiMode = False
+    ParentBackground = False
     ParentCtl3D = False
     TabOrder = 0
     object Label1: TLabel
       Left = 7
       Top = 32
-      Width = 414
+      Width = 415
       Height = 41
       Caption = 'Aguarde, Lendo Balan'#231'a...'
       Font.Charset = ANSI_CHARSET

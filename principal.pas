@@ -17,25 +17,30 @@ type
   Tform22 = class(TForm)
     Timer1: TTimer;
     Panel1: TPanel;
-    Image1: TImage;
     data1: TLabel;
     hora: TLabel;
     Label1: TLabel;
     nome: TEdit;
     Label2: TLabel;
     senha: TEdit;
-    Label6: TLabel;
-    Label7: TLabel;                                                 
-    Label8: TLabel;
     Label9: TLabel;
     ApplicationEvents1: TApplicationEvents;
     Label10: TLabel;
     Button1: TButton;
+    Image1: TImage;
+    PainelBV: TPanel;
+    Label6: TLabel;
+    Label7: TLabel;
+    Label8: TLabel;
+    Label3: TLabel;
+    Image2: TImage;
+    PainelManaus: TPanel;
+    Label4: TLabel;
+    Label5: TLabel;
+    Label11: TLabel;
     ClientDataSet1: TClientDataSet;
     ClientDataSet1COOD: TIntegerField;
     ClientDataSet1NOME: TStringField;
-    Image2: TImage;
-    Label3: TLabel;
     procedure nomeKeyPress(Sender: TObject; var Key: Char);
     procedure senhaKeyPress(Sender: TObject; var Key: Char);
     procedure FormShow(Sender: TObject);
@@ -386,7 +391,22 @@ begin
 end;
 
 procedure Tform22.FormShow(Sender: TObject);
+var
+ estado : String;
 begin
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select est from registro';
+  dm.IBselect.Open;
+
+  estado := trim(dm.IBselect.FieldByName('est').AsString);
+  dm.IBselect.Close;
+
+  if ((length(estado) = 2) and (estado <> 'RR')) then begin
+    PainelManaus.Top  := PainelBV.Top;
+    PainelManaus.Left := PainelBV.Left;
+    PainelManaus.Visible := true;
+    PainelBV.Visible     := false;
+  end;
   //verifica atualiza BD foi colocado aqui pq não pode ser no oncreate
   //essa função vai ser chamada e vai verificar se existe o ARQUIVO BD0.FDB
   // e vai criar os campos que deve criar
@@ -435,7 +455,8 @@ end;
 
 
 procedure Tform22.FormCreate(Sender: TObject);
-var age : integer;
+var
+  age : integer;
 begin
   VersaoExe := '0.1';
   Application.OnException := EventoErro;

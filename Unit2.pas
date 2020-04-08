@@ -1298,14 +1298,18 @@ begin
   else
     prec := 'p_compra';
 
-  estoqueZero := funcoes.dialogo('not', 0, 'SN', 20, true, 'S',
-    application.Title, 'Imprimir Itens Com Estoque Zero (S-Sim, N-Não) ?', 'S');
+estoqueZero := funcoes.dialogo('not', 0, 'SNX', 20, true, 'S',
+    application.Title, 'Imprimir Itens Com Estoque Zero (S-Sim, N-Não, X-Somente Zerados) ?', 'S');
   if estoqueZero = '*' then
     exit;
 
   if estoqueZero = 'N' then
   begin
     h4 := ' (quant + deposito > 0) and ';
+  end;
+
+  if estoqueZero = 'X' then begin
+    h4 := ' (quant + deposito = 0) and ';
   end;
 
   dm.ProdutoQY.Close;
@@ -1500,14 +1504,18 @@ begin
   else
     prec := 'p_compra';
 
-  estoqueZero := funcoes.dialogo('not', 0, 'SN', 20, true, 'S',
-    application.Title, 'Imprimir Itens Com Estoque Zero (S-Sim, N-Não) ?', 'S');
+  estoqueZero := funcoes.dialogo('not', 0, 'SNX', 20, true, 'S',
+    application.Title, 'Imprimir Itens Com Estoque Zero (S-Sim, N-Não, X-Somente Zerados) ?', 'S');
   if estoqueZero = '*' then
     exit;
 
   if estoqueZero = 'N' then
   begin
     h4 := ' (quant + deposito > 0) and ';
+  end;
+
+  if estoqueZero = 'X' then begin
+    h4 := ' (quant + deposito = 0) and ';
   end;
 
   dm.ProdutoQY.Close;
@@ -2000,12 +2008,28 @@ begin
 end;
 
 procedure TForm2.EstoqueNegativo1Click(Sender: TObject);
+var
+  estoqueZero, h4 : String;
 begin
+  h4 := ' ((quant+deposito) < 0)';
+
+
+  estoqueZero := funcoes.dialogo('not', 0, 'SN', 20, true, 'S',
+    application.Title, 'Imprimir SOMENTE Itens Com Estoque Zero (S-Sim, N-Não) ?', 'N');
+  if estoqueZero = '*' then
+    exit;
+
+  if estoqueZero = 'S' then
+  begin
+    h4 := ' (quant + deposito = 0)';
+  end;
+
+
   form19.RichEdit1.Clear;
   b := 56;
   dm.ProdutoQY.SQL.Clear;
   dm.ProdutoQY.SQL.Add
-    ('SELECT cod,nome,codbar,quant,deposito FROM produto WHERE quant+deposito<0');
+    ('SELECT cod,nome,codbar,quant,deposito FROM produto WHERE ' + h4 + ' order by nome');
   dm.ProdutoQY.Open;
 
   dm.ProdutoQY.FetchAll;
@@ -14843,8 +14867,8 @@ begin
   if base = '*' then
     exit;
 
-  estoqueZero := funcoes.dialogo('not', 0, 'SN', 20, true, 'S',
-    application.Title, 'Imprimir Itens Com Estoque Zero (S-Sim, N-Não) ?', 'N');
+  estoqueZero := funcoes.dialogo('not', 0, 'SNX', 20, true, 'S',
+    application.Title, 'Imprimir Itens Com Estoque Zero (S-Sim, N-Não, X-Somente Zerados) ?', 'S');
   if estoqueZero = '*' then
     exit;
 
@@ -14960,6 +14984,10 @@ begin
   else
     estoqueZero := '';
 
+  if estoqueZero = 'X' then begin
+    estoqueZero := ' and (' + tmp + ' = 0) '
+  end;
+
   if base = 'S' then
     base := 'p_venda'
   else if base = 'N' then
@@ -14974,8 +15002,6 @@ begin
   h2 := '';
   if grupo <> ''  then h1 := ' and (grupo = '+StrNum(grupo)+')';
   if fabric <> '' then h2 := ' and (fabric = '+StrNum(fabric)+')';
-
-  
 
 
   dm.IBQuery2.Close;
@@ -19734,20 +19760,38 @@ begin
   addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 78) + CRLF);
 
   arq := TStringList.Create;
-  lista := funcoes.listaArquivos(pstaNfe + '*-nfe.xml');
-  f1 := lista.Count - 1;
+  {lista := funcoes.listaArquivos(pstaNfe + '*-nfe.xml');
+  f1 := lista.Count - 1;}
+
+  dm.ibselect.Close;
+  dm.ibselect.SQL.Text := 'select * from nfe where data >= :ini and data <= :fim order by cast(substring(chave from 26 for 9) as integer)';
+  dm.ibselect.ParamByName('ini').AsDate := dini1;
+  dm.ibselect.ParamByName('fim').AsDate := dfim1;
+  dm.ibselect.Open;
+  dm.IBselect.FetchAll;
+
+  if dm.ibselect.IsEmpty then
+  begin
+    dm.ibselect.Close;
+    MessageDlg('Nenhuma NFe Encontrada Nesta Data!', mtError, [mbOK], 1);
+    exit;
+  end;
 
   funcoes.informacao(1, 2, 'Aguarde, Gerando Relatório... ', true, false, 2);
   totGeral := 0;
 
-  for i1 := 0 to f1 do
-  begin
+
+
+  i1 := 0;
+  f1 := dm.IBselect.RecordCount;
+  while not dm.IBselect.Eof do begin
     funcoes.informacao(i1, f1, 'Aguarde, Gerando Relatório... ', false,
       false, 2);
+    i1 := i1 + 1;
 
     totItem := 0;
     arq.Clear;
-    arq.LoadFromFile(pstaNfe + lista[i1]);
+    arq.Text := (dm.IBselect.FieldByName('xml').AsString);
     tmp := Le_Nodo('dEmi', arq.GetText);
 
     if (tmp) = '' then
@@ -19787,6 +19831,8 @@ begin
         end;
       end;
     end;
+
+    dm.IBselect.Next;
   end;
 
   funcoes.informacao(i1, f1, 'Aguarde, Gerando Relatório... ', false, true, 2);

@@ -721,8 +721,10 @@ begin
 
   RichEdit1.Lines.Add('Sincronizando o Estoque...');
 
-  if verSeOcorreuMudancaEstoque = false then
+  if verSeOcorreuMudancaEstoque = false then begin
+    RichEdit1.Lines.Add('Sem Mudanças...');
     exit;
+  end;
 
 
 
@@ -871,6 +873,7 @@ begin
       IBQuery1.Next;
     end;
   end;
+
   { IBQuery1.Close;
     IBQuery1.SQL.Text := 'delete from produto p where position(''|'' || p.cod || ''|'' in '+ QuotedStr(cods) +') = 0';
     try
@@ -1891,8 +1894,7 @@ begin
     exit;
   Result := false;
   codLocal := Incrementa_Generator('ATUALIZACADPROD', 0, IBQuery2);
-  if codLocal <> Incrementa_Generator('ATUALIZACADPROD', 0, IBQueryServer1) then
-  begin
+  if codLocal <> Incrementa_Generator('ATUALIZACADPROD', 0, IBQueryServer1) then begin
     Result := true;
   end;
 end;

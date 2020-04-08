@@ -65,7 +65,7 @@ type matrizCurrency = array of currency;
      REC_BRUTA, BC_PISTRIB, TOT_APUR_CST : currency;
      ARQ_SPED, ARQ_PIS, ARQ_TMP : TextFile;
      listaCOD_PROD, MAT_ALIQPIS, BAS_ALIQPIS, VAL_ALIQPIS, BASC_ALIQPIS, CRED_ALIQPIS, DESC_ALIQPIS, MAT_CST_PIS : TStringList;
-     CODCFOP, CODFOR, ERRO_CHAVE, arqTmp, valordg, _CNPJ, CST_PIS, chaveAnoMes, pisInvalido : String;
+     CODCFOP, CODFOR, ERRO_CHAVE, arqTmp, valordg, _CNPJ, CST_PIS, chaveAnoMes, pisInvalido, codMunSistema : String;
      movimento, contReg, MAT_ALIQCFOP,
      VAL_ALIQCFOP, BAS_ALIQCFOP, ICM_ALIQCFOP, ADC_ALIQCFOP, MAT_REG, lisTMP, MAT_PED : TStringList;
      dsProduto, dsAliq, arqTemp : TClientDataSet;
@@ -1612,7 +1612,7 @@ end;
 
 function leConhecimentos_de_frete_Bloco_D_SF(reg : integer = 1) : Smallint;
 var
-  cfoptmp, CHV_CTE, codMunTransp, codMunSistema : String;
+  cfoptmp, CHV_CTE, codMunTransp : String;
   aliqICMS  : currency;
 begin
   Result := 0;
@@ -1993,7 +1993,12 @@ begin
               ies   := StrNum(dm.IBselect.fieldbyname('ies').AsString);
               ies   := '';
               cod   := '9999999';
+              //cod   := StrNum(dm.IBselect.fieldbyname('cod_mun').AsString);
               COD_ALIQ := codigosClientesExterior.Values[dm.IBselect.fieldbyname('cod').AsString];
+
+              if COD_ALIQ = '1058' then begin
+                COD_ALIQ := StrNum(dm.IBselect.fieldbyname('cod_mun').AsString);
+              end;
             end
           else
             begin
@@ -2008,7 +2013,7 @@ begin
 
 
           LINHA := '|0150|2' + strzero(dm.IBselect.fieldbyname('cod').AsString, 6) + '|' + trim(dm.IBselect.fieldbyname('nome').AsString) + '|'+COD_ALIQ+'|' + _CNPJ + '|' + _CPF + '|' +
-          ies + '|' + IfThen(trim(cod) = '', _CODMUN, cod) + '|' + IfThen(length(TRIM(dm.IBselect.fieldbyname('conj').AsString)) = 9, StrNum(dm.IBselect.fieldbyname('conj').AsString), '') + '|' + SEPARA_END(dm.IBselect.fieldbyname('ende').AsString) +
+          ies + '|' + IfThen(trim(cod) = '', _CODMUN, COD) + '|' + IfThen(length(TRIM(dm.IBselect.fieldbyname('conj').AsString)) = 9, StrNum(dm.IBselect.fieldbyname('conj').AsString), '') + '|' + SEPARA_END(dm.IBselect.fieldbyname('ende').AsString) +
           '||' + ALLTRIM(dm.IBselect.fieldbyname('bairro').AsString) + '|';
           GRAVA_SPED(ARQ_SPED, LINHA);
         end;
@@ -3014,8 +3019,23 @@ end;
 
 
 function ACHA_CODCLI(CPF_CNPJ, UF : String; nodo_destXML : String = '') : String;
+var
+  idestra : string;
 begin
   Result := '000001';
+
+  idestra := Le_Nodo('idEstrangeiro', nodo_destXML);
+  if idestra <> '' then begin
+    dm.IBQuery2.Close;
+    dm.IBQuery2.SQL.Text := 'select cnpj, cod, est from cliente where ies = :cnpj';
+    dm.IBQuery2.ParamByName('cnpj').AsString := CPF_CNPJ;
+    dm.IBQuery2.Open;
+
+    Result := dm.IBQuery2.fieldbyname('cod').AsString;
+    dm.IBQuery2.Close;
+    exit;
+  end;
+
 
   try
     IF UF <> 'EX' then begin

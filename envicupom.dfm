@@ -14,6 +14,7 @@ object Form58: TForm58
   Font.Style = []
   OldCreateOrder = False
   Position = poScreenCenter
+  OnKeyDown = FormKeyDown
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
@@ -33,7 +34,7 @@ object Form58: TForm58
   object Label2: TLabel
     Left = 128
     Top = 80
-    Width = 249
+    Width = 248
     Height = 38
     Caption = '0 dias Restantes'
     Font.Charset = ANSI_CHARSET

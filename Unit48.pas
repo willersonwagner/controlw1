@@ -1097,6 +1097,7 @@ begin
          dm.IBQuery1.ExecSQL;
        end;
 
+      Incrementa_Generator('ATUALIZACADPROD', 1);
       ClientDataSet1.Next;
     end;
 
@@ -1158,7 +1159,7 @@ procedure TForm48.DBGrid1DrawColumnCell(Sender: TObject; const Rect: TRect;
   DataCol: Integer; Column: TColumn; State: TGridDrawState);
 begin
   if (Column.Field.FieldName = 'QUANTIDADE_ENT') then begin
-    if ClientDataSet1.FieldByName('mu').AsInteger > 1 then begin
+    if ClientDataSet1.FieldByName('mu').AsInteger <> 1 then begin
       DBGrid1.Canvas.Font.Color  := clWhite;
       DBGrid1.Canvas.Brush.Color := clBlack;
       DBGrid1.Canvas.Font.Style  := [fsBold];

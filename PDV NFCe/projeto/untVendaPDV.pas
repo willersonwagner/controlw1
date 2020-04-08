@@ -127,7 +127,6 @@ type
     procedure aguardaRespostaECF(const intervalo : integer = 100);
     function somaTotalOriginal(somaValorReal : boolean = false; naoSomarCancelados : boolean = true) : Currency;
     function somaDescontosItens() : Currency;
-    procedure setaConfigBalanca();
     procedure setaCoresPDV();
     procedure alinhaComponentes();
     procedure vendeItem();
@@ -1174,7 +1173,7 @@ begin
   preco.setValor(prec);
 
   servico := false;
-  if Contido('*', dtmMain.IBQuery2.fieldbyname('nome').AsString) then servico := true;
+  //if LeftStr(dtmMain.IBQuery2.fieldbyname('nome').AsString, 1) = '*' then servico := true;
 
   preco1 := confirmaPrecoProduto(dtmMain.IBQuery2.fieldbyname('cod').Asstring, qutd, preco1, 1, servico);
 
@@ -1638,7 +1637,6 @@ begin
       vendeuf2 := true;
       Button1Click(sender);
       vendeuf2 := false;
-      //lerPesoBalanca();
       exit;
     end;
 
@@ -1818,15 +1816,47 @@ end;
 procedure TForm3.Button1Click(Sender: TObject);
 var
   key : char;
-  erro1 : smallint;
-  nomeTemp : String;
+  erro1, acc : smallint;
+  nomeTemp, erro2, tipobal : String;
 begin
   if dtmMain.ACBrBAL1.Ativo then dtmMain.ACBrBAL1.Desativar;
-  dtmMain.ACBrBAL1.Modelo := balToledo;
-  //dtmMain.ACBrBAL1.Device.Baud := 2400;
-  dtmMain.ACBrBAL1.Device.Baud := 2400;
+
+  tipobal  := arq.Values['tipoBal'];
+
+  if tipobal = '0' then dtmMain.ACBrBAL1.Modelo := balNenhum
+  else if tipobal = '1' then dtmMain.ACBrBAL1.Modelo := balDigitron
+  else if tipobal = '2' then dtmMain.ACBrBAL1.Modelo := balFilizola
+  else if tipobal = '3' then dtmMain.ACBrBAL1.Modelo := balLucasTec
+  else if tipobal = '4' then dtmMain.ACBrBAL1.Modelo := balMagellan
+  else if tipobal = '5' then dtmMain.ACBrBAL1.Modelo := balMagna
+  else if tipobal = '6' then dtmMain.ACBrBAL1.Modelo := balToledo
+  else if tipobal = '7' then dtmMain.ACBrBAL1.Modelo := balToledo2180
+  else if tipobal = '8' then dtmMain.ACBrBAL1.Modelo := balUrano
+  else if tipobal = '8' then dtmMain.ACBrBAL1.Modelo := balUranoPOP;
+
+  dtmMain.ACBrBAL1.Device.Baud := StrToIntDef(arq.Values['velobal'], 9600);
   dtmMain.ACBrBAL1.Porta := arq.Values['portabal'];
   dtmMain.ACBrBAL1.Ativar;
+
+ { acc := 0;
+  while true do begin
+    acc := acc + 1;
+    if acc = 11 then break;
+
+    try
+      dtmMain.ACBrBAL1.Ativar;
+      break;
+    except
+      on e:exception do begin
+        erro2 := e.message;
+      end;
+    end;
+  end;
+
+  if acc = 11 then begin
+    ShowMessage('Erro 1851 ao Conectar na Balança!' + #13 + erro2);
+    exit;
+  end; }
 
   dtmMain.IBQuery3.Close;
   dtmMain.IBQuery3.SQL.Text := 'select cod, nome, codbar from produto where (codbar like :cod)';
@@ -1871,7 +1901,10 @@ begin
         begin
           quant.Text := '1,000';
           utiLeituraBalanca := -9;
-          MessageDlg('Comunicação com a Balança não disponível', mtError, [mbOK], 1);
+          MessageDlg('Comunicação com a Balança não disponível' + #13 +
+          'Modelo....: '+ dtmMain.ACBrBAL1.ModeloStr + #13 +
+          'Velocidade: '+IntToStr(dtmMain.ACBrBAL1.Device.Baud) + #13 +
+          'Porta.....: '+dtmMain.ACBrBAL1.Porta, mtError, [mbOK], 1);
           quant.SetFocus;
           codbar.Enabled := true;
           //mostraMensagem('Peso Balança: 0,000', false);
@@ -2072,46 +2105,6 @@ begin
   end;
 end;
 
-procedure TForm3.setaConfigBalanca();
-var
-  arq : TStringList;
-  tipo : String;
-begin
-  arq := TStringList.Create;
-  if not FileExists(ExtractFileDir(ParamStr(0)) + '\ConfECF.ini') then exit;
-  arq.LoadFromFile(ExtractFileDir(ParamStr(0)) + '\ConfECF.ini');
-
-  if dtmMain.ACBrBAL1.Ativo then dtmMain.ACBrBAL1.Desativar;
-  tipo  := arq.Values['tipoBal'];
-
-  //dtmMain.ACBrBAL1.Porta := trim(arq.Values['portabal']);
-  //dtmMain.ACBrBAL1.Device.Baud := StrToIntDef(trim(arq.Values['velobal']), 9600);
-
-  if tipo = '0' then dtmMain.ACBrBAL1.Modelo := balNenhum
-  else if tipo = '1' then dtmMain.ACBrBAL1.Modelo := balDigitron
-  else if tipo = '2' then dtmMain.ACBrBAL1.Modelo := balFilizola
-  else if tipo = '3' then dtmMain.ACBrBAL1.Modelo := balLucasTec
-  else if tipo = '4' then dtmMain.ACBrBAL1.Modelo := balMagellan
-  else if tipo = '5' then dtmMain.ACBrBAL1.Modelo := balMagna
-  else if tipo = '6' then dtmMain.ACBrBAL1.Modelo := balToledo
-  else if tipo = '7' then dtmMain.ACBrBAL1.Modelo := balToledo2180
-  else if tipo = '8' then dtmMain.ACBrBAL1.Modelo := balUrano
-  else if tipo = '8' then dtmMain.ACBrBAL1.Modelo := balUranoPOP;
-
-  arq.Free;
-  try
-    //dtmMain.ACBrBAL1.MonitorarBalanca := true;
-    if not dtmMain.ACBrBAL1.Ativo then dtmMain.ACBrBAL1.Ativar;
-    //if not dtmMain.ACBrBAL1.Ativo then dtmMain.ACBrBAL1.Ativar;
-    //ShowMessage(FormatCurr('#,###,###0.000', dtmMain.ACBrBAL1.LePeso()));
-    //if dtmMain.ACBrBAL1.Ativo then ShowMessage('ativo' + #13 + dtmMain.ACBrBAL1.ModeloStr);
-  except
-    on e:exception do
-      begin
-        ShowMessage('erro: ' + e.Message);
-      end;
-  end;
-end;
 
 procedure TForm3.Button2Click(Sender: TObject);
 var

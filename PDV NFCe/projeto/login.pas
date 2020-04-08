@@ -42,7 +42,6 @@ type
     valorSerieNoServidor : integer;
     procedure atualizaTabelaIBPT(manual : boolean = false);
     function buscaVersaoIBPT_Site(tipo : smallint = 1) : String;
-    procedure lerConfigBalanca();
     procedure descompactaIBPT;
     { Public declarations }
   end;
@@ -236,40 +235,6 @@ begin
   inicia := 1;
   //Application.OnException := TrataErros;
   //RLConsts.SetVersion(3,72,'B');
-end;
-
-procedure Tform1.lerConfigBalanca();
-var
-  Ini        : TIniFile ;
-  arq : TStringList;
-  pasta, tipo, velo, porta : String;
-begin
-
-  pasta := ExtractFilePath(ParamStr(0)) + '\ConfECF.ini';
-  if FileExists(pasta) then
-    begin
-      arq := TStringList.Create;
-      arq.LoadFromFile(pasta);
-      //Ini        := TIniFile.Create( pasta );
-
-      porta := arq.Values['portabal'];
-      velo  := arq.Values['velobal'];
-      tipo  := arq.Values['tipoBal'];
-      arq.Free;
-
-      dtmMain.ACBrBAL1.Device.Baud  := StrToIntDef(velo, 9600);
-      dtmMain.ACBrBAL1.Device.Porta := porta;
-      if tipo = '0' then dtmMain.ACBrBAL1.Modelo := balNenhum
-      else if tipo = '1' then dtmMain.ACBrBAL1.Modelo := balDigitron
-      else if tipo = '2' then dtmMain.ACBrBAL1.Modelo := balFilizola
-      else if tipo = '3' then dtmMain.ACBrBAL1.Modelo := balLucasTec
-      else if tipo = '4' then dtmMain.ACBrBAL1.Modelo := balMagellan
-      else if tipo = '5' then dtmMain.ACBrBAL1.Modelo := balMagna
-      else if tipo = '6' then dtmMain.ACBrBAL1.Modelo := balToledo
-      else if tipo = '7' then dtmMain.ACBrBAL1.Modelo := balToledo2180
-      else if tipo = '8' then dtmMain.ACBrBAL1.Modelo := balUrano
-      else if tipo = '8' then dtmMain.ACBrBAL1.Modelo := balUranoPOP;
-    end;
 end;
 
 procedure Tform1.Button1Click(Sender: TObject);

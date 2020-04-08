@@ -23,6 +23,7 @@ type
     procedure Timer1Timer(Sender: TObject);
     procedure segnTimer(Sender: TObject);
     procedure timerThreadTimer(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   private
     { Private declarations }
   public
@@ -37,6 +38,13 @@ var
 implementation
 
 {$R *.dfm}
+
+procedure TForm58.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if key=vk_f4 then
+    abort;
+end;
 
 procedure TForm58.FormShow(Sender: TObject);
 begin

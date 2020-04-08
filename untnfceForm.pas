@@ -862,11 +862,12 @@ var
   chave: String;
   cont: integer;
 begin
-
-  query1.Close;
-  query1.SQL.text := 'delete from nfce where chave = :chave';
-  query1.ParamByName('chave').AsString := ssChaveVelha;
-  query1.ExecSQL;
+  if Length(trim(dados.chave)) = 44 then begin
+    query1.Close;
+    query1.SQL.text := 'delete from nfce where chave = :chave';
+    query1.ParamByName('chave').AsString := ssChaveVelha;
+    query1.ExecSQL;
+  end;
 
   query1.Close;
   query1.SQL.text :=
@@ -3468,8 +3469,7 @@ begin
         if (csta in [100, 150]) = false then
           csta := 999;
 
-        if (Contido
-          ('Duplicidade de NF-e, com diferenca na Chave de Acesso [chNFe:',
+        if (Contido('Duplicidade de NF-e, com diferenca na Chave de Acesso [chNFe:',
           e.Message) or (csta = 539) or (csta = 204)) THEN
         begin
           try
@@ -3551,8 +3551,8 @@ begin
         if csta = 301 then
           venda.adic := 'DENEGADA';
 
-        if insereNotaBD(venda) then
-          Incrementa_Generator(NomeGeneratorSerie, 1);
+        Incrementa_Generator(NomeGeneratorSerie, 1);
+        insereNotaBD(venda);
       except
         on e: Exception do
         begin
@@ -3597,8 +3597,8 @@ begin
 
     venda.adic := 'OFF';
     venda.chave := CHAVENF;
-    if insereNotaBD(venda) then
-      Incrementa_Generator(NomeGeneratorSerie, 1);
+    Incrementa_Generator(NomeGeneratorSerie, 1);
+    insereNotaBD(venda);
     try
       ACBrNFe.NotasFiscais[0].GravarXML(CHAVENF + '-nfe.xml',
         buscaPastaNFCe(CHAVENF, false));
@@ -6682,6 +6682,8 @@ begin
   Result := '<pag>';
   total := totalNota - TOTDESC;
   tmp := 0;
+
+  //ShowMessage(listaPagamentos.getText);
   if usaNFe4ouMaior then
   begin
     for i := 0 to listaPagamentos.Count - 1 do
@@ -7203,7 +7205,7 @@ begin
   end;
 
 
-  if trim(chavt) <> '' then begin
+  {if ((trim(chavt) <> '') and (Length(trim(chavt)) = 44) and (chavt <> chaveAtual)) then begin
     query1.Close;
     query1.SQL.text := 'select chave from nfce where chave = :chave';
     query1.ParamByName('chave').AsString := chavt;
@@ -7216,7 +7218,6 @@ begin
       query1.ExecSQL;
       query1.Transaction.Commit;
     end;
-
   end;
 
 
@@ -7235,18 +7236,18 @@ begin
     'insert into nfce(chave, exportado, nota, cliente, adic, data) values' +
     '(:chave, :exportado, :nota, :cliente, :adic, :data)';
     query1.ParamByName('chave').AsString := chavt;
-    query1.ParamByName('exportado').AsInteger := 1;
+    query1.ParamByName('exportado').AsInteger := 0;
     query1.ParamByName('nota').AsInteger := StrToIntDef(copy(chavt, 37, 7), 0);;
     query1.ParamByName('cliente').AsInteger := 0;
     query1.ParamByName('adic').AsString := '';
     query1.ParamByName('data').AsDate := now;
-   
+
     try
      query1.ExecSQL;
      query1.Transaction.Commit;
     except
     end;
-    end;
+    end;   }
 
   if not FileExists(buscaPastaNFCe(chavt) + chavt + '-nfe.xml') then
   begin
