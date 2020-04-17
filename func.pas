@@ -22106,12 +22106,9 @@ begin
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.text := ('update registro set data_mov = :datamov');
       dm.IBQuery1.ParamByName('datamov').AsDateTime := form22.dataMov;
-      try
-        dm.IBQuery1.ExecSQL;
-        dm.IBQuery1.Transaction.Commit;
-      except
-      end;
-
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
+      
       BomDia := funcoes.verificaPermissaoPagamento(false, false);
       Result := true;
       exit;

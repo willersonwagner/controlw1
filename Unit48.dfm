@@ -44,9 +44,9 @@ object Form48: TForm48
   end
   object Panel1: TPanel
     Left = 0
-    Top = 339
+    Top = 320
     Width = 966
-    Height = 114
+    Height = 133
     Align = alBottom
     TabOrder = 1
     object Label5: TLabel
@@ -89,10 +89,11 @@ object Form48: TForm48
       Left = 8
       Top = 8
       Width = 198
-      Height = 100
+      Height = 120
       Caption = 
         'F2 - Salvar Nota'#13#10'F3 - Abrir Cadastro'#13#10'F4 - Cadastrar Produtos'#13#10 +
-        'F5 - Cadastrar Unidades'#13#10'ESC - Finalizar  '
+        'F5 - Cadastrar Unidades'#13#10'F6 - Replicar Unidade'#13#10'ESC - Finalizar ' +
+        ' '
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -16

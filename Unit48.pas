@@ -63,6 +63,7 @@ type
     function insereFornec : String;
     procedure salvarArq();
     procedure limpaOK();
+    procedure replicarUnidade();
 
     { Public declarations }
   end;
@@ -660,6 +661,11 @@ begin
       form47 := tform47.Create(self);
       form47.ShowModal;
       form47.Free;
+    end;
+
+  if key = 117 then //F6
+    begin
+      replicarUnidade;
     end;
 
   if key = 118 then //F7
@@ -1559,6 +1565,54 @@ begin
   ClientDataSet1.Post;
 end;
 
+procedure TForm48.replicarUnidade();
+var
+  cod, cod1 : String;
+  qtd, valor : currency;
+  codTMP : integer;
+begin
+  if ClientDataSet1.FieldByName('mu').AsInteger > 1 then begin
+    ShowMessage('Essa Unidade Não pode ser Replicada!' + #13 + #13 + 'O fator Multiplicativo é ' + ClientDataSet1.FieldByName('mu').AsString);
+    exit;
+  end;
+
+  if ClientDataSet1.FieldByName('UNID_ENTRADA').AsString = '' then begin
+    ShowMessage('Essa Unidade Não pode ser Replicada!' + #13 + #13 + 'A unidade Não Foi Preenchida!');
+    exit;
+  end;
+
+  unidadeTemp := cod;
+  codTMP := ClientDataSet1.RecNo -1;
+  qtd := funcoes.verValorUnidade(cod);
+  cod1 := ClientDataSet1.FieldByName('UNID_VENDA').AsString;
+  cod  := ClientDataSet1.FieldByName('UNID_ENTRADA').AsString;
+
+
+  ClientDataSet1.DisableControls;
+  ClientDataSet1.First;
+    while not ClientDataSet1.Eof do begin
+      try
+        ClientDataSet1.Edit;
+        ClientDataSet1.FieldByName('UNID_ENTRADA').AsString := cod;
+        ClientDataSet1.FieldByName('UNID_VENDA').AsString   := (cod1);
+        ClientDataSet1.FieldByName('mu').AsFloat          := (qtd);
+        ClientDataSet1.FieldByName('QUANTIDADE_ENT').AsCurrency :=  Arredonda(qtd * ClientDataSet1.FieldByName('QUANTIDADE_NFE').AsFloat, 3);
+
+        valor := Arredonda((ClientDataSet1.FieldByName('PRECO_NFE').AsFloat + (ClientDataSet1.FieldByName('PRECO_NFE').AsFloat * ClientDataSet1.FieldByName('LUCRO').AsFloat / 100)) /qtd, 2);
+        ClientDataSet1.FieldByName('PRECO_NOVO').AsFloat   := valor;
+        ClientDataSet1.FieldByName('PRECO_COMPRA').AsFloat := Arredonda(ClientDataSet1.FieldByName('PRECO_NFE').AsFloat / StrToCurrDef(ClientDataSet1.FieldByName('mu').AsString, 1), 2);
+
+        ClientDataSet1.Post;
+      finally
+      end;
+
+      ClientDataSet1.Next;
+    end;
+
+  ClientDataSet1.First;
+  ClientDataSet1.MoveBy(codTMP);
+  ClientDataSet1.EnableControls;
+end;
 
 end.
 

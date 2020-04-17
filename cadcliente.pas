@@ -143,7 +143,7 @@ var
 implementation
 
 uses Unit1, localizar, cadproduto, func, Math, caixaLista, principal,
-  vendas, Unit67;
+  vendas, Unit67, Unit2;
 
 {$R *.dfm}
 procedure TForm16.setMask();
@@ -285,6 +285,10 @@ var
 begin
   if key = 120 then begin
     buscaCep(cep.Text);
+  end;
+
+  if key = 119 then begin
+    form2.relClienteNota(cod.Text);
   end;
 
   if key = 121 then begin

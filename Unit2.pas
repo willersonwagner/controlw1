@@ -481,7 +481,6 @@ type
     procedure roca1Click(Sender: TObject);
     procedure PorNota1Click(Sender: TObject);
     procedure ClienteNoota1Click(Sender: TObject);
-    procedure PorCliente1Click(Sender: TObject);
     procedure MargemdeLucro1Click(Sender: TObject);
     procedure PorFornecedor1Click(Sender: TObject);
     procedure PapeldeParede1Click(Sender: TObject);
@@ -687,6 +686,7 @@ type
     procedure IntegridadedeContasaReceber1Click(Sender: TObject);
     procedure Oramento2Click(Sender: TObject);
     procedure LivrodeCaixaGrfico1Click(Sender: TObject);
+    procedure PorCliente1Click(Sender: TObject);
   private
     b, cont: integer;
     ini: Smallint;
@@ -704,6 +704,7 @@ type
     grupo, fornec, fabric: string;
     nota: string;
     procedure atualizaLabel(cont1: integer);
+    procedure relClienteNota(cliente : String = '');
     { Public declarations }
   end;
 
@@ -5525,6 +5526,11 @@ begin
     Form34.Free;
   end;
 
+end;
+
+procedure TForm2.PorCliente1Click(Sender: TObject);
+begin
+  relClienteNota('');
 end;
 
 procedure TForm2.PorCliente2Click(Sender: TObject);
@@ -10675,16 +10681,19 @@ begin
   form19.showmodal;
 end;
 
-procedure TForm2.PorCliente1Click(Sender: TObject);
+procedure TForm2.relClienteNota(cliente : String = '');
 var
-  ini, fim, h1, cliente, ee, clix, ordem: string;
+  ini, fim, h1, ee, clix, ordem: string;
   totalgeral: currency;
   i: integer;
 begin
-  cliente := funcoes.dialogo('generico', 30, '1234567890' + #8, 30, false, '',
+  if cliente = '' then begin
+    cliente := funcoes.dialogo('generico', 30, '1234567890' + #8, 30, false, '',
     application.Title, 'Qual o Código do cliente?', '');
-  if (cliente = '*') then
-    exit;
+    if (cliente = '*') then exit;
+  end;
+
+  if cliente = '' then exit;
   { if cliente = '' then cliente := funcoes.localizar('Localizar Cliente','cliente','cod,nome,telres,telcom,cnpj,bairro','cod','','nome','nome',false,false,false,'',0,nil);
     if (cliente = '') or (cliente = '*') then exit;
 
@@ -10796,6 +10805,7 @@ begin
   form19.RichEdit1.Perform(EM_REPLACESEL, 1,
     Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10))));
   form19.showmodal;
+
 end;
 
 procedure TForm2.MargemdeLucro1Click(Sender: TObject);

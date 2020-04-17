@@ -5619,7 +5619,7 @@ var
   vencimento: TDateTime;
 begin
   //se tem mais de 1 parcela entao o sistema atribui pagamento mensal
-  if (StrToInt(Parcelamento.Values['qtd']) > 1) then Parcelamento.Values['periodo'] := '30';
+  //if (StrToInt(Parcelamento.Values['qtd']) > 1) then Parcelamento.Values['periodo'] := '30';
 
   for i := 1 to StrToInt(Parcelamento.Values['qtd']) do
   begin
@@ -5995,6 +5995,13 @@ begin
     end
     else if (Modo_Venda) or (Modo_Orcamento) then
     begin
+
+      if LeftStr(DBGrid1.DataSource.DataSet.FieldByName('descricao').AsString, 1) = '_' then begin
+        ShowMessage('A Venda deste Produto NÃO é Permitido!');
+        exit;
+      end;
+
+
       sub := 0;
       // desconto := dm.produto.fieldbyname('preco').AsCurrency;
       if funcoes.buscaParamGeral(5, '') = 'S' then

@@ -1364,9 +1364,9 @@ object Form16: TForm16
     object info: TLabel
       Left = 169
       Top = 10
-      Width = 214
+      Width = 414
       Height = 16
-      Caption = 'F5-Consulta F9-Busca Por CEP'
+      Caption = 'F5-Consulta F9-Busca Por CEP F8-Relatorio Vendas/Cliente'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -13
@@ -1376,11 +1376,11 @@ object Form16: TForm16
       Layout = tlCenter
     end
     object Label42: TLabel
-      Left = 397
+      Left = 589
       Top = 10
-      Width = 97
+      Width = 81
       Height = 16
-      Caption = '    Ultimo Cod:'
+      Caption = 'Ultimo Cod:'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -13
@@ -1390,9 +1390,9 @@ object Form16: TForm16
       Layout = tlCenter
     end
     object ulticod: TLabel
-      Left = 535
+      Left = 676
       Top = 10
-      Width = 5
+      Width = 22
       Height = 16
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
