@@ -19956,6 +19956,12 @@ begin
       IntToStr(trunc(StrToInt(buscaParamGeral(80, '15')) * 4)) + ')';
   end;
 
+  if ((tabela = 'NFCE') or (tabela = 'NFE')) then
+  begin
+    query.SQL.text := query.SQL.text +
+      ' where  data >= dateadd (-1 year to current_date)';
+  end;
+
   query.Open;
   query.FetchAll;
   Writeln(arq, '|TABELAX|' + UpperCase(tabela) + '|');
@@ -19965,6 +19971,8 @@ begin
   begin
     linha := linha + query.FieldDefs[ini].Name + '|';
   end;
+
+
 
   Writeln(arq, linha);
 

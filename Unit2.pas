@@ -9523,7 +9523,7 @@ begin
     form36.teclas.Add('SN'); // 8
     form36.teclas.Add('SNX'); // 9
     form36.teclas.Add('SN'); // 10
-    form36.teclas.Add('SN'); // 11
+    form36.teclas.Add('SNX'); // 11
     form36.teclas.Add('SN'); // 12
 
     form36.tipo.Add('numero');
@@ -9574,7 +9574,7 @@ begin
     form36.ListBox1.Items.Add
       ('10-Imprimir Ref. Original na Nota de Orcamento ?');
     form36.ListBox1.Items.Add
-      ('11-Permitir Venda de Quantidades Negativas (S/N)?');
+      ('11-Permitir Venda de Quantidades Negativas (S/N/X-Bloquear Somente em Vendas)?');
     form36.ListBox1.Items.Add('12-Permitir Troca de Vendedor na Venda ?');
 
     form36.configu := dm.ibselect.FieldByName('configu').AsString;

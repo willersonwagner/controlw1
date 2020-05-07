@@ -129,6 +129,7 @@ type
     semCliente: boolean;
     produtosServico: TStringList;
     // function baixa
+    function verificaSePodeVenderNegativo_X_NaVendaConfig11DoUsuario() : boolean;
     procedure lancaDescontoPorFormaDePagamento(formapagamento: integer);
     function vendeProdutoM2: boolean;
     function somaValor(): currency;
@@ -6065,6 +6066,9 @@ begin
         exit;
       end;
 
+
+      if (verificaSePodeVenderNegativo_X_NaVendaConfig11DoUsuario = false)  then exit;
+
       total1 := somaValor;
       lancaDescontoAtual_Antigo;
       { if funcoes.buscaParamGeral(71, 'S') = 'S' then begin
@@ -8879,6 +8883,52 @@ begin
   ClientDataSet1.EnableControls;
 end;
 
+function TForm20.verificaSePodeVenderNegativo_X_NaVendaConfig11DoUsuario() : boolean;
+var
+  ini, fim : integer;
+  rel : String;
+  quant : currency;
+begin
+  Result := true;
+  if funcoes.LerConfig(form22.Pgerais.Values['configu'], 11) <> 'X' then exit;
+  if Modo_Orcamento then exit;
+  //if (separaPecas) and (finaliza)  then exit;
+
+  rel := '';
+  ClientDataSet1.DisableControls;
+  ClientDataSet1.First;
+
+  fim := ClientDataSet1.RecordCount;
+  for ini := 1 to fim do
+  begin
+    ClientDataSet1.RecNo := ini;
+
+    if (ClientDataSet1estado.AsString = 'I') then begin
+      dm.IBselect.Close;
+      dm.IBselect.SQL.Text := 'select quant from produto where cod = :cod';
+      dm.IBselect.ParamByName('cod').AsInteger := ClientDataSet1CODIGO.AsInteger;
+      dm.IBselect.Open;
+
+      quant := dm.IBselect.FieldByName('quant').AsCurrency;
+      dm.IBselect.Close;
+
+      if ((quant - ClientDataSet1QUANT.AsCurrency) < 0) then rel := rel + CompletaOuRepete(LeftStr(ClientDataSet1CODIGO.AsString + '-' + ClientDataSet1DESCRICAO.AsString, 35), '', ' ', 36) +' '+ CompletaOuRepete('', formataCurrency(quant), ' ', 10) + CompletaOuRepete('', formataCurrency(ClientDataSet1QUANT.AsCurrency), ' ', 10) + CRLF;
+    end;
+  end;
+
+  ClientDataSet1.First;
+  ClientDataSet1.EnableControls;
+
+  if rel <> '' then begin
+    Result := false;
+
+    funcoes.Mensagem(Application.Title, 'A Venda Não Pode ser Finalizada, O estoque dos Produtos estão Negativos:' + CRLF+ CRLF + 'CODIGO,NOME,QUANT_ESTOQUE,QUANT_VENDA' + CRLF + rel, 12, 'Courier New',true, 0, clBlack);
+  end;
+
+  if VerificaAcesso_Se_Nao_tiver_Nenhum_bloqueio_true_senao_false then Result := true;
+  
+
+end;
 
 
 end.
