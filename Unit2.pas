@@ -726,7 +726,7 @@ uses CadUsuario, StrUtils, Math, dialog, cadfrabricante, cadfornecedor,
   configImpressora, batepapo, CadServ, consultaOrdem, cadECF,
   cadReducaoZ, untMovto, acerto1, Unit56, envicupom, Unit59, cadCestNCM,
   PROMOC, cadNotasFiscais, U_Principal, ConsultaCPF, Unit67, Unit68, param1,
-  Unit71, uConsultaCNPJ, Unit74, Unit77, Unit78, dadosnfe, cadmecanico;
+  Unit71, uConsultaCNPJ, Unit74, Unit77, Unit78, dadosnfe, cadmecanico, Unit83;
 
 {$R *.dfm}
 
@@ -3671,12 +3671,10 @@ end;
 
 procedure TForm2.Button2Click(Sender: TObject);
 begin
-  funcoes.ajustaHoraPelaInternet(form22.datamov);
-  // ShowMessage(funcoes.LerConfig(form22.Pgerais.Values['configu'], 12));
-  exit;
-  form71 := TForm71.Create(self);
-  form71.showmodal;
-  form71.Free;
+
+  form83 := TForm83.Create(self);
+  form83.showmodal;
+  form83.Free;
 end;
 
 procedure TForm2.RefOriginalGrupo1Click(Sender: TObject);
@@ -4068,6 +4066,8 @@ begin
   form40.tipo.Add('115=generico');
   form40.tipo.Add('116=normal');
   form40.tipo.Add('117=generico');
+  form40.tipo.Add('118=generico');
+
 
   form40.troca := TStringList.Create;
   form40.troca.Add('0=S');
@@ -4191,6 +4191,7 @@ begin
   form40.troca.Add('115=S');
   form40.troca.Add('116=');
   form40.troca.Add('117=S');
+  form40.troca.Add('118=S');
 
   form40.teclas := TStringList.Create;
   form40.teclas.Add('0=FT');
@@ -4313,6 +4314,7 @@ begin
   form40.teclas.Add('115=SN');
   form40.teclas.Add('116=ABCDEFGHIJLMNOPKXYZWQRSTUVXZ' + #32 + #46);
   form40.teclas.Add('117=SN');
+  form40.teclas.Add('118=SN');
 
   form40.ListBox1.Clear;
   form40.ListBox1.Items.Add
@@ -4509,6 +4511,7 @@ begin
   form40.ListBox1.Items.Add('115=Abrir Cadastro de Cliente no Lançamento de Ordem de Serviço ?');
   form40.ListBox1.Items.Add('116=Qual o Nome Impresso no Relatorio de Comissoes(padrao: Comissoes) ?');
   form40.ListBox1.Items.Add('117=Confirmar Venda e tranferi-la para a Data Atual na Rotina Forma de Pagamento ?');
+  form40.ListBox1.Items.Add('118=Confirmar Entrega No Fim da Venda ?');
 
   form40.ListBox1.Selected[0] := true;
   form40.showmodal;
@@ -13174,7 +13177,7 @@ begin
   dm.ibselect.SQL.Text :=
     'select i.cod, i.p_venda, i.total, v.total as total1, v.nota, v.codhis, v.desconto, iif(p.comissao is null, 0,p.comissao) as comissao, i.quant, i.vendedor,'
     + 'v.prazo from item_venda i left join venda v on (i.nota = v.nota) left join produto p on (p.cod = i.cod) where ((v.data >= :dini)'
-    + ' and (v.data <= :dfim)) and v.cancelado = 0 order by i.vendedor, v.nota';
+    + ' and (v.data <= :dfim)) and v.cancelado = 0 and v.total <> 0 order by i.vendedor, v.nota';
   dm.ibselect.ParamByName('dini').AsDateTime := StrToDateTime(dini);
   dm.ibselect.ParamByName('dfim').AsDateTime := StrToDateTime(dfim);
   dm.ibselect.Open;
@@ -13256,12 +13259,9 @@ begin
         mattVal[4] := mattVal[2] + (TOT * comiAprazo / 100);
     end;
 
-    com0.Values[funcoes.retiraZerosEsquerda(dm.ibselect.FieldByName('vendedor')
-      .AsString)] := '0'; // lista de cod de vendedores
-    com1.Values[funcoes.retiraZerosEsquerda(dm.ibselect.FieldByName('vendedor')
-      .AsString)] :=
-      CurrToStr(StrToCurrDef(com1.Values[funcoes.retiraZerosEsquerda
-      (dm.ibselect.FieldByName('vendedor').AsString)], 0) + mattVal[1]);
+    com0.Values[funcoes.retiraZerosEsquerda(dm.ibselect.FieldByName('vendedor').AsString)] := '0'; // lista de cod de vendedores
+    com1.Values[funcoes.retiraZerosEsquerda(dm.ibselect.FieldByName('vendedor').AsString)] := CurrToStr(StrToCurrDef(com1.Values[funcoes.retiraZerosEsquerda(dm.ibselect.FieldByName('vendedor').AsString)], 0) + mattVal[1]);
+
     com2.Values[funcoes.retiraZerosEsquerda(dm.ibselect.FieldByName('vendedor')
       .AsString)] :=
       CurrToStr(StrToCurrDef(com2.Values[funcoes.retiraZerosEsquerda

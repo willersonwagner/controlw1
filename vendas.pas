@@ -125,7 +125,7 @@ type
     testa, EXPORTADO, tamanhoFonteTotal, tamFontDesc: Smallint;
     pedido, configUsuarioConfirmarPreco: string;
     bdSmall: boolean;
-    configUsuario, clienteNome, ultimaNota, ordemCompra: String;
+    configUsuario, clienteNome, ultimaNota, ordemCompra, ENDE_ENTREGA: String;
     semCliente: boolean;
     produtosServico: TStringList;
     // function baixa
@@ -231,7 +231,7 @@ implementation
 
 uses Unit1, Math, localizar, entrasimples, func, formpagtoformulario,
   principal, subconsulta, Unit38, DateUtils, relatorio, imprime1,
-  cadcliente, cadfornecedor, dm1, StrUtils, Unit2;
+  cadcliente, cadfornecedor, dm1, StrUtils, Unit2, Unit83;
 
 {$R *.dfm}
 
@@ -4354,6 +4354,8 @@ begin
         addRelatorioForm19(' ' + CRLF);
         ImprimeNota('D');
       end;
+
+
     end;
   end;
 
@@ -4362,6 +4364,10 @@ begin
   dm.IBQuery1.Close;
 
   funcoes.ImprimirPedidoVias(1, Modo_Orcamento);
+
+  if ((funcoes.buscaParamGeral(118, 'N') = 'S') and (Modo_Venda) and (tipo = 'T')) then begin
+    funcoes.imprimeEnderecoEntregaCodEndereco(novocod, ENDE_ENTREGA);
+  end;
   // Esta Funcao concatena os pedidos abaixo do outro
   // no Richedit do form19
 
@@ -5842,16 +5848,16 @@ begin
 
   dm.IBQuery1.Close;
   dm.IBQuery1.SQL.Text :=
-    ('insert into venda(CLIENTE_ENTREGA, datamov,hora,vendedor,cliente,nota,data,total,codhis,desconto,prazo,entrada, EXPORTADO, USUARIO, tipo)'
-    + ' values(:CLIENTE_ENTREGA, :datamov, :hora,:vend,:cliente,:nota,:data,:total,:pagto,:desc,:prazo,:entrada, :exportado, :USUARIO, :tipo)');
+    ('insert into venda(ENDE_ENTREGA, CLIENTE_ENTREGA, datamov,hora,vendedor,cliente,nota,data,total,codhis,desconto,prazo,entrada, EXPORTADO, USUARIO, tipo)'
+    + ' values(:ENDE_ENTREGA,:CLIENTE_ENTREGA, :datamov, :hora,:vend,:cliente,:nota,:data,:total,:pagto,:desc,:prazo,:entrada, :exportado, :USUARIO, :tipo)');
+  dm.IBQuery1.ParamByName('ENDE_ENTREGA').AsInteger := StrToIntDef(strnum(ENDE_ENTREGA), 0);
   dm.IBQuery1.ParamByName('CLIENTE_ENTREGA').AsInteger := StrToIntDef(strnum(CLIENTE_ENTREGA), 0);
   dm.IBQuery1.ParamByName('datamov').AsDateTime := NOW;
-  dm.IBQuery1.ParamByName('hora').AsTime := NOW;
-  dm.IBQuery1.ParamByName('vend').AsInteger :=
-    StrToIntDef(strnum(JsEdit2.Text), 0);
-  dm.IBQuery1.ParamByName('cliente').AsInteger := StrToIntDef(JsEdit3.Text, 0);
-  dm.IBQuery1.ParamByName('nota').AsInteger := StrToIntDef(novocod, 0);
-  dm.IBQuery1.ParamByName('data').AsDateTime := form22.datamov;
+  dm.IBQuery1.ParamByName('hora').AsTime        := NOW;
+  dm.IBQuery1.ParamByName('vend').AsInteger     := StrToIntDef(strnum(JsEdit2.Text), 0);
+  dm.IBQuery1.ParamByName('cliente').AsInteger  := StrToIntDef(JsEdit3.Text, 0);
+  dm.IBQuery1.ParamByName('nota').AsInteger     := StrToIntDef(novocod, 0);
+  dm.IBQuery1.ParamByName('data').AsDateTime    := form22.datamov;
   // '+JsEdit3.Text+'
   dm.IBQuery1.ParamByName('total').AsCurrency := total1; // '+novocod+'
   dm.IBQuery1.ParamByName('pagto').AsInteger := StrToIntDef(codhis, 0);
@@ -6066,6 +6072,14 @@ begin
         exit;
       end;
 
+      if ((funcoes.buscaParamGeral(118, '') = 'S') and (Modo_Venda)) then begin
+        form83 := tform83.Create(self);
+        form83.codEntrega := ENDE_ENTREGA;
+        form83.ShowModal;
+        ENDE_ENTREGA := form83.codEntrega;
+        form83.Free;
+      end;
+
 
       if (verificaSePodeVenderNegativo_X_NaVendaConfig11DoUsuario = false)  then exit;
 
@@ -6200,6 +6214,7 @@ begin
         end;
 
         gravaVenda;
+        COD_SERVICO  := '0';
         if codhis = '2' then
         begin
           tmp3 := funcoes.buscaParamGeral(69, 'N');
@@ -6366,7 +6381,8 @@ end;
 
 procedure TForm20.FormCreate(Sender: TObject);
 begin
-  COD_SERVICO := '0';
+  COD_SERVICO  := '0';
+  ENDE_ENTREGA := '0';
   Saiu := false;
   separaPecas := false;
   finaliza := true;

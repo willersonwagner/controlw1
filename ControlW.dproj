@@ -430,6 +430,10 @@
             <Form>Form82</Form>
             <FormType>dfm</FormType>
         </DCCReference>
+        <DCCReference Include="Unit83.pas">
+            <Form>Form83</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
         <BuildConfiguration Include="Debug">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

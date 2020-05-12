@@ -139,6 +139,7 @@ type
     enviandoCupom, enviandoBackup: boolean;
     fonteRelatorioForm19: integer;
     NegritoRelatorioForm19, saiComEnter: boolean;
+    procedure imprimeEnderecoEntregaCodEndereco(nota : String; codEndeEntrega : String);
     procedure BuscaResizeDBgrid(var dbgrid : TDBGrid; form : String);
     procedure acertaVendasDoDiaAVista();
     procedure deletaRegistroVendaDoDiaDuplicado(data : tdate);
@@ -10953,6 +10954,30 @@ begin
       end;
     end;
 
+    if NOT verSeExisteTabela('ENTREGA') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := 'CREATE TABLE ENTREGA ( COD INTEGER NOT NULL,CLIENTE VARCHAR(40),TELEFONE VARCHAR(25),ENDERECO VARCHAR(40),OBS VARCHAR(40)) ';
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := 'alter table ENTREGA add constraint PK_ENTREGA primary key (COD)';
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := 'CREATE SEQUENCE ENTREGA';
+      dm.IBQuery1.ExecSQL;
+    end;
+
+    if not VerificaCampoTabela('ENDE_ENTREGA', 'venda') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('ALTER TABLE venda ADD ENDE_ENTREGA INTEGER DEFAULT 0 ');
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
     {if retornaEscalaDoCampo('p_compra', 'ITEM_entrada') <> 10 then
     begin
       dm.IBQuery1.Close;
@@ -12409,7 +12434,7 @@ var
   total, sub, entrada, total_item, desco, recebido, troco, tot_item, fracao: currency;
   refOriCodbar, tmp, impref, imprefxx, codigo1, nomevol, CLIENTE_ENTREGA, CLIENTE_VENDA: string;
   i, tam, tamDescri, linFIM: integer;
-  rece, hora, txt, nome: String;
+  rece, hora, txt, nome, ENDE_ENTREGA: String;
   controleEntrega: boolean;
   listaprod: TItensProduto;
 begin
@@ -12490,6 +12515,7 @@ begin
     entrada         := dm.IBselect.FieldByName('entrada').AsCurrency;
     CLIENTE_ENTREGA := dm.IBselect.FieldByName('CLIENTE_ENTREGA').AsString;
     CLIENTE_VENDA   := dm.IBselect.FieldByName('CLIENTE').AsString;
+    ENDE_ENTREGA    := dm.IBselect.FieldByName('ENDE_ENTREGA').AsString;
   end;
 
   if controleEntrega = False then
@@ -15497,8 +15523,7 @@ begin
       funcoes.LimparEntregues(numNota);
     end;
 
-    if opcao = 1 then
-    begin
+    if opcao = 1 then begin
       if funcoes.buscaParamGeral(88, 'N') = 'S' then
       begin
         addRelatorioForm19(' ' + CRLF);
@@ -15510,6 +15535,10 @@ begin
     if EnviarImpressora = 'S' then
     begin
       imprime.textx('');
+
+      if ((opcao = 1) and (funcoes.buscaParamGeral(118, '') = 'S')) then begin
+        funcoes.imprimeEnderecoEntregaCodEndereco(numNota, ENDE_ENTREGA);
+      end;
     end
     else
       form19.ShowModal;
@@ -28479,6 +28508,43 @@ begin
 
   lista.Free;
   arq.Free;
+end;
+
+
+procedure Tfuncoes.imprimeEnderecoEntregaCodEndereco(nota : String; codEndeEntrega : string);
+var
+  ini : integer;
+begin
+  if StrToIntDef(nota, 0) = 0 then exit;
+  if StrToIntDef(codEndeEntrega, 0) = 0 then exit;
+
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select * from entrega where cod = :cod';
+  dm.IBselect.ParamByName('cod').AsString := codEndeEntrega;
+  dm.IBselect.Open;
+
+  form19.RichEdit1.Clear;
+  addRelatorioForm19('* * * * * *  E N T R E G A  * * * * * *' + CRLF);
+  addRelatorioForm19('Cliente: ' + LeftStr(dm.IBselect.FieldByName('cliente').AsString, 31) + CRLF);
+  addRelatorioForm19('End: ' +dm.IBselect.FieldByName('endereco').AsString+ CRLF);
+  addRelatorioForm19('Tel: ' + dm.IBselect.FieldByName('telefone').AsString + CRLF);
+  addRelatorioForm19('Obs: ' + dm.IBselect.FieldByName('obs').AsString+ CRLF);
+
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select v.total, v.data, v.hora, v.vendedor, ve.nome from venda v join vendedor ve on (v.vendedor = ve.cod) where v.nota = :cod';
+  dm.IBselect.ParamByName('cod').AsString := nota;
+  dm.IBselect.Open;
+
+  addRelatorioForm19(CompletaOuRepete('Pedido: ' + nota, '', ' ', 15) + CompletaOuRepete(' Valor: ', formataCurrency(dm.IBselect.FieldByName('total').AsCurrency), ' ', 18)   + CRLF);
+  addRelatorioForm19('Data: ' + formataDataDDMMYY(dm.IBselect.FieldByName('data').AsDateTime) + ' ' + dm.IBselect.FieldByName('hora').AsString + CRLF);
+  addRelatorioForm19('Vendedor: ' + dm.IBselect.FieldByName('vendedor').AsString + '-' + dm.IBselect.FieldByName('nome').AsString + CRLF+CRLF);
+  addRelatorioForm19('Entregador:____________________________' + CRLF +CRLF);
+  addRelatorioForm19('Troco.....:____________________________' + CRLF);
+  addRelatorioForm19('* * * * * * * * * * * * * * * * * * * *' + CRLF);
+
+  funcoes.ImprimirPedidoVias(1, false);
+  funcoes.ImprimirPedidoVias(1, false);
+
 end;
 
 end.
