@@ -367,8 +367,8 @@ begin
         acc := DBGrid1.DataSource.DataSet.FieldByName('validade').AsString;
         acc := funcoes.dialogo('generico',50,'0123456789'+ #8,50,false,'','Control For Windows','Qual a Validade ?', acc);
         if acc = '*' then exit;
-        acc := LeftStr(acc, 2);
-        acc := strzero(acc, 2);
+        acc := LeftStr(acc, 3);
+        acc := strzero(acc, 3);
         if StrToIntDef(acc, 0) <= 0 then acc := '';
         
 

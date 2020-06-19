@@ -180,7 +180,7 @@ type
     ordenaCampos: boolean;
     tamanho_nota, finalizouServico: integer;
     origem: integer;
-    tipoV, CLIENTE_ENTREGA, CLIENTE_VENDA: string;
+    tipoV, CLIENTE_ENTREGA, CLIENTE_VENDA, condicaoSQL: string;
     separaPecas, finaliza: boolean;
     Saiu, verificaCliente, Modo_Venda, Modo_Orcamento, atacado, Compra,
       saidaDeEstoque, separaVendaOrcamento: boolean;
@@ -1090,21 +1090,14 @@ begin
         descDado := descDado + (ClientDataSet1TOT_ORIGI2.AsCurrency -
           ClientDataSet1TOTAL.AsCurrency);
 
-        if funcoes.buscaParamGeral(55, 'N') = 'S' then
-        begin
-          porcentMaior :=
-            StrToCurrDef(funcoes.LerConfig(form22.Pgerais.Values
-            ['configu'], 0), 0);
-          if ClientDataSet1minimo.AsCurrency > porcentMaior then
-            porcentMaior := ClientDataSet1minimo.AsCurrency;
-          if funcoes.buscaDescontoProduto(ClientDataSet1CODIGO.AsInteger) > 0
-          then
-            porcentMaior := funcoes.buscaDescontoProduto
-              (ClientDataSet1CODIGO.AsInteger);
+        if funcoes.buscaParamGeral(55, 'N') = 'S' then begin
+          porcentMaior := StrToCurrDef(funcoes.LerConfig(form22.Pgerais.Values['configu'], 0), 0);
 
-          minimotemp := minimotemp +
-            (Arredonda(ClientDataSet1TOT_ORIGI2.AsCurrency *
-            (porcentMaior / 100), 2));
+          if ClientDataSet1minimo.AsCurrency > porcentMaior then porcentMaior := ClientDataSet1minimo.AsCurrency;
+          if funcoes.buscaDescontoProduto(ClientDataSet1CODIGO.AsInteger) > 0 then porcentMaior := funcoes.buscaDescontoProduto(ClientDataSet1CODIGO.AsInteger);
+
+          //minimotemp := minimotemp + (Arredonda(ClientDataSet1TOT_ORIGI2.AsCurrency * (porcentMaior / 100), 2));
+          minimotemp := minimotemp + (ClientDataSet1TOT_ORIGI2.AsCurrency * (porcentMaior / 100));
         end;
       end;
 
@@ -1119,8 +1112,6 @@ begin
 
     if minimotemp > 0 then
     begin
-      // ShowMessage('total =' + CurrToStr(Result) + #13 +
-      // 'Minimo=' + CurrToStr(minimotemp));
       Result := minimotemp - descDado;
 
       ClientDataSet1.First;
@@ -6453,6 +6444,8 @@ begin
     cdsatacado.CreateDataSet;
     end; }
 
+  condicaoSQL := ' and (left(nome, 1) <> ''_'') and ((desativado <> ''1'')or (desativado is null) )';
+
   if form22.usuario = 'ADMIN' then
   begin
     ClientDataSet1TOT_ORIGI2.Visible := true;
@@ -6549,33 +6542,36 @@ begin
       dm.produto.SQL.Text :=
         ('select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '
         + refori1 +
-        ',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao, p_compra as custo from produto  ' +  ordem);
+        ',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao, p_compra as custo from produto where nome <> '''' '+ condicaoSQL +  ordem);
+
       sqlVenda :=
         'select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '
         + refori1 +
-        ',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao, p_compra as custo from produto';
+        ',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao, p_compra as custo from produto where nome <> '''' ' + condicaoSQL;
     end
     else
     begin
       dm.produto.SQL.Text :=
         ('select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '
         + refori1 +
-        ',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao,igual as Equivalente from produto  ' +  ordem);
+        ',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao,igual as Equivalente from produto where nome <> '''' '+ condicaoSQL +  ordem);
+
       sqlVenda :=
         'select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '
         + refori1 +
-        ',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao,igual as Equivalente from produto';
+        ',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao,igual as Equivalente from produto where nome <> '''' '+ condicaoSQL;
 
       if ((sim = 'C') and (RetornaAcessoUsuario = 0)) then
       begin
         dm.produto.SQL.Text :=
           ('select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '
           + refori1 +
-          ',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao, p_compra as custo from produto  ' +  ordem);
+          ',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao, p_compra as custo from produto where nome <> '''' '+ condicaoSQL +  ordem);
+
         sqlVenda :=
           'select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '
           + refori1 +
-          ',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao, p_compra as custo from produto';
+          ',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao, p_compra as custo from produto where nome <> '''' '+ condicaoSQL;
       end;
     end;
 
@@ -6593,7 +6589,7 @@ begin
   begin
     if ((form22.Pgerais.Values['codvendedor'] = '0') or
       (VerificaAcesso_Se_Nao_tiver_Nenhum_bloqueio_true_senao_false) or
-      (funcoes.LerConfig(form22.Pgerais.Values['configu'], 12) = 'S')) then
+      (funcoes.LerConfig(form22.Pgerais.Values['configu'], 12) = 'S') ) then
     begin
       JsEdit2.Text := form22.Pgerais.Values['codvendedor'];
       JsEdit2.Enabled := true;
@@ -7432,6 +7428,10 @@ begin
     exit;
   end;
 
+  if (Modo_Orcamento and (funcoes.LerConfig(form22.Pgerais.Values['configu'], 12) = 'O')) then begin
+    exit;
+  end;
+
   if Compra = false then
     DBGrid2.Enabled := false;
 
@@ -7963,7 +7963,7 @@ end;
 
 procedure TForm20.lancaDescontoAtual_Antigo;
 var
-  temp2, temp1, total31, totalOriginal, porcentAUtilizar, porcentUtilizada
+  temp2, temp1, total31, totalOriginal, totalOriginal1, porcentAUtilizar, porcentUtilizada
     : currency;
   fim, desc, tipoDesconto: string;
   teveDesconto: boolean;
@@ -7983,7 +7983,15 @@ begin
   minimo := CalculaMinimoVendaCDS(porcentUtilizada, totalOriginal,
     teveDesconto);
 
-  totalOriginal := total1;
+
+  totalOriginal1 := totalOriginal;
+  totalOriginal  := total1;
+
+  if funcoes.buscaParamGeral(55, 'N') = 'S' then
+  begin
+    totalOriginal1 := totalOriginal;
+    tipoDesconto := 'S';
+  end;
 
   if total1 = 0 then
   begin
@@ -7993,14 +8001,10 @@ begin
     exit;
   end;
 
-  if funcoes.buscaParamGeral(55, 'N') = 'S' then
-  begin
-    tipoDesconto := 'S';
-  end;
-
   if tipoDesconto = 'S' then
   begin
     total31 := total31 - minimo;
+  
     fim := '-999999';
     while true do
     // ((StrToCurr(fim) < minimo) or not(StrToCurr(fim) > total1)) do
@@ -8906,7 +8910,7 @@ var
   quant : currency;
 begin
   Result := true;
-  if funcoes.LerConfig(form22.Pgerais.Values['configu'], 11) <> 'X' then exit;
+  if funcoes.LerConfig(form22.Pgerais.Values['configu'], 13) <> 'X' then exit;
   if Modo_Orcamento then exit;
   //if (separaPecas) and (finaliza)  then exit;
 

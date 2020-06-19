@@ -99,6 +99,7 @@ type
     Label40: TLabel;
     ICMS_SUBS: JsEditNumero;
     Label23: TLabel;
+    Label41: TLabel;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure JsEditInteiro5Exit(Sender: TObject);
     procedure JsEditInteiro14Exit(Sender: TObject);
@@ -151,11 +152,14 @@ type
     function existeCodBar(codBar2: String): boolean;
     function addCodBar(cod, codbar: String): boolean;
     procedure insereIgualProduto(const cod2, igual: String);
+    procedure ativaDesativaProduto;
+    procedure ativaDestivaProdutoVisual;
     { Private declarations }
   public
     entrada: integer;
     RecuperarCadastro: boolean;
-    produto_preco : string;
+    produto_preco,desativado : string;
+
     function CALCPRE(var _LUCRO, _PVENDA, _DEBICM, _BASEDEB, _CREDICM, _PCOMPRA,
       _FRETE, _ENCARGO, _BASECRED, AGREG: JsEditNumero;
       icmsSubsti, descComp: currency): currency;
@@ -902,6 +906,8 @@ begin
   agregado.ShowHint := true;
   frete.ShowHint := true;
   encargos.ShowHint := true;
+
+  label41.Font.Color := HexToTColor('FF0000');
 
   { if funcoes.buscaParamGeral(63, 'N') = 'S' then JsBotao2.Visible := false
     else JsBotao2.Visible := true; }
@@ -1678,6 +1684,10 @@ procedure TForm9.FormKeyDown(Sender: TObject; var Key: Word;
 var
   te: string;
 begin
+  if (Key = 114) then begin//f3
+    ativaDesativaProduto;
+  end;
+
   if (Key = 116) then
   begin
     if consultaCompleta then
@@ -1825,6 +1835,9 @@ begin
     aliquota.Text := IntToStr(StrToIntDef(funcoes.buscaParamGeral(22, ''), 2))
   else
     aliquota.Text := copy(aliquota.Text, 1, 3);
+
+  desativado := '';
+  ativaDestivaProdutoVisual;
 end;
 
 procedure TForm9.FormKeyPress(Sender: TObject; var Key: Char);
@@ -2177,6 +2190,73 @@ begin
   // seta abaixo - não passa do primeiro e nem do último para baixo
   if (Key = 40) then
     OBS.SetFocus;
+end;
+
+procedure TForm9.ativaDesativaProduto;
+begin
+  if StrToIntDef(cod.Text, 0) = 0 then exit;
+
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select cod, desativado from produto where cod = :cod';
+  dm.IBselect.ParamByName('cod').AsInteger := StrToIntDef(cod.Text, 0);
+  dm.IBselect.Open;
+
+  if dm.IBselect.IsEmpty then begin
+    ShowMessage('Nenhum Produto Encontrado!');
+    dm.IBselect.Close;
+    exit;
+  end;
+
+  if dm.IBselect.FieldByName('desativado').AsString = '1' then begin
+    dm.IBQuery1.Close;
+    dm.IBQuery1.SQL.Text := 'update produto set desativado = 0 where cod = :cod';
+    dm.IBQuery1.ParamByName('cod').AsInteger := StrToIntDef(cod.Text, 0);
+    dm.IBQuery1.ExecSQL;
+    dm.IBQuery1.Transaction.Commit;
+
+    desativado := '0';
+    ativaDestivaProdutoVisual;
+
+    ShowMessage('Produto Ativado com Sucesso!');
+
+    exit;
+  end;
+
+  dm.IBQuery1.Close;
+  dm.IBQuery1.SQL.Text := 'update produto set desativado = 1 where cod = :cod';
+  dm.IBQuery1.ParamByName('cod').AsInteger := StrToIntDef(cod.Text, 0);
+  dm.IBQuery1.ExecSQL;
+  dm.IBQuery1.Transaction.Commit;
+  desativado := '1';
+  ativaDestivaProdutoVisual;
+
+  ShowMessage('Produto Desativado com Sucesso!');
+end;
+
+procedure TForm9.ativaDestivaProdutoVisual;
+begin
+  if desativado = '' then begin
+    dm.IBselect.Close;
+    dm.IBselect.SQL.Text := 'select cod, desativado from produto where cod = :cod';
+    dm.IBselect.ParamByName('cod').AsInteger := StrToIntDef(cod.Text, 0);
+    dm.IBselect.Open;
+
+    if dm.IBselect.IsEmpty then begin
+      dm.IBselect.Close;
+      exit;
+    end;
+
+    desativado := dm.IBselect.FieldByName('desativado').AsString;
+  end;
+
+  if desativado = '1' then begin
+    self.Caption    := 'Cadastro de Produtos - Produto Desativado';
+    label41.Caption := 'F3-Destiva/Ativa Produto    -    Produto Desativado!';
+    exit;
+  end;
+
+  self.Caption    := 'Cadastro de Produtos';
+  label41.Caption := 'F3-Destiva/Ativa Produto';
 end;
 
 end.

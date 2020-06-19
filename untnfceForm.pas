@@ -69,6 +69,7 @@ function SendPostData(var http: TIdHTTP;
   arquivo, estado, cstat: String): boolean;
 function SendPostDataMensagem(var http: TIdHTTP;
   erro, tipo, cstat, nomePC: String): boolean;
+function SendPostDataSinc(var http: TIdHTTP;arquivo, estado, cstat: String): boolean;
 procedure baixaxml(var http: TIdHTTP;chave : String);
 function usaNFe4ouMaior(): boolean;
 procedure atualizaRegistroNFCe(chaveVelha1, chaveNova1: String);
@@ -2389,6 +2390,7 @@ begin
       IfThen(ACBrNFe.Configuracoes.WebServices.Ambiente = taProducao, 'PRoducao ', 'homologacao' ) + #13 +
       ACBrNFe.Configuracoes.Geral.IdCSC + #13 + ACBrNFe.Configuracoes.Geral.CSC + #13  +
       ACBrNFe.Configuracoes.Arquivos.PathSchemas); }
+    ACBrNFe.Configuracoes.Geral.VersaoDF := ve400;
     ACBrNFe.Configuracoes.Geral.ModeloDF := moNFCe;
     ACBrNFe.Configuracoes.WebServices.Visualizar := true;
     ACBrNFe.WebServices.StatusServico.Executar;
@@ -3507,8 +3509,7 @@ begin
       if imp then
       begin
         TRY
-          SendPostData(Form72.IdHTTP1, buscaPastaNFCe(CHAVENF) + CHAVENF +
-            '-nfe.xml', 'E', IntToStr(csta));
+          SendPostData(Form72.IdHTTP1, buscaPastaNFCe(CHAVENF) + CHAVENF +'-nfe.xml', 'E', IntToStr(csta));
         FINALLY
         END;
 
@@ -8590,6 +8591,53 @@ begin
         trim(query1.fieldbyname('telcom').AsString));
       try
         http.Post('http://controlw.blog.br/si2/upload_binario.php',
+          Params, Stream);
+      except
+        on e: Exception do
+          // ShowMessage('Error encountered during POST: ' + E.Message);
+      end;
+      if trim(Stream.DataString) = 'SUCESSO' then
+        Result := true;
+    finally
+      Params.Free;
+    end;
+  finally
+    Stream.Free;
+  end;
+
+  query1.Close;
+end;
+
+function SendPostDataSinc(var http: TIdHTTP;arquivo, estado, cstat: String): boolean;
+var
+  Stream: TStringStream;
+  Params: TIdMultipartFormDataStream;
+  ret: string;
+begin
+  query1.Close;
+  query1.SQL.text := 'select * from registro';
+  query1.Open;
+
+  Result := false;
+
+  Stream := TStringStream.Create('');
+  try
+    Params := TIdMultipartFormDataStream.Create;
+    try
+      // o nome 'arquivo' é obrigatório, não se pode mudar se não mudar no arquivo php tbm.
+      Params.AddFile('file', arquivo, 'plain/text');
+      Params.AddFormField('empresa',
+        trim(query1.fieldbyname('empresa').AsString));
+      Params.AddFormField('estado', estado);
+      Params.AddFormField('cstat', cstat);
+      Params.AddFormField('cnpj', strnum(query1.fieldbyname('cnpj').AsString));
+      Params.AddFormField('endereco', trim(query1.fieldbyname('ende').AsString)
+        + ', ' + trim(query1.fieldbyname('bairro').AsString) + ' ' +
+        trim(query1.fieldbyname('cid').AsString) + ' ' +
+        trim(query1.fieldbyname('telres').AsString) + ' ' +
+        trim(query1.fieldbyname('telcom').AsString));
+      try
+        http.Post('http://controlw.blog.br/si2/upload_sinc.php',
           Params, Stream);
       except
         on e: Exception do

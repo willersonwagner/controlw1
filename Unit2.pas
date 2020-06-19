@@ -401,6 +401,7 @@ type
     RecalcularVendasaVistadoDia1: TMenuItem;
     IntegridadedeContasaReceber1: TMenuItem;
     LivrodeCaixaGrfico1: TMenuItem;
+    GerarVendasTransferenciadeEstoque1: TMenuItem;
     procedure LimparBloqueios1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure CadastrarUsurio1Click(Sender: TObject);
@@ -687,6 +688,7 @@ type
     procedure Oramento2Click(Sender: TObject);
     procedure LivrodeCaixaGrfico1Click(Sender: TObject);
     procedure PorCliente1Click(Sender: TObject);
+    procedure GerarVendasTransferenciadeEstoque1Click(Sender: TObject);
   private
     b, cont: integer;
     ini: Smallint;
@@ -3298,9 +3300,8 @@ end;
 procedure TForm2.AlterarValidadesProdutosdePesagem1Click(Sender: TObject);
 begin
   funcoes.localizar('Alterar Validades', 'produto',
-    'cod, nome, codbar, substring(codbar from 6 for 2) as  validade', '', '',
-    '', '', false, false, false,
-    ' where left(codbar, 1) = ''2'' and char_length(codbar) <= 7 and char_length(codbar) >= 5',
+    'cod, nome, codbar, substring(codbar from 6 for 3) as  validade', '', '',
+    '', '', false, false, false,' where left(codbar, 1) = ''2'' and char_length(codbar) <= 8 and char_length(codbar) >= 5',
     500, nil);
 end;
 
@@ -3670,11 +3671,69 @@ begin
 end;
 
 procedure TForm2.Button2Click(Sender: TObject);
+var
+  lista, lista2 : TStringList;
+  nome, quant : String;
+  i : integer;
 begin
+  lista := TStringList.Create;
+  lista.LoadFromFile('produtoCod.txt');
+  nome := lista.GetText;
+  lista.Clear;
 
-  form83 := TForm83.Create(self);
-  form83.showmodal;
-  form83.Free;
+  lista2 := TStringList.Create;
+{  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select cod,sum(iif(qtd_ent is null,  quant, qtd_ent)) as quant from item_entrada group by cod';
+  dm.IBselect.Open;
+
+  nome := '-';
+  while not dm.IBselect.Eof do begin
+    //lista.Add('update produto set quant = quant + ' + Format_num(dm.IBselect.FieldByName('quant').AsCurrency) + ' where cod = ' +dm.IBselect.FieldByName('cod').AsString + ';');
+    if contido('-'+dm.IBselect.FieldByName('cod').AsString+ '-', nome) = false then begin
+    nome := nome +dm.IBselect.FieldByName('cod').AsString+ '-';
+    end;
+    dm.IBselect.Next;
+  end;
+
+
+   dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select cod, quant from produto order by cod';
+  dm.IBselect.Open;
+
+  while not dm.IBselect.Eof do begin
+    if contido('-'+dm.IBselect.FieldByName('cod').AsString+ '-', nome) then begin
+      quant := lista2.Values[dm.IBselect.FieldByName('cod').AsString];
+      lista.Add('update produto set quant = ' + Format_num(dm.IBselect.FieldByName('quant').AsCurrency) + ' where cod = ' +dm.IBselect.FieldByName('cod').AsString + ';');
+    end;
+
+    dm.IBselect.Next;
+  end;     }
+
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select cod, sum(quant) as quant from item_venda group by cod';
+  dm.IBselect.Open;
+
+  while not dm.IBselect.Eof do begin
+    if contido('-'+dm.IBselect.FieldByName('cod').AsString+ '-', nome) then begin
+      quant := lista2.Values[dm.IBselect.FieldByName('cod').AsString];
+      lista.Add('update produto set quant = quant - (' + Format_num(dm.IBselect.FieldByName('quant').AsCurrency) + ') where cod = ' +dm.IBselect.FieldByName('cod').AsString + ';');
+    end;
+
+    //lista.Add('update produto set quant = quant + ' + Format_num(dm.IBselect.FieldByName('quant').AsCurrency) + ' where cod = ' +dm.IBselect.FieldByName('cod').AsString + ';');
+    nome := nome +dm.IBselect.FieldByName('cod').AsString+ '-';
+    dm.IBselect.Next;
+  end;
+
+{  for i := 0 to lista2.Count-1 do begin
+    lista.Add('update produto set quant = quant - (' + Format_num(StrToFloat(lista2.ValueFromIndex[i])) + ') where cod = ' +lista2.Names[i] + ';');
+  end;}
+
+
+
+  lista.Add(nome);
+  lista.SaveToFile('produtoV.txt');
+
+  ShowMessage('acabou!');
 end;
 
 procedure TForm2.RefOriginalGrupo1Click(Sender: TObject);
@@ -4067,6 +4126,7 @@ begin
   form40.tipo.Add('116=normal');
   form40.tipo.Add('117=generico');
   form40.tipo.Add('118=generico');
+  form40.tipo.Add('119=generico');
 
 
   form40.troca := TStringList.Create;
@@ -4192,6 +4252,7 @@ begin
   form40.troca.Add('116=');
   form40.troca.Add('117=S');
   form40.troca.Add('118=S');
+  form40.troca.Add('119=S');
 
   form40.teclas := TStringList.Create;
   form40.teclas.Add('0=FT');
@@ -4315,6 +4376,7 @@ begin
   form40.teclas.Add('116=ABCDEFGHIJLMNOPKXYZWQRSTUVXZ' + #32 + #46);
   form40.teclas.Add('117=SN');
   form40.teclas.Add('118=SN');
+  form40.teclas.Add('119=SN');
 
   form40.ListBox1.Clear;
   form40.ListBox1.Items.Add
@@ -4512,6 +4574,7 @@ begin
   form40.ListBox1.Items.Add('116=Qual o Nome Impresso no Relatorio de Comissoes(padrao: Comissoes) ?');
   form40.ListBox1.Items.Add('117=Confirmar Venda e tranferi-la para a Data Atual na Rotina Forma de Pagamento ?');
   form40.ListBox1.Items.Add('118=Confirmar Entrega No Fim da Venda ?');
+  form40.ListBox1.Items.Add('119=Usar Sincronização de Estoque Online ?');
 
   form40.ListBox1.Selected[0] := true;
   form40.showmodal;
@@ -5541,8 +5604,7 @@ var
   cliente, acc, juros, pergJuros: string;
   juros1: currency;
 begin
-  cliente := funcoes.dialogo('generico', 0, '1234567890,.' + #8, 50, false, '',
-    application.Title, 'Qual o Cód do Cliente?', '');
+  cliente := funcoes.dialogo('generico', 0, '1234567890,.' + #8, 50, false, '',application.Title, 'Qual o Cód do Cliente?', '');
   if cliente = '*' then
     exit;
   if (cliente = '') then
@@ -9527,7 +9589,8 @@ begin
     form36.teclas.Add('SNX'); // 9
     form36.teclas.Add('SN'); // 10
     form36.teclas.Add('SNX'); // 11
-    form36.teclas.Add('SN'); // 12
+    form36.teclas.Add('SNO'); // 12
+    form36.teclas.Add('SNX'); // 13
 
     form36.tipo.Add('numero');
     form36.tipo.Add('generico');
@@ -9542,6 +9605,7 @@ begin
     form36.tipo.Add('generico'); // 10
     form36.tipo.Add('generico'); // 11
     form36.tipo.Add('generico'); // 12
+    form36.tipo.Add('generico'); // 13
 
     form36.troca.Add('');
     form36.troca.Add('S');
@@ -9556,6 +9620,7 @@ begin
     form36.troca.Add('S'); // 10
     form36.troca.Add('S'); // 11
     form36.troca.Add('S'); // 12
+    form36.troca.Add('S'); // 13
 
     form36.ListBox1.Items.Add
       ('0-Qual o Desconto Máximo Permitido (de 0 a 99%)?');
@@ -9574,11 +9639,10 @@ begin
     form36.ListBox1.Items.Add('8-Permitir Permitir Acrescimo na Venda (S/N)?');
     form36.ListBox1.Items.Add
       ('9-Permitir a Impressão de Orçamento (S-Sim/N-Nao/X-Perguntar)?');
-    form36.ListBox1.Items.Add
-      ('10-Imprimir Ref. Original na Nota de Orcamento ?');
-    form36.ListBox1.Items.Add
-      ('11-Permitir Venda de Quantidades Negativas (S/N/X-Bloquear Somente em Vendas)?');
+    form36.ListBox1.Items.Add('10-Imprimir Ref. Original na Nota de Orcamento ?');
+    form36.ListBox1.Items.Add('11-Permitir Venda de Quantidades Negativas (S/N)?');
     form36.ListBox1.Items.Add('12-Permitir Troca de Vendedor na Venda ?');
+    form36.ListBox1.Items.Add('13-Permitir Venda de Produtos Quantidades Negativas (S/N/X-Bloquear Somente em Vendas)?');
 
     form36.configu := dm.ibselect.FieldByName('configu').AsString;
     dm.ibselect.Close;
@@ -9930,6 +9994,8 @@ begin
 
   //modificação josenir 17/07/2019 para sempre aparecer as vendas futuras
   //IF StrToDate(fim) = DateOf(form22.datamov) then fim := ('31/12/2068');
+
+  //ShowMessage('h1=' + h1 + #13 + #13 + 'h3=' + h3 + #13 + #13 + 'h4=' + h4);
 
   dm.ibselect.Close;
   dm.ibselect.SQL.Clear;
@@ -15493,6 +15559,11 @@ VAR
   unid: String;
   listUnidades: String;
 begin
+  if funcoes.buscaParamGeral(119, 'N') = 'S' then begin
+    funcoes.sincronizacaoDeEstoqueOnline;
+    exit;
+  end;
+
   unid := '';
   listUnidades := funcoes.listaUnidades;
 
@@ -15529,6 +15600,11 @@ procedure TForm2.ReceberEstFilial1Click(Sender: TObject);
 VAR
   unid: String;
 begin
+  if funcoes.buscaParamGeral(119, 'N') = 'S' then begin
+    funcoes.DownloadSincronizacaoDeEstoqueOnline;
+    exit;
+  end;
+
   unid := '';
   unid := funcoes.dialogo('generico', 0, 'ABCDEFGHIJLMNOPKXYZWQRSTUVXZ', 50,
     false, 'S', application.Title,
@@ -19358,6 +19434,124 @@ end;
 procedure TForm2.GerarRemSpedPISCOFINS1Click(Sender: TObject);
 begin
   REM_CONTRIBUICOES();
+end;
+
+procedure TForm2.GerarVendasTransferenciadeEstoque1Click(Sender: TObject);
+var
+  qtdProd, porcPreco, nota : String;
+  totalGeral, totVenda, porcPreco1 : currency;
+  cont, qtdProd1, i : integer;
+  venda, item_venda : TStringList;
+  totProd, p_venda : double;
+
+begin
+  qtdProd := funcoes.dialogo('generico', 100, '1234567890' + #8, 100, false, '',
+    application.Title, 'Qual a Quantidade de Produtos Por Venda?', '500');
+  if qtdProd = '*' then
+    exit;
+
+  porcPreco := funcoes.dialogo('numero', 0, '', 2, true, 'S', application.Title,
+      'Qual a Porcentagem Sobre o Preço de Venda ?', '25,00');
+  if porcPreco = '*' then
+    exit;
+
+  form19.RichEdit1.Clear;
+  addRelatorioForm19(funcoes.RelatorioCabecalho(form22.Pgerais.Values['empresa'], 'Relatorio De Vendas', 80) );
+  addRelatorioForm19('  NOTA         TOTAL' + CRLF);
+  addRelatorioForm19(CompletaOuRepete('', '', '-', 80) + CRLF);
+
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select cod, quant, p_venda, p_compra, codbar, aliquota from produto where quant + deposito > 0';
+  dm.IBselect.Open;
+
+  cont := 0;
+  qtdProd1 := StrToInt(qtdProd);
+  porcPreco1 := StrToCurr(porcPreco) / 100;
+  totVenda   := 0;
+
+  venda      := TStringList.Create;
+  item_venda := TStringList.Create;
+
+  nota := IntToStr(StrToInt(Incrementa_Generator('venda', 0)) + 1);
+
+  while not dm.IBselect.Eof do begin
+  
+    if ((cont >= qtdProd1)) then begin
+      {dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := 'insert into venda(nota, data, total, hora, codhis, tipo) values('+nota+', CURRENT_DATE, '+Format_num(totVenda)+', CURRENT_TIME, 1, ''V'')';
+      dm.IBQuery1.ParamByName('nota').AsString    := nota;
+      dm.IBQuery1.ParamByName('total').AsCurrency := totVenda;
+      dm.IBQuery1.ExecSQL;}
+
+      venda.Add('insert into venda(nota, data, total, hora, codhis, tipo) values('+nota+', CURRENT_DATE, '+Format_num(totVenda)+', CURRENT_TIME, 1, ''V'')');
+
+      addRelatorioForm19(CompletaOuRepete(nota, '', ' ', 8) +  CompletaOuRepete('', formataCurrency(totVenda), ' ', 12) + CRLF);
+
+      nota := IntToStr(StrToInt(nota) + 1);
+      cont := 0;
+
+      totalGeral := totalGeral + totVenda;
+      totVenda := 0;
+    end;
+
+    cont := cont + 1;
+
+    p_venda := dm.IBselect.FieldByName('p_venda').AsFloat -( dm.IBselect.FieldByName('p_venda').AsFloat * porcPreco1);
+    totProd := (p_venda) *dm.IBselect.FieldByName('quant').AsFloat;
+
+    {dm.IBQuery1.SQL.Text := 'insert into item_venda(nota, cod, quant, p_venda, total, origem, p_compra, codbar, aliquota, data, unid, cod_seq) '+
+    'values('+nota+', '+dm.IBselect.FieldByName('cod').AsString+', '+Format_num(dm.IBselect.FieldByName('quant').AsCurrency)+','+
+    ' '+Format_num(p_venda)+', '+format_num(totProd)+','+
+    ' 1, '+format_num(dm.IBselect.FieldByName('p_compra').AsCurrency)+', '''+dm.IBselect.FieldByName('codbar').AsString+''', '''+dm.IBselect.FieldByName('aliquota').AsString+''', CURRENT_DATE, :unid, gen_id(item_venda, 1))';}
+
+    item_venda.Add('insert into item_venda(nota, cod, quant, p_venda, total, origem, p_compra, codbar, aliquota, data, unid, cod_seq) '+
+    'values('+nota+', '+dm.IBselect.FieldByName('cod').AsString+', '+Format_num(dm.IBselect.FieldByName('quant').AsCurrency)+','+
+    ' '+Format_num(p_venda, FloatToStr(p_venda))+', '+format_num(totProd, FloatToStr(totProd))+','+
+    ' 1, '+format_num(dm.IBselect.FieldByName('p_compra').AsCurrency)+', '''+dm.IBselect.FieldByName('codbar').AsString+''', '''+dm.IBselect.FieldByName('aliquota').AsString+''', CURRENT_DATE, :unid, gen_id(item_venda, 1))');
+
+    totVenda := totVenda + totProd;
+
+    dm.IBselect.Next;
+  end;
+
+  if ((cont < qtdProd1) and (cont > 0)) then begin
+    
+      venda.Add('insert into venda(nota, data, total, hora, codhis, tipo) values('+nota+', CURRENT_DATE, '+Format_num(totVenda)+', CURRENT_TIME, 1, ''V'')');
+
+      addRelatorioForm19(CompletaOuRepete(nota, '', ' ', 8) +  CompletaOuRepete('', formataCurrency(totVenda), ' ', 12)+ CRLF);
+
+      cont := 0;
+
+      totalGeral := totalGeral + totVenda;
+      totVenda := 0;
+    end;
+
+  for i := 0 to venda.Count -1 do begin
+    dm.IBQuery1.Close;
+    dm.IBQuery1.SQL.Text := venda[i];
+    dm.IBQuery1.ExecSQL;
+  end;
+
+  for i := 0 to item_venda.Count -1 do begin
+    dm.IBQuery1.Close;
+    dm.IBQuery1.SQL.Text := item_venda[i];
+    dm.IBQuery1.ExecSQL;
+  end;
+
+  dm.IBQuery1.Close;
+  dm.IBQuery1.SQL.Text := 'ALTER SEQUENCE venda RESTART WITH ' + nota;
+  dm.IBQuery1.ExecSQL;
+
+  if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+    
+
+  addRelatorioForm19(CompletaOuRepete('', '', '-', 80) + CRLF);
+  addRelatorioForm19(CompletaOuRepete('TOTAL', formataCurrency(totalGeral), ' ', 20) + CRLF);
+  addRelatorioForm19(CompletaOuRepete('', '', '-', 80)+ CRLF);
+
+
+  form19.ShowModal;
+
 end;
 
 procedure TForm2.EntradadeXML1Click(Sender: TObject);

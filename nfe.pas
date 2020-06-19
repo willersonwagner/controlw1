@@ -91,7 +91,7 @@ type
     xml1 : AnsiString;
     recuperando : boolean;
     erro_dados, pastaNFE_ControlW, retorno_Acbr
-    , _EXPORTA, _FORMPG, Caminho, chaveRecuperada, IND_PAG, tipoPessoa, idDest : string;
+    , _EXPORTA, _FORMPG, Caminho, chaveRecuperada, IND_PAG, tipoPessoa, idDest, codNumerico : string;
     i, INVALIDO : integer;
     OK : BOOLEAN;
     TOTICM, TOT_BASEICM, TOT_PIS, TOT_COFINS,BASE_ICM, VLR_ICM, totalNota, totalNota_achado, totImp,
@@ -100,6 +100,7 @@ type
     valida : boolean;
     COFINS_ST, PIS_ST, PIS_NT, vST : currency;
     aliquotasGrupoDeICMS : TItensPISCOFINS;
+    function geraCodNumerico(nota12 : String ) : String;
     function getSerieNFe : string;
     function getNNF() : String;
     function verificaProtNFe(arquivoXML : String ) : boolean;
@@ -212,6 +213,9 @@ type
 
     const
       UF_PARTILHAICMS : String = 'AM\BA\CE\GO\MG\MS\MT\PE\RN\SE\SP\SC';
+      codigoNumericoInvalido   = ',00000000,11111111,22222222,33333333,44444444,55555555,'+
+      '66666666,77777777,88888888,99999999,12345678,23456789,34567890,45678901,56789012,67890123,'+
+      '78901234,89012345,90123456,01234567,';
   end;
 
 var
@@ -2590,12 +2594,12 @@ end;
 
 FUNCTION tnfevenda.NODO_PISCOFINS(var item1 : Item_venda; CSTPIS_CFOP : string; cfop : String) : string;
 VAR
-   COF_ALIQ, PIS_ALIQ : string;
+   COF_ALIQ, PIS_ALIQ      : string;
   tot, VLR_COFINS, VLR_PIS : currency;
 begin
   TOT := item1.total - item1.Desconto;
   //SE FOR OPTANTE DO SIMPLES NACIONAL, NAO USA TAG PIS/COFINS
-  IF (((Contido(funcoes.buscaParamGeral(10, ''), '1-2')) and (trim(item1.Pis) = '')) or (contido('<refNFe>', TAG_DOCREF)))  then begin
+  IF (((Contido(funcoes.buscaParamGeral(10, ''), '1-2')) and (trim(item1.Pis) = '')) or (contido('<refNFe>', TAG_DOCREF)) or (ChecaIsencaoPis_Cst_49_Devoluções(cfop)))  then begin
     Result := '<PIS><PISAliq><CST>01</CST><vBC>0.00</vBC><pPIS>0.00</pPIS>' +
     '<vPIS>0.00</vPIS></PISAliq></PIS>' +
     '<COFINS><COFINSAliq><CST>01</CST><vBC>0.00</vBC>' +
@@ -3435,7 +3439,7 @@ begin
 
   dHAtual := getDataHoraAtualXML;
 
-  Result := '<ide><cUF>' + UF + '</cUF><cNF>' + funcoes.CompletaOuRepete('',nota,'0',8) + '</cNF><natOp>' + LeftStr(removeCarateresEspeciais(COD_CFOP), 50) + '</natOp>' +
+  Result := '<ide><cUF>' + UF + '</cUF><cNF>' + codNumerico + '</cNF><natOp>' + LeftStr(removeCarateresEspeciais(COD_CFOP), 50) + '</natOp>' +
   '<indPag>' + IND_PAG  + '</indPag><mod>55</mod><serie>'+getSerieNFe+'</serie><nNF>' +
   NUM_NF + '</nNF><dhEmi>' + dHAtual + '</dhEmi><dhSaiEnt>' + dHAtual + '</dhSaiEnt>' +
   '<tpNF>'+ IfThen(Contido(cod_OP[1], '567'), '1', '0') +'</tpNF><idDest>'+ idDest +'</idDest><cMunFG>' + COD_MUNIC + '</cMunFG>' +
@@ -4181,6 +4185,8 @@ var seq : string;
 i : integer;
 total, dv : currency;
 begin
+    codNumerico := geraCodNumerico(nota);
+
     Result := '';
     result := IntToStr(14);//cod uf tamanho 02
     Result := Result + FormatDateTime('yymm',form22.datamov); //ano e mes de emissao tamanho 04
@@ -4191,7 +4197,7 @@ begin
     Result := Result + funcoes.CompletaOuRepete('',dadosEmitente.Values['nf'],'0',9); //numero nota fiscal 09
     //Result := Result + funcoes.CompletaOuRepete('1',dadosEmitente.Values['nf'],'0',9);
     Result := Result + '1';
-    Result := Result + funcoes.CompletaOuRepete('',nota,'0',8);
+    Result := Result + codNumerico;
     seq := '';
     seq := '432' + funcoes.CompletaOuRepete('','','98765432',5);
     total := 0;
@@ -4965,6 +4971,16 @@ function TNfeVenda.getNNF() : String;
 begin
 
 end;
+
+
+
+function TNfeVenda.geraCodNumerico(nota12 : String ) : String;
+begin
+  Result := funcoes.CompletaOuRepete('',nota,'0',8);
+
+  if Contido(','+Result+',', codigoNumericoInvalido) then Result := funcoes.CompletaOuRepete('','1','0',8);
+end;
+
 
 
 

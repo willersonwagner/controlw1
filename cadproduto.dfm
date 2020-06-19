@@ -27,6 +27,8 @@ object Form9: TForm9
     Height = 399
     Align = alClient
     TabOrder = 0
+    ExplicitLeft = -144
+    ExplicitTop = 216
     object Label2: TLabel
       Left = 96
       Top = 16
@@ -478,6 +480,19 @@ object Form9: TForm9
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -12
+      Font.Name = 'MS Sans Serif'
+      Font.Style = [fsBold]
+      ParentFont = False
+    end
+    object Label41: TLabel
+      Left = 7
+      Top = 344
+      Width = 174
+      Height = 16
+      Caption = 'F3-Destiva/Ativa Produto'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clRed
+      Font.Height = -13
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsBold]
       ParentFont = False

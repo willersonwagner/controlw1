@@ -51,6 +51,7 @@ begin
     mani := trim(DBGrid1.DataSource.DataSet.FieldByName('MANIFESTACAO').AsString);
   except
   end;
+
   if mani <> '' then
     begin
       DBGrid1.Canvas.Brush.Color := HexToTColor('5F9EA0');
@@ -82,6 +83,8 @@ begin
     form78.nsu            := DBGrid1.DataSource.DataSet.FieldByName('nsu').AsString;
     form78.ShowModal;
     form78.Free;
+
+    abredataset;
   end;
 
   if key = 114 then begin //F3

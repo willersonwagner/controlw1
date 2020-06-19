@@ -539,7 +539,7 @@ object form22: Tform22
     object Label10: TLabel
       Left = 0
       Top = 217
-      Width = 7
+      Width = 3
       Height = 13
       Color = clMoneyGreen
       Font.Charset = ANSI_CHARSET
@@ -11944,6 +11944,7 @@ object form22: Tform22
       Width = 665
       Height = 80
       BevelOuter = bvNone
+      FullRepaint = False
       TabOrder = 4
       Visible = False
       object Label4: TLabel

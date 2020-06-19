@@ -1230,7 +1230,7 @@ begin
       dm.IBselect.Close;
       dm.IBselect.SQL.Clear;
       dm.IBselect.Params.Clear;
-      dm.IBselect.SQL.Add('select i.cod,p.aliquota, i.CRED_ICMS, i.quant, i.p_compra, trim(i.unid)as unid from item_entrada i left join produto p on (p.cod = i.cod)'+
+      dm.IBselect.SQL.Add('select i.cod,p.aliquota, i.CRED_ICMS, i.quant, i.p_compra, trim(i.unid)as unid, p.tipo_item from item_entrada i left join produto p on (p.cod = i.cod)'+
       ' where (i.nota = :nott) and (i.fornec = :fornec)');
       dm.IBselect.ParamByName('nott').AsInteger   := nota;
       dm.IBselect.ParamByName('fornec').AsInteger := COD_FOR;
@@ -1255,7 +1255,8 @@ begin
               tmp1 := listaProdutos.Add(TregProd.Create);
               ACUMULA_COD(dm.IBselect.fieldbyname('cod').AsString, UNID);
               VE_UNIDADE(unid);
-              listaProdutos[tmp1].cod      := dm.IBselect.fieldbyname('cod').AsInteger;
+              listaProdutos[tmp1].tipo_item := dm.IBselect.fieldbyname('tipo_item').AsString;
+              listaProdutos[tmp1].cod       := dm.IBselect.fieldbyname('cod').AsInteger;
               listaProdutos[tmp1].quant    := quant;
               listaProdutos[tmp1].unid     := unid;
               listaProdutos[tmp1].aliq     := '00';
@@ -1437,6 +1438,13 @@ begin
 
        //SE A ALIQUOTA S ECREDITO FOR IGUAL 0,01, ENTAO ZERA
        IF(PERC_ICMS = 0.01) then PERC_ICMS := 0;
+
+
+       //se for material de uso ou consumo entao zera o icms
+       if LeftStr(trim(DESC), 1) = '_' then begin
+         listaProdutos[ini].tipo_item := '07';
+         PERC_ICMS := 0;
+       end;
 
        //TOT_ICM := IfThen(TRIB = '00', ARREDONDA(BASE_ICM * PERC_ICMS / 100, 2), 0);
        TOT_ICM := 0;
@@ -5739,6 +5747,8 @@ var
   arq : TStringList;
 begin
   Result := false;
+  if length(trim(cfop)) <> 4 then exit;
+
   if trim(Arquivo_CFOP_ISENTOS) = '' then begin
     arq := TStringList.Create;
     arq.LoadFromFile(caminhoEXE_com_barra_no_final + 'CFOP_ISENTOS.DAT');

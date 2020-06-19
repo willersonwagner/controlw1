@@ -63,9 +63,12 @@ begin
       i := i + 1;
       ret := NfeVenda.ManifestarNFe(EditChave.Text, '1', '', false);
 
-      if ((ret = 'OK') or (i = 6) or (Contido('Rejeicao', ret))) then begin
+      //if ((ret = 'OK') or (i = 10) or (Contido('Rejeicao', ret))) then begin
+      if ((ret = 'OK') or (i = 10) or ((Contido('Rejeicao', ret)))) then begin
         break;
       end;
+
+      sleep(2000);
     end;
 
     if Contido('Erro 67: ', ret) then begin
@@ -87,7 +90,7 @@ begin
     i := 0;
     while true do begin
       i := i + 1;
-      if (i = 6) then Begin
+      if (i = 10) then Begin//22s de espera
         break;
       End;
 
@@ -115,13 +118,15 @@ begin
         try
           ACBrNFe.DistribuicaoDFePorChaveNFe(CODestado, StrNum(form22.Pgerais.Values['cnpj']), EditChave.Text);
           ret := '';
-          break;
+          if ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.cStat = 138 then break;
         except
           on e:exception do begin
             ret := e.Message;
           end;
         end;
       end;
+
+      sleep(5000);
     end;
 
     if ret <> '' then begin

@@ -571,10 +571,10 @@ begin
     exit;
   end;
 
-  if StrToCurr(valorBaixado) <= 0 then begin
+  {if StrToCurr(valorBaixado) <= 0 then begin
     MessageDlg('Valor Inválido: ' + valorBaixado, mtInformation, [mbOK], 1);
     exit;
-  end;
+  end;}
 
   if StrToCurrDef(valorbaixado, 0) = 0 then exit;
 

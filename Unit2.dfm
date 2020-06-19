@@ -12272,6 +12272,10 @@ object Form2: TForm2
             Caption = 'Integridade de Contas a Receber'
             OnClick = IntegridadedeContasaReceber1Click
           end
+          object GerarVendasTransferenciadeEstoque1: TMenuItem
+            Caption = 'Gerar Vendas Transferencia de Estoque'
+            OnClick = GerarVendasTransferenciadeEstoque1Click
+          end
         end
       end
       object Nfe1: TMenuItem

@@ -139,6 +139,8 @@ type
     enviandoCupom, enviandoBackup: boolean;
     fonteRelatorioForm19: integer;
     NegritoRelatorioForm19, saiComEnter: boolean;
+    procedure DownloadSincronizacaoDeEstoqueOnline;
+    procedure sincronizacaoDeEstoqueOnline;
     procedure imprimeEnderecoEntregaCodEndereco(nota : String; codEndeEntrega : String);
     procedure BuscaResizeDBgrid(var dbgrid : TDBGrid; form : String);
     procedure acertaVendasDoDiaAVista();
@@ -5353,7 +5355,12 @@ begin
     form48.ClientDataSet1.FieldByName('TOTAL').AsCurrency := item1.total;
     form48.ClientDataSet1.FieldByName('TOTnota').AsCurrency := item1.totNota;
     form48.ClientDataSet1.FieldByName('NCM').AsString := item1.NCM;
-    form48.ClientDataSet1.FieldByName('CRED_ICMS').AsCurrency := item1.p_icms;
+
+    //ESSA ROTINA FOI DESABILITADA EM 10/05/2020 POR CAUSA QUE A MERCADORIA VEM TRIBUTADA
+    // E CHEGA PRA RR COMO SUBSTITUIÇÃO NA RETIFICA BV
+    // FOI FEITO PRA CASA PARAIBA
+
+    //form48.ClientDataSet1.FieldByName('CRED_ICMS').AsCurrency := item1.p_icms;
     //form48.ClientDataSet1.FieldByName('CRED_ICMS').AsCurrency := 0;
     // form48.ClientDataSet1.FieldByName('REF_NFE').AsString       := IntToStr(item1.cod) + '|' + item1.codbar;
     form48.ClientDataSet1.FieldByName('REF_NFE').AsString := item1.codigoFornecedor + '|' + form48.fornecedor;
@@ -10978,6 +10985,23 @@ begin
       dm.IBQuery1.Transaction.Commit;
     end;
 
+    if funcoes.retornaTamanhoDoCampoBD('EMAIL', 'CLIENTE') = 50 then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add
+        ('alter table CLIENTE alter EMAIL type VARCHAR(60)');
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
+    if not VerificaCampoTabela('cnpj_sinc', 'registro') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('ALTER TABLE registro ADD cnpj_sinc varchar(20)');
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
     {if retornaEscalaDoCampo('p_compra', 'ITEM_entrada') <> 10 then
     begin
       dm.IBQuery1.Close;
@@ -10986,6 +11010,14 @@ begin
         ('ALTER TABLE ITEM_entrada ALTER p_compra TYPE NUMERIC(15,10)');
       dm.IBQuery1.ExecSQL;
     end;  }
+
+    if not VerificaCampoTabela('desativado', 'produto') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('ALTER TABLE produto ADD desativado varchar(1)');
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
+    end;
 
     //VerificaVersao_do_bd
   end;
@@ -23002,7 +23034,7 @@ begin
   dm.ACBrCargaBal1.Produtos.Clear;
   dm.IBselect.Close;
   dm.IBselect.SQL.text :=
-    'select * from produto where left(codbar, 1) = ''2'' and char_length(codbar) <= 7 and char_length(codbar) >= 5';
+    'select * from produto where left(codbar, 1) = ''2'' and char_length(codbar) <= 8 and char_length(codbar) >= 5';
   dm.IBselect.Open;
   dm.IBselect.FetchAll;
   fim := dm.IBselect.RecordCount;
@@ -23026,7 +23058,7 @@ begin
 
     balItem.ValorVenda := dm.IBselect.FieldByName('p_venda').AsCurrency;
     balItem.Validade :=
-      StrToIntDef(copy(dm.IBselect.FieldByName('codbar').AsString, 6, 2), 15);
+      StrToIntDef(copy(dm.IBselect.FieldByName('codbar').AsString, 6, 3), 15);
     balItem.Tecla := 0;
     //balItem.Receita := dm.IBselect.FieldByName('nome').AsString;
     // Nutricional     := Format('Informação Nutricional do item %d', [I]);;
@@ -25075,9 +25107,9 @@ begin
 
   ACBrNFe.Configuracoes.geral.ModeloDF := moNFe;
   ACBrNFe.Configuracoes.WebServices.TimeOut := 30000;
-  // ACBrNFe.Configuracoes.WebServices.Ambiente := taProducao;
-  // ACBrNFe.Configuracoes.Arquivos.PathSalvar := caminhoEXE_com_barra_no_final+'NFe\ent\';
-  // ACBrNFe.Configuracoes.Geral.Salvar := true;
+  ACBrNFe.Configuracoes.WebServices.Ambiente := taProducao;
+  ACBrNFe.Configuracoes.Arquivos.PathSalvar := caminhoEXE_com_barra_no_final+'NFe\ent\';
+  ACBrNFe.Configuracoes.Geral.Salvar := true;
 
   dm.IBselect.Close;
   dm.IBselect.SQL.text := 'select chave from NFEDISTRIBUICAO';
@@ -25122,10 +25154,12 @@ begin
   Application.ProcessMessages;
   i := 0;
 
+  //ShowMessage(UltNSU);
+
   while true do
   begin
     Inc(i);
-    if i = 4 then
+    if i = 7 then
       break;
     Application.ProcessMessages;
     try
@@ -25292,10 +25326,10 @@ begin
     dm.IBQuery1.Transaction.Commit;
 
   if sStat = '138' then
-    ShowMessage(IntToStr(fim) + ' Consultas Realizadas e tem mais Documentos')
+    ShowMessage(IntToStr(fim) + ' Consultas Realizadas e tem mais Documentos. cStat ' + sStat)
   else
     ShowMessage(IntToStr(fim) +
-      ' Consultas Realizadas e não tem mais Documentos.');
+      ' Consultas Realizadas e não tem mais Documentos. cStat ' + sStat);
 
   { form33 := TForm33.Create(self);
     form33.DataSource1.DataSet := dataSet;
@@ -26944,7 +26978,7 @@ begin
   Result := buscaAliquotaPadraoParamGerais;
   //IF      cst = '41' then Result := '11'
 
-  IF cst = '40' then Result := '12'
+  IF cst = '40' then Result := '11'
   else IF cst = '60' then Result := '10'
   else IF cst = '10' then Result := '10'
   else IF cst = '30' then Result := '10';
@@ -26953,8 +26987,8 @@ end;
 function Tfuncoes.buscaAliqPISxml(cst : String; icmsosn : String) : string;
 begin
   Result := '';
-  IF      cst = '04' then Result := 'M'
-  else IF cst = '06' then Result := 'R';
+  IF      cst = '04' then Result := 'M';
+  //else IF cst = '06' then Result := 'R';
   //else IF cst = '07' then Result := 'M';
 end;
 
@@ -28546,5 +28580,105 @@ begin
   funcoes.ImprimirPedidoVias(1, false);
 
 end;
+
+procedure Tfuncoes.sincronizacaoDeEstoqueOnline;
+var
+  pasta : String;
+begin
+  pasta := caminhoEXE_com_barra_no_final + 'Backup\'+strnum(form22.Pgerais.Values['cnpj'])+'.DAT';
+  if funcoes.SincronizarExtoque1(pasta) then
+  begin
+    funcoes.mensagemEnviandoNFCE('Aguarde, Enviando...', true, false);
+    SendPostDataSinc(Form72.IdHTTP1, pasta, 'E', '0');
+    funcoes.mensagemEnviandoNFCE('Aguarde, Enviando...', false, true);
+  end;
+
+  ShowMessage('Sincronização Enviada!');
+
+end;
+
+
+procedure Tfuncoes.DownloadSincronizacaoDeEstoqueOnline;
+var
+  th, msg, cnpj, arquivo: String;
+  fileDownload: TFileStream;
+begin
+  msg := 'Buscando Sincronizações, Aguarde...';
+
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select cnpj_sinc from registro';
+  dm.IBselect.Open;
+
+  cnpj := dm.IBselect.FieldByName('cnpj_sinc').AsString;
+  cnpj := funcoes.dialogo('generico', 150, '1234567890,.' + #8, 150, false, '',application.Title, 'Qual o CNPJ?', cnpj);
+
+  cnpj := strnum(cnpj);
+  funcoes.mensagemEnviandoNFCE('Buscando Sincronização...', true, false);
+
+  try
+    th := buscaNomeSite + '/si2/vesinc.php?cnpj=' + cnpj;
+    dm.IBselect.Close;
+    try
+      IdHTTP1.Request.UserAgent :=
+        'Mozilla/5.0 (Windows NT 5.1; rv:2.0b8) Gecko/20100101 Firefox/4.' +
+        '0b8';
+      IdHTTP1.HTTPOptions := [hoForceEncodeParams];
+
+      th := IdHTTP1.Get(th);
+      if trim(th) <> 'OK' then begin
+        ShowMessage('Nenhuma Sincronização Encontrada!');
+        exit;
+      end;
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := 'update registro set cnpj_sinc = :cnpj';
+      dm.IBQuery1.ParamByName('cnpj').AsString := (cnpj);
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
+
+      th := buscaNomeSite + '/si2/baixasinc.php?cnpj=' + cnpj;
+
+      arquivo := caminhoEXE_com_barra_no_final +'backup\' + cnpj + '.zip';
+        try
+          fileDownload := TFileStream.Create(arquivo, fmCreate);
+          IdHTTP1.Get(th, fileDownload);
+        finally
+          FreeAndNil(fileDownload);
+        end;
+
+      IdHTTP1.Disconnect;
+
+
+      if FileExists(arquivo) then begin
+        try
+          UnZip(arquivo, ExtractFileDir(arquivo));
+        except
+          funcoes.mensagemEnviandoNFCE('Buscando Sincronização...', false, true);
+        end;
+
+        excluiAqruivo(arquivo);
+      end;
+
+      funcoes.mensagemEnviandoNFCE('Buscando Sincronização...', false, true);
+      if funcoes.receberSincronizacaoExtoque1(ExtractFileDir(arquivo) +'\'+cnpj+'.DAT') then begin
+        ShowMessage('Sincronizado com sucesso.');
+      end;
+
+    except
+      on e: exception do
+      begin
+        if Contido('Host not found', e.Message) then
+        begin
+          th := buscaConfigNaPastaDoControlW('Site_Num', '1');
+          GravaConfigNaPastaDoControlW('Site_Num',
+            IntToStr(StrToIntDef(th, 1) + 1));
+        end;
+      end;
+    end;
+  finally
+  end;
+end;
+
+
 
 end.

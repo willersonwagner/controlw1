@@ -1345,7 +1345,7 @@ object Form16: TForm16
       Font.Height = -13
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsBold]
-      MaxLength = 35
+      MaxLength = 60
       ParentFont = False
       TabOrder = 30
       FormularioComp = 'Form16'
@@ -1392,7 +1392,7 @@ object Form16: TForm16
     object ulticod: TLabel
       Left = 676
       Top = 10
-      Width = 22
+      Width = 5
       Height = 16
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
