@@ -879,10 +879,22 @@ begin
     if (nota1 = '*') or (nota1 = '') then
       exit;
   end
-  else
-    nota1 := nota;
+  else nota1 := nota;
 
-  Result := nota1;
+  Result     := nota1;
+
+
+  dm.IBQuery2.Close;
+  dm.IBQuery2.SQL.Clear;
+  dm.IBQuery2.SQL.Add
+    ('select nota from CONT_ENTREGA where (nota = :nota)');
+  dm.IBQuery2.ParamByName('nota').AsString := nota1;
+  dm.IBQuery2.Open;
+
+  if ((dm.IBQuery2.IsEmpty = false) and (form22.usuario <> 'ADMIN')) then begin
+    ShowMessage('A Nota ' + nota1 + ' Já teve Produtos Entregues e Não Pode Ser Cancelada!');
+    exit;
+  end;
 
   dm.IBQuery2.Close;
   dm.IBQuery2.SQL.Clear;
@@ -900,6 +912,9 @@ begin
     // nota := '*';
     // exit;
   end;
+
+
+
   sim := '';
 
   dm.IBQuery1.Close;
@@ -1006,8 +1021,9 @@ begin
 
   dm.IBQuery1.Close;
   dm.IBQuery1.SQL.Clear;
-  dm.IBQuery1.SQL.Add('update venda set cancelado = :canc where nota = :nota');
+  dm.IBQuery1.SQL.Add('update venda set cancelado = :canc, data_canc = :data where nota = :nota');
   dm.IBQuery1.ParamByName('canc').AsString := form22.codusario;
+  dm.IBQuery1.ParamByName('data').AsDateTime := now;
   dm.IBQuery1.ParamByName('nota').AsString := nota1;
   dm.IBQuery1.ExecSQL;
 
@@ -11015,6 +11031,14 @@ begin
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Clear;
       dm.IBQuery1.SQL.Add('ALTER TABLE produto ADD desativado varchar(1)');
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
+    if not VerificaCampoTabela('data_canc', 'venda') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('ALTER TABLE venda ADD data_canc timestamp');
       dm.IBQuery1.ExecSQL;
       dm.IBQuery1.Transaction.Commit;
     end;

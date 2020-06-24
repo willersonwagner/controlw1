@@ -22,8 +22,8 @@ object Form44: TForm44
   object Label1: TLabel
     Left = 256
     Top = 160
-    Width = 257
-    Height = 24
+    Width = 269
+    Height = 25
     Caption = 'Itens da Venda F5 Atualizar'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText

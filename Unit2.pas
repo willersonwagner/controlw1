@@ -9833,7 +9833,7 @@ var
     tipoRegCaixa: string;
   sepUsu, codigoUsu, h4, h5, usuario: String;
   totais, caixa: TStringList;
-  totalgeral, pendentes, ent, sai, TotalGeralFormas, totEntradaCaixaNaVenda: currency;
+  totalgeral, pendentes, ent, sai, TotalGeralFormas, totEntradaCaixaNaVenda, TOTCANCELADAS: currency;
   b, ContaNota, i, tam, fi: integer;
 begin
   ini := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,
@@ -10278,6 +10278,36 @@ begin
   if ini = fim then begin
     funcoes.deletaRegistroVendaDoDiaDuplicado(StrToDate(ini));
   end;
+
+  dm.ibselect.Close;
+  dm.ibselect.SQL.Clear;
+  dm.ibselect.SQL.Text := 'SELECT V.cancelado, u.nome as nomeusuario,v.nota, v.data, v.data_canc, v.codhis, f.nome as nomepagto, v.cliente, '+
+  'c.nome as nomecliente, v.total FROM VENDA v left join formpagto f on (f.cod = v.codhis) left join cliente c on (c.cod = v.cliente)'+
+  ' left join usuario u on (u.cod = v.cancelado) WHERE (CAST(v.DATA_CANC AS DATE) between :ini AND :fim) AND NOT(v.DATA between :ini AND :fim)';
+  dm.ibselect.ParamByName('ini').AsDateTime := StrToDate(ini);
+  dm.ibselect.ParamByName('fim').AsDateTime := StrToDate(fim);
+  dm.ibselect.Open;
+  dm.ibselect.FetchAll;
+
+  if dm.ibselect.IsEmpty = false then begin
+    addRelatorioForm19(funcoes.RelatorioCabecalho(form22.Pgerais.Values['empresa'], 'VENDAS CANCELADAS NO PERIODO', 60));
+    addRelatorioForm19('  NOTA   DATA  DATA CANC. USUARIO    CLIENTE           VALOR' + CRLF);
+    addRelatorioForm19('------------------------------------------------------------' + CRLF);
+
+    TOTCANCELADAS := 0;
+    while not dm.IBselect.Eof do begin
+      addRelatorioForm19(CompletaOuRepete('', dm.IBselect.FieldByName('nota').AsString, '0', 6) + ' ' + formataDataDDMMYY(dm.IBselect.FieldByName('DATA').AsDateTime) + ' ' +
+      FormatDateTime('dd/mm/yy hh:mm', dm.IBselect.FieldByName('data_canc').AsDateTime) + ' ' + CompletaOuRepete(LeftStr(dm.IBselect.FieldByName('cancelado').AsString + '-' + dm.IBselect.FieldByName('nomeusuario').AsString, 12), '', ' ', 12) + CRLF +
+       CompletaOuRepete(LeftStr(dm.IBselect.FieldByName('cliente').AsString + '-' + dm.IBselect.FieldByName('nomecliente').AsString, 48), '', ' ', 48)+ CompletaOuRepete('', formataCurrency(dm.IBselect.FieldByName('total').AsCurrency), ' ', 12)  + CRLF);
+
+      TOTCANCELADAS := TOTCANCELADAS + dm.IBselect.FieldByName('total').AsCurrency;
+      dm.IBselect.Next;
+    end;
+    addRelatorioForm19('------------------------------------------------------------' + CRLF);
+    addRelatorioForm19(CompletaOuRepete('TOTAL', formataCurrency(TOTCANCELADAS), '.', 60 ) + CRLF);
+    addRelatorioForm19('------------------------------------------------------------' + CRLF);
+  end;
+
 
 
   if his <> '' then
