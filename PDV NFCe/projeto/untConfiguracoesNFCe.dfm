@@ -19,17 +19,16 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
   TextHeight = 13
   object Panel5: TPanel
     Left = 0
-    Top = 559
+    Top = 582
     Width = 433
-    Height = 57
+    Height = 34
     Align = alBottom
     BevelInner = bvLowered
     BevelOuter = bvLowered
     TabOrder = 1
-    ExplicitTop = 531
     object BtnOK: TBitBtn
       Left = 88
-      Top = 16
+      Top = 8
       Width = 97
       Height = 25
       Caption = 'OK'
@@ -56,8 +55,8 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
       OnClick = BtnOKClick
     end
     object BtnCancelar: TBitBtn
-      Left = 200
-      Top = 16
+      Left = 204
+      Top = 8
       Width = 97
       Height = 25
       Cancel = True
@@ -88,34 +87,34 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
     Left = 0
     Top = 0
     Width = 433
-    Height = 559
+    Height = 582
     Align = alClient
     TabOrder = 2
-    ExplicitHeight = 531
+    ExplicitHeight = 559
   end
   object PageControl3: TPageControl
     Left = 0
     Top = 0
     Width = 433
-    Height = 559
+    Height = 582
     ActivePage = TabSheet4
     Align = alClient
     MultiLine = True
     TabOrder = 0
-    ExplicitHeight = 531
+    ExplicitHeight = 577
     object TabSheet4: TTabSheet
       Caption = 'Geral'
       ImageIndex = 1
-      ExplicitHeight = 503
+      ExplicitHeight = 531
       object GroupBox6: TGroupBox
         Left = 0
         Top = 0
         Width = 425
-        Height = 531
+        Height = 554
         Align = alClient
         Caption = 'Geral'
         TabOrder = 0
-        ExplicitHeight = 503
+        ExplicitHeight = 531
         object Label15: TLabel
           Left = 8
           Top = 217
@@ -321,14 +320,16 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
     end
     object TabSheet3: TTabSheet
       Caption = 'Certificado'
+      ExplicitHeight = 531
       object GroupBox3: TGroupBox
         Left = 0
         Top = 0
         Width = 425
-        Height = 531
+        Height = 554
         Align = alClient
         Caption = 'Certificado'
         TabOrder = 0
+        ExplicitHeight = 531
         object Label13: TLabel
           Left = 8
           Top = 16
@@ -447,7 +448,7 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
     object TabSheet5: TTabSheet
       Caption = 'WebService'
       ImageIndex = 2
-      ExplicitHeight = 503
+      ExplicitHeight = 531
       object GroupBox7: TGroupBox
         Left = 0
         Top = 0
@@ -560,10 +561,11 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
         Left = 0
         Top = 141
         Width = 425
-        Height = 390
+        Height = 413
         Align = alClient
         Caption = 'Proxy'
         TabOrder = 1
+        ExplicitHeight = 390
         object Label17: TLabel
           Left = 8
           Top = 16
@@ -626,14 +628,16 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
     object TabSheet7: TTabSheet
       Caption = 'Email'
       ImageIndex = 4
+      ExplicitHeight = 531
       object GroupBox9: TGroupBox
         Left = 0
         Top = 0
         Width = 425
-        Height = 531
+        Height = 554
         Align = alClient
         Caption = 'Email'
         TabOrder = 0
+        ExplicitHeight = 531
         object Label38: TLabel
           Left = 8
           Top = 16
@@ -739,14 +743,16 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
     object TabSheet1: TTabSheet
       Caption = 'Par'#226'metros'
       ImageIndex = 4
+      ExplicitHeight = 531
       object GroupBox1: TGroupBox
         Left = 0
         Top = 0
         Width = 425
-        Height = 531
+        Height = 554
         Align = alClient
         Caption = 'Valores Padr'#227'o'
         TabOrder = 0
+        ExplicitHeight = 531
         object Label4: TLabel
           Left = 25
           Top = 35
@@ -794,7 +800,7 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
     object TabSheet2: TTabSheet
       Caption = 'Impress'#227'o'
       ImageIndex = 5
-      ExplicitHeight = 503
+      ExplicitHeight = 531
       object Label6: TLabel
         Left = 16
         Top = 8
@@ -804,7 +810,7 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
       end
       object Label7: TLabel
         Left = 16
-        Top = 64
+        Top = 59
         Width = 114
         Height = 13
         Caption = 'Impressora Padr'#227'o NFe:'
@@ -818,28 +824,28 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
       end
       object Label10: TLabel
         Left = 176
-        Top = 64
+        Top = 59
         Width = 111
         Height = 13
         Caption = 'Porta de Comunica'#231#227'o:'
       end
       object Label21: TLabel
         Left = 16
-        Top = 112
+        Top = 102
         Width = 98
         Height = 13
         Caption = 'Tipo Impress'#227'o NFe:'
       end
       object Label30: TLabel
         Left = 176
-        Top = 112
+        Top = 102
         Width = 56
         Height = 13
         Caption = 'Velocidade:'
       end
       object Label31: TLabel
         Left = 303
-        Top = 64
+        Top = 59
         Width = 101
         Height = 13
         Caption = 'Espaco Entre Linhas:'
@@ -853,14 +859,14 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
       end
       object GroupBox2: TGroupBox
         Left = 16
-        Top = 160
+        Top = 145
         Width = 345
-        Height = 65
+        Height = 41
         Caption = 'Tipo de Impress'#227'o'
         TabOrder = 1
         object RadioButton1: TRadioButton
           Left = 16
-          Top = 28
+          Top = 15
           Width = 113
           Height = 17
           Caption = 'Normal'
@@ -870,7 +876,7 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
         end
         object RadioButton2: TRadioButton
           Left = 121
-          Top = 28
+          Top = 15
           Width = 113
           Height = 17
           Caption = 'EscPos'
@@ -878,7 +884,7 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
         end
         object RadioButton4: TRadioButton
           Left = 216
-          Top = 28
+          Top = 15
           Width = 113
           Height = 17
           Caption = 'Fast Reports'
@@ -887,7 +893,7 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
       end
       object RadioButton3: TCheckBox
         Left = 20
-        Top = 511
+        Top = 534
         Width = 121
         Height = 17
         Caption = 'Mostar Preview NFe'
@@ -895,7 +901,7 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
       end
       object IndxImpNfe: TComboBox
         Left = 16
-        Top = 80
+        Top = 75
         Width = 145
         Height = 21
         TabOrder = 3
@@ -919,22 +925,22 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
       end
       object PortaCOM: TEdit
         Left = 176
-        Top = 80
+        Top = 75
         Width = 121
         Height = 21
         TabOrder = 5
       end
       object tipoNFe: TComboBox
         Left = 16
-        Top = 128
+        Top = 118
         Width = 145
         Height = 21
         TabOrder = 6
         Text = 'ComboBox1'
       end
       object previewNFCe: TCheckBox
-        Left = 162
-        Top = 511
+        Left = 137
+        Top = 534
         Width = 129
         Height = 17
         Caption = 'Mostar Preview NFCe'
@@ -942,10 +948,10 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
       end
       object GroupBox4: TGroupBox
         Left = 16
-        Top = 231
+        Top = 192
         Width = 345
-        Height = 228
-        Caption = 'Logo Marca'
+        Height = 209
+        Caption = 'Logo Marca NFe'
         TabOrder = 8
         object Label23: TLabel
           Left = 16
@@ -1032,8 +1038,8 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
           TabOrder = 3
         end
         object expandirLogo: TCheckBox
-          Left = 16
-          Top = 210
+          Left = 18
+          Top = 187
           Width = 121
           Height = 15
           Caption = 'Expandir Logo'
@@ -1087,8 +1093,8 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
         end
       end
       object impDescontoNFCe: TCheckBox
-        Left = 20
-        Top = 488
+        Left = 257
+        Top = 534
         Width = 147
         Height = 17
         Caption = 'Imprimir Desconto NFCe'
@@ -1096,30 +1102,95 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
       end
       object velocidade: TEdit
         Left = 176
-        Top = 128
+        Top = 118
         Width = 121
         Height = 21
         TabOrder = 10
       end
       object espacoEntreLinhas: TEdit
         Left = 303
-        Top = 80
+        Top = 75
         Width = 58
         Height = 21
         TabOrder = 11
       end
       object imprimirNomeFantasia: TCheckBox
         Left = 20
-        Top = 465
+        Top = 511
         Width = 147
         Height = 17
         Caption = 'Imprimir Nome Fantasia'
         TabOrder = 12
       end
+      object GroupBox5: TGroupBox
+        Left = 16
+        Top = 400
+        Width = 345
+        Height = 73
+        Caption = 'Logo Marca NFCe'
+        TabOrder = 13
+        object Label35: TLabel
+          Left = 12
+          Top = 21
+          Width = 37
+          Height = 13
+          Caption = 'Fator X:'
+        end
+        object Label36: TLabel
+          Left = 75
+          Top = 21
+          Width = 37
+          Height = 13
+          Caption = 'Fator Y:'
+        end
+        object Label37: TLabel
+          Left = 140
+          Top = 21
+          Width = 46
+          Height = 13
+          Caption = 'KeyCod1:'
+        end
+        object Label44: TLabel
+          Left = 203
+          Top = 21
+          Width = 46
+          Height = 13
+          Caption = 'KeyCod2:'
+        end
+        object fatorx: TEdit
+          Left = 12
+          Top = 40
+          Width = 45
+          Height = 21
+          TabOrder = 0
+        end
+        object fatory: TEdit
+          Left = 75
+          Top = 40
+          Width = 43
+          Height = 21
+          TabOrder = 1
+        end
+        object KC1: TEdit
+          Left = 140
+          Top = 40
+          Width = 50
+          Height = 21
+          TabOrder = 2
+        end
+        object KC2: TEdit
+          Left = 203
+          Top = 40
+          Width = 50
+          Height = 21
+          TabOrder = 3
+        end
+      end
     end
     object TabSheet6: TTabSheet
       Caption = 'Conex'#227'o'
       ImageIndex = 6
+      ExplicitHeight = 531
       object Label11: TLabel
         Left = 8
         Top = 72

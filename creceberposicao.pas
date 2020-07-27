@@ -725,7 +725,7 @@ begin
 
   funcoes.duplicarRichedit(StrToIntDef(funcoes.buscaParamGeral(87, '1'), 1));
 
-  imprime.setCofiguracoesImpressora;
+  imprime.setCofiguracoesImpressora('');
   imprime.textxArq('texto.txt');
 end;
 

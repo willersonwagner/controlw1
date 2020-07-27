@@ -102,9 +102,11 @@ object Form52: TForm52
     TabOrder = 1
     object TabSheet1: TTabSheet
       Caption = 'Impressora'
+      ExplicitLeft = 148
+      ExplicitTop = 280
       object Label1: TLabel
         Left = 16
-        Top = 10
+        Top = 3
         Width = 71
         Height = 16
         Caption = 'Impressora:'
@@ -182,7 +184,7 @@ object Form52: TForm52
       end
       object ComboBox1: TComboBox
         Left = 16
-        Top = 32
+        Top = 25
         Width = 209
         Height = 21
         TabOrder = 0

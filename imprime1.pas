@@ -150,13 +150,14 @@ type
     negrito : boolean;
     fontDif, imprimiu : boolean;
     tamaFonte, tamFontePadrao : integer;
-    cod, espac_dire, IndexImpressora : String;
+    cod, espac_dire, nomeSegundaImpressora : String;
     procedure impTxtMatricialUSB(ImplinhasFinal : boolean = true);
     procedure impTxtTAP(var texto : TStringList);
     procedure AtivarACBrETQ ;
     procedure SetPrinterPage(Width, Height : LongInt);
-    function setCofiguracoesImpressora() : String;
-    procedure textx(arquivo:string; ImplinhasFinal : boolean = true);
+    function setCofiguracoesImpressora(nomeImp : String) : String;
+    procedure textx(arquivo:string; ImplinhasFinal : boolean = true; nomeImpressora : String = '');
+    procedure textx1(arquivo:string; ImplinhasFinal : boolean = true; nomeImpressora : String = '');
     procedure textxArq(arquivo:string; VENDA : BOOLEAN = FALSE);
     procedure setFonte(valor : integer);
     function imprime1(tamFonte : integer = 0; tip : String = ''; ImplinhasFinal : boolean = true) : String;
@@ -190,7 +191,7 @@ var
   linha, confImp : string;
   fim, ini : integer;
 begin
-  confImp := setCofiguracoesImpressora();
+  confImp := setCofiguracoesImpressora(nomeSegundaImpressora);
   Prn := TAdvancedPrinter.Create;
   Prn.OpenDoc ('Impressão TEXTO.TXT');
 
@@ -372,7 +373,7 @@ begin
   //RLReport2.DefaultFilter := rlpd
 end;
 
-function Timprime.setCofiguracoesImpressora() : String;
+function Timprime.setCofiguracoesImpressora(nomeImp : String) : String;
 var
   tmp      : string;
   ini, fim, impTer : integer;
@@ -402,7 +403,8 @@ begin
   impTer := StrToIntDef(funcoes.LerConfig(form22.Pgerais.Values['conf_ter'], 5), 0);
   if tipo <> 33 then
     begin
-      setPrinter(StrToIntDef(funcoes.LerConfig(form22.Pgerais.Values['imp'], 0), 0), funcoes.LerConfig(form22.Pgerais.Values['imp'], 15));
+      if nomeImp = '' then nomeImp := funcoes.LerConfig(form22.Pgerais.Values['imp'], 15);
+      setPrinter(StrToIntDef(funcoes.LerConfig(form22.Pgerais.Values['imp'], 0), 0), nomeImp);
     end;
 
   printer.Canvas.Font.Size  := StrToIntDef(funcoes.LerConfig(tmp, 4), 11);
@@ -467,7 +469,7 @@ begin
   if tip = '' then
     begin
       tip := funcoes.LerConfig(confImp, 1);
-      confImp := setCofiguracoesImpressora();
+      confImp := setCofiguracoesImpressora(nomeSegundaImpressora);
     end;
 
   if tip = '11' then begin
@@ -600,16 +602,13 @@ begin
   tamaFonte := valor;
 end;
 
-
-procedure timprime.textx(arquivo:string; ImplinhasFinal : boolean = true);
+procedure timprime.textx1(arquivo:string; ImplinhasFinal : boolean = true; nomeImpressora : String = '');
 var
   cont : Smallint;
 begin
-   if arquivo = '%' then tipo := 33;
+  if arquivo = '%' then tipo := 33;
    //faz isso se escolheu a impressora
    // ai nao seta impressora na impressao
-
-
 
    if funcoes.LerConfig(form22.Pgerais.Values['imp'], 1) = '7' then
     begin
@@ -657,6 +656,20 @@ begin
   if not imprimiu then ShowMessage('Impressora Não Preparada. Verifique se a impressora está ligada');
 end;
 
+procedure timprime.textx(arquivo:string; ImplinhasFinal : boolean = true; nomeImpressora : String = '');
+begin
+  textx1(arquivo, ImplinhasFinal);
+
+  if funcoes.le_configTerminalWindows(0,'', 'IMP2') <> '' then begin
+    try
+      nomeSegundaImpressora := funcoes.le_configTerminalWindows(0,'', 'IMP2');
+      textx1(arquivo, ImplinhasFinal);
+    finally
+      nomeSegundaImpressora := '';
+    end;
+  end;
+end;
+
 procedure timprime.textxArq(arquivo:string; VENDA : BOOLEAN = FALSE);
 var
   linha, arq, tmp, confImp : string;
@@ -665,7 +678,7 @@ var
 begin
 
   if arquivo = '@' then begin
-    confImp := setCofiguracoesImpressora;
+    confImp := setCofiguracoesImpressora(nomeSegundaImpressora);
   end;
 
   //WinExec(pchar(caminhoEXE_com_barra_no_final + 'Imprime.exe ' +  'TEXTO.TXT'), SW_NORMAL);

@@ -318,7 +318,7 @@ type
       var dbgrid99: TDBGrid; ordem2: string = ''; ordenaCampos: boolean = true);
     procedure mostraValorDinheiroTela(const valor: currency);
     function buscaNomeSite(): String;
-    function le_configTerminalWindows(posi: integer; padrao: string): String;
+    function le_configTerminalWindows(posi: integer; padrao: string; nomeConfig : string = ''): String;
     function exportaNFCeEmitidas(email: boolean = False; ini: String = '';
       fim: String = ''): string;
     procedure limpaBloqueado(var quer: TIBQuery);
@@ -2773,7 +2773,7 @@ var
   arqTer, tmp: String;
 begin
   arqTer := caminhoEXE_com_barra_no_final + buscaNomeConfigDat;
-
+  ShowMessage(arqTer + #13 + nomeConfig);
   // criaArqTerminal(); //cria o arquivo do terminal se não existir
 
   arq := tstringList.Create;
@@ -5458,8 +5458,7 @@ begin
 
   funcoes.informacao(0, fim, 'Aguarde, Lendo XML...', False, true, 5);
 
-  sim := funcoes.dialogo('numero', 0, '', 2, False, 'X', Application.Title,
-    'Qual o Lucro %?', '100,00');
+  sim := funcoes.dialogo('numero', 0, '', 2, False, 'X', Application.Title,'Qual o Lucro %?', '100,00');
   if sim = '*' then
     exit;
 
@@ -11043,6 +11042,14 @@ begin
       dm.IBQuery1.Transaction.Commit;
     end;
 
+    if not VerificaCampoTabela('nome', 'orcamento') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('ALTER TABLE orcamento ADD nome varchar(30)');
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
     //VerificaVersao_do_bd
   end;
 
@@ -12391,8 +12398,7 @@ begin
     .AsString)));
   arr.Add('codest=' + trim(UpperCase(dm.IBselect.FieldByName('codest')
     .AsString)));
-  arr.Add('empresa=' + trim(UpperCase(dm.IBselect.FieldByName('empresa')
-    .AsString)));
+  arr.Add('empresa=' + REMOVE_ACENTO(trim(UpperCase(dm.IBselect.FieldByName('empresa').AsString))));
   arr.Add('razaoS=' + trim(UpperCase(dm.IBselect.FieldByName('nome').AsString)));
   arr.Add('ies=' + trim(UpperCase(dm.IBselect.FieldByName('nome').AsString)));
 
@@ -12489,7 +12495,7 @@ function Tfuncoes.GeraNota(numNota: string; tipo: string;
 var
   total, sub, entrada, total_item, desco, recebido, troco, tot_item, fracao: currency;
   refOriCodbar, tmp, impref, imprefxx, codigo1, nomevol, CLIENTE_ENTREGA, CLIENTE_VENDA: string;
-  i, tam, tamDescri, linFIM: integer;
+  i, tam, tamDescri, linFIM, fonteLetra, linhas: integer;
   rece, hora, txt, nome, ENDE_ENTREGA: String;
   controleEntrega: boolean;
   listaprod: TItensProduto;
@@ -14520,11 +14526,24 @@ begin
     end;
 
     dm.IBQuery2.Open;
+    dm.IBQuery2.FetchAll;
     dm.IBQuery2.First;
-    sub := 0;
+    sub   := 0;
     total := 0;
-    while not dm.IBQuery2.Eof do
-    begin
+
+    fonteLetra := StrToIntDef(funcoes.LerConfig(form22.Pgerais.Values['imp'], 4), 11);
+    linhas := 40;
+    if fonteLetra = 12 then linhas := 32;
+
+    while not dm.IBQuery2.Eof do begin
+      if (dm.IBQuery2.RecNo >= linhas) then begin
+        addRelatorioForm19(funcoes.CompletaOuRepete('+', '+', '-', tam) + #13+ #10);
+        addRelatorioForm19('/n');
+        addRelatorioForm19(funcoes.CompletaOuRepete('+', '+', '-', tam) + #13+ #10);
+        if fonteLetra = 12 then linhas := linhas + 50
+        else linhas := linhas + 55;
+      end;
+
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Clear;
       dm.IBQuery1.SQL.Add
@@ -15179,7 +15198,7 @@ begin
       end;
     end;
 
-    addRelatorioForm19('* S E M    V A L O R    F I S C A L  *' + CRLF);
+    addRelatorioForm19('*  S E M     V A L O R    F I S C A L  *' + CRLF);
 
     if funcoes.LerConfig(form22.Pgerais.Values['conf_ter'], 3) <> '' then
     begin
@@ -15205,6 +15224,21 @@ begin
     if opcao = 4 then
     begin
       addRelatorioForm19(centraliza('PEDIDO DE ENTREGA', ' ', 40) + CRLF);
+    end;
+
+    if true then begin
+      addRelatorioForm19('*' +funcoes.centraliza(form22.Pgerais.Values['empresa'], ' ',38) + '*' + #13 + #10);
+      addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 40) + #13 + #10);
+
+      if opcao = 1 then addRelatorioForm19('*' +funcoes.centraliza('VENDA: '   + dm.IBselect.FieldByName('nota').AsString , ' ',38)+ '*' + #13 + #10)
+      else if opcao = 2 then addRelatorioForm19('*' +funcoes.centraliza('ORCAMENTO: '   + dm.IBselect.FieldByName('nota').AsString , ' ',38)+ '*' + #13 + #10)
+      else if opcao = 3 then addRelatorioForm19('*' +funcoes.centraliza('COMPRA: '   + dm.IBselect.FieldByName('nota').AsString , ' ',38)+ '*' + #13 + #10);
+
+      addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 40) + #13 + #10);
+    end
+    else begin
+      addRelatorioForm19(funcoes.centraliza(form22.Pgerais.Values['empresa'], ' ',40) + #13 + #10);
+      addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 40) + #13 + #10);
     end;
 
     form19.RichEdit1.Perform(EM_REPLACESEL, 1,
@@ -15234,13 +15268,48 @@ begin
     form19.RichEdit1.Perform(EM_REPLACESEL, 1,
       Longint(PChar((funcoes.CompletaOuRepete('DATA: ' + dm.IBselect.FieldByName
       ('data').AsString, 'HORA: ' + hora, ' ', 40) + #13 + #10))));
-    form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-      Longint(PChar((funcoes.CompletaOuRepete('NOTA: ' + dm.IBselect.FieldByName
+
+
+    if opcao = 1 then begin
+      if True then begin
+        addRelatorioForm19(funcoes.CompletaOuRepete(copy('VENDEDOR: ' + dm.IBselect.FieldByName('vendedor').AsString
+        + '-' + BuscaNomeBD(dm.IBQuery1, 'nome', 'vendedor',
+        'where cod=' + dm.IBselect.FieldByName('vendedor').AsString), 1, 39), '',
+        ' ', 39) + #13 + #10);
+      end
+      else begin
+      addRelatorioForm19(funcoes.CompletaOuRepete('VENDA: ' + dm.IBselect.FieldByName('nota').AsString, '', ' ', 15) + ' ' +
+      funcoes.CompletaOuRepete(copy('VENDEDOR: ' + dm.IBselect.FieldByName('vendedor').AsString
+      + '-' + BuscaNomeBD(dm.IBQuery1, 'nome', 'vendedor',
+      'where cod=' + dm.IBselect.FieldByName('vendedor').AsString), 1, 24), '',
+      ' ', 24) + #13 + #10);
+      end;
+    end
+    else if opcao = 2 then begin
+      if True then begin
+        addRelatorioForm19(funcoes.CompletaOuRepete(copy('VENDEDOR: ' + dm.IBselect.FieldByName('vendedor').AsString
+        + '-' + BuscaNomeBD(dm.IBQuery1, 'nome', 'vendedor',
+        'where cod=' + dm.IBselect.FieldByName('vendedor').AsString), 1, 39), '',
+        ' ', 39) + #13 + #10);
+      end
+      else begin
+        addRelatorioForm19(funcoes.CompletaOuRepete('ORCAMENTO: ' + dm.IBselect.FieldByName('nota').AsString, '', ' ', 15) + '  ' +
+        funcoes.CompletaOuRepete(copy('VEND: ' +dm.IBselect.FieldByName('vendedor').AsString
+        + '-' + BuscaNomeBD(dm.IBQuery1, 'nome', 'vendedor',
+        'where cod=' + dm.IBselect.FieldByName('vendedor').AsString), 1, 22), '',
+        ' ', 22) + #13 + #10);
+      end;
+    end
+    else begin
+      addRelatorioForm19(funcoes.CompletaOuRepete('NOTA: ' + dm.IBselect.FieldByName
       ('nota').AsString, '', ' ', 13) + '  ' + 'VENDEDOR: ' +
       funcoes.CompletaOuRepete(copy(dm.IBselect.FieldByName('vendedor').AsString
       + '-' + BuscaNomeBD(dm.IBQuery1, 'nome', 'vendedor',
       'where cod=' + dm.IBselect.FieldByName('vendedor').AsString), 1, 15), '',
-      ' ', 15) + #13 + #10))));
+      ' ', 15) + #13 + #10);
+    end;
+
+
     form19.RichEdit1.Perform(EM_REPLACESEL, 1,
       Longint(PChar((funcoes.CompletaOuRepete('FORMA PAGTO: ' +
       dm.IBselect.FieldByName('codhis').AsString + '-' +
@@ -15314,9 +15383,7 @@ begin
       end;
       // addRelatorioForm19(funcoes.CompletaOuRepete('OBS: ' + copy(dm.IBQuery3.fieldbyname('obs').AsString, 1,34),'',' ', 40) + #13 + #10);
       // addRelatorioForm19('' + #13 + #10);
-      form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-        Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 40) + #13
-        + #10))));
+      addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 40) + #13+ #10);
       dm.ibquery3.Close;
     end;
 
@@ -15346,6 +15413,10 @@ begin
     dm.IBQuery2.First;
 
     TOT_PIS := 0;
+
+    addRelatorioForm19('Codigo    Descricao'+ #13 + #10);
+    addRelatorioForm19('*                  Quant   V.Unit  Total'+ #13 + #10);
+    addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 40) + #13+ #10);
 
     while not dm.IBQuery2.Eof do
     begin
@@ -18513,8 +18584,7 @@ begin
   end;
 end;
 
-function Tfuncoes.le_configTerminalWindows(posi: integer;
-  padrao: string): String;
+function Tfuncoes.le_configTerminalWindows(posi: integer;padrao: string; nomeConfig : string = ''): String;
 var
   arq: tstringList;
   tmp: string;
@@ -18526,9 +18596,18 @@ begin
 
   arq := tstringList.Create;
   arq.LoadFromFile(caminhoEXE_com_barra_no_final + buscaNomeConfigDat);
+
+  if nomeConfig <> '' then begin
+    Result := arq.Values[nomeConfig];
+    arq.Free;
+    exit;
+  end;
+
   Result := LerConfig(arq.Values['0'], posi);
   if Result = '' then
     Result := padrao;
+
+  arq.Free;
 end;
 
 function Tfuncoes.buscaNomeSite(): String;
@@ -28602,7 +28681,6 @@ begin
 
   funcoes.ImprimirPedidoVias(1, false);
   funcoes.ImprimirPedidoVias(1, false);
-
 end;
 
 procedure Tfuncoes.sincronizacaoDeEstoqueOnline;

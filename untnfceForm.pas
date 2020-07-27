@@ -2637,6 +2637,11 @@ begin
         DANFEEscPos.PosPrinter.Device.TimeOut := 20;
       end;
 
+      DANFEEscPos.PosPrinter.ConfigLogo.KeyCode1 := StrToIntDef(ini.ReadString('SERVER', 'kc1', '32'), 32);
+      DANFEEscPos.PosPrinter.ConfigLogo.KeyCode2 := StrToIntDef(ini.ReadString('SERVER', 'kc2', '32'), 32);
+      DANFEEscPos.PosPrinter.ConfigLogo.FatorX   := StrToIntDef(ini.ReadString('SERVER', 'fatorx', '1'), 1);
+      DANFEEscPos.PosPrinter.ConfigLogo.FatorY   := StrToIntDef(ini.ReadString('SERVER', 'fatory', '1'), 1);
+
       DANFEEscPos.PosPrinter.Device.porta := portaCOMNFCE;
       DANFEEscPos.PosPrinter.LinhasEntreCupons := 10;
       DANFEEscPos.PosPrinter.CortaPapel := true;

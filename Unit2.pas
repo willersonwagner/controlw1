@@ -3671,69 +3671,8 @@ begin
 end;
 
 procedure TForm2.Button2Click(Sender: TObject);
-var
-  lista, lista2 : TStringList;
-  nome, quant : String;
-  i : integer;
 begin
-  lista := TStringList.Create;
-  lista.LoadFromFile('produtoCod.txt');
-  nome := lista.GetText;
-  lista.Clear;
-
-  lista2 := TStringList.Create;
-{  dm.IBselect.Close;
-  dm.IBselect.SQL.Text := 'select cod,sum(iif(qtd_ent is null,  quant, qtd_ent)) as quant from item_entrada group by cod';
-  dm.IBselect.Open;
-
-  nome := '-';
-  while not dm.IBselect.Eof do begin
-    //lista.Add('update produto set quant = quant + ' + Format_num(dm.IBselect.FieldByName('quant').AsCurrency) + ' where cod = ' +dm.IBselect.FieldByName('cod').AsString + ';');
-    if contido('-'+dm.IBselect.FieldByName('cod').AsString+ '-', nome) = false then begin
-    nome := nome +dm.IBselect.FieldByName('cod').AsString+ '-';
-    end;
-    dm.IBselect.Next;
-  end;
-
-
-   dm.IBselect.Close;
-  dm.IBselect.SQL.Text := 'select cod, quant from produto order by cod';
-  dm.IBselect.Open;
-
-  while not dm.IBselect.Eof do begin
-    if contido('-'+dm.IBselect.FieldByName('cod').AsString+ '-', nome) then begin
-      quant := lista2.Values[dm.IBselect.FieldByName('cod').AsString];
-      lista.Add('update produto set quant = ' + Format_num(dm.IBselect.FieldByName('quant').AsCurrency) + ' where cod = ' +dm.IBselect.FieldByName('cod').AsString + ';');
-    end;
-
-    dm.IBselect.Next;
-  end;     }
-
-  dm.IBselect.Close;
-  dm.IBselect.SQL.Text := 'select cod, sum(quant) as quant from item_venda group by cod';
-  dm.IBselect.Open;
-
-  while not dm.IBselect.Eof do begin
-    if contido('-'+dm.IBselect.FieldByName('cod').AsString+ '-', nome) then begin
-      quant := lista2.Values[dm.IBselect.FieldByName('cod').AsString];
-      lista.Add('update produto set quant = quant - (' + Format_num(dm.IBselect.FieldByName('quant').AsCurrency) + ') where cod = ' +dm.IBselect.FieldByName('cod').AsString + ';');
-    end;
-
-    //lista.Add('update produto set quant = quant + ' + Format_num(dm.IBselect.FieldByName('quant').AsCurrency) + ' where cod = ' +dm.IBselect.FieldByName('cod').AsString + ';');
-    nome := nome +dm.IBselect.FieldByName('cod').AsString+ '-';
-    dm.IBselect.Next;
-  end;
-
-{  for i := 0 to lista2.Count-1 do begin
-    lista.Add('update produto set quant = quant - (' + Format_num(StrToFloat(lista2.ValueFromIndex[i])) + ') where cod = ' +lista2.Names[i] + ';');
-  end;}
-
-
-
-  lista.Add(nome);
-  lista.SaveToFile('produtoV.txt');
-
-  ShowMessage('acabou!');
+  ShowMessage(funcoes.le_configTerminalWindows(0,'', 'IMP2'));
 end;
 
 procedure TForm2.RefOriginalGrupo1Click(Sender: TObject);
@@ -4127,6 +4066,8 @@ begin
   form40.tipo.Add('117=generico');
   form40.tipo.Add('118=generico');
   form40.tipo.Add('119=generico');
+  form40.tipo.Add('120=generico');
+  //form40.tipo.Add('121=generico');
 
 
   form40.troca := TStringList.Create;
@@ -4253,6 +4194,8 @@ begin
   form40.troca.Add('117=S');
   form40.troca.Add('118=S');
   form40.troca.Add('119=S');
+  form40.troca.Add('120=S');
+  //form40.troca.Add('121=S');
 
   form40.teclas := TStringList.Create;
   form40.teclas.Add('0=FT');
@@ -4377,6 +4320,8 @@ begin
   form40.teclas.Add('117=SN');
   form40.teclas.Add('118=SN');
   form40.teclas.Add('119=SN');
+  form40.teclas.Add('120=SN');
+  //form40.teclas.Add('121=SN');
 
   form40.ListBox1.Clear;
   form40.ListBox1.Items.Add
@@ -4575,6 +4520,8 @@ begin
   form40.ListBox1.Items.Add('117=Confirmar Venda e tranferi-la para a Data Atual na Rotina Forma de Pagamento ?');
   form40.ListBox1.Items.Add('118=Confirmar Entrega No Fim da Venda ?');
   form40.ListBox1.Items.Add('119=Usar Sincronização de Estoque Online ?');
+  form40.ListBox1.Items.Add('120=Identificar Orçamentos e Perguntar fator Multiplicativo ?');
+  //form40.ListBox1.Items.Add('121=Colocar Numero da Venda em Destaque no Pedido Ticket ?');
 
   form40.ListBox1.Selected[0] := true;
   form40.showmodal;

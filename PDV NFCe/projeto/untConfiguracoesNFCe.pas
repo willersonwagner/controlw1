@@ -138,6 +138,15 @@ type
     Label33: TLabel;
     MargemEsquerdaNFe: JsEditNumero;
     Label34: TLabel;
+    GroupBox5: TGroupBox;
+    fatorx: TEdit;
+    Label35: TLabel;
+    fatory: TEdit;
+    Label36: TLabel;
+    KC1: TEdit;
+    Label37: TLabel;
+    Label44: TLabel;
+    KC2: TEdit;
     procedure sbtnCaminhoCertClick(Sender: TObject);
     procedure sbtnGetCertClick(Sender: TObject);
     procedure BtnOKClick(Sender: TObject);
@@ -439,6 +448,12 @@ begin
    espacoEntreLinhas.Text := Ini.ReadString('SERVER','espacoEntreLinhas', '50');
    casasDecimais.Text  := Ini.ReadString('SERVER','casasDecimais', '2');
 
+
+   fatorx.Text := Ini.ReadString('SERVER','fatorx', '1');
+   fatory.Text := Ini.ReadString('SERVER','fatory', '1');
+   KC1.Text    := Ini.ReadString('SERVER','kc1', '32');
+   KC2.Text    := Ini.ReadString('SERVER','kc2', '32');
+
    MargemEsquerda.Text    := Ini.ReadString('SERVER','MargemEsquerda', CurrToStr(DANFE_Fast.MargemEsquerda));
    MargemEsquerdaNFe.Text := Ini.ReadString('SERVER','MargemEsquerdaNFe', CurrToStr(DANFE_Rave.MargemEsquerda));
    velocidade.Text     := Ini.ReadString('SERVER','velocidade', '9600');
@@ -560,6 +575,12 @@ begin
   Ini.WriteString('SERVER', 'MargemEsquerdaNFe'    , MargemEsquerdaNFe.Text);
 
   Ini.WriteString('SERVER', 'velocidade'    , velocidade.Text);
+
+  //config logo nfce
+  Ini.WriteString('SERVER', 'fatorx'    , fatorx.Text);
+  Ini.WriteString('SERVER', 'fatory'    , fatory.Text);
+  Ini.WriteString('SERVER', 'kc1'    , KC1.Text);
+  Ini.WriteString('SERVER', 'kc2'    , KC1.Text);
 
   if espacoEntreLinhas.Text = '' then espacoEntreLinhas.Text := '50';
   Ini.WriteString('SERVER', 'espacoEntreLinhas'    , espacoEntreLinhas.Text);

@@ -123,7 +123,7 @@ type
     l1, l2, l3: TLabel;
     entrada, avista, aprazo, troco, recebido, totVolumes, totVenda: currency;
     testa, EXPORTADO, tamanhoFonteTotal, tamFontDesc: Smallint;
-    pedido, configUsuarioConfirmarPreco: string;
+    pedido, configUsuarioConfirmarPreco, NomeOrcamento: string;
     bdSmall: boolean;
     configUsuario, clienteNome, ultimaNota, ordemCompra, ENDE_ENTREGA: String;
     semCliente: boolean;
@@ -1313,8 +1313,14 @@ end;
 procedure TForm20.RecuperaOrcamento(numOrcamento: string);
 var
   i: integer;
-  numvend, nome1: String;
+  numvend, nome1, mult: String;
+  quant, total : currency;
 begin
+  if funcoes.buscaParamGeral(120, '') = 'S' then begin
+    mult := funcoes.dialogo('numero', 0, '', 2, False, 'X', Application.Title,'Confirme a Quantidade:', '1,00');
+    if mult = '*' then mult := '1';
+  end;
+
   dm.IBselect.Close;
   dm.IBselect.SQL.Clear;
   dm.IBselect.SQL.Add
@@ -1333,8 +1339,16 @@ begin
   dm.produto.DisableControls;
   dm.IBselect.First;
 
-  while not dm.IBselect.Eof do
-  begin
+  while not dm.IBselect.Eof do begin
+    quant := dm.IBselect.FieldByName('quant').AsCurrency;
+    total := dm.IBselect.FieldByName('TOTAL').AsCurrency;
+
+    if ((funcoes.buscaParamGeral(120, '') = 'S') and (StrToCurrDef(mult, 1) <> 1)) then begin
+      quant := quant * (StrToCurrDef(mult, 1));
+      //total := total * (StrToCurrDef(mult, 1));
+    end;
+
+
     nome1 := dm.IBselect.FieldByName('nome').AsString;
     // dm.produto.Locate('cod',dm.IBselect.fieldbyname('cod').AsString,[]);
     if dm.IBselect.FieldByName('quanti').AsCurrency - dm.IBselect.FieldByName
@@ -1345,15 +1359,15 @@ begin
       then
       begin
         adicioinaItem_Venda(dm.IBselect.FieldByName('cod').AsString,
-          dm.IBselect.FieldByName('quant').AsCurrency,
-          dm.IBselect.FieldByName('TOTAL').AsCurrency, true, nome1,
+          quant,
+          total, true, nome1,
           dm.IBselect.FieldByName('vendedor').AsString);
       end;
     end
     else
       adicioinaItem_Venda(dm.IBselect.FieldByName('cod').AsString,
-        dm.IBselect.FieldByName('quant').AsCurrency,
-        dm.IBselect.FieldByName('TOTAL').AsCurrency, true, nome1,
+        quant,
+        total, true, nome1,
         dm.IBselect.FieldByName('vendedor').AsString);
     dm.IBselect.Next;
   end;
@@ -3976,7 +3990,7 @@ begin
       addRelatorioForm19(' ' + #13 + #10);
     end;
 
-    addRelatorioForm19('* S E M    V A L O R    F I S C A L  *' + CRLF);
+    addRelatorioForm19('*  S E M     V A L O R    F I S C A L  *' + CRLF);
     total := 0;
     dm.IBQuery2.Close;
     dm.IBQuery2.SQL.Clear;
@@ -3984,10 +3998,19 @@ begin
     dm.IBQuery2.Open;
     form19.RichEdit1.Perform(EM_REPLACESEL, 1,
       Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 40) + #13 + #10))));
-    addRelatorioForm19(funcoes.centraliza(form22.Pgerais.Values['empresa'], ' ',
-      40) + #13 + #10);
-    form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-      Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 40) + #13 + #10))));
+
+    //pode receber um param geral pra dar destaque no numero da venda
+    if true then begin
+      addRelatorioForm19('*' +funcoes.centraliza(form22.Pgerais.Values['empresa'], ' ',38) + '*' + #13 + #10);
+      addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 40) + #13 + #10);
+      addRelatorioForm19('*' +funcoes.centraliza(IfThen(Modo_Venda, 'VENDA: ', 'ORCAMENTO: ')   + novocod , ' ',38)+ '*' + #13 + #10);
+      addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 40) + #13 + #10);
+    end
+    else begin
+      addRelatorioForm19(funcoes.centraliza(form22.Pgerais.Values['empresa'], ' ',40) + #13 + #10);
+      addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 40) + #13 + #10);
+    end;
+
     // form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete('','',' ',40)+#13+#10))));
     form19.RichEdit1.Perform(EM_REPLACESEL, 1,
       Longint(PChar((funcoes.centraliza(dm.IBQuery2.FieldByName('ende').AsString
@@ -4003,11 +4026,25 @@ begin
     form19.RichEdit1.Perform(EM_REPLACESEL, 1,
       Longint(PChar((funcoes.CompletaOuRepete('DATA: ' + JsEditData1.Text,
       'HORA: ' + FormatDateTime('hh:mm:ss', NOW), ' ', 40) + #13 + #10))));
-    form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-      Longint(PChar((funcoes.CompletaOuRepete('NOTA: ' + novocod, '', ' ',
-      13) + ' ' + funcoes.CompletaOuRepete(copy('VENDEDOR: ' + JsEdit2.Text +
+
+    {if Modo_Venda then begin
+      addRelatorioForm19(funcoes.CompletaOuRepete('VENDA: ' + novocod, '', ' ',
+      15) + ' ' + funcoes.CompletaOuRepete(copy('VENDEDOR: ' + JsEdit2.Text +
       '-' + funcoes.BuscaNomeBD(dm.IBQuery1, 'nome', 'vendedor',
-      'where cod=' + JsEdit2.Text), 1, 25), '', ' ', 27) + #13 + #10))));
+      'where cod=' + JsEdit2.Text), 1, 24), '', ' ', 24) + #13 + #10);
+    end
+    else begin
+      addRelatorioForm19(funcoes.CompletaOuRepete('ORCAMENTO: ' + novocod, '', ' ',
+      17) + ' ' + funcoes.CompletaOuRepete(copy('VEND: ' + JsEdit2.Text +
+      '-' + funcoes.BuscaNomeBD(dm.IBQuery1, 'nome', 'vendedor',
+      'where cod=' + JsEdit2.Text), 1, 22), '', ' ', 22) + #13 + #10);
+    end; }
+
+    addRelatorioForm19(funcoes.CompletaOuRepete(copy('VENDEDOR: ' + JsEdit2.Text +
+      '-' + funcoes.BuscaNomeBD(dm.IBQuery1, 'nome', 'vendedor',
+      'where cod=' + JsEdit2.Text), 1, 39), '', ' ', 40) + #13 + #10);
+
+
     form19.RichEdit1.Perform(EM_REPLACESEL, 1,
       Longint(PChar((funcoes.CompletaOuRepete('FORMA PAGTO: ' + codhis + '-' +
       copy(funcoes.BuscaNomeBD(dm.IBQuery1, 'nome', 'formpagto',
@@ -4063,9 +4100,7 @@ begin
       form19.RichEdit1.Perform(EM_REPLACESEL, 1,
         Longint(PChar((funcoes.CompletaOuRepete(copy('CLIENTE: ' + JsEdit3.Text
         + '-' + cliente, 1, 40), '', ' ', 40) + #13 + #10))));
-      form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-        Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 40) + #13
-        + #10))));
+      addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 40) + #13 + #10);
     end;
     dm.IBQuery2.Close;
     ClientDataSet1.DisableControls;
@@ -4073,6 +4108,11 @@ begin
     subtotal := 0;
 
     totVolumes := 0;
+
+
+    addRelatorioForm19('Codigo    Descricao'+ #13 + #10);
+    addRelatorioForm19('*                  Quant   V.Unit  Total'+ #13 + #10);
+    addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 40) + #13 + #10);
     while not ClientDataSet1.Eof do
     begin
       if ImpSepara then
@@ -4369,6 +4409,18 @@ procedure TForm20.gravaOrcamento;
 var
   cod, codmov, nome1: string;
 begin
+  if funcoes.buscaParamGeral(120, '') = 'S' then begin
+    dm.IBQuery1.Close;
+    dm.IBQuery1.SQL.Text := 'select nome from cliente where cod = :cod';
+    dm.IBQuery1.ParamByName('cod').AsInteger := StrToInt(strnum(JsEdit3.Text));
+    dm.IBQuery1.Open;
+
+    NomeOrcamento := LeftStr(dm.IBQuery1.FieldByName('nome').AsString, 30);
+    NomeOrcamento := funcoes.dialogo('normal',30,'',200,false,'','ControlW','Confirme o Nome:', NomeOrcamento);
+    if NomeOrcamento = '*' then NomeOrcamento := '';
+  end;
+
+
   ClientDataSet1.DisableControls;
   ClientDataSet1.First;
 
@@ -4377,10 +4429,11 @@ begin
   dm.IBQuery1.Close;
   dm.IBQuery1.SQL.Clear;
   dm.IBQuery1.SQL.Add
-    ('insert into orcamento(vendedor,cliente,nota,data,total,prazo,codhis, desconto)'
-    + ' values(' + strnum(JsEdit2.Text) + ',' + strnum(JsEdit3.Text) + ',' +
+    ('insert into orcamento(nome,vendedor,cliente,nota,data,total,prazo,codhis, desconto)'
+    + ' values(:nome,' + strnum(JsEdit2.Text) + ',' + strnum(JsEdit3.Text) + ',' +
     novocod + ',:data,:total,:prazo,' + strnum(codhis) + ', :desconto)');
-  dm.IBQuery1.ParamByName('data').AsDateTime := form22.datamov;
+  dm.IBQuery1.ParamByName('nome').AsString    := NomeOrcamento;
+  dm.IBQuery1.ParamByName('data').AsDateTime  := form22.datamov;
   dm.IBQuery1.ParamByName('total').AsCurrency := total1;
   dm.IBQuery1.ParamByName('prazo').AsCurrency :=
     StrToCurr(funcoes.ConverteNumerico(JsEdit1.Text));
@@ -4524,10 +4577,10 @@ begin
 
   if metodo = '2' then
     dm.IBQuery2.SQL.Add('select ' + campos + ' from produto where (nome like ' +
-      QuotedStr('%' + busca + '%') + ') ORDER BY NOME')
+      QuotedStr('%' + busca + '%') + ') '+condicaoSQL+' ORDER BY NOME')
   else if metodo = '1' then
     dm.IBQuery2.SQL.Add('select ' + campos + ' from produto where (nome like ' +
-      QuotedStr(busca + '%') + ') ORDER BY NOME');
+      QuotedStr(busca + '%') + ') '+condicaoSQL+' ORDER BY NOME');
   dm.IBQuery2.Open;
 
   busca := funcoes.busca(dm.IBQuery2, busca, '', 'cod', 'descricao');
@@ -5754,10 +5807,10 @@ begin
     if LeftStr(tipoV, 1) = 'V' then
     begin
       dm.IBQuery1.SQL.Text :=
-        ('update or insert into item_venda(data,nota,COD, QUANT, p_venda,total,origem,p_compra,codbar,aliquota, unid, desconto, nome, vendedor, TIPO, cod_seq)'
+        ('insert into item_venda(data,nota,COD, QUANT, p_venda,total,origem,p_compra,codbar,aliquota, unid, desconto, nome, vendedor, TIPO, cod_seq)'
         + ' values(:data,' + novocod + ',:cod, :quant, :p_venda,:total,' +
         IntToStr(origem) +
-        ',:p_compra, :codbar,:aliq, :unid, :desconto, :nome, :vend, :tipo, gen_id(item_venda, 1)) matching(nota, cod, quant)');
+        ',:p_compra, :codbar,:aliq, :unid, :desconto, :nome, :vend, :tipo, gen_id(item_venda, 1))');
     end
     else
     begin
@@ -6380,10 +6433,8 @@ begin
   Compra := false;
   separaVendaOrcamento := false;
   finalizouServico := 0;
-  // StaticText2.Caption :=
 
-
-  // cdsatacado.CreateDataSet;
+  NomeOrcamento := '';
 
   ClientDataSet1.IndexFieldNames := 'cod_seq';
   ClientDataSet1grupo.Visible := false;
@@ -7001,14 +7052,27 @@ begin
   begin
     cod := funcoes.buscaParamGeral(51, 'S');
 
-    if cod = 'S' then
-      cod := funcoes.localizar('Localizar Orçamentos', 'orcamento',
+    if funcoes.buscaParamGeral(120, '') = 'S' then begin
+      if cod = 'S' then
+        cod := funcoes.localizar('Localizar Orçamentos', 'orcamento',
+        'nota,data,nome,cliente,total', 'nota', '', 'nota', 'nota', false,
+        false, true, ' where vendedor = ' + strnum(JsEdit2.Text), 500, nil)
+      else
+        cod := funcoes.localizar('Localizar Orçamentos', 'orcamento',
+        'nota,data,nome,cliente,total', 'nota', '', 'nota', 'nota', false,
+        false, true, '', 500, nil);
+    end
+    else begin
+      if cod = 'S' then
+        cod := funcoes.localizar('Localizar Orçamentos', 'orcamento',
         'nota,data,prazo,cliente,total', 'nota', '', 'nota', 'nota', false,
         false, true, ' where vendedor = ' + strnum(JsEdit2.Text), 500, nil)
-    else
-      cod := funcoes.localizar('Localizar Orçamentos', 'orcamento',
+      else
+        cod := funcoes.localizar('Localizar Orçamentos', 'orcamento',
         'nota,data,prazo,cliente,total', 'nota', '', 'nota', 'nota', false,
         false, true, '', 500, nil);
+    end;
+
     if not dm.produto.Active then
     begin
       dm.produto.Open;

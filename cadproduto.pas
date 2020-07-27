@@ -986,6 +986,13 @@ begin
     Label26.Caption := 'M3:';
   end;
 
+  if funcoes.buscaParamGeral(10, '3') = '1' then begin
+    basecred.Enabled := false;
+    credicm.Enabled  := false;
+    basedeb.Enabled  := false;
+    debicm.Enabled   := false;
+  end;
+
   ok := true;
   flag := 0;
 end;

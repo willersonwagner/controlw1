@@ -27,8 +27,6 @@ object Form9: TForm9
     Height = 399
     Align = alClient
     TabOrder = 0
-    ExplicitLeft = -144
-    ExplicitTop = 216
     object Label2: TLabel
       Left = 96
       Top = 16
