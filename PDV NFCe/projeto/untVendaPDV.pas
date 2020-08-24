@@ -150,7 +150,7 @@ type
     procedure escreveTotal;
     { Private declarations }
   public
-    acessoUsuVenda, configu, usaDLL, CodVendedorTemp : string;
+    acessoUsuVenda, configu, usaDLL, CodVendedorTemp, condicao : string;
     balOnline, abreLocalizaPesagem, tabelaPROMOC_EXISTE : boolean;
     tot_ge, desconto, descontoItens, tot1 : currency;
     function buscaPreco(codigo : integer; quant1 : currency) : currency;
@@ -1130,12 +1130,12 @@ begin
       if length(cbar) = 5 then
         begin
           dtmMain.IBQuery2.SQL.Text := ('select p.cod, p.nome, p.p_compra, p.p_venda, p.codbar, a.aliq, a.cod as cod1 from produto p '+
-          ' left join aliq a on (a.cod = iif(trim(p.aliquota) = '''', 2, cast(p.aliquota as integer))) where  (left(p.codbar, 5) = :cbar)');
+          ' left join aliq a on (a.cod = iif(trim(p.aliquota) = '''', 2, cast(p.aliquota as integer))) where  (left(p.codbar, 5) = :cbar) and ' + condicao);
         end
       else
         begin
           dtmMain.IBQuery2.SQL.Text := ('select p.cod, p.nome, p.p_compra, p.p_venda, p.codbar, a.aliq, a.cod as cod1 from produto p '+
-          ' left join aliq a on (a.cod = iif(trim(p.aliquota) = '''', 2, cast(p.aliquota as integer))) where  (p.codbar = :cbar)');
+          ' left join aliq a on (a.cod = iif(trim(p.aliquota) = '''', 2, cast(p.aliquota as integer))) where  (p.codbar = :cbar) and ' + condicao);
         end;
         
       dtmMain.IBQuery2.ParamByName('cbar').AsString := cbar;
@@ -1145,7 +1145,7 @@ begin
     begin
       dtmMain.IBQuery2.Close;
       dtmMain.IBQuery2.SQL.Text := ('select p.cod, p.p_compra, p.nome, p.p_venda, p.codbar, a.aliq, a.cod as cod1 from produto p '+
-      ' left join aliq a on (a.cod = iif(trim(p.aliquota) = '''', 2, cast(p.aliquota as integer))) where (substring(codbar from 1 for 5) = :cod)');
+      ' left join aliq a on (a.cod = iif(trim(p.aliquota) = '''', 2, cast(p.aliquota as integer))) where (substring(codbar from 1 for 5) = :cod) and ' + condicao);
       dtmMain.IBQuery2.ParamByName('cod').AsString := prodcodbar.codbar;
       dtmMain.IBQuery2.Open;
 
@@ -1386,6 +1386,8 @@ begin
    form1.atualizaTabelaIBPT;
  except
  end;
+
+ condicao := ' (left(nome, 1) <> ''_'') and ((desativado <> ''1'')or (desativado is null) )';
 
  vendeuf2 := false;
 

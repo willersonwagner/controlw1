@@ -133,6 +133,7 @@ type
     procedure TIPO_ITEMKeyPress(Sender: TObject; var Key: Char);
     procedure igualKeyPress(Sender: TObject; var Key: Char);
     procedure Edit1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure agregadoKeyPress(Sender: TObject; var Key: Char);
     // procedure porcentagem(jsedit a,jsedit b);
   private
     componenteRetorno: JsEdit;
@@ -210,6 +211,17 @@ end;
 function TForm9.addCodBarStringList(cod, codbar: String): boolean;
 begin
   codbar1.Add(cod + '=' + codbar);
+end;
+
+procedure TForm9.agregadoKeyPress(Sender: TObject; var Key: Char);
+begin
+  if key = #13 then begin
+    if ((agregado.getValor > 0) and (funcoes.buscaParamGeral(10, '') = '3') and ((basecred.getValor = 0) and (basedeb.getValor = 0))) then begin
+      MessageDlg('Para Efetuar a formação de Preço com AGREGADO, é necessário informar Crédito de icms ou Débito de ICMS!', mtError, [mbOK], 1);
+      key := #0;
+      exit;
+    end;
+  end;
 end;
 
 procedure TForm9.carregaCodBarAdicionais();
@@ -986,11 +998,12 @@ begin
     Label26.Caption := 'M3:';
   end;
 
-  if funcoes.buscaParamGeral(10, '3') = '1' then begin
+  if ((funcoes.buscaParamGeral(10, '3') = '1') and (funcoes.buscaParamGeral(121, 'S') = 'S')) then begin
     basecred.Enabled := false;
     credicm.Enabled  := false;
     basedeb.Enabled  := false;
     debicm.Enabled   := false;
+    agregado.Enabled := false;
   end;
 
   ok := true;

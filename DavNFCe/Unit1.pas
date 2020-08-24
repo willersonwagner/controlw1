@@ -71,7 +71,7 @@ type
     inicio, inicioPgerais: Smallint;
     totEnvia, contAtualizacao: integer;
     bancoControl, erro12: String;
-    bdPronto, emitNFe, emitNFCe, CAMPO_EXPORTADO_FOI_CRIADO: boolean;
+    bdPronto, emitNFe, emitNFCe, CAMPO_EXPORTADO_FOI_CRIADO, CAMPO_DESATIVADO_FOI_CRIADO: boolean;
     pastaControlW_Servidor: String;
     pastanfe: String;
     usaMinimize, baixarEstoque: boolean;
@@ -99,6 +99,7 @@ type
     function sincronizaParamGerais(): boolean;
     function sincronizaEstoque(): boolean;
     function sincronizaUsuarios(): boolean;
+    function sincronizaRegistro(): boolean;
     function sincronizaCEST(): boolean;
     function sincronizaNFCe(): boolean;
     function sincronizaPromoc(): boolean;
@@ -139,12 +140,12 @@ const
     ' ||unid||classif||aliquota||is_pis||p.cod_ispis) as hash from produto p order by p.cod'; }
 
   sqlSinc: String =
-    'select p.cod, hash(nome || codbar || cast(p_venda as varchar(20))' +
+    'select p.cod, hash(iif(desativado is null, '''', desativado)||nome || codbar || cast(p_venda as varchar(20))' +
     ' ||unid||classif||aliquota||is_pis||p.cod_ispis  || quant) as hash from produto p order by p.cod';
 
   sqlSincServer
     : String =
-    'select p.cod,nome, codbar, quant, p_venda, unid, classif, aliquota, is_pis, cod_ispis, hash(nome || codbar || cast(p_venda as varchar(20))'
+    'select p.cod,nome, codbar, quant,desativado, p_venda, unid, classif, aliquota, is_pis, cod_ispis, hash(iif(desativado is null, '''', desativado)||nome || codbar || cast(p_venda as varchar(20))'
     + ' ||unid||classif||aliquota||is_pis||p.cod_ispis  || quant) as hash from produto p order by p.cod';
 
 implementation
@@ -520,6 +521,16 @@ begin
           end;
         end;
 
+
+        try
+          sincronizaRegistro;
+        except
+        on e: exception do
+          begin
+            RichEdit1.Lines.Add('ERRO sincronizaRegistro: ' + e.Message + ' linha 530');
+          end;
+        end;
+
         try
           sincronizaUsuarios;
         except
@@ -722,7 +733,7 @@ begin
   RichEdit1.Lines.Add('Sincronizando o Estoque...');
 
   if verSeOcorreuMudancaEstoque = false then begin
-    RichEdit1.Lines.Add('Sem Mudanças...');
+    RichEdit1.Lines.Add('Sem Mudanças no registro...');
     exit;
   end;
 
@@ -772,6 +783,8 @@ begin
 
     cods := cods + IBQueryServer1.fieldbyname('COD').AsString + '|';
 
+
+
     if atu > listacount then
     begin
       try
@@ -812,6 +825,7 @@ begin
             atualizados := atualizados + 1;
           end;
         end;
+
 
         if lista.ValueFromIndex[atu] <> IBQueryServer1.fieldbyname('hash').AsString
         then
@@ -1089,6 +1103,78 @@ begin
   end;
 
   RichEdit1.Lines.Add('Vendedores Importados: ' + IntToStr(ini));
+
+  IBQueryServer1.Close;
+  BD_Servidor.Connected := false;
+end;
+
+function TForm1.sincronizaRegistro(): boolean;
+var
+  ini, fim, atu: integer;
+  vende : String;
+begin
+  RichEdit1.Lines.Add('Atualizando Registro1...');
+  if bdPronto = false then begin
+    RichEdit1.Lines.Add('bdPronto = false');
+    exit;
+  end;
+
+  if conectaBD_Servidor = false then begin
+    RichEdit1.Lines.Add('conectaBD_Servidor = false');
+    exit;
+  end;
+
+  RichEdit1.Lines.Add('Atualizando Registro2...');
+
+  IBQueryServer1.Close;
+  IBQueryServer1.SQL.Text := 'select nome,ende, bairro, cep, cid,telres, telcom,ies,'+
+  'cnpj,empresa,cod_mun, registro, crip, trim(nome||ende||bairro||cep||cid||telres||telcom||ies||cnpj||trim(empresa)||cod_mun) as nome1 from registro';
+  try
+    IBQueryServer1.Open;
+  except
+    on e: exception do
+    begin
+      RichEdit1.Lines.Add('Erro: lin 680' + e.Message);
+      exit;
+    end;
+  end;
+  IBQueryServer1.FetchAll;
+
+  IBQuery1.Close;
+  IBQuery1.SQL.Text := 'select trim(nome||ende||bairro||cep||cid||telres||telcom||ies||cnpj||trim(empresa)||cod_mun) as nome1 from registro';
+  IBQuery1.Open;
+
+  if IBQuery1.fieldbyname('nome1').asstring <> IBQueryServer1.fieldbyname('nome1').asstring then begin
+    IBQuery1.Close;
+    IBQuery1.SQL.Text := 'update registro set nome =:nome, ende = :ende, bairro = :bairro, cep = :cep,'+
+    ' cid = :cid, telres = :telres,' +
+    'telcom = :telcom, ies = :ies, cnpj = :cnpj, empresa = :empresa, cod_mun = :cod_mun, obs = :obs, registro = :registro, crip = :crip' ;
+    IBQuery1.ParamByName('nome').AsString := IBQueryServer1.fieldbyname('nome').asstring;
+    IBQuery1.ParamByName('ende').AsString := IBQueryServer1.fieldbyname('ende').asstring;
+    IBQuery1.ParamByName('bairro').AsString := IBQueryServer1.fieldbyname('bairro').asstring;
+    IBQuery1.ParamByName('cep').AsString := IBQueryServer1.fieldbyname('cep').asstring;
+    IBQuery1.ParamByName('cid').AsString := IBQueryServer1.fieldbyname('cid').asstring;
+    IBQuery1.ParamByName('telres').AsString := IBQueryServer1.fieldbyname('telres').asstring;
+    IBQuery1.ParamByName('telcom').AsString := IBQueryServer1.fieldbyname('telcom').asstring;
+    IBQuery1.ParamByName('ies').AsString := IBQueryServer1.fieldbyname('ies').asstring;
+    IBQuery1.ParamByName('cnpj').AsString := IBQueryServer1.fieldbyname('cnpj').asstring;
+    IBQuery1.ParamByName('empresa').AsString := IBQueryServer1.fieldbyname('empresa').asstring;
+    IBQuery1.ParamByName('cod_mun').AsString := IBQueryServer1.fieldbyname('cod_mun').asstring;
+    IBQuery1.ParamByName('registro').AsString := IBQueryServer1.fieldbyname('registro').asstring;
+    IBQuery1.ParamByName('crip').AsString := IBQueryServer1.fieldbyname('crip').asstring;
+    IBQuery1.ExecSQL;
+    IBQuery1.Transaction.Commit;
+
+
+    RichEdit1.Lines.Add('Registro Atualizado!');
+  end
+  else begin
+
+    RichEdit1.Lines.Add('O Registro Está OK!');
+  end;
+
+
+
 
   IBQueryServer1.Close;
   BD_Servidor.Connected := false;
@@ -1731,8 +1817,8 @@ begin
 
   IBQuery1.Close;
   IBQuery1.SQL.Text :=
-    'update or insert into produto(cod, quant, nome, codbar, p_venda, unid, classif, aliquota, is_pis, cod_ispis, grupo)'
-    + ' values(:cod, :quant, :nome, :codbar, :p_venda, :unid, :classif, :aliquota, :is_pis, :cod_ispis, 0)';
+    'update or insert into produto(cod, quant, nome, codbar, p_venda, unid, classif, aliquota, is_pis, cod_ispis, grupo, desativado)'
+    + ' values(:cod, :quant, :nome, :codbar, :p_venda, :unid, :classif, :aliquota, :is_pis, :cod_ispis, 0, :desativado)';
   IBQuery1.ParamByName('cod').AsInteger := queryServer.fieldbyname('cod')
     .AsInteger;
   IBQuery1.ParamByName('quant').AsCurrency := queryServer.fieldbyname('quant')
@@ -1761,6 +1847,8 @@ begin
     queryServer.fieldbyname('is_pis').AsString;
   IBQuery1.ParamByName('cod_ispis').AsString :=
     queryServer.fieldbyname('cod_ispis').AsString;
+  IBQuery1.ParamByName('desativado').AsString :=
+    queryServer.fieldbyname('desativado').AsString;
   try
     IBQuery1.ExecSQL;
   except
@@ -2161,8 +2249,22 @@ begin
     arq.Free;
   end;
 
-  CAMPO_EXPORTADO_FOI_CRIADO := VerificaCampoTabela('EXPORTADO', 'NFE',
-    IBQuery1);
+  CAMPO_EXPORTADO_FOI_CRIADO := VerificaCampoTabela('EXPORTADO', 'NFE',IBQuery1);
+
+  CAMPO_DESATIVADO_FOI_CRIADO := VerificaCampoTabela('DESATIVADO', 'PRODUTO',IBQuery1);
+
+  if CAMPO_DESATIVADO_FOI_CRIADO = FALSE then begin
+    //RichEdit1.Lines.Add('Campo DESATIVADO na tabela PRODUTO Nao Existe. Atualize o ControlW para poder cria-lo!');
+    IBQuery1.Close;
+    IBQuery1.SQL.Text := 'ALTER TABLE produto ADD desativado varchar(1)';
+    IBQuery1.ExecSQL;
+    IBQuery1.Transaction.Commit;
+
+    IBQuery1.Close;
+    IBQuery1.SQL.Text := 'update produto set desativado = '''' ';
+    IBQuery1.ExecSQL;
+    IBQuery1.Transaction.Commit;
+  end;
 
   if not emitNFe then
   begin
@@ -2471,6 +2573,8 @@ begin
   IBQueryServer1.Close;
   BD_Servidor.Connected := false;
 end;
+
+
 
 
 procedure TForm1.VerificaXMLS_XX();

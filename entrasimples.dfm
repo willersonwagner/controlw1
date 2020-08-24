@@ -633,6 +633,7 @@ object Form17: TForm17
       OnKeyDown = DBGrid2KeyDown
       OnKeyPress = DBGrid2KeyPress
       OnKeyUp = DBGrid2KeyUp
+      OnMouseMove = DBGrid2MouseMove
     end
     object agreg: JsEditNumero
       Left = 344
@@ -760,5 +761,10 @@ object Form17: TForm17
       'wait')
     Left = 168
     Top = 183
+  end
+  object BalloonHint1: TBalloonHint
+    Style = bhsStandard
+    Left = 464
+    Top = 176
   end
 end

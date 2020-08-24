@@ -797,6 +797,7 @@ object Form9: TForm9
       ParentFont = False
       TabOrder = 9
       Text = '0,00'
+      OnKeyPress = agregadoKeyPress
       UsarCadastros = False
       FormularioComp = 'Form9'
       ColorOnEnter = clSkyBlue

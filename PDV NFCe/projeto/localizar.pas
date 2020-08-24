@@ -513,6 +513,11 @@ begin
    If not Edit1.Visible then
     begin
      Edit1.Text :='';
+
+     if tabela = 'produto' then begin
+       condicao := ' where (left(nome, 1) <> ''_'') and ((desativado <> ''1'')or (desativado is null) )';
+     end;
+
      if ordem='' then query.SQL.Add('select '+campos+' from '+tabela+' order by '+campolocaliza)
      else  query.SQL.Add('select '+campos+' from '+tabela+' '+condicao +' order by '+ordem);
      query.Open;

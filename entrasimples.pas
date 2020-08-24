@@ -55,6 +55,7 @@ type
     totXML: TLabel;
     DESC_COMP: JsEditNumero;
     ICMS_SUBS: JsEditNumero;
+    BalloonHint1: TBalloonHint;
     procedure Edit11KeyUp(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure codigoKeyPress(Sender: TObject; var Key: Char);
@@ -96,6 +97,8 @@ type
     procedure FormCreate(Sender: TObject);
     procedure codbarEnter(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure DBGrid2MouseMove(Sender: TObject; Shift: TShiftState; X,
+      Y: Integer);
 
   private
     cont:integer;
@@ -124,10 +127,13 @@ type
     procedure resizeDBgrid();
     function checaDataChegada() : boolean;
     procedure acertaPrecoDeCompra();
+    procedure abreListaFormacao(linha : integer);
+    procedure alinhaCampos;
 
     { Private declarations }
   public
     testcampo:string;
+    FHint: THintWindow;
     { Public declarations }
   end;
 
@@ -140,11 +146,75 @@ uses Unit1, localizar, MaskUtils, Unit2, StrUtils, func,
   principal, cadproduto, backup, consulta, cadfornecedor;
 
 {$R *.dfm}
+
+procedure TForm17.abreListaFormacao(linha : integer);
+var
+  R: TRect;
+  P: TPoint;
+begin
+  {try
+    DBGrid2.DataSource.DataSet.DisableControls;
+    DBGrid2.DataSource.DataSet.First;
+    DBGrid2.DataSource.DataSet.MoveBy(linha);
+  finally
+    DBGrid2.DataSource.DataSet.EnableControls;
+  end;       }
+
+
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select * from produto where cod = :cod';
+  dm.IBselect.ParamByName('cod').AsString := DBGrid2.DataSource.DataSet.FieldByName('cod').AsString;
+  dm.IBselect.Open;
+
+  if dm.IBselect.IsEmpty then exit;
+
+
+  GetCursorPos(p);
+  with R do
+    begin
+      topLeft := ClientToScreen(P);
+      Right := Left + 150;
+      Bottom := Top + 18;
+    end;
+
+
+  BalloonHint1.Description := ( 'Código:' + DBGrid2.DataSource.DataSet.FieldByName('cod').AsString+ #13 +
+                  'Nome  :' + dm.IBselect.FieldByName('nome').AsString+ #13 +
+                  'Custo :' + formataCurrency(dm.IBselect.FieldByName('p_compra').AsCurrency) + #13 +
+                  'Agreg(%) :' + formataCurrency(dm.IBselect.FieldByName('agregado').AsCurrency) + #13 +
+                  'Desc. Comp(%) :' + formataCurrency(dm.IBselect.FieldByName('desc_comp').AsCurrency) + #13 +
+                  'ICMS Sub%:' + formataCurrency(dm.IBselect.FieldByName('ICMS_SUBS').AsCurrency) + #13 +
+                  'Frete :' + formataCurrency(dm.IBselect.FieldByName('frete').AsCurrency) + #13 +
+                  'Encarg.% :' + formataCurrency(dm.IBselect.FieldByName('encargos').AsCurrency) + #13 +
+                  'Lucro :' + formataCurrency(dm.IBselect.FieldByName('lucro').AsCurrency) + #13 + #13 +
+                  'Venda :' + formataCurrency(dm.IBselect.FieldByName('p_venda').AsCurrency));
+
+  //PostMessage(Handle, UM_EXITPROC, 0, 0);
+
+  //exit;
+
+
+
+  //BalloonHint1.Delay := 500;
+  BalloonHint1.ShowHint(r);
+
+  {funcoes.Mensagem('Formação de Preço', 'Código:' + DBGrid2.DataSource.DataSet.FieldByName('cod').AsString+ #13 +
+                  'Nome  :' + dm.IBselect.FieldByName('nome').AsString+ #13 +
+                  'Custo :' + formataCurrency(dm.IBselect.FieldByName('p_compra').AsCurrency) + #13 +
+                  'Agreg(%) :' + formataCurrency(dm.IBselect.FieldByName('agregado').AsCurrency) + #13 +
+                  'Desc. Comp(%) :' + formataCurrency(dm.IBselect.FieldByName('desc_comp').AsCurrency) + #13 +
+                  'ICMS Sub%:' + formataCurrency(dm.IBselect.FieldByName('ICMS_SUBS').AsCurrency) + #13 +
+                  'Frete :' + formataCurrency(dm.IBselect.FieldByName('frete').AsCurrency) + #13 +
+                  'Encarg.% :' + formataCurrency(dm.IBselect.FieldByName('encargos').AsCurrency) + #13 +
+                  'Lucro :' + formataCurrency(dm.IBselect.FieldByName('lucro').AsCurrency) + #13 + #13 +
+                  'Venda :' + formataCurrency(dm.IBselect.FieldByName('p_venda').AsCurrency),9,'Courier New',true,0,clBlack, false);}
+end;
+
 function TForm17.buscaProdutoTabelaRetornaQTD(cod, destino : String; var codentrada : string) : currency;
 begin
   Result := 0;
   if DBGrid2.DataSource.DataSet.IsEmpty then exit;
-  
+
   try
   DBGrid2.DataSource.DataSet.DisableControls;
   DBGrid2.DataSource.DataSet.First;
@@ -416,7 +486,7 @@ begin
   frete.Text := iif(trim(dm.IBQuery3.fieldbyname('frete').AsString) = '', '0,00', FormatCurr('#,###,###0.00', dm.IBQuery3.fieldbyname('frete').AsCurrency));
   valores[7] := iif(trim(dm.IBQuery3.fieldbyname('frete').AsString) = '', 0, dm.IBQuery3.fieldbyname('frete').AsCurrency);
 
-  p_compra.Text := iif(trim(dm.IBQuery3.fieldbyname('p_compra').AsString) = '', '0,00', FormatCurr('#,###,###0.000', dm.IBQuery3.fieldbyname('p_compra').AsCurrency));
+  p_compra.Text := iif(trim(dm.IBQuery3.fieldbyname('p_compra').AsString) = '', '0,00', FormatCurr('#,###,###0.0000000000', dm.IBQuery3.fieldbyname('p_compra').AsCurrency));
   valores[8] := iif(trim(dm.IBQuery3.fieldbyname('p_compra').AsString) = '', 0, dm.IBQuery3.fieldbyname('p_compra').AsCurrency);
 
   lucro.Text := iif(trim(dm.IBQuery3.fieldbyname('lucro').AsString) = '', '0,00', FormatCurr('#,###,###0.00', dm.IBQuery3.fieldbyname('lucro').AsCurrency));
@@ -497,9 +567,10 @@ begin
 
   DBGrid2.DataSource := DataSource1;
 
-  TcurrencyField(IBQuery1.FieldByName('p_compra')).DisplayFormat := '###,##0.00000';
-  TcurrencyField(IBQuery1.FieldByName('quant')).DisplayFormat := '###,##0.00000';
+  TcurrencyField(IBQuery1.FieldByName('p_compra')).DisplayFormat := '###,##0.0000000000';
+  TcurrencyField(IBQuery1.FieldByName('quant')).DisplayFormat := '###,##0.0000000000';
   TcurrencyField(IBQuery1.FieldByName('CRED_ICMS')).DisplayFormat := '###,##0.00';
+  alinhaCampos;
 end;
 
 procedure TForm17.limpaCampos;
@@ -1084,6 +1155,7 @@ end;
 procedure TForm17.DBGrid2KeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
+  BalloonHint1.HideHint;
 if key=27 then data.SetFocus;
 
  if key=46 then
@@ -1091,11 +1163,15 @@ if key=27 then data.SetFocus;
    try
      ExcluiEntrada;
      tot.Caption := 'R$  '+FormatCurr('#,##,###0.00',lertotal);
+     BalloonHint1.HideHint;
    except
    end;
   end;
   
-  if key = 113 then abreCadastro();
+  if key = 113 then begin
+
+    abreCadastro();
+  end;
 end;
 
 procedure TForm17.DBGrid2Enter(Sender: TObject);
@@ -1130,6 +1206,7 @@ procedure TForm17.DBGrid2CellClick(Column: TColumn);
 begin
   try
     produto.Caption := LerNome('','1',DBGrid2.Columns[0].Field.AsString,'');
+    abreListaFormacao(0);
   except
   end;
 end;
@@ -1137,8 +1214,29 @@ end;
 procedure TForm17.DBGrid2KeyUp(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
-if key = 40 then produto.Caption := LerNome('','1',DBGrid2.Columns[0].Field.AsString,'');
-if key = 38 then produto.Caption := LerNome('','1',DBGrid2.Columns[0].Field.AsString,'');
+  BalloonHint1.HideHint;
+  if key = 40 then begin
+    produto.Caption := LerNome('','1',DBGrid2.Columns[0].Field.AsString,'');
+  end;
+  if key = 38 then begin
+    produto.Caption := LerNome('','1',DBGrid2.Columns[0].Field.AsString,'');
+  end;
+end;
+
+procedure TForm17.DBGrid2MouseMove(Sender: TObject; Shift: TShiftState; X,
+  Y: Integer);
+var
+  pt: TPoint;
+begin
+  {GetCursorPos(pt);
+  pt := DBGrid2.ScreenToClient(pt);
+
+  if (DBGrid2.MouseCoord(pt.X, pt.Y).Y) > 0 then begin
+    abreListaFormacao(DBGrid2.MouseCoord(pt.X, pt.Y).Y -1);
+  end
+  else bal.ReleaseHandle;
+  ShowMessage('Linha ' + IntToStr(DBGrid2.MouseCoord(pt.X, pt.Y).X) +
+              '; Coluna ' + IntToStr(DBGrid2.MouseCoord(pt.X, pt.Y).Y));}
 end;
 
 procedure TForm17.JsBotao1Click(Sender: TObject);
@@ -1282,6 +1380,7 @@ end;
 procedure TForm17.DBGrid2Exit(Sender: TObject);
 begin
   Label13.Caption := '';
+  BalloonHint1.HideHint;
 end;
 
 procedure TForm17.p_vendaKeyPress(Sender: TObject; var Key: Char);
@@ -1311,6 +1410,11 @@ var
   custo, DATA : String;
   idx : integer;
 begin
+  BalloonHint1.HideHint;
+  if key = #32 then begin
+    abreListaFormacao(1);
+  end;
+
   if key = #13 then
     begin
       if DBGrid2.SelectedField.DisplayName = 'VALIDADE' then
@@ -1366,12 +1470,13 @@ begin
 
           if custo = '*' then exit;
 
-          
           dm.IBQuery3.Close;
           dm.IBQuery3.SQL.Text := 'update item_entrada set p_compra = :custo, total = quant * :custo where (CODENTRADA = :cod)';
           dm.IBQuery3.ParamByName('custo').AsFloat    := StrToFloat(custo);
           dm.IBQuery3.ParamByName('cod').AsString     := DBGrid2.DataSource.DataSet.fieldbyname('CODENTRADA').AsString;
           dm.IBQuery3.ExecSQL;
+
+          //ShowMessage(floatt(StrToFloat(custo)));
 
           {dm.IBQuery3.Close;
           dm.IBQuery3.SQL.Text := 'update item_entrada set p_compra = :custo where (nota = :nota) and (fornec = :fornec) and (cod = :cod)';
@@ -1393,6 +1498,11 @@ procedure TForm17.FormCreate(Sender: TObject);
 var
   param50 : string;
 begin
+  Application.HintPause:=500; //meio segundo para mostrar o hint
+  Application.HintHidePause:=12000; //tempo de duração = 5 segundos
+
+  FHint := THintWindow.Create(Self);
+
   destino := '';
   param50 := funcoes.buscaParamGeral(50, 'N');
   if param50 = 'S' then usarCODBAR := true
@@ -1477,9 +1587,9 @@ begin
     if DBGrid2.Columns[i].FieldName = 'DESCRICAO'  then begin
       DBGrid2.Columns[i].Width  := 350;
     end
-    else if DBGrid2.Columns[i].FieldName = 'QUANT' then DBGrid2.Columns[i].Width  := 120
+    //else if DBGrid2.Columns[i].FieldName = 'QUANT' then DBGrid2.Columns[i].Width  := 120
     else if DBGrid2.Columns[i].FieldName = 'CRED_ICMS' then DBGrid2.Columns[i].Width := 120
-    else if DBGrid2.Columns[i].FieldName = 'P_COMPRA'  then DBGrid2.Columns[i].Width := 120
+    //else if DBGrid2.Columns[i].FieldName = 'P_COMPRA'  then DBGrid2.Columns[i].Width := 120
     else if DBGrid2.Columns[i].FieldName = 'TOTAL'     then DBGrid2.Columns[i].Width := 120;
   end;
 
@@ -1532,6 +1642,20 @@ begin
   end;
 
   ShowMessage('Preços Acertados com Sucesso!');
+end;
+
+procedure TForm17.alinhaCampos;
+var
+  I: Integer;
+begin
+  exit;
+  for I := 0 to DBGrid2.Columns.Count -1 do begin
+    Sleep(1);
+    if ((DBGrid2.Columns[i].DisplayName = 'QUANT') or (DBGrid2.Columns[i].DisplayName = 'P_COMPRA')) then begin
+      Sleep(1);
+      DBGrid2.Columns[i].Alignment := taLeftJustify;
+    end;
+  end;
 end;
 
 end.

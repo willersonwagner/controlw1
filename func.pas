@@ -11050,6 +11050,24 @@ begin
       dm.IBQuery1.Transaction.Commit;
     end;
 
+    if retornaEscalaDoCampo('p_compra', 'ITEM_entrada') <> 10 then
+    begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add
+        ('update RDB$FIELDS set RDB$FIELD_SCALE = -10 where RDB$FIELD_NAME = ''RDB$491'' ');
+      dm.IBQuery1.ExecSQL;
+    end;
+
+    if retornaEscalaDoCampo('quant', 'ITEM_entrada') <> 10 then
+    begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add
+        ('update RDB$FIELDS set RDB$FIELD_SCALE = -10 where RDB$FIELD_NAME = ''RDB$492'' ');
+      dm.IBQuery1.ExecSQL;
+    end;
+
     //VerificaVersao_do_bd
   end;
 

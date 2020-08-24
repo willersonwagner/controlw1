@@ -4067,7 +4067,7 @@ begin
   form40.tipo.Add('118=generico');
   form40.tipo.Add('119=generico');
   form40.tipo.Add('120=generico');
-  //form40.tipo.Add('121=generico');
+  form40.tipo.Add('121=generico');
 
 
   form40.troca := TStringList.Create;
@@ -4195,7 +4195,7 @@ begin
   form40.troca.Add('118=S');
   form40.troca.Add('119=S');
   form40.troca.Add('120=S');
-  //form40.troca.Add('121=S');
+  form40.troca.Add('121=S');
 
   form40.teclas := TStringList.Create;
   form40.teclas.Add('0=FT');
@@ -4321,7 +4321,7 @@ begin
   form40.teclas.Add('118=SN');
   form40.teclas.Add('119=SN');
   form40.teclas.Add('120=SN');
-  //form40.teclas.Add('121=SN');
+  form40.teclas.Add('121=SN');
 
   form40.ListBox1.Clear;
   form40.ListBox1.Items.Add
@@ -4521,7 +4521,7 @@ begin
   form40.ListBox1.Items.Add('118=Confirmar Entrega No Fim da Venda ?');
   form40.ListBox1.Items.Add('119=Usar Sincronização de Estoque Online ?');
   form40.ListBox1.Items.Add('120=Identificar Orçamentos e Perguntar fator Multiplicativo ?');
-  //form40.ListBox1.Items.Add('121=Colocar Numero da Venda em Destaque no Pedido Ticket ?');
+  form40.ListBox1.Items.Add('121=Desabilitar campos de formação de preço caso seja optante do Simples Nacional ?');
 
   form40.ListBox1.Selected[0] := true;
   form40.showmodal;
@@ -10289,8 +10289,7 @@ begin
   caixa := TStringList.Create;
   while not dm.ibselect.Eof do begin
     if dm.ibselect.FieldByName('tipo').AsString = 'E' then begin
-      totais.Values['1'] := CurrToStr(StrToCurrDef(totais.Values['1'], 0) +
-      dm.ibselect.FieldByName('entrada').AsCurrency);
+      totais.Values['1'] := CurrToStr(StrToCurrDef(totais.Values['1'], 0) + dm.ibselect.FieldByName('entrada').AsCurrency);
 
       totEntradaCaixaNaVenda := totEntradaCaixaNaVenda + dm.ibselect.FieldByName('entrada').AsCurrency;
       VLR_ICM := dm.ibselect.FieldByName('entrada').AsCurrency;
@@ -10298,32 +10297,33 @@ begin
     else begin
       if dm.ibselect.FieldByName('entrada').AsCurrency = 0 then begin
         b := 1;
+        {
         if (dm.ibselect.FieldByName('formpagto').AsInteger > 1) then begin
           totais.Values[dm.ibselect.FieldByName('formpagto').AsString] :=
           CurrToStr(StrToCurr(totais.Values[dm.ibselect.FieldByName('formpagto').AsString]) - dm.ibselect.FieldByName('saida').AsCurrency);
         end
-        else begin
+        else begin             }
           totais.Values['out'] := CurrToStr(StrToCurr(totais.Values['out']) - dm.ibselect.FieldByName('saida').AsCurrency);
           sai := sai + dm.ibselect.FieldByName('saida').AsCurrency;
-        end;
+        //end;
 
         VLR_ICM := dm.ibselect.FieldByName('saida').AsCurrency;
       end
       else begin
         b := 0;
-        if (dm.ibselect.FieldByName('formpagto').AsInteger > 1) then begin
+
+        {if (dm.ibselect.FieldByName('formpagto').AsInteger > 1) then begin
           totais.Values[dm.ibselect.FieldByName('formpagto').AsString] :=
           CurrToStr(StrToCurrDef(totais.Values[dm.ibselect.FieldByName('formpagto').AsString], 0) + dm.ibselect.FieldByName('entrada').AsCurrency);
         end
-        else begin
-          totais.Values['out'] := CurrToStr(StrToCurrDef(totais.Values['out'], 0) +
-          dm.ibselect.FieldByName('entrada').AsCurrency);
+        else begin}
+          totais.Values['out'] := CurrToStr(StrToCurrDef(totais.Values['out'], 0) + dm.ibselect.FieldByName('entrada').AsCurrency);
           ent := ent + dm.ibselect.FieldByName('entrada').AsCurrency;
-        end;
+        //end;
 
         VLR_ICM := dm.ibselect.FieldByName('entrada').AsCurrency;
       end;
-    end; //if dm.ibselect.FieldByName('tipo').AsString <> 'E' then begin
+    end; //if dm.ibselect.FieldByName('tipo').AsString <> 'E' then begin}
 
     if form22.Pgerais.Values['nota'] = 'T' then
     begin
@@ -10331,8 +10331,7 @@ begin
         caixa.Add(FormatDateTime('dd/mm/yy', dm.ibselect.FieldByName('data').AsDateTime) +
         ' ' + funcoes.CompletaOuRepete('',LeftStr(dm.ibselect.FieldByName('historico').AsString, 35), ' ', 35) +
         funcoes.CompletaOuRepete('', FormatCurr('0.00', VLR_ICM) + IfThen(b = 1,
-        '-', '+'), ' ', 13) + IfThen((dm.ibselect.FieldByName('formpagto')
-        .AsInteger > 2), ' ' + strzero(dm.ibselect.FieldByName('formpagto')
+        '-', '+'), ' ', 12) + IfThen(true, ' ' + strzero(dm.ibselect.FieldByName('formpagto')
         .AsInteger, 3), ''));
       end;
     end
@@ -10342,8 +10341,7 @@ begin
         .AsDateTime) + ' ' + strzero(dm.ibselect.FieldByName('documento')
         .AsString, 6) + ' ' + funcoes.CompletaOuRepete(LeftStr(dm.ibselect.FieldByName('historico').AsString, 35), '', ' ', 35) +
         funcoes.CompletaOuRepete('', FormatCurr('0.00', VLR_ICM) + IfThen(b = 1,
-        '-', '+'), ' ', 13) + IfThen((dm.ibselect.FieldByName('formpagto')
-        .AsInteger > 2), ' ' + strzero(dm.ibselect.FieldByName('formpagto')
+        '-', '+'), ' ', 12) + IfThen(true, ' ' + strzero(dm.ibselect.FieldByName('formpagto')
         .AsInteger, 3), ''));
       end;
 
