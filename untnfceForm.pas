@@ -420,6 +420,7 @@ begin
 
   try
     total := venda.total;
+
     // se tem entrada e se a forma de pagamento é diferente de A VISTA
     if ((entrada > 0) and (venda.codFormaNFCE <> '01')) then
     begin
@@ -3256,6 +3257,7 @@ begin
     /// //GERAR NFC-e:
 
     xml := GerarNFCeTexto(nota, cliente1);
+
     GravarTexto(buscaPastaNFCe(CHAVENF, false) + CHAVENF + '-nfe.xml', xml);
 
     xml := '';
@@ -3605,8 +3607,9 @@ begin
     venda.chave := CHAVENF;
     Incrementa_Generator(NomeGeneratorSerie, 1);
     insereNotaBD(venda);
+
     try
-      ACBrNFe.NotasFiscais[0].GravarXML(CHAVENF + '-nfe.xml',
+     ACBrNFe.NotasFiscais[0].GravarXML(CHAVENF + '-nfe.xml',
         buscaPastaNFCe(CHAVENF, false));
     except
       on e: Exception do
@@ -3956,6 +3959,18 @@ begin
             'Chave Velha: ' + ACBrNFe.WebServices.Consulta.NFeChave + #13 +
             'Chave Nova : ' +buscaChaveErroDeDuplicidade(ACBrNFe.WebServices.Consulta.XMotivo, true));
             exit;
+          end;
+        end;
+
+
+        if ((csta = 865) or (ACBrNFe.WebServices.Consulta.cStat = 865)) then begin
+          if ACBrNFe.NotasFiscais[0].NFe.pag.Count = 1 then begin
+            ACBrNFe.NotasFiscais[0].NFe.pag[0].vPag := ACBrNFe.NotasFiscais[0].NFe.Total.ICMSTot.vNF;
+            ACBrNFe.NotasFiscais[0].GravarXML(CHAVENF + '-nfe.xml', buscaPastaNFCe(CHAVENF, false));
+            richED.Lines.Add('NFe ' + CHAVENF + ' Foi Acertado o Total e Regravado no XML Valor antigo >' + CurrToStr(ACBrNFe.NotasFiscais[0].NFe.pag[0].vPag) + '  Novo>'+ CurrToStr(ACBrNFe.NotasFiscais[0].NFe.Total.ICMSTot.vNF));
+          end
+          else begin
+            richED.Lines.Add('Erro 3970: NFe ' + CHAVENF + ' Tem mais de uma forma de pagamento e nao foi acertado!');
           end;
         end;
 
@@ -5949,10 +5964,10 @@ begin
   PIS_NT := 0;
   COFINS_ST := 0;
   cod_OP := '5102';
-
   lerItensDaVenda(lista, nota);
   LerDados_Emit_Dest(cliente, nnf);
   Result := NODO_RAIZ(nota);
+
 end;
 
 { FUNCTION GerarNFCeTextoCliente( nota : String; var cliente : TStringList; nnf : String = '') : AnsiString;
@@ -5990,6 +6005,7 @@ begin
     trim(CHAVENF) + '">';
   Result := Result + NODO_IDE(nota, '14', dadosEmitente.Values['nf'], '1',
     CDCFOP, '0', FormataData(now), '1', '1400100', DigiVerifi);
+
   Result := Result + NODO_EMIT(dadosEmitente.Values['cnpj'],
     dadosEmitente.Values['razao'], dadosEmitente.Values['empresa'],
     dadosEmitente.Values['ende'], dadosEmitente.Values['bairro'],
@@ -5997,6 +6013,7 @@ begin
     dadosEmitente.Values['est'], strnum(dadosEmitente.Values['cep']),
     dadosEmitente.Values['telres'], dadosEmitente.Values['ies'],
     pgerais.Values['10']);
+
   Result := Result + NODO_DEST(dadosDest.Values['tipo'],
     dadosDest.Values['cnpj'], dadosDest.Values['cnpj'],
     dadosDest.Values['nome'], dadosDest.Values['ende'],
@@ -6004,13 +6021,19 @@ begin
     dadosDest.Values['cid'], dadosDest.Values['est'], dadosDest.Values['cep'],
     dadosDest.Values['telres'], dadosDest.Values['ies'],
     dadosEmitente.Values['cod_mun']);
+
   Result := Result + NODO_ITENS(lista, CDCFOP, '', '', '', '0');
+
   Result := Result + NODO_TOTAL(totalNota, TOT_BASEICM, TOTICM, TOT_PIS,
     TOT_COFINS, 0, TOTDESC);
+
   Result := Result + NODO_TRANP();
+
   Result := Result + NODO_PAG();
+
   Result := Result + NODO_INFADIC(infAdic, PIS_NT, PIS_ST, COFINS_ST, 0) +
     '</infNFe>';
+
 end;
 
 FUNCTION NODO_IDE(nota, UF, NUM_NF, FIN_NFE, COD_CFOP, EXT_CFOP, DAT, FORMPAG,
@@ -6683,7 +6706,7 @@ end;
 FUNCTION NODO_PAG(): STRING;
 var
   i: integer;
-  tmp, total: currency;
+  tmp, total, troco1: currency;
 begin
   Result := '<pag>';
   total := totalNota - TOTDESC;
@@ -6692,18 +6715,40 @@ begin
   //ShowMessage(listaPagamentos.getText);
   if usaNFe4ouMaior then
   begin
-    for i := 0 to listaPagamentos.Count - 1 do
-    begin
+    {if listaPagamentos.Count = 1 then begin
       Result := Result + '<detPag>' + '<tpag>' + listaPagamentos[i].cod +
+        '</tpag>' + '<vpag>' + Format_num(total) + '</vpag>'
+        + '</detPag>';
+      Result := Result + '</pag>';
+      exit;
+    end;   }
+
+
+      for i := 0 to listaPagamentos.Count - 1 do begin
+        if listaPagamentos.Count = 1 then listaPagamentos[i].total := TOTAL; //se estiver somente com uma forma e pega logo o total
+
+        tmp := tmp + listaPagamentos[i].total;
+
+        //se a soma das formas for menor que o total entao lança a diferença pra ultima forma de pagamento
+        if ((listaPagamentos.Count > 1) and (tmp < total ) and ((listaPagamentos.Count -1) = i)) then listaPagamentos[i].total := listaPagamentos[i].total + abs(tmp - total);
+
+        Result := Result + '<detPag>' + '<tpag>' + listaPagamentos[i].cod +
         '</tpag>' + '<vpag>' + Format_num(listaPagamentos[i].total) + '</vpag>'
         + '</detPag>';
-      tmp := tmp + listaPagamentos[i].total;
-    end;
+      end;
 
     if tmp > total then
     begin
       Result := Result + '<vTroco>' + Format_num(tmp - total) + '</vTroco>';
     end;
+
+    {if tmp < total then
+    begin
+      troco1 := tmp - total;
+      listaPagamentos[i].total := listaPagamentos[i].total + troco1;
+      Result := Result + '<vTroco>' + Format_num(tmp - total) + '</vTroco>';
+    end;}
+
 
     Result := Result + '</pag>';
 
@@ -6783,8 +6828,8 @@ begin
 
   // SE O CODIGO DO MUNICIPIO ESTA EM BRANCO, USA O CODIGO DO MUNICIPIO DO EMITENTE
   COD_MUN := dadosEmitente.Values['cod_mun'];
-  UF := dadosEmitente.Values['est'];
-  CEP := dadosEmitente.Values['cep'];
+  UF      := dadosEmitente.Values['est'];
+  CEP     := dadosEmitente.Values['cep'];
   NOM_MUN := dadosEmitente.Values['cid'];
 
   IF NOT ok then

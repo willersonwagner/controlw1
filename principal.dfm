@@ -11944,7 +11944,10 @@ object form22: Tform22
       Width = 665
       Height = 80
       BevelOuter = bvNone
+      Ctl3D = False
       FullRepaint = False
+      ParentBackground = False
+      ParentCtl3D = False
       TabOrder = 4
       Visible = False
       object Label4: TLabel

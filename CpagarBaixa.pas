@@ -174,6 +174,7 @@ procedure TForm31.FormShow(Sender: TObject);
 begin
 
 try
+  funcoes.redimensionaTelaDbgrid(dbgrid1);
   total.Caption   := CurrToStrF(funcoes.SomaCampoDBGRID(Dm.ibselect,'valor',0,0,0,''),ffCurrency,2);
   DBGrid1.Options := [dgTitles, dgColLines, dgRowLines, dgTabs, dgIndicator];
 except

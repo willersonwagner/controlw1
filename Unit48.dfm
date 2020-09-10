@@ -114,6 +114,19 @@ object Form48: TForm48
       Font.Style = [fsBold]
       ParentFont = False
     end
+    object Label3: TLabel
+      Left = 216
+      Top = 24
+      Width = 172
+      Height = 20
+      Caption = 'F12 - Contas a Pagar'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -16
+      Font.Name = 'MS Sans Serif'
+      Font.Style = [fsBold]
+      ParentFont = False
+    end
     object Button1: TButton
       Left = 576
       Top = 16

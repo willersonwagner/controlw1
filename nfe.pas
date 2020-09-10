@@ -187,7 +187,7 @@ type
     function GeraChaveNf : string;
     function CriaDirCaminho(const NomeSubDir: string): boolean;
     function GeraXml : String;
-    function Format_num(valor : currency; decimais : smallint = 2) : string;
+    function Format_num(valor : Extended; decimais : smallint = 2) : string;
     FUNCTION Insere_no_Nodo(Nodo, inserir, xml : string) : string;
     FUNCTION CAMPO_VAZIO(ENT : STRING) : Smallint;
     function StatusServico : string;
@@ -1349,6 +1349,8 @@ begin
   dm.IBQuery1.ParamByName('cod').AsInteger := StrToInt(StrNum(codCliente));
   dm.IBQuery1.ExecSQL;
   dm.IBQuery1.Transaction.Commit;
+
+
   funcoes.configuraMail(dm.ACBrMail1);
 
 
@@ -2966,7 +2968,7 @@ end;
 
 FUNCTION TNfeVenda.NODO_ITENS(var lista : tlist; CFOP, POS, CSTICM_CFP, CSTPIS_CFP, _ORIGE : string) : string;
 var
-  barras, cfop1, infAdProd : string;
+  barras, cfop1, infAdProd,uTrib, vTrib, qTrib : string;
   cont,i : integer;
 begin
   CSTPIS_CFP := funcoes.buscaParamGeral(10, '');
@@ -3012,13 +3014,34 @@ begin
         if trim(item.obs) <> '' then infAdProd := '<infAdProd>'+item.obs+'</infAdProd>';
       end;
 
+
+      uTrib := ve_unidTributavel(DEST_NFE, item.Ncm, item.unid);
+      qTrib := Format_num(item.quant, 4)  ;
+      vTrib := Format_num(item.p_venda, 8);
+
+      if ((trim(uTrib) <> trim(item.unid)) and (DEST_NFE = '2')) then begin
+        ShowMessage('Para emitir Esta Nota de Exportação esse produto '+IntToStr(item.cod) + '-' + item.nome + #13 +
+                    'Deve Possuir a sua quantidade em ' + trim(uTrib) + '. Esse valor é Obrigatório para concluir a emissão' + #13 +
+                    'Desta NF-e!');
+
+        qTrib := funcoes.dialogo('numero', 0, '', 4, true, 'S', 'Prod ' + IntToStr(item.cod) + '-' + item.nome,'Qual a Quantidade em '+trim(uTrib)+' Por Unidade ?', '0,0000');
+        vTrib := Format_num(item.total / strtofloat(qTrib), 10);
+      end;
+
+
+
+
+
       Result := Result + '<det nItem=' + LITERAL(TRIM(IntToStr(qtd))) + '><prod>' +
       '<cProd>' + strzero(IntToStr(item.cod), 6) + '</cProd><cEAN>' + barras + '</cEAN>' +
       '<xProd>' + CampoString(item.nome) + '</xProd><NCM>' + item.Ncm + '</NCM>'+ve_cest(item.CodAliq, item.Ncm)+'<CFOP>' + CFOP1 + '</CFOP>' +
       '<uCom>' + removeCarateresEspeciais(item.unid) + '</uCom><qCom>' + Format_num(item.quant, 4) + '</qCom><vUnCom>' +
       Format_num(item.p_venda, 8) + '</vUnCom><vProd>' + FORMAT_NUM(item.total) + '</vProd><cEANTrib>'+ barras +'</cEANTrib>' +
-      '<uTrib>' + ve_unidTributavel(DEST_NFE, item.Ncm, item.unid) + '</uTrib><qTrib>' + Format_num(item.quant, 4) + '</qTrib><vUnTrib>' +
-      Format_num(item.p_venda, 8) + '</vUnTrib>'+ IfThen(item.Vlr_Frete > 0, '<vFrete>'+ Format_num(item.Vlr_Frete)+'</vFrete>', '') + iif(item.Desconto = 0,'','<vDesc>' + FORMAT_NUM(item.Desconto) + '</vDesc>') +
+
+      //nota de exportação deve perguntar a quantidade pra preencher os campos tributaveis do nodo do item
+      '<uTrib>' + uTrib + '</uTrib><qTrib>' + qTrib + '</qTrib><vUnTrib>' + vTrib + '</vUnTrib>'+
+
+       IfThen(item.Vlr_Frete > 0, '<vFrete>'+ Format_num(item.Vlr_Frete)+'</vFrete>', '') + iif(item.Desconto = 0,'','<vDesc>' + FORMAT_NUM(item.Desconto) + '</vDesc>') +
       IfThen(item.DespAcessorias  > 0 ,'<vOutro>' + FORMAT_NUM(item.DespAcessorias) + '</vOutro>', '')+'<indTot>1</indTot></prod><imposto>' + NODO_ICMS(item, cstIcmCfop, _ORIGE) +
       NODO_PISCOFINS(item, cstpisCfop, cfop1) + NODO_ICMS_UF_DEST(item) + '</imposto>' +
       infAdProd +'</det>'; //NODO_PISCOFINS(MAT, CSTPIS_CFP)
@@ -4375,9 +4398,9 @@ begin
 end;
 
 
-function TNfeVenda.Format_num(valor : currency; decimais : smallint = 2) : string;
+function TNfeVenda.Format_num(valor : Extended; decimais : smallint = 2) : string;
 begin
-  Result := StringReplace(trim(FormatCurr('0.' + CompletaOuRepete('','','0', decimais), valor)), ',', '.', [rfReplaceAll]);
+  Result := StringReplace(trim(FormatFloat('0.' + CompletaOuRepete('','','0', decimais), valor)), ',', '.', [rfReplaceAll]);
 end;
 
 procedure TNfeVenda.RadioButton2Enter(Sender: TObject);

@@ -25986,7 +25986,7 @@ begin
   dm.IBselect.SQL.text := 'select max(data_backup) as data from registro';
   dm.IBselect.Open;
 
-  if trunc(form22.dataMov - dm.IBselect.FieldByName('data').AsDateTime) < 5 then
+  if trunc(form22.dataMov - dm.IBselect.FieldByName('data').AsDateTime) < 2 then
     exit;
   dm.IBselect.Close;
 
@@ -26440,7 +26440,8 @@ begin
   configuraMail(dm.ACBrMail1);
 
   email := LowerCase(email);
-  dm.ACBrMail1.FromName := email;
+  dm.ACBrMail1.Clear;
+  dm.ACBrMail1.ClearAttachments;
 
   LE_CAMPOS(lista, arquivs, '|', False);
 
@@ -26468,15 +26469,16 @@ begin
   mbody.Parent := self;
   mbody.text := texto;
 
-  dm.ACBrMail1.IsHTML := true;
+  dm.ACBrMail1.IsHTML := false;
   dm.ACBrMail1.Body.Assign(mbody.Lines);
   dm.ACBrMail1.Body.text := texto;
 
-  dm.ACBrMail1.FromName := 'ControlW Sistemas';
   dm.ACBrMail1.Subject := 'XMLs ' + FormatDateTime('mm-yyyy', StrToDate(ini)) +
     ' ' + dm.IBselect.FieldByName('nome').AsString;
-  dm.ACBrMail1.AddAddress(email, 'ControlW');
-  dm.ACBrMail1.AddAddress('controlwsistemas@gmail.com', 'ControlW');
+
+  dm.ACBrMail1.FromName := 'ControlW Sistemas';
+  dm.ACBrMail1.AddAddress(email, email);
+  dm.ACBrMail1.AddAddress('controlwsistemas@gmail.com', 'controlwsistemas@gmail.com');
   dm.IBselect.Close;
 
   dm.ACBrMail1.send(true);

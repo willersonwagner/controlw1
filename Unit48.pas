@@ -23,6 +23,7 @@ type
     ClientDataSet1: TClientDataSet;
     Button1: TButton;
     Label2: TLabel;
+    Label3: TLabel;
     procedure DBGrid1KeyUp(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure DBGrid1CellClick(Column: TColumn);
@@ -76,7 +77,7 @@ const
 implementation
 
 uses func, Unit1, principal, buscaSelecao, cadproduto, StrUtils, unid,
-  Math, consulta, caixaLista;
+  Math, consulta, caixaLista, Unit59;
 
 {$R *.dfm}
 procedure TForm48.insereDadosAdic(const fornec : string);
@@ -671,6 +672,14 @@ begin
   if key = 118 then //F7
     begin
       buscaProdutosCadastro();
+    end;
+
+  if key = 123 then //F12
+    begin
+      lancContasPagar := tlancContasPagar.Create(self);
+      funcoes.CtrlResize(TForm(lancContasPagar));
+      lancContasPagar.showmodal;
+      lancContasPagar.Free;
     end;
 end;
 

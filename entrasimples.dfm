@@ -529,11 +529,11 @@ object Form17: TForm17
       object info: TLabel
         Left = 120
         Top = 7
-        Width = 666
-        Height = 13
+        Width = 422
+        Height = 26
         Caption = 
           'F8-Consulta/F6-Altera Dados Nota/F5-Consulta Produtos/F9-Recebe ' +
-          'Nota/F10-Import. NFE/F11 Recalcular Entradas'
+          'Nota'#13#10'F10-Import. NFE/F11 Recalcular Entradas/F12-Contas a Pagar'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = -11

@@ -143,7 +143,7 @@ var
 implementation
 
 uses Unit1, localizar, MaskUtils, Unit2, StrUtils, func,
-  principal, cadproduto, backup, consulta, cadfornecedor;
+  principal, cadproduto, backup, consulta, cadfornecedor, Unit59;
 
 {$R *.dfm}
 
@@ -1350,10 +1350,13 @@ begin
        funcoes.importaXMLnaEntrada1;
      end;
 
-   if key = 122 then //F11
-     begin
-       funcoes.recalculaEntradas;
-     end;
+   if key = 123 then //F12
+    begin
+      lancContasPagar := tlancContasPagar.Create(self);
+      funcoes.CtrlResize(TForm(lancContasPagar));
+      lancContasPagar.showmodal;
+      lancContasPagar.Free;
+    end;
 
 end;
 
