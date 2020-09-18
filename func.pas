@@ -12886,6 +12886,7 @@ begin
 
     addRelatorioForm19(funcoes.CompletaOuRepete('+', '+', '-', tam) +
       #13 + #10);
+
     addRelatorioForm19(funcoes.CompletaOuRepete('|NOTA: ' + numNota,
       '  VENDEDOR: ' + dm.IBselect.FieldByName('vendedor').AsString + '-' +
       copy(BuscaNomeBD(dm.IBQuery1, 'nome', 'vendedor',
@@ -15751,9 +15752,7 @@ begin
     addRelatorioForm19(funcoes.CompletaOuRepete
       (LeftStr('NOTA: ' + dm.IBselect.FieldByName('nota').AsString + ' ' +
       'VEND: ' + dm.IBselect.FieldByName('vendedor').AsString + '-' +
-      funcoes.BuscaNomeBD(dm.IBQuery1, 'nome', 'vendedor',
-      'where cod=' + dm.IBselect.FieldByName('vendedor').AsString), tam), '',
-      ' ', tam) + #13 + #10);
+      funcoes.BuscaNomeBD(dm.IBQuery1, 'nome', 'vendedor','where cod=' + dm.IBselect.FieldByName('vendedor').AsString), tam), '',' ', tam) + #13 + #10);
 
     addRelatorioForm19(funcoes.CompletaOuRepete('PAGTO: ' +
       dm.IBselect.FieldByName('codhis').AsString + '-' +

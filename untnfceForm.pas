@@ -4567,6 +4567,11 @@ begin
 
   Justificativa := UpperCase(Justificativa);
 
+  ACBrNFe.Configuracoes.Geral.Salvar := true;
+  CriaDiretorio(ExtractFileDir(ParamStr(0)) + '\NFCE\EVENTO\');
+  ACBrNFe.Configuracoes.Arquivos.PathEvento := ExtractFileDir(ParamStr(0)) + '\NFCE\EVENTO\';
+
+
   ACBrNFe.EventoNFe.Evento.Clear;
   ACBrNFe.EventoNFe.idLote := StrToInt(idLote);
   with ACBrNFe.EventoNFe.Evento.Add do

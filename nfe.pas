@@ -1869,6 +1869,9 @@ begin
 
   cStat := IntToStr(ACBrNFe.WebServices.EnvEvento.EventoRetorno.retEvento.Items[0].RetInfEvento.cStat);
   cStat := trim(cStat);
+
+  if ACBrNFe.WebServices.Consulta.cStat > 0 then cStat := IntToStr(ACBrNFe.WebServices.Consulta.cStat);
+
   //if funcoes.Contido(cStat, '101-135') then cStat := '101';
 
   dadosEmitente.LoadFromFile(ARQ_caminho);
@@ -2040,9 +2043,10 @@ begin
  // DeleteFile(pasta_Acbr + 'SAI.txt');
   //GravarTexto(pasta_Acbr+'ENT.txt', texto);
   dm.ACBrNFe.NotasFiscais.Clear;
+  dm.ACBrNFe.Configuracoes.Geral.AtualizarXMLCancelado := true;
 
   try
-    if abreDataSetIBselectPelaChave(nf) then begin
+   if abreDataSetIBselectPelaChave(nf) then begin
       dm.ACBrNFe.NotasFiscais.LoadFromString(dm.IBselect.FieldByName('xml').AsString);
       dm.IBselect.Close;
     end
@@ -2057,6 +2061,11 @@ begin
         exit;
       end;
   end;
+
+
+  //ACBrNFe.Configuracoes.Geral.Salvar := true;
+  CriaDiretorio(ExtractFileDir(ParamStr(0)) + '\NFE\EVENTO\');
+  //ACBrNFe.Configuracoes.Arquivos.PathEvento := ExtractFileDir(ParamStr(0)) + '\NFE\EVENTO\';
 
   //ACBrNFe.Configuracoes.Geral.AtualizarXMLCancelado := true;
   funcoes.Mensagem(Application.Title ,'Aguarde, Cancelando NFe...',15,'Courier New',false,0,clred);
@@ -2075,6 +2084,7 @@ begin
         end;
 
       contador := 0;
+      ACBrNFe.Configuracoes.WebServices.Visualizar := true;
       try
         dm.ACBrNFe.EnviarEvento(0);
         cStat := IntToStr(ACBrNFe.WebServices.EnvEvento.EventoRetorno.retEvento.Items[0].RetInfEvento.cStat);
@@ -2082,11 +2092,22 @@ begin
         on e:exception do
           begin
             ShowMessage(e.Message);
+            ACBrNFe.Configuracoes.WebServices.Visualizar := false;
             exit;
           end;
       end;
 
+      ACBrNFe.Configuracoes.WebServices.Visualizar := false;
+      //ACBrNFe.WebServices.EnvEvento.Executar;
+
       cStat := IntToStr(ACBrNFe.WebServices.EnvEvento.EventoRetorno.retEvento.Items[0].RetInfEvento.cStat);
+
+
+      {ShowMessage('1='+cstat + #13 +
+                  '2=' + IntToStr(ACBrNFe.WebServices.Retorno.cStat) + #13 +
+                  '3=' + IntToStr(ACBrNFe.WebServices.EnvEvento.cStat) + #13 + #13 +
+                  '4=' + IntToStr(ACBrNFe.WebServices.Consulta.cStat));
+      }//GravarTexto(ExtractFileDir(ParamStr(0)) + '\NFE\EVENTO\' + buscaPastaNFe(nf) + '\'+ nf +'-nfe.xml',ACBrNFe.WebServices.EnvEvento.EventoRetorno.XML);
 
       if funcoes.Contido(cstat, '101-135-151-573-155') then
         begin
@@ -2113,7 +2134,7 @@ begin
           funcoes.CANC_MOV(te, '90');
 
           try
-            SendPostData(Form72.IdHTTP1, pastaNFE_ControlW + 'NFE\EMIT\' + nf + '-nfe.xml', 'C', cstat);
+            //SendPostData(Form72.IdHTTP1, pastaNFE_ControlW + 'NFE\EMIT\' + nf + '-nfe.xml', 'C', cstat);
           finally
 
           end;
@@ -3024,8 +3045,10 @@ begin
                     'Deve Possuir a sua quantidade em ' + trim(uTrib) + '. Esse valor é Obrigatório para concluir a emissão' + #13 +
                     'Desta NF-e!');
 
-        qTrib := funcoes.dialogo('numero', 0, '', 4, true, 'S', 'Prod ' + IntToStr(item.cod) + '-' + item.nome,'Qual a Quantidade em '+trim(uTrib)+' Por Unidade ?', '0,0000');
-        vTrib := Format_num(item.total / strtofloat(qTrib), 10);
+        qTrib := funcoes.dialogo('numero', 0, '', 4, true, 'S', 'Prod ' + IntToStr(item.cod) + '-' + item.nome,'Qual a Quantidade em '+trim(uTrib)+' Total do Produto ?', '0,0000');
+        //qTrib := FormatFloat('0.0000', item.quant * strtofloat(qTrib))  ;
+        vTrib := Format_num(item.total / strtofloat(ConverteNumerico(qTrib)), 10);
+        qTrib := Format_num(StrToFloat(qTrib), 4);
       end;
 
 
