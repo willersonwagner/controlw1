@@ -4567,9 +4567,9 @@ begin
 
   Justificativa := UpperCase(Justificativa);
 
-  ACBrNFe.Configuracoes.Geral.Salvar := true;
+  //ACBrNFe.Configuracoes.Geral.Salvar := true;
   CriaDiretorio(ExtractFileDir(ParamStr(0)) + '\NFCE\EVENTO\');
-  ACBrNFe.Configuracoes.Arquivos.PathEvento := ExtractFileDir(ParamStr(0)) + '\NFCE\EVENTO\';
+  //ACBrNFe.Configuracoes.Arquivos.PathEvento := ExtractFileDir(ParamStr(0)) + '\NFCE\EVENTO\';
 
 
   ACBrNFe.EventoNFe.Evento.Clear;
@@ -4622,6 +4622,11 @@ begin
     end;
 
     query1.Transaction.Commit;
+
+    if cstat = 135 then begin
+      criaPasta(pastaControlW + 'NFCE\EVENTO\CANC\' + copy(chave, 3, 4) + '\');
+      GravarTexto(pastaControlW + 'NFCE\EVENTO\CANC\'+ copy(chave, 3, 4) + '\'+ chave + '_CANC_nfe.xml', ACBrNFe.WebServices.EnvEvento.EventoRetorno.retEvento.Items[0].RetInfEvento.XML);
+    end;
 
     GRAVA_NODO_PROT_NFCe(buscaPastaNFCe(chave) + chave + '-nfe.xml');
 

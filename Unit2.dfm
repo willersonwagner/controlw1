@@ -11914,7 +11914,7 @@ object Form2: TForm2
         Caption = 'Entradas de Estoque'
         object SaldosEstoque1: TMenuItem
           Caption = 'Saldos Estoque'
-          Visible = False
+          OnClick = SaldosEstoque1Click
         end
         object EntradasProduto1: TMenuItem
           Caption = 'Entradas Produtos'

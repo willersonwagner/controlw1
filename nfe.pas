@@ -2098,8 +2098,6 @@ begin
       end;
 
       ACBrNFe.Configuracoes.WebServices.Visualizar := false;
-      //ACBrNFe.WebServices.EnvEvento.Executar;
-
       cStat := IntToStr(ACBrNFe.WebServices.EnvEvento.EventoRetorno.retEvento.Items[0].RetInfEvento.cStat);
 
 
@@ -2114,6 +2112,11 @@ begin
           if not FileExists(pastaNFE_ControlW + 'NFE\EMIT\' + nf + '-nfe.old') then CopyFile(pchar(pastaNFE_ControlW + 'NFE\EMIT\' + nf + '-nfe.xml'),pchar(pastaNFE_ControlW + 'NFE\EMIT\' + nf + '-nfe.old'), true)
             else CopyFile(pchar(pastaNFE_ControlW + 'NFE\EMIT\' + nf + '-nfe.xml'),pchar(pastaNFE_ControlW + 'NFE\EMIT\' + nf + '-nfe.old1'), true);
 
+
+          if cstat = '135' then begin
+            criaPasta(pastaNFE_ControlW + 'NFE\EVENTO\CANC\' + copy(nf, 3, 4) + '\');
+            GravarTexto(pastaNFE_ControlW + 'NFE\EVENTO\CANC\'+ copy(nf, 3, 4) + '\'+ nf + '_CANC_nfe.xml', ACBrNFe.WebServices.EnvEvento.EventoRetorno.retEvento.Items[0].RetInfEvento.XML);
+          end;
 
           tmp   := ACBrNFe.WebServices.EnvEvento.EventoRetorno.retEvento.Items[0].RetInfEvento.xMotivo;
           cstat := IntToStr(ACBrNFe.WebServices.EnvEvento.EventoRetorno.retEvento.Items[0].RetInfEvento.cStat);

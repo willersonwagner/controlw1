@@ -689,6 +689,7 @@ type
     procedure LivrodeCaixaGrfico1Click(Sender: TObject);
     procedure PorCliente1Click(Sender: TObject);
     procedure GerarVendasTransferenciadeEstoque1Click(Sender: TObject);
+    procedure SaldosEstoque1Click(Sender: TObject);
   private
     b, cont: integer;
     ini: Smallint;
@@ -18223,6 +18224,83 @@ begin
   addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 85) + #13 + #10);
   dm.ibselect.Close;
   dm.IBQuery2.Close;
+  form19.showmodal;
+end;
+
+procedure TForm2.SaldosEstoque1Click(Sender: TObject);
+var
+  ini, fim, cons, cab: String;
+  TOT: currency;
+begin
+  ini := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,
+    'Qual a Data Inicial?', formataDataDDMMYY(StartOfTheMonth(form22.datamov)));
+  if ini = '*' then
+    exit;
+
+  fim := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,
+    'Qual a Data Final?', formataDataDDMMYY(endOfTheMonth(form22.datamov)));
+  if fim = '*' then
+    exit;
+
+  cons := funcoes.dialogo('generico', 0, 'EC', 0, false, 'S',
+    'Control For Windows',
+    'Considerar: E-Data de Emissão C-Data de Chegada?', 'C');
+  if cons = '*' then
+    exit;
+
+  if cons = 'C' then
+    cons := 'chegada'
+  else
+    cons := 'data';
+
+  cons := 'data';
+
+  cab := 'ENTRADAS DE PRODUTOS => ' + IfThen(cons = 'chegada', 'CHEGADA ',
+    'EMISSAO ') + ' DE ' + ini + ' A ' + fim;
+  form19.RichEdit1.Clear;
+  addRelatorioForm19(funcoes.RelatorioCabecalho(form22.Pgerais.Values
+    ['empresa'], cab, 78));
+  // addRelatorioForm19('  ' + CRLF);
+  // addRelatorioForm19('+----------------------------------------------------------------------------+' + CRLF);
+  //addRelatorioForm19(funcoes.CompletaOuRepete('| Nota      Data    Chegada    Fornecedor                             Total','|', ' ', 78) + CRLF);
+  addRelatorioForm19(funcoes.CompletaOuRepete('COD     DESCRICAO                                           QUANT    REF.ORIG','|', ' ', 78) + CRLF);
+  addRelatorioForm19('+----------------------------------------------------------------------------+'+ CRLF);
+  dm.ibselect.Close;
+  dm.ibselect.SQL.Text := 'SELECT I.COD, SUM(iif(i.QTD_ENT IS NULL, i.QUANT, i.QTD_ENT)) AS QUANT,'+
+  'P.NOME, p.refori FROM item_entrada I LEFT JOIN PRODUTO P ON(i.cod = p.cod) WHERE ('+cons + ' >= :ini) and (' + cons + ' <= :fim) GROUP BY COD, p.nome,p.refori';
+  try
+    dm.ibselect.ParamByName('ini').AsDate := StrToDate(ini);
+    dm.ibselect.ParamByName('fim').AsDate := StrToDate(fim);
+  except
+    ShowMessage('Datas Inválidas');
+    exit;
+  end;
+  dm.ibselect.Open;
+  dm.ibselect.FetchAll;
+
+  TOT := 0;
+  while not dm.ibselect.Eof do
+  begin
+    addRelatorioForm19(funcoes.CompletaOuRepete('', dm.ibselect.FieldByName('cod').AsString, '0', 7) + ' ' +
+    funcoes.CompletaOuRepete(LeftStr(dm.ibselect.FieldByName('nome').AsString, 45), '', ' ', 45) +
+    CompletaOuRepete('',FormatFloat('0.0000',dm.ibselect.FieldByName('quant').AsFloat), ' ',12) +
+    ' '+funcoes.CompletaOuRepete(LeftStr(dm.ibselect.FieldByName('refori').AsString, 12), '', ' ', 12) +CRLF);
+
+    TOT := TOT + dm.ibselect.FieldByName('quant').AsFloat;
+    dm.ibselect.Next;
+  end;
+
+  dm.ibselect.Close;
+  addRelatorioForm19
+    ('+----------------------------------------------------------------------------+'
+    + CRLF);
+  addRelatorioForm19(
+    funcoes.CompletaOuRepete('', '', ' ', 5) + funcoes.CompletaOuRepete('', '',
+    ' ', 11) + funcoes.CompletaOuRepete('', 'TOTAL QUANTIDADE: ', ' ', 34) +
+    funcoes.CompletaOuRepete('', formataCurrency(TOT), ' ', 12) + CRLF);
+  addRelatorioForm19
+    ('+----------------------------------------------------------------------------+'
+    + CRLF);
   form19.showmodal;
 end;
 

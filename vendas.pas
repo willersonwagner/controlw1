@@ -8925,13 +8925,21 @@ end;
 
 procedure TForm20.lancaDescontoPorFormaDePagamento(formapagamento: integer);
 var
-  ini, fim: integer;
+  ini, fim : integer;
+  dinheiro : string;
 begin
   if funcoes.buscaParamGeral(105, 'N') <> 'S' then
     exit;
 
   avista := StrToCurrDef(funcoes.buscaParamGeral(28, ''), 0);
   aprazo := StrToCurrDef(funcoes.buscaParamGeral(29, ''), 0);
+
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select dinheiro from FORMPAGTO where cod = :cod';
+  dm.IBselect.ParamByName('cod').AsInteger := formapagamento;
+  dm.IBselect.Open;
+
+  dinheiro := trim(dm.IBselect.FieldByName('dinheiro').AsString);
 
   ClientDataSet1.DisableControls;
   ClientDataSet1.First;
@@ -8940,6 +8948,9 @@ begin
     avista := 0
   else if formapagamento > 2 then
     avista := aprazo;
+
+  if dinheiro = 'X' then avista := StrToCurrDef(funcoes.buscaParamGeral(28, ''), 0);
+  if dinheiro = 'C' then avista := StrToCurrDef(funcoes.buscaParamGeral(29, ''), 0);
 
   fim := ClientDataSet1.RecordCount;
   for ini := 1 to fim do
