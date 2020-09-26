@@ -13218,7 +13218,7 @@ begin
   dm.ibselect.Close;
   dm.ibselect.SQL.Text :=
     'select i.cod, i.p_venda, i.total, v.total as total1, v.nota, v.codhis, v.desconto, iif(p.comissao is null, 0,p.comissao) as comissao, i.quant, i.vendedor,'
-    + 'v.prazo from item_venda i left join venda v on (i.nota = v.nota) left join produto p on (p.cod = i.cod) where ((v.data >= :dini)'
+    + 'v.prazo, p.nome from item_venda i left join venda v on (i.nota = v.nota) left join produto p on (p.cod = i.cod) where ((v.data >= :dini)'
     + ' and (v.data <= :dfim)) and v.cancelado = 0 and v.total <> 0 order by i.vendedor, v.nota';
   dm.ibselect.ParamByName('dini').AsDateTime := StrToDateTime(dini);
   dm.ibselect.ParamByName('dfim').AsDateTime := StrToDateTime(dfim);
@@ -13239,86 +13239,85 @@ begin
   funcoes.informacao(0, fim, 'Aguarde, Calculando...', true,
     false, 5);
 
-  while not dm.ibselect.Eof do
-  begin
-    if ((dm.ibselect.FieldByName('codhis').AsInteger = 2) or
-      (dm.ibselect.FieldByName('prazo').AsInteger > 0)) then
-      avista := false
-    else
-      avista := true;
-
-    total := 0;
-    mattVal[1] := 0;
-    mattVal[2] := 0;
-    mattVal[3] := 0;
-    mattVal[4] := 0;
-
-    if ((venda <> dm.ibselect.FieldByName('nota').AsString)) then
-    begin
-      totrel := totrel + dm.ibselect.FieldByName('total1').AsCurrency;
-
-      desconto := dm.ibselect.FieldByName('desconto').AsCurrency;
-      venda := dm.ibselect.FieldByName('nota').AsString;
-      vended := funcoes.retiraZerosEsquerda(dm.ibselect.FieldByName('vendedor')
-        .AsString);
-
-      if avista then
-      begin
-        com0.Values[vended] := '0'; // lista de cod de vendedores
-        com3.Values[vended] := CurrToStr(StrToCurrDef(com3.Values[vended], 0) +
-          (desconto * comiAvista / 100));
-      end
-      else
-      begin
-        com0.Values[vended] := '0'; // lista de cod de vendedores
-        com4.Values[vended] := CurrToStr(StrToCurrDef(com4.Values[vended], 0) +
-          (desconto * comiAprazo / 100));
-      end;
-
-    end;
-
+  while not dm.ibselect.Eof do begin
     application.ProcessMessages;
-    funcoes.informacao(ini, fim, 'Aguarde, calculando...', false,
-      false, 5);
+    funcoes.informacao(ini, fim, 'Aguarde, calculando...', false,false, 5);
 
-    diferen := StrToCurrDef(comissaoDiferenciada.Values
-      [dm.ibselect.FieldByName('cod').AsString], 0);
-    TOT := dm.ibselect.FieldByName('total').AsCurrency;
+    if LeftStr(dm.ibselect.FieldByName('nome').AsString, 7) <> 'SERVICO' then begin
+          if ((dm.ibselect.FieldByName('codhis').AsInteger = 2) or
+            (dm.ibselect.FieldByName('prazo').AsInteger > 0)) then
+            avista := false
+          else
+            avista := true;
 
-    // verifica se a comissao nao é diferenciada (produto.comissao <> 0)
-    if diferen <> 0 then
-    begin
-      if avista then
-        mattVal[1] := mattVal[1] + (TOT * diferen / 100)
-      else
-        mattVal[2] := mattVal[2] + (TOT * diferen / 100);
-    end
-    else
-    begin
-      if avista then
-        mattVal[3] := mattVal[1] + (TOT * comiAvista / 100)
-      else
-        mattVal[4] := mattVal[2] + (TOT * comiAprazo / 100);
+          total := 0;
+          mattVal[1] := 0;
+          mattVal[2] := 0;
+          mattVal[3] := 0;
+          mattVal[4] := 0;
+
+          if ((venda <> dm.ibselect.FieldByName('nota').AsString)) then begin
+            totrel := totrel + dm.ibselect.FieldByName('total1').AsCurrency;
+
+            desconto := dm.ibselect.FieldByName('desconto').AsCurrency;
+            venda := dm.ibselect.FieldByName('nota').AsString;
+            vended := funcoes.retiraZerosEsquerda(dm.ibselect.FieldByName('vendedor')
+              .AsString);
+
+            if avista then
+            begin
+              com0.Values[vended] := '0'; // lista de cod de vendedores
+              com3.Values[vended] := CurrToStr(StrToCurrDef(com3.Values[vended], 0) +
+                (desconto * comiAvista / 100));
+            end
+            else
+            begin
+              com0.Values[vended] := '0'; // lista de cod de vendedores
+              com4.Values[vended] := CurrToStr(StrToCurrDef(com4.Values[vended], 0) +
+                (desconto * comiAprazo / 100));
+            end;
+
+          end;
+
+          diferen := StrToCurrDef(comissaoDiferenciada.Values
+            [dm.ibselect.FieldByName('cod').AsString], 0);
+          TOT := dm.ibselect.FieldByName('total').AsCurrency;
+
+          // verifica se a comissao nao é diferenciada (produto.comissao <> 0)
+          if diferen <> 0 then
+          begin
+            if avista then
+              mattVal[1] := mattVal[1] + (TOT * diferen / 100)
+            else
+              mattVal[2] := mattVal[2] + (TOT * diferen / 100);
+          end
+          else
+          begin
+            if avista then
+              mattVal[3] := mattVal[1] + (TOT * comiAvista / 100)
+            else
+              mattVal[4] := mattVal[2] + (TOT * comiAprazo / 100);
+          end;
+
+          com0.Values[funcoes.retiraZerosEsquerda(dm.ibselect.FieldByName('vendedor').AsString)] := '0'; // lista de cod de vendedores
+          com1.Values[funcoes.retiraZerosEsquerda(dm.ibselect.FieldByName('vendedor').AsString)] := CurrToStr(StrToCurrDef(com1.Values[funcoes.retiraZerosEsquerda(dm.ibselect.FieldByName('vendedor').AsString)], 0) + mattVal[1]);
+
+          com2.Values[funcoes.retiraZerosEsquerda(dm.ibselect.FieldByName('vendedor')
+            .AsString)] :=
+            CurrToStr(StrToCurrDef(com2.Values[funcoes.retiraZerosEsquerda
+            (dm.ibselect.FieldByName('vendedor').AsString)], 0) + mattVal[2]);
+          com3.Values[funcoes.retiraZerosEsquerda(dm.ibselect.FieldByName('vendedor')
+            .AsString)] :=
+            CurrToStr(StrToCurrDef(com3.Values[funcoes.retiraZerosEsquerda
+            (dm.ibselect.FieldByName('vendedor').AsString)], 0) + mattVal[3]);
+          com4.Values[funcoes.retiraZerosEsquerda(dm.ibselect.FieldByName('vendedor')
+            .AsString)] :=
+            CurrToStr(StrToCurrDef(com4.Values[funcoes.retiraZerosEsquerda
+            (dm.ibselect.FieldByName('vendedor').AsString)], 0) + mattVal[4]);
     end;
 
-    com0.Values[funcoes.retiraZerosEsquerda(dm.ibselect.FieldByName('vendedor').AsString)] := '0'; // lista de cod de vendedores
-    com1.Values[funcoes.retiraZerosEsquerda(dm.ibselect.FieldByName('vendedor').AsString)] := CurrToStr(StrToCurrDef(com1.Values[funcoes.retiraZerosEsquerda(dm.ibselect.FieldByName('vendedor').AsString)], 0) + mattVal[1]);
-
-    com2.Values[funcoes.retiraZerosEsquerda(dm.ibselect.FieldByName('vendedor')
-      .AsString)] :=
-      CurrToStr(StrToCurrDef(com2.Values[funcoes.retiraZerosEsquerda
-      (dm.ibselect.FieldByName('vendedor').AsString)], 0) + mattVal[2]);
-    com3.Values[funcoes.retiraZerosEsquerda(dm.ibselect.FieldByName('vendedor')
-      .AsString)] :=
-      CurrToStr(StrToCurrDef(com3.Values[funcoes.retiraZerosEsquerda
-      (dm.ibselect.FieldByName('vendedor').AsString)], 0) + mattVal[3]);
-    com4.Values[funcoes.retiraZerosEsquerda(dm.ibselect.FieldByName('vendedor')
-      .AsString)] :=
-      CurrToStr(StrToCurrDef(com4.Values[funcoes.retiraZerosEsquerda
-      (dm.ibselect.FieldByName('vendedor').AsString)], 0) + mattVal[4]);
-
-    dm.ibselect.Next; // next do dataset de venda
     ini := ini + 1;
+    dm.ibselect.Next; // next do dataset de venda
   end;
 
   fim := com0.Count - 1;
@@ -13440,90 +13439,93 @@ begin
     ini1 := ini1 + 1;
     funcoes.informacao(ini1, fim1, 'Aguarde, calculando...', false,
       false, 5);
+
     dm.IBQuery1.Close;
     dm.IBQuery1.SQL.Clear;
     dm.IBQuery1.SQL.Add
-      ('select i.total, i.quant, i.cod, i.p_venda, p.comissao  from item_venda i,produto p where (p.cod = i.cod) and (nota = '
+      ('select i.total, i.quant, i.cod, i.p_venda, p.comissao, p.nome  from item_venda i,produto p where (p.cod = i.cod) and (nota = '
       + dm.ibselect.FieldByName('nota').AsString + ')');
     dm.IBQuery1.Open;
+        total := 0;
+        comissao1 := new(Ptr_comissao);
+        comissao1.cod := dm.ibselect.FieldByName('vendedor').AsInteger;
+        comissao1.diferenciado_avista := 0;
+        comissao1.diferenciado_aprazo := 0;
+        comissao1.aprazo := 0;
+        comissao1.avista := 0;
+        comissao1.total := 0;
+        comissao1.desconto := 0;
 
-    total := 0;
-    comissao1 := new(Ptr_comissao);
-    comissao1.cod := dm.ibselect.FieldByName('vendedor').AsInteger;
-    comissao1.diferenciado_avista := 0;
-    comissao1.diferenciado_aprazo := 0;
-    comissao1.aprazo := 0;
-    comissao1.avista := 0;
-    comissao1.total := 0;
-    comissao1.desconto := 0;
-
-    while not dm.IBQuery1.Eof do
-    begin
-      // verifica se a comissao nao é diferenciada (produto.comissao <> 0)
-      if dm.IBQuery1.FieldByName('comissao').AsCurrency > 0 then
-      begin
-        comissao1.diferenciado_avista := comissao1.diferenciado_avista +
-          (dm.IBQuery1.FieldByName('total').AsCurrency) *
-          (dm.IBQuery1.FieldByName('comissao').AsCurrency / 100);
-        comissao1.total := comissao1.total + dm.IBQuery1.FieldByName('total')
-          .AsCurrency;
-      end
-      else
-      begin
-        comissao1.avista := comissao1.avista +
-          (dm.IBQuery1.FieldByName('total').AsCurrency) *
-          (StrToCurr(avis) / 100);
-        comissao1.aprazo := comissao1.aprazo + dm.IBQuery1.FieldByName('total')
-          .AsCurrency;
-      end;
-
-      dm.IBQuery1.Next;
-    end;
-
-    comissao1.aprazo := comissao1.aprazo + dm.ibselect.FieldByName('desconto')
-      .AsCurrency;
-    comissao1.desconto := comissao1.desconto +
-      (dm.ibselect.FieldByName('desconto').AsCurrency * StrToCurr(avis) / 100);
-
-    // varre lista para adicionar o total dos itens(preço de venda X quantidade) no vendedor ou adiciona um novo vendedor
-    ret := 0;
-    if lista.Count > 0 then
-    begin
-      fim := lista.Count - 1;
-      for i := 0 to fim do
-      begin
-        comissao2 := lista.Items[i];
-        if comissao2.cod = comissao1.cod then
+        while not dm.IBQuery1.Eof do
         begin
-          ret := i;
-          if i = 0 then
-            ret := -2;
-          break;
-        end;
-      end;
-    end;
 
-    // se não achou vendedor RET = 0, se achou vendedor na lista mas é o primeiro = 0 então retorna -2 para
-    // saber se encotrou vendedor, se for igual a zero então cria um novo vendedor na lista
-    if ret = 0 then
-    begin
-      comissao1.cod := dm.ibselect.FieldByName('vendedor').AsInteger;
-      lista.Add(comissao1);
-    end
-    else
-    begin
-      if ret = -2 then
+          if LeftStr(dm.IBQuery1.FieldByName('nome').AsString, 7) <> 'SERVICO' then begin
+            // verifica se a comissao nao é diferenciada (produto.comissao <> 0)
+            if dm.IBQuery1.FieldByName('comissao').AsCurrency > 0 then
+            begin
+              comissao1.diferenciado_avista := comissao1.diferenciado_avista +
+                (dm.IBQuery1.FieldByName('total').AsCurrency) *
+                (dm.IBQuery1.FieldByName('comissao').AsCurrency / 100);
+              comissao1.total := comissao1.total + dm.IBQuery1.FieldByName('total')
+                .AsCurrency;
+            end
+            else
+            begin
+              comissao1.avista := comissao1.avista +
+                (dm.IBQuery1.FieldByName('total').AsCurrency) *
+                (StrToCurr(avis) / 100);
+              comissao1.aprazo := comissao1.aprazo + dm.IBQuery1.FieldByName('total')
+                .AsCurrency;
+            end;
+          end;
+
+          dm.IBQuery1.Next;
+        end;
+
+        comissao1.aprazo := comissao1.aprazo + dm.ibselect.FieldByName('desconto')
+          .AsCurrency;
+        comissao1.desconto := comissao1.desconto +
+          (dm.ibselect.FieldByName('desconto').AsCurrency * StrToCurr(avis) / 100);
+
+        // varre lista para adicionar o total dos itens(preço de venda X quantidade) no vendedor ou adiciona um novo vendedor
         ret := 0;
-      comissao2 := lista.Items[ret];
-      comissao2.aprazo := comissao2.aprazo + comissao1.aprazo;
-      comissao2.avista := comissao2.avista + comissao1.avista;
-      comissao2.diferenciado_avista := comissao2.diferenciado_avista +
-        comissao1.diferenciado_avista;
-      comissao2.diferenciado_aprazo := comissao2.diferenciado_aprazo +
-        comissao1.diferenciado_aprazo;
-      comissao2.total := comissao2.total + comissao1.total;
-      comissao2.desconto := comissao2.desconto + comissao1.desconto;
-    end;
+        if lista.Count > 0 then
+        begin
+          fim := lista.Count - 1;
+          for i := 0 to fim do
+          begin
+            comissao2 := lista.Items[i];
+            if comissao2.cod = comissao1.cod then
+            begin
+              ret := i;
+              if i = 0 then
+                ret := -2;
+              break;
+            end;
+          end;
+        end;
+
+        // se não achou vendedor RET = 0, se achou vendedor na lista mas é o primeiro = 0 então retorna -2 para
+        // saber se encotrou vendedor, se for igual a zero então cria um novo vendedor na lista
+        if ret = 0 then
+        begin
+          comissao1.cod := dm.ibselect.FieldByName('vendedor').AsInteger;
+          lista.Add(comissao1);
+        end
+        else
+        begin
+          if ret = -2 then
+            ret := 0;
+          comissao2 := lista.Items[ret];
+          comissao2.aprazo := comissao2.aprazo + comissao1.aprazo;
+          comissao2.avista := comissao2.avista + comissao1.avista;
+          comissao2.diferenciado_avista := comissao2.diferenciado_avista +
+            comissao1.diferenciado_avista;
+          comissao2.diferenciado_aprazo := comissao2.diferenciado_aprazo +
+            comissao1.diferenciado_aprazo;
+          comissao2.total := comissao2.total + comissao1.total;
+          comissao2.desconto := comissao2.desconto + comissao1.desconto;
+        end;
     dm.ibselect.Next;
   end;
 
@@ -17664,131 +17666,134 @@ begin
   while not dm.ibselect.Eof do
   begin
     ini := ini + 1;
-    funcoes.informacao(ini, fim, 'Aguarde, calculando...', false,
-      false, 5);
+    funcoes.informacao(ini, fim, 'Aguarde, calculando...', false,false, 5);
 
-    if ven <> dm.ibselect.FieldByName('vendedor').AsString then
-    begin
-      com2.Values[ven] := CurrToStr(StrToCurr(com2.Values[ven]) +
-        (desconto * (comiAvista / 100)));
-      com1.Values[ven] := CurrToStr(StrToCurr(com1.Values[ven]) + desconto);
-      addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10);
-      addRelatorioForm19(funcoes.CompletaOuRepete('TOTAL ' + ven + ' ===> ' +
-        funcoes.CompletaOuRepete('VENDAS:',
-        formataCurrency(StrToCurr(com1.Values[ven])), ' ', 20) + ' ' +
-        funcoes.CompletaOuRepete('NORMAL:',
-        formataCurrency(StrToCurr(com2.Values[ven])), ' ', 20) + ' ' +
-        funcoes.CompletaOuRepete('DIFERENCIADA:',
-        formataCurrency(StrToCurr(com3.Values[ven])), ' ', 24), '', ' ', 80) +
-        #13 + #10);
-      addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 +
-        #10 + #12);
 
-      ven := dm.ibselect.FieldByName('vendedor').AsString;
+    if LeftStr(dm.ibselect.FieldByName('nome').AsString, 7) <> 'SERVICO' then begin
 
-      addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10);
-      addRelatorioForm19(funcoes.CompletaOuRepete(form22.Pgerais.Values
-        ['empresa'], FormatDateTime('dd/mm/yy', form22.datamov), ' ', 80) +
-        #13 + #10);
-      addRelatorioForm19(funcoes.CompletaOuRepete
-        ('RELATORIO DE '+NOME_REL+' POR VENDEDOR: ' + dm.ibselect.FieldByName
-        ('vendedor').AsString + '-' + funcoes.BuscaNomeBD(dm.IBQuery1, 'nome',
-        'vendedor', ' where cod = ' + dm.ibselect.FieldByName('vendedor')
-        .AsString), FormatDateTime('tt', now), ' ', 80) + #13 + #10);
-      addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10);
-      addRelatorioForm19
-        ('  DATA   DESCRICAO                            QUANT      TOTAL  '+NOME_REL+'        '
-        + #13 + #10);
-      addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10);
-    end;
+        if ven <> dm.ibselect.FieldByName('vendedor').AsString then
+        begin
+          com2.Values[ven] := CurrToStr(StrToCurr(com2.Values[ven]) +
+            (desconto * (comiAvista / 100)));
+          com1.Values[ven] := CurrToStr(StrToCurr(com1.Values[ven]) + desconto);
+          addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10);
+          addRelatorioForm19(funcoes.CompletaOuRepete('TOTAL ' + ven + ' ===> ' +
+            funcoes.CompletaOuRepete('VENDAS:',
+            formataCurrency(StrToCurr(com1.Values[ven])), ' ', 20) + ' ' +
+            funcoes.CompletaOuRepete('NORMAL:',
+            formataCurrency(StrToCurr(com2.Values[ven])), ' ', 20) + ' ' +
+            funcoes.CompletaOuRepete('DIFERENCIADA:',
+            formataCurrency(StrToCurr(com3.Values[ven])), ' ', 24), '', ' ', 80) +
+            #13 + #10);
+          addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 +
+            #10 + #12);
 
-    diferen := StrToCurrDef(comissaoDiferenciada.Values
-      [dm.ibselect.FieldByName('cod').AsString], 0);
-    TOT := dm.ibselect.FieldByName('total').AsCurrency;
+          ven := dm.ibselect.FieldByName('vendedor').AsString;
 
-    total := 0;
-    mattVal[1] := 0; // vendas
-    mattVal[2] := 0; // normal
-    mattVal[3] := 0; // dif
+          addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10);
+          addRelatorioForm19(funcoes.CompletaOuRepete(form22.Pgerais.Values
+            ['empresa'], FormatDateTime('dd/mm/yy', form22.datamov), ' ', 80) +
+            #13 + #10);
+          addRelatorioForm19(funcoes.CompletaOuRepete
+            ('RELATORIO DE '+NOME_REL+' POR VENDEDOR: ' + dm.ibselect.FieldByName
+            ('vendedor').AsString + '-' + funcoes.BuscaNomeBD(dm.IBQuery1, 'nome',
+            'vendedor', ' where cod = ' + dm.ibselect.FieldByName('vendedor')
+            .AsString), FormatDateTime('tt', now), ' ', 80) + #13 + #10);
+          addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10);
+          addRelatorioForm19
+            ('  DATA   DESCRICAO                            QUANT      TOTAL  '+NOME_REL+'        '
+            + #13 + #10);
+          addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10);
+        end;
 
-    if diferen <> 0 then
-    begin
-      totVende := (TOT * (diferen / 100));
-      mattVal[1] := mattVal[1] + dm.ibselect.FieldByName('total').AsCurrency;
-      mattVal[3] := mattVal[3] + totVende;
+        diferen := StrToCurrDef(comissaoDiferenciada.Values
+          [dm.ibselect.FieldByName('cod').AsString], 0);
+        TOT := dm.ibselect.FieldByName('total').AsCurrency;
 
-      addRelatorioForm19(formataDataDDMMYY(dm.ibselect.FieldByName('data')
-        .AsDateTime) + ' ' + funcoes.CompletaOuRepete
-        (copy(dm.ibselect.FieldByName('cod').AsString + '-' +
-        dm.ibselect.FieldByName('nome').AsString, 1, 35), '', ' ', 35) +
-        funcoes.CompletaOuRepete('',
-        formataCurrency(dm.ibselect.FieldByName('quant').AsCurrency), ' ', 8) +
-        funcoes.CompletaOuRepete('',
-        formataCurrency(dm.ibselect.FieldByName('total').AsCurrency), ' ', 11) +
-        funcoes.CompletaOuRepete('', formataCurrency(totVende), ' ', 8) +
-        funcoes.CompletaOuRepete('', formataCurrency(diferen), ' ', 8) + '%' +
-        #13 + #10);
-    end
-    else
-    begin
-      totVende := (TOT * (comiAvista / 100));
-      mattVal[2] := mattVal[2] + totVende;
-      mattVal[1] := mattVal[1] + dm.ibselect.FieldByName('total').AsCurrency;
+        total := 0;
+        mattVal[1] := 0; // vendas
+        mattVal[2] := 0; // normal
+        mattVal[3] := 0; // dif
 
-      addRelatorioForm19(formataDataDDMMYY(dm.ibselect.FieldByName('data')
-        .AsDateTime) + ' ' + funcoes.CompletaOuRepete
-        (copy(dm.ibselect.FieldByName('cod').AsString + '-' +
-        dm.ibselect.FieldByName('nome').AsString, 1, 35), '', ' ', 35) +
-        funcoes.CompletaOuRepete('',
-        formataCurrency(dm.ibselect.FieldByName('quant').AsCurrency), ' ', 8) +
-        funcoes.CompletaOuRepete('',
-        formataCurrency(dm.ibselect.FieldByName('total').AsCurrency), ' ', 11) +
-        funcoes.CompletaOuRepete('', formataCurrency(totVende), ' ', 8) +
-        funcoes.CompletaOuRepete('', formataCurrency(comiAvista), ' ', 8) + '%'
-        + #13 + #10);
-    end;
+        if diferen <> 0 then
+        begin
+          totVende := (TOT * (diferen / 100));
+          mattVal[1] := mattVal[1] + dm.ibselect.FieldByName('total').AsCurrency;
+          mattVal[3] := mattVal[3] + totVende;
 
-    if venda <> dm.ibselect.FieldByName('nota').AsString then
-    begin
-      com2.Values[vended] := CurrToStr(StrToCurr(com2.Values[vended]) +
-        (desconto * (comiAvista / 100)));
-      com1.Values[vended] := CurrToStr(StrToCurr(com1.Values[vended]) +
-        desconto);
+          addRelatorioForm19(formataDataDDMMYY(dm.ibselect.FieldByName('data')
+            .AsDateTime) + ' ' + funcoes.CompletaOuRepete
+            (copy(dm.ibselect.FieldByName('cod').AsString + '-' +
+            dm.ibselect.FieldByName('nome').AsString, 1, 35), '', ' ', 35) +
+            funcoes.CompletaOuRepete('',
+            formataCurrency(dm.ibselect.FieldByName('quant').AsCurrency), ' ', 8) +
+            funcoes.CompletaOuRepete('',
+            formataCurrency(dm.ibselect.FieldByName('total').AsCurrency), ' ', 11) +
+            funcoes.CompletaOuRepete('', formataCurrency(totVende), ' ', 8) +
+            funcoes.CompletaOuRepete('', formataCurrency(diferen), ' ', 8) + '%' +
+            #13 + #10);
+        end
+        else
+        begin
+          totVende := (TOT * (comiAvista / 100));
+          mattVal[2] := mattVal[2] + totVende;
+          mattVal[1] := mattVal[1] + dm.ibselect.FieldByName('total').AsCurrency;
 
-      // com1.Values[vended] := CurrToStr(StrToCurr(com1.Values[vended]) + desconto );
-      desconto := dm.ibselect.FieldByName('desconto').AsCurrency;
-      venda := dm.ibselect.FieldByName('nota').AsString;
-      vended := dm.ibselect.FieldByName('vendedor').AsString;
-    end
-    else
-    begin
-      desconto := dm.ibselect.FieldByName('desconto').AsCurrency;
-      vended := dm.ibselect.FieldByName('vendedor').AsString;
-    end;
+          addRelatorioForm19(formataDataDDMMYY(dm.ibselect.FieldByName('data')
+            .AsDateTime) + ' ' + funcoes.CompletaOuRepete
+            (copy(dm.ibselect.FieldByName('cod').AsString + '-' +
+            dm.ibselect.FieldByName('nome').AsString, 1, 35), '', ' ', 35) +
+            funcoes.CompletaOuRepete('',
+            formataCurrency(dm.ibselect.FieldByName('quant').AsCurrency), ' ', 8) +
+            funcoes.CompletaOuRepete('',
+            formataCurrency(dm.ibselect.FieldByName('total').AsCurrency), ' ', 11) +
+            funcoes.CompletaOuRepete('', formataCurrency(totVende), ' ', 8) +
+            funcoes.CompletaOuRepete('', formataCurrency(comiAvista), ' ', 8) + '%'
+            + #13 + #10);
+        end;
 
-    if com1.Values[dm.ibselect.FieldByName('vendedor').AsString] <> '' then
-    begin
-      if mattVal[3] <> 0 then
-        com3.Values[dm.ibselect.FieldByName('vendedor').AsString] :=
-          CurrToStr(StrToCurr(com3.Values[dm.ibselect.FieldByName('vendedor')
-          .AsString]) + mattVal[3]);
-      if mattVal[1] <> 0 then
-        com1.Values[dm.ibselect.FieldByName('vendedor').AsString] :=
-          CurrToStr(StrToCurr(com1.Values[dm.ibselect.FieldByName('vendedor')
-          .AsString]) + mattVal[1]);
-      if mattVal[2] <> 0 then
-        com2.Values[dm.ibselect.FieldByName('vendedor').AsString] :=
-          CurrToStr(StrToCurr(com2.Values[dm.ibselect.FieldByName('vendedor')
-          .AsString]) + mattVal[2]);
-    end
-    else
-    begin
-      com3.Values[dm.ibselect.FieldByName('vendedor').AsString] :=
-        CurrToStr(mattVal[3]); // a vista
-      com1.Values[dm.ibselect.FieldByName('vendedor').AsString] :=
-        CurrToStr(mattVal[1]); // a vista dif
-      com2.Values[dm.ibselect.FieldByName('vendedor').AsString] :=
-        CurrToStr(mattVal[2]); // a prazo dif
+        if venda <> dm.ibselect.FieldByName('nota').AsString then
+        begin
+          com2.Values[vended] := CurrToStr(StrToCurr(com2.Values[vended]) +
+            (desconto * (comiAvista / 100)));
+          com1.Values[vended] := CurrToStr(StrToCurr(com1.Values[vended]) +
+            desconto);
+
+          // com1.Values[vended] := CurrToStr(StrToCurr(com1.Values[vended]) + desconto );
+          desconto := dm.ibselect.FieldByName('desconto').AsCurrency;
+          venda := dm.ibselect.FieldByName('nota').AsString;
+          vended := dm.ibselect.FieldByName('vendedor').AsString;
+        end
+        else
+        begin
+          desconto := dm.ibselect.FieldByName('desconto').AsCurrency;
+          vended := dm.ibselect.FieldByName('vendedor').AsString;
+        end;
+
+        if com1.Values[dm.ibselect.FieldByName('vendedor').AsString] <> '' then
+        begin
+          if mattVal[3] <> 0 then
+            com3.Values[dm.ibselect.FieldByName('vendedor').AsString] :=
+              CurrToStr(StrToCurr(com3.Values[dm.ibselect.FieldByName('vendedor')
+              .AsString]) + mattVal[3]);
+          if mattVal[1] <> 0 then
+            com1.Values[dm.ibselect.FieldByName('vendedor').AsString] :=
+              CurrToStr(StrToCurr(com1.Values[dm.ibselect.FieldByName('vendedor')
+              .AsString]) + mattVal[1]);
+          if mattVal[2] <> 0 then
+            com2.Values[dm.ibselect.FieldByName('vendedor').AsString] :=
+              CurrToStr(StrToCurr(com2.Values[dm.ibselect.FieldByName('vendedor')
+              .AsString]) + mattVal[2]);
+        end
+        else
+        begin
+          com3.Values[dm.ibselect.FieldByName('vendedor').AsString] :=
+            CurrToStr(mattVal[3]); // a vista
+          com1.Values[dm.ibselect.FieldByName('vendedor').AsString] :=
+            CurrToStr(mattVal[1]); // a vista dif
+          com2.Values[dm.ibselect.FieldByName('vendedor').AsString] :=
+            CurrToStr(mattVal[2]); // a prazo dif
+        end;
     end;
 
     dm.ibselect.Next; // next do dataset de venda
@@ -17883,8 +17888,8 @@ begin
 
   dm.ibselect.SQL.Clear;
   dm.ibselect.SQL.Add
-    ('select v.nota, v.prazo, v.cliente, c.nome, i.data, i.total, v.total as totnota, i.quant, i.cod, v.prazo, i.vendedor, v.desconto'
-    + ' from item_venda i, venda v left join cliente c on (v.cliente = c.cod) where '
+    ('select v.nota, v.prazo, v.cliente, c.nome, p.nome as nome1, i.data, i.total, v.total as totnota, i.quant, i.cod, v.prazo, i.vendedor, v.desconto'
+    + ' from item_venda i left join produto p on (p.cod = i.cod), venda v left join cliente c on (v.cliente = c.cod) where '
     + IfThen(ven <> '', '(v.vendedor = ' + ven + ') and', '') +
     ' (i.nota = v.nota) and (v.cancelado = 0) and ((v.data >= :dini) and (v.data <= :dfim)) order by i.vendedor, i.nota');
   dm.ibselect.ParamByName('dini').AsDateTime := StrToDateTime(dini);
@@ -17928,191 +17933,112 @@ begin
   funcoes.informacao(ini, fim, 'Aguarde, calculando ...', true,
     false, 5);
   nota := dm.ibselect.FieldByName('nota').AsString;
+  desconto := dm.ibselect.FieldByName('desconto').AsCurrency;
   while not dm.ibselect.Eof do
   begin
     ini := ini + 1;
     funcoes.informacao(ini, fim, 'Aguarde, calculando...', false,
       false, 5);
 
-    if nota <> dm.ibselect.FieldByName('nota').AsString then
-    begin
-      dm.ibselect.Prior;
+    if LeftStr(dm.ibselect.FieldByName('nome1').AsString, 7) <> 'SERVICO' then begin
+            if nota <> dm.ibselect.FieldByName('nota').AsString then
+            begin
+              dm.ibselect.Prior;
 
-      // aqui pegou o desconto da ultima venda e lanca na comissao maior do vendedor
-      desconto := dm.ibselect.FieldByName('desconto').AsCurrency;
-      if CurrToStr(StrToCurrDef(com3.Values[ven], 0)) >
-        CurrToStr(StrToCurrDef(com2.Values[ven], 0)) then
-      begin
-        com3.Values[ven] := CurrToStr(StrToCurrDef(com3.Values[ven], 0) +
-          (desconto * (comiAvista / 100)));
-      end
-      else
-        com2.Values[ven] := CurrToStr(StrToCurrDef(com2.Values[ven], 0) +
-          (desconto * (comiAvista / 100)));
-      // ja lancou o desconto
+              // aqui pegou o desconto da ultima venda e lanca na comissao maior do vendedor
+              desconto := dm.ibselect.FieldByName('desconto').AsCurrency;
+              if CurrToStr(StrToCurrDef(com3.Values[ven], 0)) >
+                CurrToStr(StrToCurrDef(com2.Values[ven], 0)) then
+              begin
+                com3.Values[ven] := CurrToStr(StrToCurrDef(com3.Values[ven], 0) +
+                  (desconto * (comiAvista / 100)));
+              end
+              else
+                com2.Values[ven] := CurrToStr(StrToCurrDef(com2.Values[ven], 0) +
+                  (desconto * (comiAvista / 100)));
+              // ja lancou o desconto
 
-      addRelatorioForm19(formataDataDDMMYY(dm.ibselect.FieldByName('data')
-        .AsDateTime) + ' ' + funcoes.CompletaOuRepete('',
-        dm.ibselect.FieldByName('nota').AsString, ' ', 7) + ' ' +
-        funcoes.CompletaOuRepete(copy(dm.ibselect.FieldByName('cliente')
-        .AsString + '-' + dm.ibselect.FieldByName('nome').AsString, 1, 40), '',
-        ' ', 40) + funcoes.CompletaOuRepete('',
-        formataCurrency(dm.ibselect.FieldByName('totnota').AsCurrency), ' ', 12)
-        + funcoes.CompletaOuRepete('',
-        formataCurrency(Arredonda(mattVal[1] + (desconto * (comiAvista / 100)),
-        2)), ' ', 11) + #13 + #10);
-      dm.ibselect.Next;
+              addRelatorioForm19(formataDataDDMMYY(dm.ibselect.FieldByName('data')
+                .AsDateTime) + ' ' + funcoes.CompletaOuRepete('',
+                dm.ibselect.FieldByName('nota').AsString, ' ', 7) + ' ' +
+                funcoes.CompletaOuRepete(copy(dm.ibselect.FieldByName('cliente')
+                .AsString + '-' + dm.ibselect.FieldByName('nome').AsString, 1, 40), '',
+                ' ', 40) + funcoes.CompletaOuRepete('',
+                formataCurrency(dm.ibselect.FieldByName('totnota').AsCurrency), ' ', 12)
+                + funcoes.CompletaOuRepete('',
+                formataCurrency(Arredonda(mattVal[1] + (desconto * (comiAvista / 100)),
+                2)), ' ', 11) + #13 + #10);
+              dm.ibselect.Next;
 
-      mattVal[1] := 0;
-      nota := dm.ibselect.FieldByName('nota').AsString;
+              mattVal[1] := 0;
+              nota := dm.ibselect.FieldByName('nota').AsString;
+            end;
+
+            if ((ven <> dm.ibselect.FieldByName('vendedor').AsString) or (dm.IBselect.Eof)) then
+            begin
+              addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10);
+              // addRelatorioForm19(funcoes.CompletaOuRepete('TOTAL ' + ven + ' => ' + Funcoes.CompletaOuRepete('VENDAS:', formataCurrency(mattVal[1]), ' ', 20) + ' ' + Funcoes.CompletaOuRepete('NORMAL:', formataCurrency(mattVal[2]), ' ', 20) + ' ' + Funcoes.CompletaOuRepete('DIFERENCIADA:', formataCurrency(mattVal[3]), ' ', 24),'',' ',80) + #13 + #10);
+              addRelatorioForm19(funcoes.CompletaOuRepete('TOTAL ' + ven + ' => ' +
+                funcoes.CompletaOuRepete('VENDAS:',
+                formataCurrency(StrToCurrDef(com1.Values[ven], 0)), ' ', 20) + ' ' +
+                funcoes.CompletaOuRepete('NORMAL:',
+                formataCurrency(StrToCurrDef(com2.Values[ven], 0)), ' ', 20) + ' ' +
+                funcoes.CompletaOuRepete('DIFERENCIADA:',
+                formataCurrency(StrToCurrDef(com3.Values[ven], 0)), ' ', 24), '', ' ',
+                80) + #13 + #10);
+              addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 +
+                #10 + #12);
+
+              ven := dm.ibselect.FieldByName('vendedor').AsString;
+
+              addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10);
+              addRelatorioForm19(funcoes.CompletaOuRepete(form22.Pgerais.Values
+                ['empresa'], FormatDateTime('dd/mm/yy', form22.datamov), ' ', 80) +
+                #13 + #10);
+              addRelatorioForm19(funcoes.CompletaOuRepete
+                ('RELATORIO DE '+NOME_REL+' POR VENDEDOR: ' + dm.ibselect.FieldByName
+                ('vendedor').AsString + '-' + funcoes.BuscaNomeBD(dm.IBQuery1, 'nome',
+                'vendedor', ' where cod = ' + dm.ibselect.FieldByName('vendedor')
+                .AsString), FormatDateTime('tt', now), ' ', 80) + #13 + #10);
+              addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10);
+              addRelatorioForm19
+                ('  DATA    NOTA   CLIENTE                                        VALOR   ' + NOME_REL
+                + #13 + #10);
+              addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10);
+            end;
+
+            diferen := StrToCurrDef(comissaoDiferenciada.Values
+              [dm.ibselect.FieldByName('cod').AsString], 0);
+            TOT := dm.ibselect.FieldByName('total').AsCurrency;
+            // mattVal[1] := mattVal[1] + dm.IBselect.fieldbyname('total').AsCurrency;
+
+            if diferen <> 0 then
+            begin
+              com3.Values[ven] := CurrToStr(StrToCurrDef(com3.Values[ven], 0) +
+                (TOT * (diferen / 100)));
+              mattVal[1] := mattVal[1] + (TOT * (diferen / 100));
+            end
+            else
+            begin
+              com2.Values[ven] := CurrToStr(StrToCurrDef(com2.Values[ven], 0) +
+                (TOT * (comiAvista / 100)));
+              mattVal[1] := mattVal[1] + (TOT * (comiAvista / 100));
+            end;
+
+            // ShowMessage('com3.GetText=' +com3.GetText + #13 + #13 + 'com2.GetText='+com2.GetText);
+
+            com1.Values[ven] := CurrToStr(StrToCurrDef(com1.Values[ven], 0) + TOT);
     end;
 
-    if ven <> dm.ibselect.FieldByName('vendedor').AsString then
-    begin
-      addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10);
-      // addRelatorioForm19(funcoes.CompletaOuRepete('TOTAL ' + ven + ' => ' + Funcoes.CompletaOuRepete('VENDAS:', formataCurrency(mattVal[1]), ' ', 20) + ' ' + Funcoes.CompletaOuRepete('NORMAL:', formataCurrency(mattVal[2]), ' ', 20) + ' ' + Funcoes.CompletaOuRepete('DIFERENCIADA:', formataCurrency(mattVal[3]), ' ', 24),'',' ',80) + #13 + #10);
-      addRelatorioForm19(funcoes.CompletaOuRepete('TOTAL ' + ven + ' => ' +
-        funcoes.CompletaOuRepete('VENDAS:',
-        formataCurrency(StrToCurrDef(com1.Values[ven], 0)), ' ', 20) + ' ' +
-        funcoes.CompletaOuRepete('NORMAL:',
-        formataCurrency(StrToCurrDef(com2.Values[ven], 0)), ' ', 20) + ' ' +
-        funcoes.CompletaOuRepete('DIFERENCIADA:',
-        formataCurrency(StrToCurrDef(com3.Values[ven], 0)), ' ', 24), '', ' ',
-        80) + #13 + #10);
-      addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 +
-        #10 + #12);
 
-      ven := dm.ibselect.FieldByName('vendedor').AsString;
 
-      addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10);
-      addRelatorioForm19(funcoes.CompletaOuRepete(form22.Pgerais.Values
-        ['empresa'], FormatDateTime('dd/mm/yy', form22.datamov), ' ', 80) +
-        #13 + #10);
-      addRelatorioForm19(funcoes.CompletaOuRepete
-        ('RELATORIO DE '+NOME_REL+' POR VENDEDOR: ' + dm.ibselect.FieldByName
-        ('vendedor').AsString + '-' + funcoes.BuscaNomeBD(dm.IBQuery1, 'nome',
-        'vendedor', ' where cod = ' + dm.ibselect.FieldByName('vendedor')
-        .AsString), FormatDateTime('tt', now), ' ', 80) + #13 + #10);
-      addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10);
-      addRelatorioForm19
-        ('  DATA    NOTA   CLIENTE                                        VALOR   ' + NOME_REL
-        + #13 + #10);
-      addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10);
-    end;
-
-    diferen := StrToCurrDef(comissaoDiferenciada.Values
-      [dm.ibselect.FieldByName('cod').AsString], 0);
-    TOT := dm.ibselect.FieldByName('total').AsCurrency;
-    // mattVal[1] := mattVal[1] + dm.IBselect.fieldbyname('total').AsCurrency;
-
-    if diferen <> 0 then
-    begin
-      com3.Values[ven] := CurrToStr(StrToCurrDef(com3.Values[ven], 0) +
-        (TOT * (diferen / 100)));
-      mattVal[1] := mattVal[1] + (TOT * (diferen / 100));
-    end
-    else
-    begin
-      com2.Values[ven] := CurrToStr(StrToCurrDef(com2.Values[ven], 0) +
-        (TOT * (comiAvista / 100)));
-      mattVal[1] := mattVal[1] + (TOT * (comiAvista / 100));
-    end;
-
-    // ShowMessage('com3.GetText=' +com3.GetText + #13 + #13 + 'com2.GetText='+com2.GetText);
-
-    com1.Values[ven] := CurrToStr(StrToCurrDef(com1.Values[ven], 0) + TOT);
     dm.ibselect.Next;
   end;
 
   funcoes.informacao(ini, fim, 'Aguarde, calculando...',
     false, true, 5);
 
-  { while not dm.IBselect.Eof do
-    begin
-    ini := ini + 1;
-    funcoes.informacao(ini, fim, 'Aguarde, calculando Comissões...', false, false, 5);
 
-    if ven <> dm.IBselect.fieldbyname('vendedor').AsString then
-    begin
-    addRelatorioForm19(funcoes.CompletaOuRepete('','','-',80) + #13 + #10);
-    //addRelatorioForm19(funcoes.CompletaOuRepete('TOTAL ' + ven + ' => ' + Funcoes.CompletaOuRepete('VENDAS:', formataCurrency(mattVal[1]), ' ', 20) + ' ' + Funcoes.CompletaOuRepete('NORMAL:', formataCurrency(mattVal[2]), ' ', 20) + ' ' + Funcoes.CompletaOuRepete('DIFERENCIADA:', formataCurrency(mattVal[3]), ' ', 24),'',' ',80) + #13 + #10);
-    addRelatorioForm19(funcoes.CompletaOuRepete('TOTAL ' + ven + ' => ' + Funcoes.CompletaOuRepete('VENDAS:', formataCurrency(StrToCurr(com1.Values[ven])), ' ', 20) + ' ' + Funcoes.CompletaOuRepete('NORMAL:', formataCurrency(StrToCurr(com2.Values[ven])), ' ', 20) + ' ' + Funcoes.CompletaOuRepete('DIFERENCIADA:', formataCurrency(StrToCurr(com3.Values[ven])), ' ', 24),'',' ',80) + #13 + #10);
-    addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-',80) + #13 + #10 + #12);
-
-    ven := dm.IBselect.fieldbyname('vendedor').AsString;
-
-    addRelatorioForm19(funcoes.CompletaOuRepete('','','-',80) + #13 + #10);
-    addRelatorioForm19(funcoes.CompletaOuRepete(form22.Pgerais.Values['empresa'], FormatDateTime('dd/mm/yy',form22.datamov), ' ', 80) + #13 + #10);
-    addRelatorioForm19(funcoes.CompletaOuRepete('RELATORIO DE COMISSOES POR VENDEDOR: ' +  dm.IBselect.fieldbyname('vendedor').AsString + '-' + funcoes.BuscaNomeBD(dm.ibquery1, 'nome', 'vendedor', ' where cod = ' + dm.IBselect.fieldbyname('vendedor').AsString), FormatDateTime('tt',now),' ', 80) + #13 + #10);
-    addRelatorioForm19(funcoes.CompletaOuRepete('','','-',80) + #13 + #10);
-    addRelatorioForm19('  DATA   DESCRICAO                            QUANT      TOTAL  COMISSAO        ' + #13 + #10);
-    addRelatorioForm19(funcoes.CompletaOuRepete('','','-',80) + #13 + #10);
-    end;
-
-    total      := 0;
-    venda      := dm.IBselect.fieldbyname('nota').AsString;
-    mattVal[1] := 0; //vendas
-    mattVal[2] := 0; //normal
-    mattVal[3] := 0; //dif
-    mattVal[4] := 0; //dif
-
-    while true do
-    begin
-    if dm.IBselect.Eof then break;
-    if venda  <> dm.IBselect.fieldbyname('nota').AsString then
-    begin
-    dm.IBselect.Prior;
-    Break;
-    end;
-
-    vended   := dm.IBselect.fieldbyname('vendedor').AsString;
-
-    diferen := StrToCurrDef(comissaoDiferenciada.Values[dm.IBselect.FieldByName('cod').AsString], 0);
-    tot     := dm.IBselect.fieldbyname('total').AsCurrency;
-    mattVal[1] := mattVal[1] + dm.IBselect.fieldbyname('total').AsCurrency;
-
-    if diferen <> 0 then
-    begin
-    totVende := (tot * (diferen / 100));
-    mattVal[3] := mattVal[3] + totVende;
-    mattVal[4] := mattVal[4] + totVende;
-    end
-    else
-    begin
-    totVende := (tot * (comiAvista / 100));
-    mattVal[2] := mattVal[2] + totVende;
-    mattVal[4] := mattVal[4] + totVende;
-    end;
-
-    dm.IBselect.Next;
-    end;
-
-    if com1.Values[vended] <> '' then
-    begin
-    if mattVal[3] <> 0 then com3.Values[vended] := CurrToStr(StrToCurr(com3.Values[vended]) + mattVal[3]);
-    if mattVal[1] <> 0 then com1.Values[vended] := CurrToStr(StrToCurr(com1.Values[vended]) + mattVal[1]);
-    if mattVal[2] <> 0 then com2.Values[vended] := CurrToStr(StrToCurr(com2.Values[vended]) + mattVal[2]);
-    end
-    else
-    begin
-    com3.Values[vended] := CurrToStr(mattVal[3]); //a vista
-    com1.Values[vended] := CurrToStr(mattVal[1]); //a vista dif
-    com2.Values[vended] := CurrToStr(mattVal[2]); //a prazo dif
-    end;
-
-    desconto := dm.IBselect.fieldbyname('desconto').AsCurrency;
-    com2.Values[vended] := CurrToStr(StrToCurrDef(com2.Values[vended], 0) + (desconto * (comiAvista / 100)));
-    com1.Values[vended] := CurrToStr(StrToCurrDef(com1.Values[vended], 0) + desconto );
-    mattVal[4] := mattVal[4] + (desconto * (comiAvista / 100));
-
-    addRelatorioForm19(formataDataDDMMYY(dm.IBselect.fieldbyname('data').AsDateTime) + ' ' + funcoes.CompletaOuRepete('', dm.IBselect.fieldbyname('nota').AsString, ' ', 7) + ' ' + funcoes.CompletaOuRepete(copy(dm.IBselect.fieldbyname('cliente').AsString + '-' + dm.IBselect.fieldbyname('nome').AsString, 1, 40), '', ' ', 40) + funcoes.CompletaOuRepete('', formataCurrency(dm.IBselect.fieldbyname('totnota').AsCurrency), ' ', 12) +
-    funcoes.CompletaOuRepete('', formataCurrency(mattVal[4]), ' ', 11) + #13 + #10) ;
-    mattVal[4] := 0;
-
-    dm.IBselect.Next; //next do dataset de venda
-    end; }
-
-  // aqui pegou o desconto da ultima venda e lanca na comissao maior do vendedor
   desconto := dm.ibselect.FieldByName('desconto').AsCurrency;
   if CurrToStr(StrToCurrDef(com3.Values[ven], 0)) >
     CurrToStr(StrToCurrDef(com2.Values[ven], 0)) then
@@ -18140,7 +18066,7 @@ begin
   addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10);
   addRelatorioForm19(funcoes.CompletaOuRepete('TOTAL ' + ven + ' => ' +
     funcoes.CompletaOuRepete('VENDAS:',
-    formataCurrency(StrToCurr(com1.Values[ven])), ' ', 20) + ' ' +
+    formataCurrency(StrToCurrDef(com1.Values[ven], 0)), ' ', 20) + ' ' +
     funcoes.CompletaOuRepete('NORMAL:',
     formataCurrency(Arredonda(StrToCurrDef(com2.Values[ven], 0), 2)), ' ',
     20) + ' ' + funcoes.CompletaOuRepete('DIFERENCIADA:',
@@ -18156,7 +18082,7 @@ begin
   begin
     totVende := totVende + StrToCurrDef(com2.Values[com1.Names[i]], 0) +
       StrToCurrDef(com3.Values[com1.Names[i]], 0);
-    total := total + StrToCurr(com1.Values[com1.Names[i]]);
+    total := total + StrToCurrDef(com1.Values[com1.Names[i]], 0);
   end;
 
   addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10);

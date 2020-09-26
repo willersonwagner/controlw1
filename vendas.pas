@@ -123,7 +123,7 @@ type
     l1, l2, l3: TLabel;
     entrada, avista, aprazo, troco, recebido, totVolumes, totVenda: currency;
     testa, EXPORTADO, tamanhoFonteTotal, tamFontDesc: Smallint;
-    pedido, configUsuarioConfirmarPreco, NomeOrcamento: string;
+    pedido, configUsuarioConfirmarPreco, NomeOrcamento, formaAlterada: string;
     bdSmall: boolean;
     configUsuario, clienteNome, ultimaNota, ordemCompra, ENDE_ENTREGA: String;
     semCliente: boolean;
@@ -6168,6 +6168,16 @@ begin
           IfThen(codhis = '2', '1', codhis));
       end;
 
+      if ((formaAlterada <> '') and (Modo_Venda) and (formaAlterada <> codhis)) then begin
+        ShowMessage('A Venda Não Pode Ser Finalizada por Divergência entre Formas de Pagamento!' + #13 +
+                    'Forma Escolhida F1:      ' + formaAlterada + #13 +
+                    'Forma Escolhida no Final:' + codhis + #13 + #13+
+                    'Altere a forma de Pagamento usando F1!');
+        codhis := formaAlterada;
+        exit;
+      end;
+
+
       if codhis = '*' then
       begin
         mostraDesconto(0, 0, false);
@@ -6244,7 +6254,8 @@ begin
           exit;
       end;
 
-      ultimaNota := novocod;
+      ultimaNota    := novocod;
+      formaAlterada := '';
 
       if Modo_Orcamento then
         gravaOrcamento;
@@ -6425,6 +6436,7 @@ end;
 
 procedure TForm20.FormCreate(Sender: TObject);
 begin
+  formaAlterada := '';
   COD_SERVICO  := '0';
   ENDE_ENTREGA := '0';
   Saiu := false;
@@ -7718,9 +7730,10 @@ procedure TForm20.FormKeyDown(Sender: TObject; var Key: Word;
 begin
   if funcoes.buscaParamGeral(5, '') = 'S' then
   begin
-    if Key = 112 then
-    begin
+    if Key = 112 then begin
       codhis := funcoes.LerFormPato(0, 'F8 - Volta à Compra', false);
+      if codhis <> '*' then formaAlterada := codhis;
+      
       lancaDescontoPorFormaDePagamento(StrToIntDef(codhis, 0));
       exit;
     end;
