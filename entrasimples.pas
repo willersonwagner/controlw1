@@ -7,7 +7,7 @@ uses
   Dialogs, Mask, JsEditData1, StdCtrls, Buttons, JsBotao1, ToolWin,
   ComCtrls, JsEdit1, JsEditInteiro1, ExtCtrls, Grids, DBGrids, DBCtrls,
   JsEditNumero1, DB, IBCustomDataSet, DBClient, Provider, Menus, IBQuery,
-  IBDatabase, untnfceForm;
+  IBDatabase, untnfceForm, classes1;
 
 type
   TForm17 = class(TForm)
@@ -127,6 +127,7 @@ type
     procedure resizeDBgrid();
     function checaDataChegada() : boolean;
     procedure acertaPrecoDeCompra();
+    procedure acertaPrecoDeVenda();
     procedure abreListaFormacao(linha : integer);
     procedure alinhaCampos;
 
@@ -143,7 +144,7 @@ var
 implementation
 
 uses Unit1, localizar, MaskUtils, Unit2, StrUtils, func,
-  principal, cadproduto, backup, consulta, cadfornecedor, Unit59;
+  principal, cadproduto, backup, consulta, cadfornecedor, Unit59, relatorio;
 
 {$R *.dfm}
 
@@ -1333,6 +1334,12 @@ end;
 procedure TForm17.FormKeyUp(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
+   if key = 114 then //F3
+     begin
+       acertaPrecoDeVenda;
+       exit;
+     end;
+
    if key = 118 then //F7
      begin
        acertaPrecoDeCompra;
@@ -1645,6 +1652,86 @@ begin
   end;
 
   ShowMessage('Preços Acertados com Sucesso!');
+end;
+
+procedure TForm17.acertaPrecoDeVenda();
+var
+  pnovo, porcCur, totvelho, totnovo : currency;
+  PORC   : string;
+  lista  : TItensProduto;
+  idx    : integer;
+begin
+  if DBGrid2.DataSource.DataSet.IsEmpty then begin
+    ShowMessage('Nenhum Produto Encontrado!');
+    exit;
+  end;
+
+  porc := funcoes.dialogo('numero', 0, '', 2, true, 'S', application.Title,'Qual a porcentagem% de Reajuste ?', '0,00');
+  if ((porc = '*') or (StrToCurr(porc) = 0)) then exit;
+
+  porcCur := StrToCurr(porc) / 100;
+  
+
+  form19.RichEdit1.Clear;
+  addRelatorioForm19('-----------------------------------------------------------' + CRLF);
+  addRelatorioForm19('AJUSTE DE PRECO DE VENDA ' + CRLF);
+  addRelatorioForm19('-----------------------------------------------------------' + CRLF);
+  addRelatorioForm19('REFORI NOME                             ANTIGO         NOVO' + CRLF);
+  addRelatorioForm19('-----------------------------------------------------------' + CRLF);
+
+  lista := TItensProduto.Create;
+
+  try
+    DBGrid2.DataSource.DataSet.DisableControls;
+    DBGrid2.DataSource.DataSet.First;
+
+    dm.IBQuery1.Close;
+    dm.IBQuery1.SQL.Text := 'select i.cod, p.nome, p.p_venda, p.codbar from item_entrada i left join produto p on (p.cod = i.cod) where i.nota = :nota and i.fornec = :fornec';
+    dm.IBQuery1.ParamByName('nota').Asinteger       :=  codigo.getValor;
+    dm.IBQuery1.ParamByName('fornec').Asinteger     :=  fornec.getValor;
+    dm.IBQuery1.Open;
+
+    while not dm.IBQuery1.Eof do begin
+      idx := lista.Add(TregProd.Create);
+      lista[idx].cod   := dm.IBQuery1.FieldByName('cod').AsInteger;
+      lista[idx].nome  := dm.IBQuery1.FieldByName('nome').AsString;
+      lista[idx].codbar  := dm.IBQuery1.FieldByName('codbar').AsString;
+      lista[idx].preco   := dm.IBQuery1.FieldByName('p_venda').AsCurrency;
+
+      dm.IBQuery1.Next;
+    end;
+
+    totvelho := 0;
+    totnovo  := 0;
+    for idx := 0 to lista.Count -1 do begin
+      pnovo := lista[idx].preco + (lista[idx].preco * porcCur);
+
+      totvelho := totvelho + lista[idx].preco;
+      totnovo  := totnovo  + pnovo;
+
+      addRelatorioForm19(CompletaOuRepete(LeftStr(IntToStr(lista[idx].cod) + ' ' + lista[idx].nome, 37), '', ' ', 37) + CompletaOuRepete('', FormatCurr('0.00', lista[idx].preco), ' ', 10) +
+      CompletaOuRepete('', FormatCurr('0.00', pnovo), ' ', 12) + CRLF);
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := 'update produto set P_VENDA = :preco where cod = :cod';
+      dm.IBQuery1.ParamByName('preco').AsCurrency :=  pnovo;
+      dm.IBQuery1.ParamByName('cod').Asinteger       :=  lista[idx].cod;
+      dm.IBQuery1.ExecSQL;
+    end;
+
+
+  finally
+    if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+    DBGrid2.DataSource.DataSet.First;
+    DBGrid2.DataSource.DataSet.EnableControls;
+  end;
+
+  ShowMessage('Preços Acertados com Sucesso!');
+  addRelatorioForm19('-----------------------------------------------------------' + CRLF);
+  addRelatorioForm19('REAJUSTE > > >' + CompletaOuRepete('', FormatCurr('0.00', totvelho), ' ', 32) + CompletaOuRepete('', FormatCurr('0.00', totnovo), ' ', 13) + CRLF);
+  addRelatorioForm19('TOTAL > > >' +  CompletaOuRepete('', FormatCurr('0.00', totnovo - totvelho), ' ', 13) + CRLF);
+  addRelatorioForm19('-----------------------------------------------------------' + CRLF);
+  form19.ShowModal;
 end;
 
 procedure TForm17.alinhaCampos;

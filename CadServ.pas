@@ -160,6 +160,14 @@ procedure TForm51.JsBotao1Click(Sender: TObject);
 var
   sim, vende : string;
 begin
+  if cod.Text <> '0' then begin
+    if VerificaAcesso_Se_Nao_tiver_Nenhum_bloqueio_true_senao_false = false then begin
+      ShowMessage('Usuário Bloqueado pra alteração de O. S.');
+      abort;
+    end;
+  end;
+
+
   H_ent.Text := funcoes.dialogo('mask',100,'!00:00;1;_',100,false,'','Control For Windows','Confirme a Hora de Entrada',FormatDateTime('hh:mm', now));
   if H_ent.Text = '*' then exit;
   h_ent.Text := h_ent.Text + ':00';

@@ -11068,6 +11068,23 @@ begin
       dm.IBQuery1.ExecSQL;
     end;
 
+    if NOT verSeExisteTabela('ENTREGA_NOVO') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := 'CREATE TABLE ENTREGA_NOVO (COD INTEGER NOT NULL, NUMVENDA INTEGER, DATAVENDA DATE,USUARIO_INCLUIU SMALLINT,USUARIO_BAIXA SMALLINT,'+
+      'DATA_ENTREGA TIMESTAMP)';
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := 'alter table ENTREGA_NOVO add constraint PK_ENTREGA_NOVO primary key (COD)';
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := 'CREATE SEQUENCE ENTREGA_NOVO';
+      dm.IBQuery1.ExecSQL;
+    end;
+
     //VerificaVersao_do_bd
   end;
 
@@ -15247,6 +15264,7 @@ begin
 
     if true then begin
       addRelatorioForm19('*' +funcoes.centraliza(form22.Pgerais.Values['empresa'], ' ',38) + '*' + #13 + #10);
+      addRelatorioForm19('*' +funcoes.centraliza('CNPJ: '+form22.Pgerais.Values['cnpj'], ' ',38) + '*' + #13 + #10);
       addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 40) + #13 + #10);
 
       if opcao = 1 then addRelatorioForm19('*' +funcoes.centraliza('VENDA: '   + dm.IBselect.FieldByName('nota').AsString , ' ',38)+ '*' + #13 + #10)

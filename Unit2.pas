@@ -402,6 +402,7 @@ type
     IntegridadedeContasaReceber1: TMenuItem;
     LivrodeCaixaGrfico1: TMenuItem;
     GerarVendasTransferenciadeEstoque1: TMenuItem;
+    ControledeEntregaMademato: TMenuItem;
     procedure LimparBloqueios1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure CadastrarUsurio1Click(Sender: TObject);
@@ -690,6 +691,7 @@ type
     procedure PorCliente1Click(Sender: TObject);
     procedure GerarVendasTransferenciadeEstoque1Click(Sender: TObject);
     procedure SaldosEstoque1Click(Sender: TObject);
+    procedure ControledeEntregaMadematoClick(Sender: TObject);
   private
     b, cont: integer;
     ini: Smallint;
@@ -1057,6 +1059,8 @@ var
   cupons: TTWtheadEnviaCupons1;
   nomeMecanico: String;
 begin
+  stb.Panels[3].Text :=  FileAgeCreate(ParamStr(0));
+
   nomeMecanico                    := UpperCase(LeftStr(form22.nomesServico.Values['5'], 1)) + LowerCase(copy(form22.nomesServico.Values['5'], 2, 100));
   Cadastrode1.Caption             := nomeMecanico;
   RelatrioTcnicoOS1.Caption       := 'Relatório ' + nomeMecanico + '/OS';
@@ -1125,6 +1129,14 @@ begin
     btnVendas.Enabled := false
   else
     btnVendas.Enabled := true;
+
+  if funcoes.buscaParamGeral(122, 'N') = 'S' then begin
+    ControledeEntregaMademato.Visible := true;
+    ControledeEntrada1.Visible        := false;
+  end
+  else begin
+    ControledeEntregaMademato.Visible := false;
+  end;
 
   if ini = 1 then
   begin
@@ -4069,7 +4081,7 @@ begin
   form40.tipo.Add('119=generico');
   form40.tipo.Add('120=generico');
   form40.tipo.Add('121=generico');
-
+  form40.tipo.Add('122=generico');
 
   form40.troca := TStringList.Create;
   form40.troca.Add('0=S');
@@ -4197,6 +4209,7 @@ begin
   form40.troca.Add('119=S');
   form40.troca.Add('120=S');
   form40.troca.Add('121=S');
+  form40.troca.Add('122=S');
 
   form40.teclas := TStringList.Create;
   form40.teclas.Add('0=FT');
@@ -4245,7 +4258,7 @@ begin
   form40.teclas.Add('41=SN');
   form40.teclas.Add('42=SN');
   form40.teclas.Add('43=SNC');
-  form40.teclas.Add('44=SN');
+  form40.teclas.Add('44=SNU');
   form40.teclas.Add('45=SN');
   form40.teclas.Add('46=SN');
   form40.teclas.Add('47=12');
@@ -4323,6 +4336,7 @@ begin
   form40.teclas.Add('119=SN');
   form40.teclas.Add('120=SN');
   form40.teclas.Add('121=SN');
+  form40.teclas.Add('122=SN');
 
   form40.ListBox1.Clear;
   form40.ListBox1.Items.Add
@@ -4398,7 +4412,7 @@ begin
   form40.ListBox1.Items.Add
     ('43=Usar Campo Preço de Custo na Consulta de Produtos? (S-Sim N-Não C-Somente Usuarios sem Bloqueios)');
   form40.ListBox1.Items.Add
-    ('44=Perguntar Taxa de Juros para Contas a Receber em Atrado?');
+    ('44=Perguntar Taxa de Juros para Contas a Receber em Atrado(S-SIM N-NAO U-USUARIO)?');
   form40.ListBox1.Items.Add('45=Usar Cupom Eletrônico em Contigência Offline?');
   form40.ListBox1.Items.Add
     ('46=Usar Consulta de Produtos Completa No Cad. de Produto ?');
@@ -4523,6 +4537,7 @@ begin
   form40.ListBox1.Items.Add('119=Usar Sincronização de Estoque Online ?');
   form40.ListBox1.Items.Add('120=Identificar Orçamentos e Perguntar fator Multiplicativo ?');
   form40.ListBox1.Items.Add('121=Desabilitar campos de formação de preço caso seja optante do Simples Nacional ?');
+  form40.ListBox1.Items.Add('122=Usar Controle de Entrega (Mademato) ?');
 
   form40.ListBox1.Selected[0] := true;
   form40.showmodal;
@@ -5263,6 +5278,60 @@ begin
   dm.ibselect.Close;
 end;
 
+procedure TForm2.ControledeEntregaMadematoClick(Sender: TObject);
+begin
+    if RetornaAcessoUsuario > 0 then
+  begin
+    MessageDlg('Rotina Bloqueada!', mtInformation, [mbOK], 1);
+    exit;
+  end;
+
+  {nota := funcoes.dialogo('generico', 0, '1234567890,.' + #8, 100, false, '',
+    'Relatório de Entradas', 'Qual o Número da Nota ?', '');
+  //if (nota = '*') or (nota = '') then
+    //exit;
+
+  dm.ibselect.Close;
+  dm.ibselect.SQL.Text :=
+    'select nota from venda where cancelado = 0 and nota = :nota';
+  dm.ibselect.ParamByName('nota').AsString := nota;
+  dm.ibselect.Open;
+
+  if dm.ibselect.IsEmpty then
+  begin
+    dm.ibselect.Close;
+    ShowMessage('Venda Não Encontrada!');
+    exit;
+  end;
+
+   dm.IBselect.Close;
+    dm.IBselect.SQL.Text := 'select i.nota, i.data, i.cod, p.nome, i.quant from item_venda i'+
+    ' left join produto p on (p.cod = i.cod) where i.nota = :nota';
+    dm.IBselect.ParamByName('nota').AsString := nota;
+    dm.IBselect.Open;
+
+    dm.IBQuery2.Close;
+    dm.IBQuery2.SQL.Text := 'select i.nota, i.DATA_ENTREGA, i.cod, p.nome, i.quant from CONT_ENTREGA ' +
+    'i left join produto p on (i.cod = p.cod) where i.nota = :nota';
+    dm.IBQuery2.ParamByName('nota').AsString := nota;
+    dm.IBQuery2.Open; }
+
+  form44 := TForm44.Create(self);
+  form44.Label1.Caption := 'Produtos da Venda - F5 > Inclui Venda';
+  form44.opcao := 3;
+  form44.listaEntrega := TStringList.Create;
+  form44.nota := nota;
+  form44.abreDataSetEntregaMademato;
+  form44.buscaVendaMADE;
+  form44.Caption := 'Entrega de Mercadorias';
+
+  form44.showmodal;
+  form44.listaEntrega.Free;
+  form44.Free;
+  dm.IBQuery2.Close;
+  dm.ibselect.Close;
+end;
+
 procedure TForm2.MovimentodeCaixa1Click(Sender: TObject);
 begin
   movcaixalanc := tmovcaixalanc.Create(self);
@@ -5573,6 +5642,12 @@ begin
     pergJuros := funcoes.buscaParamGeral(44, 'S');
   except
     pergJuros := 'S';
+  end;
+
+  if pergJuros = 'U' then begin
+    if funcoes.LerConfig(form22.Pgerais.Values['configu'], 14) = 'S' then begin
+      pergJuros := 'S';
+    end;
   end;
 
   dm.IBQuery2.Close;
@@ -9539,6 +9614,7 @@ begin
     form36.teclas.Add('SNX'); // 11
     form36.teclas.Add('SNO'); // 12
     form36.teclas.Add('SNX'); // 13
+    form36.teclas.Add('SN'); // 14
 
     form36.tipo.Add('numero');
     form36.tipo.Add('generico');
@@ -9554,6 +9630,7 @@ begin
     form36.tipo.Add('generico'); // 11
     form36.tipo.Add('generico'); // 12
     form36.tipo.Add('generico'); // 13
+    form36.tipo.Add('generico'); // 14
 
     form36.troca.Add('');
     form36.troca.Add('S');
@@ -9569,6 +9646,7 @@ begin
     form36.troca.Add('S'); // 11
     form36.troca.Add('S'); // 12
     form36.troca.Add('S'); // 13
+    form36.troca.Add('S'); // 14
 
     form36.ListBox1.Items.Add
       ('0-Qual o Desconto Máximo Permitido (de 0 a 99%)?');
@@ -9591,6 +9669,7 @@ begin
     form36.ListBox1.Items.Add('11-Permitir Venda de Quantidades Negativas (S/N)?');
     form36.ListBox1.Items.Add('12-Permitir Troca de Vendedor na Venda ?');
     form36.ListBox1.Items.Add('13-Permitir Venda de Produtos Quantidades Negativas (S/N/X-Bloquear Somente em Vendas)?');
+    form36.ListBox1.Items.Add('14-Perguntar Juros em Conta Atrasada de Cliente(Verificar Param Geral 44 = U)?');
 
     form36.configu := dm.ibselect.FieldByName('configu').AsString;
     dm.ibselect.Close;
@@ -17846,7 +17925,7 @@ end;
 
 procedure TForm2.AnaliticoProd2Click(Sender: TObject);
 var
-  dif, ven, avis, dini, dfim, venda, vended, porc, NOME_REL: string;
+  dif, ven, avis, dini, dfim, venda, vended, porc, NOME_REL, rela: string;
   i, fim: integer;
   total, totVende, desconto, totcomiAvista, TOT, diferen, comiAvista: currency;
   comissaoDiferenciada, com1, com2, com3, com4, com0: TStringList;
@@ -17932,105 +18011,99 @@ begin
   }
   funcoes.informacao(ini, fim, 'Aguarde, calculando ...', true,
     false, 5);
-  nota := dm.ibselect.FieldByName('nota').AsString;
+
+  nota     := dm.ibselect.FieldByName('nota').AsString;
   desconto := dm.ibselect.FieldByName('desconto').AsCurrency;
-  while not dm.ibselect.Eof do
-  begin
+  total    := dm.ibselect.FieldByName('totnota').AsCurrency;
+  rela     := formataDataDDMMYY(dm.ibselect.FieldByName('data')
+        .AsDateTime) + ' ' + funcoes.CompletaOuRepete('',
+        dm.ibselect.FieldByName('nota').AsString, ' ', 7) + ' ' +
+        funcoes.CompletaOuRepete(copy(dm.ibselect.FieldByName('cliente')
+        .AsString + '-' + dm.ibselect.FieldByName('nome').AsString, 1, 40), '',
+        ' ', 40);
+  while not dm.ibselect.Eof do begin
     ini := ini + 1;
     funcoes.informacao(ini, fim, 'Aguarde, calculando...', false,
       false, 5);
 
     if LeftStr(dm.ibselect.FieldByName('nome1').AsString, 7) <> 'SERVICO' then begin
-            if nota <> dm.ibselect.FieldByName('nota').AsString then
-            begin
-              dm.ibselect.Prior;
+        if nota <> dm.ibselect.FieldByName('nota').AsString then begin
+          com2.Values[ven] := CurrToStr(StrToCurrDef(com2.Values[ven], 0) +
+              (desconto * (comiAvista / 100)));
+          // ja lancou o desconto no normal
 
-              // aqui pegou o desconto da ultima venda e lanca na comissao maior do vendedor
-              desconto := dm.ibselect.FieldByName('desconto').AsCurrency;
-              if CurrToStr(StrToCurrDef(com3.Values[ven], 0)) >
-                CurrToStr(StrToCurrDef(com2.Values[ven], 0)) then
-              begin
-                com3.Values[ven] := CurrToStr(StrToCurrDef(com3.Values[ven], 0) +
-                  (desconto * (comiAvista / 100)));
-              end
-              else
-                com2.Values[ven] := CurrToStr(StrToCurrDef(com2.Values[ven], 0) +
-                  (desconto * (comiAvista / 100)));
-              // ja lancou o desconto
+          addRelatorioForm19(rela + funcoes.CompletaOuRepete('',
+            formataCurrency(total), ' ', 12)
+            + funcoes.CompletaOuRepete('',
+            formataCurrency(Arredonda(mattVal[1] + (desconto * (comiAvista / 100)),
+            2)), ' ', 11) + #13 + #10);
 
-              addRelatorioForm19(formataDataDDMMYY(dm.ibselect.FieldByName('data')
-                .AsDateTime) + ' ' + funcoes.CompletaOuRepete('',
-                dm.ibselect.FieldByName('nota').AsString, ' ', 7) + ' ' +
-                funcoes.CompletaOuRepete(copy(dm.ibselect.FieldByName('cliente')
-                .AsString + '-' + dm.ibselect.FieldByName('nome').AsString, 1, 40), '',
-                ' ', 40) + funcoes.CompletaOuRepete('',
-                formataCurrency(dm.ibselect.FieldByName('totnota').AsCurrency), ' ', 12)
-                + funcoes.CompletaOuRepete('',
-                formataCurrency(Arredonda(mattVal[1] + (desconto * (comiAvista / 100)),
-                2)), ' ', 11) + #13 + #10);
-              dm.ibselect.Next;
+          com1.Values[ven] := CurrToStr(StrToCurrDef(com1.Values[ven], 0) + total);
 
-              mattVal[1] := 0;
-              nota := dm.ibselect.FieldByName('nota').AsString;
-            end;
+          rela     := formataDataDDMMYY(dm.ibselect.FieldByName('data')
+            .AsDateTime) + ' ' + funcoes.CompletaOuRepete('',
+            dm.ibselect.FieldByName('nota').AsString, ' ', 7) + ' ' +
+            funcoes.CompletaOuRepete(copy(dm.ibselect.FieldByName('cliente')
+            .AsString + '-' + dm.ibselect.FieldByName('nome').AsString, 1, 40), '',
+            ' ', 40);
 
-            if ((ven <> dm.ibselect.FieldByName('vendedor').AsString) or (dm.IBselect.Eof)) then
-            begin
-              addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10);
-              // addRelatorioForm19(funcoes.CompletaOuRepete('TOTAL ' + ven + ' => ' + Funcoes.CompletaOuRepete('VENDAS:', formataCurrency(mattVal[1]), ' ', 20) + ' ' + Funcoes.CompletaOuRepete('NORMAL:', formataCurrency(mattVal[2]), ' ', 20) + ' ' + Funcoes.CompletaOuRepete('DIFERENCIADA:', formataCurrency(mattVal[3]), ' ', 24),'',' ',80) + #13 + #10);
-              addRelatorioForm19(funcoes.CompletaOuRepete('TOTAL ' + ven + ' => ' +
-                funcoes.CompletaOuRepete('VENDAS:',
-                formataCurrency(StrToCurrDef(com1.Values[ven], 0)), ' ', 20) + ' ' +
-                funcoes.CompletaOuRepete('NORMAL:',
-                formataCurrency(StrToCurrDef(com2.Values[ven], 0)), ' ', 20) + ' ' +
-                funcoes.CompletaOuRepete('DIFERENCIADA:',
-                formataCurrency(StrToCurrDef(com3.Values[ven], 0)), ' ', 24), '', ' ',
-                80) + #13 + #10);
-              addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 +
-                #10 + #12);
+          mattVal[1] := 0;
+          nota     := dm.ibselect.FieldByName('nota').AsString;
+          desconto := dm.ibselect.FieldByName('desconto').AsCurrency;
+          total    := dm.ibselect.FieldByName('totnota').AsCurrency;
+        end;
 
-              ven := dm.ibselect.FieldByName('vendedor').AsString;
+        if ((ven <> dm.ibselect.FieldByName('vendedor').AsString) or (dm.IBselect.Eof)) then
+        begin
+          addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10);
+          // addRelatorioForm19(funcoes.CompletaOuRepete('TOTAL ' + ven + ' => ' + Funcoes.CompletaOuRepete('VENDAS:', formataCurrency(mattVal[1]), ' ', 20) + ' ' + Funcoes.CompletaOuRepete('NORMAL:', formataCurrency(mattVal[2]), ' ', 20) + ' ' + Funcoes.CompletaOuRepete('DIFERENCIADA:', formataCurrency(mattVal[3]), ' ', 24),'',' ',80) + #13 + #10);
+          addRelatorioForm19(funcoes.CompletaOuRepete('TOTAL ' + ven + ' => ' +
+            funcoes.CompletaOuRepete('VENDAS:',
+            formataCurrency(StrToCurrDef(com1.Values[ven], 0)), ' ', 20) + ' ' +
+            funcoes.CompletaOuRepete('NORMAL:',
+            formataCurrency(StrToCurrDef(com2.Values[ven], 0)), ' ', 20) + ' ' +
+            funcoes.CompletaOuRepete('DIFERENCIADA:',
+            formataCurrency(StrToCurrDef(com3.Values[ven], 0)), ' ', 24), '', ' ',
+            80) + #13 + #10);
+          addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 +
+            #10 + #12);
 
-              addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10);
-              addRelatorioForm19(funcoes.CompletaOuRepete(form22.Pgerais.Values
-                ['empresa'], FormatDateTime('dd/mm/yy', form22.datamov), ' ', 80) +
-                #13 + #10);
-              addRelatorioForm19(funcoes.CompletaOuRepete
-                ('RELATORIO DE '+NOME_REL+' POR VENDEDOR: ' + dm.ibselect.FieldByName
-                ('vendedor').AsString + '-' + funcoes.BuscaNomeBD(dm.IBQuery1, 'nome',
-                'vendedor', ' where cod = ' + dm.ibselect.FieldByName('vendedor')
-                .AsString), FormatDateTime('tt', now), ' ', 80) + #13 + #10);
-              addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10);
-              addRelatorioForm19
-                ('  DATA    NOTA   CLIENTE                                        VALOR   ' + NOME_REL
-                + #13 + #10);
-              addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10);
-            end;
+          ven := dm.ibselect.FieldByName('vendedor').AsString;
 
-            diferen := StrToCurrDef(comissaoDiferenciada.Values
-              [dm.ibselect.FieldByName('cod').AsString], 0);
-            TOT := dm.ibselect.FieldByName('total').AsCurrency;
-            // mattVal[1] := mattVal[1] + dm.IBselect.fieldbyname('total').AsCurrency;
+          addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10);
+          addRelatorioForm19(funcoes.CompletaOuRepete(form22.Pgerais.Values
+            ['empresa'], FormatDateTime('dd/mm/yy', form22.datamov), ' ', 80) +
+            #13 + #10);
+          addRelatorioForm19(funcoes.CompletaOuRepete
+            ('RELATORIO DE '+NOME_REL+' POR VENDEDOR: ' + dm.ibselect.FieldByName
+            ('vendedor').AsString + '-' + funcoes.BuscaNomeBD(dm.IBQuery1, 'nome',
+            'vendedor', ' where cod = ' + dm.ibselect.FieldByName('vendedor')
+            .AsString), FormatDateTime('tt', now), ' ', 80) + #13 + #10);
+          addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10);
+          addRelatorioForm19
+            ('  DATA    NOTA   CLIENTE                                        VALOR   ' + NOME_REL
+            + #13 + #10);
+          addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10);
+        end;
 
-            if diferen <> 0 then
-            begin
-              com3.Values[ven] := CurrToStr(StrToCurrDef(com3.Values[ven], 0) +
-                (TOT * (diferen / 100)));
-              mattVal[1] := mattVal[1] + (TOT * (diferen / 100));
-            end
-            else
-            begin
-              com2.Values[ven] := CurrToStr(StrToCurrDef(com2.Values[ven], 0) +
-                (TOT * (comiAvista / 100)));
-              mattVal[1] := mattVal[1] + (TOT * (comiAvista / 100));
-            end;
+        diferen := StrToCurrDef(comissaoDiferenciada.Values
+          [dm.ibselect.FieldByName('cod').AsString], 0);
+        TOT := dm.ibselect.FieldByName('total').AsCurrency;
+        // mattVal[1] := mattVal[1] + dm.IBselect.fieldbyname('total').AsCurrency;
 
-            // ShowMessage('com3.GetText=' +com3.GetText + #13 + #13 + 'com2.GetText='+com2.GetText);
-
-            com1.Values[ven] := CurrToStr(StrToCurrDef(com1.Values[ven], 0) + TOT);
+        if diferen <> 0 then
+        begin
+          com3.Values[ven] := CurrToStr(StrToCurrDef(com3.Values[ven], 0) +
+            (TOT * (diferen / 100)));
+          mattVal[1] := mattVal[1] + (TOT * (diferen / 100));
+        end
+        else
+        begin
+          com2.Values[ven] := CurrToStr(StrToCurrDef(com2.Values[ven], 0) +
+            (TOT * (comiAvista / 100)));
+          mattVal[1] := mattVal[1] + (TOT * (comiAvista / 100));
+        end;
     end;
-
-
 
     dm.ibselect.Next;
   end;
@@ -18040,16 +18113,11 @@ begin
 
 
   desconto := dm.ibselect.FieldByName('desconto').AsCurrency;
-  if CurrToStr(StrToCurrDef(com3.Values[ven], 0)) >
-    CurrToStr(StrToCurrDef(com2.Values[ven], 0)) then
-  begin
-    com3.Values[ven] := CurrToStr(StrToCurrDef(com3.Values[ven], 0) +
-      (desconto * (comiAvista / 100)));
-  end
-  else
-    com2.Values[ven] := CurrToStr(StrToCurrDef(com2.Values[ven], 0) +
+  com2.Values[ven] := CurrToStr(StrToCurrDef(com2.Values[ven], 0) +
       (desconto * (comiAvista / 100)));
   // ja lancou o desconto
+
+  com1.Values[ven] := CurrToStr(StrToCurrDef(com1.Values[ven], 0) + dm.ibselect.FieldByName('totnota').AsCurrency);
 
   addRelatorioForm19(formataDataDDMMYY(dm.ibselect.FieldByName('data')
     .AsDateTime) + ' ' + funcoes.CompletaOuRepete('',
@@ -19009,7 +19077,7 @@ end;
 
 procedure TForm2.RelatrioTcnicoProdutos1Click(Sender: TObject);
 var
-  ini, fim, ordem, cond, tecnico, nometec: string;
+  ini, fim, ordem, cond, tecnico, nometec, FiltrarProduto, h1: string;
   pen: integer;
   desc : TStringList;
   lista : TItensProduto;
@@ -19031,10 +19099,16 @@ begin
   tecnico := funcoes.localizar('Localizar ' + UpperCase(LeftStr(form22.nomesServico.Values['5'], 1)) + LowerCase(copy(form22.nomesServico.Values['5'], 2, 100)),'mecanico','cod,nome','nome','','nome','nome',true,false,false,'',300,nil);
   if trim(tecnico) = '' then exit;
 
+  h1 := '';
+  FiltrarProduto := funcoes.dialogo('generico', 0, 'SN' + #8, 0, false, 'S','Control For Windows', 'Filtrar Somente Produtos Referente a Serviços ?', 'N');
+  if FiltrarProduto = '*' then exit;
+
+  if FiltrarProduto <> 'N' then h1 := ' and (p.nome like ''%SERVICO%'')';
+
   dm.ibselect.Close;
-  dm.ibselect.SQL.Text := 'select s.cod as ordem,s.tecnico,v.nota, v.desconto,i.cod,p.nome, i.quant, i.p_venda,i.total from item_venda i left join servico s on (s.venda = i.nota)' +
+  dm.ibselect.SQL.Text := 'select s.cod as ordem,s.tecnico,v.nota, v.desconto,i.cod,p.nome,i.data, i.quant, i.p_venda,i.total from item_venda i left join servico s on (s.venda = i.nota)' +
   ' left join produto p on (p.cod = i.cod) left join venda v on (v.nota= i.nota) ' +
-  ' where i.data >= :ini and i.data <= :fim and not(s.cod is null) and s.tecnico = :tec ';
+  ' where i.data >= :ini and i.data <= :fim and not(s.cod is null) and s.tecnico = :tec ' + H1;
   dm.ibselect.ParamByName('ini').AsDateTime := StrToDateTime(ini);
   dm.ibselect.ParamByName('fim').AsDateTime := StrToDateTime(fim);
   dm.ibselect.ParamByName('tec').AsString   := tecnico;
@@ -19044,8 +19118,15 @@ begin
   form19.RichEdit1.Clear;
 
   addRelatorioForm19(funcoes.RelatorioCabecalho(form22.Pgerais.Values['empresa'], 'Relatorio '+nometec+'/Produtos: ' + tecnico, 79));
-  addRelatorioForm19('|   COD|NOME                               |     QUANT|     PRECO|       TOTAL|'+ CRLF);
-  addRelatorioForm19('+-----------------------------------------------------------------------------+'+ CRLF);
+
+  if FiltrarProduto = 'N' then begin
+    addRelatorioForm19('|   COD|NOME                               |     QUANT|     PRECO|       TOTAL|'+ CRLF);
+    addRelatorioForm19('+-----------------------------------------------------------------------------+'+ CRLF);
+  end
+  else begin
+    addRelatorioForm19('|    O.S   DATA   COD NOME                         QUANT      PRECO      TOTAL|'+ CRLF);
+    addRelatorioForm19('+-----------------------------------------------------------------------------+'+ CRLF);
+  end;
 
   pen   := 0;
   total := 0;
@@ -19054,13 +19135,17 @@ begin
   while not dm.ibselect.Eof do begin
     desc.Values[dm.IBselect.FieldByName('nota').AsString] := dm.IBselect.FieldByName('desconto').AsString;
     pen := lista.Find(dm.IBselect.FieldByName('cod').AsInteger);
+    if contido('SERVICO', dm.IBselect.FieldByName('nome').AsString) then pen := -1;
+
     if pen = -1 then begin
       pen := lista.Add(TregProd.Create);
       lista[pen].cod   := dm.IBselect.FieldByName('cod').AsInteger;
       lista[pen].nome  := dm.IBselect.FieldByName('nome').AsString;
       lista[pen].quant := dm.IBselect.FieldByName('quant').AsCurrency;
       lista[pen].preco := dm.IBselect.FieldByName('p_venda').AsCurrency;
-      lista[pen].total := dm.IBselect.FieldByName('total').AsCurrency;
+      lista[pen].total  := dm.IBselect.FieldByName('total').AsCurrency;
+      lista[pen].codStr := dm.IBselect.FieldByName('ordem').AsString;
+      lista[pen].temp   := formataDataDDMMYY(dm.IBselect.FieldByName('data').AsDateTime);
     end
     else begin
       lista[pen].quant := lista[pen].quant + dm.IBselect.FieldByName('quant').AsCurrency;
@@ -19073,12 +19158,15 @@ begin
     dm.ibselect.Next;
   end;
 
-  f := desc.Count -1;
-  for i := 0 to f do begin
-    total := total + StrToCurr(desc.ValueFromIndex[i]);
+
+  if FiltrarProduto = 'N' then begin
+    f := desc.Count -1;
+    for i := 0 to f do begin
+      total := total + StrToCurr(desc.ValueFromIndex[i]);
+    end;
   end;
 
-  dm.ibselect.Close;
+ { dm.ibselect.Close;
   dm.ibselect.SQL.Text := 'select i.cod,p.nome, i.quant,i.nota, i.p_venda, i.total from os_itens i, servico s, produto p '+
   ' where (i.nota = s.cod and s.tecnico = :tec and (p.cod = i.cod))' +
   ' and (s.data >= :ini and s.data <= :fim) and (s.venda = 0)';
@@ -19107,15 +19195,22 @@ begin
     total := total + dm.IBselect.FieldByName('total').AsCurrency;
 
     dm.ibselect.Next;
-  end;
+  end; }
 
   lista.OrdenarPorNome;
 
   f := lista.Count -1;
   for i := 0 to f do begin
-    addRelatorioForm19(CompletaOuRepete('', IntToStr(lista[i].cod), ' ', 7) + ' ' + CompletaOuRepete(LeftStr(lista[i].nome, 35), '', ' ', 35) +
-    CompletaOuRepete('', formataCurrency(lista[i].quant), ' ', 11) + CompletaOuRepete('', formataCurrency(lista[i].preco), ' ', 11) +
-    CompletaOuRepete('', formataCurrency(lista[i].total), ' ', 13) + CRLF);
+    if FiltrarProduto = 'N' then begin
+      addRelatorioForm19(CompletaOuRepete('', IntToStr(lista[i].cod), ' ', 7) + ' ' + CompletaOuRepete(LeftStr(lista[i].nome, 35), '', ' ', 35) +
+      CompletaOuRepete('', formataCurrency(lista[i].quant), ' ', 11) + CompletaOuRepete('', formataCurrency(lista[i].preco), ' ', 11) +
+      CompletaOuRepete('', formataCurrency(lista[i].total), ' ', 13) + CRLF);
+    end
+    else begin
+      addRelatorioForm19(CompletaOuRepete('', lista[i].codStr, ' ', 8) + ' ' + lista[i].temp + ' ' + CompletaOuRepete(LeftStr(IntToStr(lista[i].cod)+ '-'+lista[i].nome, 25), '', ' ', 25) + ' '  +
+      CompletaOuRepete('', formataCurrency(lista[i].quant), ' ', 11) + CompletaOuRepete('', formataCurrency(lista[i].preco), ' ', 11) +
+      CompletaOuRepete('', formataCurrency(lista[i].total), ' ', 13) + CRLF);
+    end;
   end;
 
 

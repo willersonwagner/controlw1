@@ -125,11 +125,12 @@ type
     testa, EXPORTADO, tamanhoFonteTotal, tamFontDesc: Smallint;
     pedido, configUsuarioConfirmarPreco, NomeOrcamento, formaAlterada: string;
     bdSmall: boolean;
-    configUsuario, clienteNome, ultimaNota, ordemCompra, ENDE_ENTREGA: String;
+    configUsuario, clienteNome, ultimaNota, ordemCompra, ENDE_ENTREGA, adicionarEntrega: String;
     semCliente: boolean;
     produtosServico: TStringList;
     // function baixa
     function verificaSePodeVenderNegativo_X_NaVendaConfig11DoUsuario() : boolean;
+    procedure adicionaEntregaTabela;
     procedure lancaDescontoPorFormaDePagamento(formapagamento: integer);
     function vendeProdutoM2: boolean;
     function somaValor(): currency;
@@ -180,7 +181,7 @@ type
     ordenaCampos: boolean;
     tamanho_nota, finalizouServico: integer;
     origem: integer;
-    tipoV, CLIENTE_ENTREGA, CLIENTE_VENDA, condicaoSQL: string;
+    tipoV, CLIENTE_ENTREGA, CLIENTE_VENDA, condicaoSQL, numvenda: string;
     separaPecas, finaliza: boolean;
     Saiu, verificaCliente, Modo_Venda, Modo_Orcamento, atacado, Compra,
       saidaDeEstoque, separaVendaOrcamento: boolean;
@@ -4002,6 +4003,8 @@ begin
     //pode receber um param geral pra dar destaque no numero da venda
     if true then begin
       addRelatorioForm19('*' +funcoes.centraliza(form22.Pgerais.Values['empresa'], ' ',38) + '*' + #13 + #10);
+      addRelatorioForm19('*' +funcoes.centraliza('CNPJ: '+form22.Pgerais.Values['cnpj'], ' ',38) + '*' + #13 + #10);
+
       addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 40) + #13 + #10);
       addRelatorioForm19('*' +funcoes.centraliza(IfThen(Modo_Venda, 'VENDA: ', 'ORCAMENTO: ')   + novocod , ' ',38)+ '*' + #13 + #10);
       addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 40) + #13 + #10);
@@ -5970,7 +5973,8 @@ begin
     limpatela;
   JsEditInteiro1.Text := IntToStr(StrToIntDef(novocod, 0) + 1);
   // funcoes.GeraNota(novocod,form22.Pgerais.Values['nota'],'S',Modo_Venda);
-  novocod := '';
+  numvenda := novocod;
+  novocod  := '';
 end;
 
 procedure TForm20.DBGrid1KeyPress(Sender: TObject; var Key: Char);
@@ -6124,6 +6128,12 @@ begin
         form83.Free;
       end;
 
+      if ((funcoes.buscaParamGeral(122, 'N') = 'S') and (Modo_Venda)) then begin
+        if MessageDlg('Deseja Adicionar para Entrega ?',mtConfirmation, [mbYes, mbNo], 0, mbNo) = idyes then begin
+          adicionarEntrega := 'S';
+        end;
+      end;
+
 
       if (verificaSePodeVenderNegativo_X_NaVendaConfig11DoUsuario = false)  then exit;
 
@@ -6269,6 +6279,13 @@ begin
         end;
 
         gravaVenda;
+
+        if adicionarEntrega = 'S' then begin
+          //adiciona o registro na tabela ENTREGA_NOVO
+          adicionaEntregaTabela;
+          adicionarEntrega := 'N';
+        end;
+
         COD_SERVICO  := '0';
         if codhis = '2' then
         begin
@@ -6436,6 +6453,7 @@ end;
 
 procedure TForm20.FormCreate(Sender: TObject);
 begin
+  adicionarEntrega := 'N';
   formaAlterada := '';
   COD_SERVICO  := '0';
   ENDE_ENTREGA := '0';
@@ -7996,8 +8014,7 @@ begin
   dm.IBQuery1.ParamByName('CODENTRADASAIDA').AsString := strnum(codigo);
   dm.IBQuery1.ParamByName('codhis').AsString := strnum(codhis);
   dm.IBQuery1.ParamByName('documento').AsString := strnum(JsEdit2.Text);
-  dm.IBQuery1.ParamByName('dati').AsDateTime := DateOf(form22.datamov) +
-    TimeOf(NOW);
+  dm.IBQuery1.ParamByName('dati').AsDateTime := DateOf(form22.datamov) + TimeOf(NOW);
   dm.IBQuery1.ParamByName('hist').AsString := historico;
   dm.IBQuery1.ParamByName('ent').AsCurrency := vlrEnt;
   dm.IBQuery1.ParamByName('usuario').AsString := strnum(form22.codusario);
@@ -9036,6 +9053,21 @@ begin
   if VerificaAcesso_Se_Nao_tiver_Nenhum_bloqueio_true_senao_false then Result := true;
   
 
+end;
+
+procedure TForm20.adicionaEntregaTabela;
+begin
+  dm.IBQuery1.Close;
+  dm.IBQuery1.SQL.Text := 'insert into ENTREGA_NOVO(cod, numvenda, datavenda, usuario_incluiu, usuario_baixa, data_entrega) '+
+  'values(gen_id(entrega_novo, 1), :numvenda, :datavenda, :usuario_incluiu, :usuario_baixa, ''01.01.1900'')';
+  dm.IBQuery1.ParamByName('numvenda').AsInteger   := StrToIntDef(numvenda, 0);
+  dm.IBQuery1.ParamByName('datavenda').AsDateTime := form22.datamov;
+  dm.IBQuery1.ParamByName('usuario_incluiu').AsInteger := StrToIntDef(form22.codusario, 0);
+  dm.IBQuery1.ParamByName('usuario_baixa').AsInteger   := 0;
+  dm.IBQuery1.ExecSQL;
+  dm.IBQuery1.Transaction.Commit;
+
+  numvenda := '0';
 end;
 
 

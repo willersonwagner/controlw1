@@ -11226,6 +11226,12 @@ object Form2: TForm2
       end
       item
         Width = 150
+      end
+      item
+        BiDiMode = bdRightToLeft
+        ParentBiDiMode = False
+        Text = 'versao'
+        Width = 50
       end>
     UseSystemFont = False
   end
@@ -11572,6 +11578,10 @@ object Form2: TForm2
       object ControledeEntrada1: TMenuItem
         Caption = 'Controle de Entrega'
         OnClick = ControledeEntrada1Click
+      end
+      object ControledeEntregaMademato: TMenuItem
+        Caption = 'Controle Entrega de Vendas'
+        OnClick = ControledeEntregaMadematoClick
       end
     end
     object Relatrio1: TMenuItem

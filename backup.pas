@@ -4,7 +4,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, Grids, DBGrids, Data.DB, Datasnap.DBClient, func;
+  Dialogs, StdCtrls, Grids, DBGrids, Data.DB, Datasnap.DBClient, func,
+DateUtils;
 
 type
   TForm44 = class(TForm)
@@ -41,8 +42,10 @@ type
     listaEntrega : TStringList;
     opcao   : SmallInt;
     nota    : String;
+    function buscaVendaMADE : String;
     function getRetorno : TStringList;
     procedure abreDataSetEntrega(refresh1 : boolean = false);
+    procedure abreDataSetEntregaMademato(refresh1 : boolean = false);
     { Public declarations }
   end;
 
@@ -91,6 +94,18 @@ begin
   funcoes.FormataCampos(dm.ibselect, 2,'',2);
 end;
 
+function TForm44.buscaVendaMADE : String;
+begin
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Clear;
+  dm.IBselect.SQL.Add('select p.cod, c.nome, p.quant, p.p_venda, p.total from item_venda p, produto c where (c.cod = p.cod) and (p.nota = :nota)');
+  dm.IBselect.ParamByName('nota').AsString := DBGrid1.DataSource.DataSet.fieldbyname('NUMVENDA').AsString;
+  dm.IBselect.Open;
+  funcoes.FormataCampos(dm.ibselect, 2,'',2);
+
+  DBGrid2.DataSource := dm.ds1;
+end;
+
 procedure TForm44.DBGrid1KeyPress(Sender: TObject; var Key: Char);
 var
   nota1 : String;
@@ -109,6 +124,29 @@ begin
   end;
 
   key := UpCase(key);
+
+  if opcao = 3 then begin //entrega de produtos MADEMATO
+    if key = #27 then begin
+      close;
+      exit;
+    end;
+
+    if key = #13 then begin
+      if MessageDlg('Deseja Baixar o Registro de Entrega Referente a Venda '+DBGrid1.DataSource.DataSet.FieldByName('numvenda').AsString+' ?',mtConfirmation, [mbYes, mbNo], 0, mbNo) = idyes then begin
+        dm.IBQuery1.Close;
+        dm.IBQuery1.SQL.Text := 'update entrega_novo set usuario_baixa = :usu, data_entrega = :data where cod = :cod';
+        dm.IBQuery1.ParamByName('usu').AsInteger := StrToIntDef(form22.codusario, 0);
+        dm.IBQuery1.ParamByName('data').AsDateTime := DateOf(form22.datamov) + TimeOf(NOW);
+        dm.IBQuery1.ParamByName('cod').AsInteger   := DBGrid1.DataSource.DataSet.FieldByName('cod').AsInteger;
+        dm.IBQuery1.ExecSQL;
+        dm.IBQuery1.Transaction.Commit;
+
+        abreDataSetEntregaMademato;
+        buscaVendaMADE;
+      end;
+    end;
+    exit;
+  end;
 
   if opcao = 2 then begin //entrega de produtos
      if key = #13 then begin
@@ -254,6 +292,10 @@ begin
     end;
   end;
 
+  if opcao = 3 then begin
+    if (key = 38) or (key = 40) then buscaVendaMADE;
+  end;
+
 end;
 
 procedure TForm44.DBGrid1KeyDown(Sender: TObject; var Key: Word;
@@ -296,7 +338,58 @@ end;
 procedure TForm44.FormKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
 var
   cod : String;
+  data : TDate;
 begin
+  if opcao = 3 then begin
+    if key = 116 then begin
+      cod := funcoes.dialogo('generico', 0, '1234567890,.' + #8, 50, false, '',application.Title, 'Qual o Número de Venda ?', '');
+      if cod = '*' then exit;
+
+      dm.IBQuery1.close;
+      dm.IBQuery1.SQL.Text := 'select cod, data_entrega from entrega_novo where numvenda = :nota';
+      dm.IBQuery1.ParamByName('nota').AsString := StrNum(cod);
+      dm.IBQuery1.Open;
+      dm.IBQuery1.FetchAll;
+
+      if dm.IBQuery1.IsEmpty = false then begin
+        if StrToInt(FormatDateTime('yyyy', dm.IBQuery1.FieldByName('data_entrega').AsDateTime)) >= 2019 then begin
+          MessageDlg('Esta Venda Já foi Entregue na Data ' + FormatDateTime('dd/mm/yyyy', dm.IBQuery1.FieldByName('data_entrega').AsDateTime) + ' '+ FormatDateTime('t', dm.IBQuery1.FieldByName('data_entrega').AsDateTime), mtInformation, [mbOK], 1);
+          exit;
+        end;
+
+        MessageDlg('Esta Venda não pode ser Adicionada, ela ja contem registro de Entrega!', mtInformation, [mbOK], 1);
+        DBGrid1.DataSource.DataSet.Locate('numvenda', cod, []);
+        exit;
+      end;
+
+      dm.IBQuery1.close;
+      dm.IBQuery1.SQL.Text := 'select nota,data from venda where nota = :nota and cancelado = 0';
+      dm.IBQuery1.ParamByName('nota').AsString := StrNum(cod);
+      dm.IBQuery1.Open;
+      dm.IBQuery1.FetchAll;
+      data := dm.IBQuery1.FieldByName('data').AsDateTime;
+
+      if dm.IBQuery1.IsEmpty then begin
+        ShowMessage('A Venda não foi Encontrada!');
+        exit;
+      end;
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := 'insert into ENTREGA_NOVO(cod, numvenda, datavenda, usuario_incluiu, usuario_baixa, data_entrega) '+
+      'values(gen_id(entrega_novo, 1), :numvenda, :datavenda, :usuario_incluiu, :usuario_baixa, ''01.01.1900'')';
+      dm.IBQuery1.ParamByName('numvenda').AsInteger   := StrToIntDef(cod, 0);
+      dm.IBQuery1.ParamByName('datavenda').AsDateTime := data;
+      dm.IBQuery1.ParamByName('usuario_incluiu').AsInteger := StrToIntDef(form22.codusario, 0);
+      dm.IBQuery1.ParamByName('usuario_baixa').AsInteger   := 0;
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
+
+      abreDataSetEntregaMademato;
+    end;
+
+    exit;
+  end;
+
   if opcao = 2 then begin
     if key = 115 then begin
       cod := form22.Pgerais.Values['nota'];
@@ -364,6 +457,38 @@ begin
   TCurrencyField(ClientDataSet1.FieldByName('quant')).DisplayFormat
         := '###,##0.00';
   DBGrid2.DataSource := dm.entrada;
+end;
+
+procedure TForm44.abreDataSetEntregaMademato(refresh1 : boolean = false);
+begin
+  if refresh1 then
+    begin
+      {criaDataSetVendaEntrega;
+      DBGrid2.DataSource.DataSet.Open;
+
+      TCurrencyField(dm.IBQuery2.FieldByName('quant')).DisplayFormat
+        := '###,##0.00';
+      TCurrencyField(ClientDataSet1.FieldByName('quant')).DisplayFormat
+        := '###,##0.00';
+
+      dm.IBQuery2.FieldByName('numdoc').Visible := false;
+      exit;   }
+    end;
+
+  dm.IBQuery2.Close;
+  dm.IBQuery2.SQL.Text := 'select e.cod, e.numvenda, v.cliente, c.nome, e.datavenda,e.usuario_incluiu,v.cliente||''-''||c.nome as clienteN, e.usuario_incluiu||''-''||u.nome as usuarion, v.total ' +
+                          'from entrega_novo e left join venda v on (v.nota = e.numvenda) left join cliente c on (c.cod = v.cliente) left join usuario u on(e.usuario_incluiu = u.cod) where (e.usuario_baixa = 0) or (e.usuario_baixa is null)';
+  dm.IBQuery2.Open;
+
+  dm.IBQuery2.FieldByName('cod').Visible := false;
+  dm.IBQuery2.FieldByName('cliente').Visible := false;
+  dm.IBQuery2.FieldByName('nome').Visible := false;
+  dm.IBQuery2.FieldByName('usuario_incluiu').Visible := false;
+  //dm.IBQuery2.FieldByName('cliente').Visible := false;
+
+  TCurrencyField(dm.IBQuery2.FieldByName('total')).DisplayFormat
+        := '###,##0.00';
+  DBGrid1.DataSource := dm.entrada;
 end;
 
 procedure TForm44.abreDataSet(refresh1 : boolean = false);

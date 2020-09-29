@@ -56,6 +56,7 @@ begin
       else
        begin
         temp := funcoes.geraStringConfigUsuario(temp, ListBox1.Count);
+
         if tipo.Strings[ListBox1.Itemindex] = 'numero' then acc := funcoes.dialogo(tipo.Strings[ListBox1.Itemindex],2,teclas.Strings[ListBox1.itemindex],2,false,troca.Strings[ListBox1.itemindex],Application.Title,ListBox1.Items.Strings[ListBox1.itemindex],funcoes.LerConfig(temp,ListBox1.ItemIndex))
          else
            begin

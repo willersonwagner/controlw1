@@ -3,7 +3,7 @@ object Form36: TForm36
   Top = 110
   Caption = 'Form36'
   ClientHeight = 183
-  ClientWidth = 119
+  ClientWidth = 120
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
