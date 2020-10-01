@@ -692,6 +692,7 @@ type
     procedure GerarVendasTransferenciadeEstoque1Click(Sender: TObject);
     procedure SaldosEstoque1Click(Sender: TObject);
     procedure ControledeEntregaMadematoClick(Sender: TObject);
+    procedure ProdComissoDif1Click(Sender: TObject);
   private
     b, cont: integer;
     ini: Smallint;
@@ -1130,13 +1131,13 @@ begin
   else
     btnVendas.Enabled := true;
 
-  if funcoes.buscaParamGeral(122, 'N') = 'S' then begin
+  {if funcoes.buscaParamGeral(122, 'N') = 'S' then begin
     ControledeEntregaMademato.Visible := true;
     ControledeEntrada1.Visible        := false;
   end
   else begin
     ControledeEntregaMademato.Visible := false;
-  end;
+  end;   }
 
   if ini = 1 then
   begin
@@ -1201,6 +1202,49 @@ begin
     VerificarVendas1.Visible := false;
   // timer2.Enabled := true;
   // mostraEnviaCupom();
+end;
+
+procedure TForm2.ProdComissoDif1Click(Sender: TObject);
+var
+  aliq, A1: String;
+  ini, fim: integer;
+begin
+
+  form19.RichEdit1.Clear;
+
+  addRelatorioForm19(funcoes.RelatorioCabecalho(form22.Pgerais.Values
+    ['empresa'], 'RELATORIO DE PRODUTOS POR COMISSAO: ' + aliq, 80));
+
+  addRelatorioForm19('CODIGO DESCRICAO                                          COMISSAO' +CRLF);
+  addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + CRLF);
+
+  dm.ibselect.Close;
+  dm.ibselect.SQL.Text := 'select p.cod, p.nome, p.comissao from produto p where comissao <> 0';
+  dm.ibselect.Open;
+  dm.ibselect.FetchAll;
+
+  fim := dm.ibselect.RecordCount;
+  funcoes.informacao(0, fim, 'Gerando Relatório...', true, false, 5);
+  ini := 0;
+
+  while not dm.ibselect.Eof do
+  begin
+    ini := ini + 1;
+    funcoes.informacao(ini, fim, 'Gerando Relatório...', false, false, 5);
+
+    addRelatorioForm19(funcoes.CompletaOuRepete('',dm.ibselect.FieldByName('cod').AsString, ' ', 6) + ' ' +
+      funcoes.CompletaOuRepete(copy(dm.ibselect.FieldByName('nome').AsString, 1,
+      40), '', ' ', 40) + ' ' + funcoes.CompletaOuRepete('',
+      formataCurrency(dm.ibselect.FieldByName('comissao').AsCurrency), ' ',
+      16) + CRLF);
+    dm.ibselect.Next;
+  end;
+
+  addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + CRLF);
+  funcoes.informacao(0, fim, 'Gerando Relatório...', false, true, 5);
+  dm.ibselect.Close;
+
+  form19.showmodal;
 end;
 
 procedure TForm2.Produto1Click(Sender: TObject);
@@ -17668,13 +17712,21 @@ end;
 
 procedure TForm2.AnaliticoProd1Click(Sender: TObject);
 var
-  dif, ven, avis, dini, dfim, venda, vended, porc, NOME_REL: string;
+  dif, ven, avis, dini, dfim, venda, vended, porc, NOME_REL, vend1, h1: string;
   i, fim: integer;
   total, totVende, desconto, totcomiAvista, TOT, diferen, comiAvista: currency;
   comissaoDiferenciada, com1, com2, com3, com4, com0: TStringList;
   avista: boolean;
   mattVal: array [1 .. 3] of currency;
 begin
+  h1 := '';
+  vend1 := funcoes.dialogo('generico', 60, '1234567890' + #8, 50, false, '',
+    'Control For Windows', 'Qual o Cód. do Vendedor?', '');
+  if vend1 = '*' then exit;
+
+  if vend1 <>  '' then h1 := ' and (i.vendedor = ' + QuotedStr(vend1) + ')';
+  
+
   dini := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,
     'Qual a Data Inicial ?', '');
   if dini = '*' then
@@ -17710,7 +17762,7 @@ begin
   dm.ibselect.SQL.Clear;
   dm.ibselect.SQL.Add
     ('select v.nota, v.prazo, i.data, p.nome, v.codhis, i.total, i.quant, i.cod, i.p_venda,v.prazo, i.vendedor, v.desconto'
-    + ' from item_venda i left join produto p on (i.cod = p.cod), venda v where (i.nota = v.nota) and (v.cancelado = 0) and ((v.data >= :dini) and (v.data <= :dfim)) order by i.vendedor, i.nota');
+    + ' from item_venda i left join produto p on (i.cod = p.cod), venda v  where (i.nota = v.nota) '+h1+' and (v.cancelado = 0) and ((v.data >= :dini) and (v.data <= :dfim)) order by i.vendedor, i.nota');
   dm.ibselect.ParamByName('dini').AsDateTime := StrToDateTime(dini);
   dm.ibselect.ParamByName('dfim').AsDateTime := StrToDateTime(dfim);
   dm.ibselect.Open;

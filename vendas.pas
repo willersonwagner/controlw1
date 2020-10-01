@@ -4366,10 +4366,14 @@ begin
 
     end
     else
-      addRelatorioForm19('* * *   NAO  TEM  VALOR  FISCAL    * * *' + CRLF);
+      //addRelatorioForm19('* * *   NAO  TEM  VALOR  FISCAL    * * *' + CRLF);
 
     if Modo_Venda then begin
       addRelatorioForm19(funcoes.imprimeEnderecoEntrega(tipo, CLIENTE_ENTREGA, JsEdit3.Text));
+
+      if adicionarEntrega = 'S' then begin
+        addRelatorioForm19('* * *   MERCADORIA PARA ENTREGA    * * *' + CRLF);
+      end;
     end;
 
     if Assigned(Parcelamento) then
@@ -6129,7 +6133,7 @@ begin
       end;
 
       if ((funcoes.buscaParamGeral(122, 'N') = 'S') and (Modo_Venda)) then begin
-        if MessageDlg('Deseja Adicionar para Entrega ?',mtConfirmation, [mbYes, mbNo], 0, mbNo) = idyes then begin
+        if MessageDlg('Deseja Adicionar Venda para Entrega ?',mtConfirmation, [mbYes, mbNo], 0, mbNo) = idyes then begin
           adicionarEntrega := 'S';
         end;
       end;

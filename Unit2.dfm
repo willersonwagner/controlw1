@@ -11576,7 +11576,7 @@ object Form2: TForm2
         Visible = False
       end
       object ControledeEntrada1: TMenuItem
-        Caption = 'Controle de Entrega'
+        Caption = 'Controle de Entrega de Produtos'
         OnClick = ControledeEntrada1Click
       end
       object ControledeEntregaMademato: TMenuItem
@@ -11748,8 +11748,8 @@ object Form2: TForm2
         end
       end
       object ProdComissoDif1: TMenuItem
-        Caption = 'Prod. Comiss'#227'o Dif. *'
-        Visible = False
+        Caption = 'Prod. Comiss'#227'o Dif.'
+        OnClick = ProdComissoDif1Click
       end
       object Vendas2: TMenuItem
         Caption = 'Vendas'

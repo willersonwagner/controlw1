@@ -11943,11 +11943,23 @@ object form22: Tform22
       Top = 26
       Width = 665
       Height = 80
+      ParentCustomHint = False
       BevelOuter = bvNone
+      BiDiMode = bdLeftToRight
       Ctl3D = False
+      DoubleBuffered = False
       FullRepaint = False
-      ParentBackground = False
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'MS Sans Serif'
+      Font.Style = []
+      ParentBiDiMode = False
       ParentCtl3D = False
+      ParentDoubleBuffered = False
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = False
       TabOrder = 4
       Visible = False
       object Label4: TLabel
