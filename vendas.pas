@@ -445,8 +445,7 @@ begin
   else
   begin
     Result := Result + '/F2-Modo Venda*Orçamento';
-    if Modo_Orcamento then
-      Result := Result + '/F3-Recuperar Orçamento';
+    Result := Result + '/F3-Recuperar Orçamento';
   end;
 
   if funcoes.buscaParamGeral(5, '') = 'S' then
@@ -6670,8 +6669,7 @@ begin
   funcoes.FormataCampos(dm.produto, 2, 'ESTOQUE', 3);
   JsEditData1.Text := FormatDateTime('dd/mm/yyyy', form22.datamov);
 
-  if separaPecas <> true then
-  begin
+  if separaPecas <> true then begin
     if ((form22.Pgerais.Values['codvendedor'] = '0') or
       (VerificaAcesso_Se_Nao_tiver_Nenhum_bloqueio_true_senao_false) or
       (funcoes.LerConfig(form22.Pgerais.Values['configu'], 12) = 'S') ) then
@@ -6686,7 +6684,10 @@ begin
       JsEdit2.Enabled := false;
       JsEdit1.SetFocus;
     end;
+
   end;
+
+
 
   cont := 0;
   DBGrid1.DataSource := dm.dsprod;
@@ -7602,6 +7603,11 @@ begin
   if funcoes.buscaParamGeral(77, '') = 'S' then // busca por código de barras
   begin // para loja de roupas
     buscaCodigoBarras();
+  end;
+
+  if ((form22.Pgerais.Values['codvendedor'] = '0') and (VerificaAcesso_Se_Nao_tiver_Nenhum_bloqueio_true_senao_false = false)) then begin
+    JsEdit2.Enabled := false;
+    JsEdit1.Enabled := false;
   end;
 end;
 

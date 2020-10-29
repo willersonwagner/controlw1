@@ -270,7 +270,7 @@ if key=#27 then
          end;  
 
        try
-         acs := funcoes.VerAcesso('');
+         acs := funcoes.VerAcesso1('');
        except
          on e: exception do
            begin

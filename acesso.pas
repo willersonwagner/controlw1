@@ -20,6 +20,7 @@ type
     procedure ListBox2Enter(Sender: TObject);
   private
     acesso,alterado : string;
+    function lelista() : String;
     { Private declarations }
   public
     { Public declarations }
@@ -57,18 +58,22 @@ begin
 end;
 
 procedure TForm37.ListBox1KeyPress(Sender: TObject; var Key: Char);
-var i,posi:integer;
-a:string;
+var
+  i,posi:integer;
+  a : string;
 begin
  if (key=#13) and (ListBox1.ItemIndex>-1) then
   begin
-    posi := pos('-'+IntToStr(ListBox1.ItemIndex)+'-',acesso) + 3;
+    a := funcoes.LerConfig(acesso, ListBox1.ItemIndex, false);
+    //ShowMessage(a + #13 + IntToStr(Length(a)));
+
+    //posi := pos('-'+IntToStr(ListBox1.ItemIndex)+'-',acesso) + 3;
     //ShowMessage(acesso[posi]);
     ListBox2.Clear;
-    for i:= 0 to Form2.MainMenu1.Items.Items[ListBox1.ItemIndex].Count -1 do
-     begin
-       ListBox2.Items.Add(acesso[posi+i]+'-'+funcoes.DeletaChar('&',Form2.MainMenu1.Items.Items[ListBox1.itemindex].Items[i].Caption));
+    for i:= 0 to Form2.MainMenu1.Items.Items[ListBox1.ItemIndex].Count -1 do begin
+       ListBox2.Items.Add(copy(a,i +1, 1)+'-'+funcoes.DeletaChar('&',Form2.MainMenu1.Items.Items[ListBox1.itemindex].Items[i].Caption));
      end;
+
     if ListBox2.Items.Count>0 then
      begin
       ListBox2.SetFocus;
@@ -128,9 +133,13 @@ begin
    if char1<>'*' then
     begin
      if char1='' then char1 := ' ';
-     ListBox2.Items.Strings[ListBox2.ItemIndex] := char1  + copy(ListBox2.Items.ValueFromIndex[ListBox2.ItemIndex],1,length(ListBox2.Items.ValueFromIndex[ListBox2.ItemIndex]));
+
+
+     ListBox2.Items.Strings[ListBox2.ItemIndex] := char1  + copy(ListBox2.Items[ListBox2.ItemIndex],2,length(ListBox2.Items[ListBox2.ItemIndex]));
+
      char1 := ListBox2.Items.Strings[ListBox2.itemindex][1];
-     alterado[(pos('-'+IntToStr(ListBox1.ItemIndex)+'-',alterado) + 3)+ListBox2.ItemIndex] := char1[1];
+
+     alterado := GravarConfig(alterado, lelista, ListBox1.ItemIndex);
     end;
   end;
 end;
@@ -138,6 +147,19 @@ end;
 procedure TForm37.ListBox2Enter(Sender: TObject);
 begin
 Label2.Caption := 'O nivel de acesso de uma rotina é a'+#13+'quantidade de bloqueios que um usuário'+#13+'pode ter para usá-la. Um exemplo, a ro-'+#13+'tina cancelamento de nota tem tem nivel'+#13+'0, isto é, apenas usuários com 0 blo-'+#13+'queios podem usá-la. Se o nivel estiver'+#13+'em branco, a rotina fica sempre aberta.';
+end;
+
+function TForm37.lelista() : String;
+var
+  i: integer;
+  val : String;
+begin
+  Result := '';
+  for I := 0 to ListBox2.Count -1 do begin
+    val := ListBox2.Items[i][1];
+    if val = '-' then val := ' ';
+    Result := Result + val;
+  end;
 end;
 
 end.

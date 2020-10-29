@@ -15,6 +15,7 @@ object Form79: TForm79
   Position = poScreenCenter
   OnClose = FormClose
   OnCreate = FormCreate
+  OnKeyDown = FormKeyDown
   OnKeyUp = FormKeyUp
   OnShow = FormShow
   PixelsPerInch = 96
@@ -87,9 +88,9 @@ object Form79: TForm79
   object Label8: TLabel
     Left = 150
     Top = 359
-    Width = 116
+    Width = 273
     Height = 16
-    Caption = 'F3-Salva F4-Limpa'
+    Caption = 'F3-Salva F4-Limpa CTRL+Enter-Nova Linha'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -13
@@ -151,9 +152,9 @@ object Form79: TForm79
     object Label12: TLabel
       Left = 198
       Top = 10
-      Width = 253
+      Width = 415
       Height = 16
-      Caption = 'F2 - Ver Produtos F6-Busca Fornecedor'
+      Caption = 'F2 - Ver Produtos F6-Busca Fornecedor  F10-Busca Ultima Venda'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -13
@@ -408,6 +409,7 @@ object Form79: TForm79
       Height = 121
       CharCase = ecUpperCase
       TabOrder = 0
+      OnKeyDown = dadosAdicKeyDown
       OnKeyPress = dadosAdicKeyPress
     end
   end

@@ -85,8 +85,11 @@ type
     procedure notaExit(Sender: TObject);
     procedure clienteEnter(Sender: TObject);
     procedure ButBaixarClick(Sender: TObject);
+    procedure dadosAdicKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   private
-    generator : String;
+    generator, key1 : String;
     nfeRefLista : tstringList;
     procedure teclaEsc();
     procedure geraListaProdutos;
@@ -103,6 +106,8 @@ type
     function buscaCliente() : string;
     function buscaFornecedor() : string;
     procedure emitenfe();
+    procedure buscaUltimaVenda;
+    function geraDadosAdic(var ddosAdic : TMemo) : String;
     { Private declarations }
   public
     FIN_NFE, nomeFIN_NFE, DOC_REF, NFE_REF, estorno, TAG_DOCREF, NUM_ECF, natOP1,
@@ -195,7 +200,7 @@ begin
 
     NfeVenda.tipo        := tiponfe.Text;
     NfeVenda.DEST_NFE    := destMercadoria.Text;
-    NfeVenda.infAdic     := dadosAdic.Text;
+    NfeVenda.infAdic     := geraDadosAdic(dadosAdic);
     NfeVenda.notas       := notas;
     NfeVenda._ORIGEM     := origemmercadoria.Text;
     NfeVenda.FIN_NFE1    := finnfe.Text;
@@ -326,10 +331,19 @@ begin
     end;
 end;
 
+procedure TForm79.dadosAdicKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+//  if (ssCtrl in Shift) and (Key = 13) then begin
+  //end;
+end;
+
 procedure TForm79.dadosAdicKeyPress(Sender: TObject; var Key: Char);
 begin
   if key = #13 then begin
     key := #0;
+    if key <> 'ok' then
+    
     FretePorConta.SetFocus;
   end;
   if key = #27 then teclaEsc;
@@ -423,13 +437,22 @@ begin
   frete := TStringList.Create;
 end;
 
-procedure TForm79.FormKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
+procedure TForm79.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
 begin
   if key = 113 then geraListaProdutos;
+end;
+
+procedure TForm79.FormKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
   if key = 114 then salvaDadosAdic(0); //salva dados adicionais
   if key = 115 then salvaDadosAdic(1); //limpa dados adicionais
   if key = 117 then begin
     buscaFornecedor;
+  end;
+
+  if key = 121 then begin
+    buscaUltimaVenda;
   end;
 end;
 
@@ -1150,6 +1173,44 @@ begin
     end;
   end;
 
+end;
+
+procedure TForm79.buscaUltimaVenda;
+var
+  nota1 : String;
+begin
+  nota1 := Incrementa_Generator('venda', 0);
+
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select v.cliente,c.nome, v.total, v.data from venda v left join cliente c on (v.cliente = c.cod) where nota = :nota';
+  dm.IBselect.ParamByName('nota').AsString := nota1;
+  dm.IBselect.Open;
+
+  cliente.Text := dm.IBselect.FieldByName('cliente').AsString;
+  nota.Text := nota1;
+
+  ShowMessage('Ultima Venda Encontrada: ' + #13 +
+              'Pedido : ' + nota1 + #13 +
+              'Cliente: ' + cliente.Text + '-' + dm.IBselect.FieldByName('nome').AsString + #13 +
+              'Data...: ' + formataDataDDMMYY(dm.IBselect.FieldByName('data').AsDateTime) + #13 +
+              'Total..: ' + formataCurrency(dm.IBselect.FieldByName('total').AsCurrency));
+  dm.IBselect.Close;
+end;
+
+function TForm79.geraDadosAdic(var ddosAdic : TMemo) : String;
+var
+  i : integer;
+begin
+  Result := '';
+  if trim(ddosAdic.Text) = '' then exit;
+  if ddosAdic.Lines.Count = 1 then begin
+    Result := ddosAdic.Text;
+    exit;
+  end;
+
+  for I := 0 to ddosAdic.Lines.Count -1 do begin
+    Result := Result + ddosAdic.Lines[i] + ';';
+  end;
 end;
 
 end.

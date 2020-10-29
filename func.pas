@@ -499,8 +499,9 @@ type
       tamanho: integer): string;
     function GeraAleatorio(valor: integer): string;
     function VerAcesso(param: string): string;
+    function VerAcesso1(param: string): string;
     function DeletaChar(sub: string; texto: string): string;
-    function LerConfig(valor: string; posi: integer): string;
+    function LerConfig(valor: string; posi: integer; comtrim : boolean = true): string;
     function Criptografar(wStri: String): String;
     function DesCriptografar(wStri: String): String;
     function RetornaMaiorData(v1: TDateTime; v2: TDateTime): TDateTime;
@@ -2202,8 +2203,13 @@ begin
       addRelatorioForm19(funcoes.CompletaOuRepete('Entrada:',
         FormatCurr('0.00', ordem.pago), '.', 40) + CRLF);
     addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 40) + CRLF);
-    addRelatorioForm19(funcoes.CompletaOuRepete('Total a Pagar:',
-      FormatCurr('0.00', tot - ordem.pago + desc), '.', 40) + CRLF);
+    addRelatorioForm19(funcoes.CompletaOuRepete('Total a Pagar:',FormatCurr('0.00', tot - ordem.pago + desc), '.', 40) + CRLF);
+
+
+    //adicionado 22/10/2020 a pedido do camaleao                               ordem.
+    addRelatorioForm19(funcoes.CompletaOuRepete('Data Entrada: ' + FormatDateTime('dd/mm/yyyy', ordem.data)  + ' ' + ordem._ent,'', ' ', 40) + CRLF);
+    addRelatorioForm19(funcoes.CompletaOuRepete('Data Saida..: ' + IfThen(FormatDateTime('dd/mm/yyyy', ordem.saida) <> '01/01/1900',FormatDateTime('dd/mm/yyyy', ordem.saida) + ' ' + ordem.h_saida, ''),'', ' ', 40) + CRLF);
+    //adicionado 22/10/2020
 
     addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 40) + CRLF);
 
@@ -12391,14 +12397,20 @@ begin
   end;
 end;
 
-function Tfuncoes.LerConfig(valor: string; posi: integer): string;
+function Tfuncoes.LerConfig(valor: string; posi: integer; comtrim : boolean = true): string;
 var
   fim : integer;
   temp : String;
 begin
-  Result := trim(copy(valor, pos(IntToStr(posi) + '-', valor) + 3,
+  if comtrim then
+    Result := trim(copy(valor, pos(IntToStr(posi) + '-', valor) + 3,
+    retornaPos(valor, '-' + IntToStr(posi + 1), pos(IntToStr(posi) + '-',
+    valor) + 3)))
+  else Result := (copy(valor, pos(IntToStr(posi) + '-', valor) + 3,
     retornaPos(valor, '-' + IntToStr(posi + 1), pos(IntToStr(posi) + '-',
     valor) + 3)));
+
+
   {fim := pos(IntToStr(posi + 1) + '-', valor);
   if fim <= 0 then begin
     temp := copy(valor, pos(IntToStr(posi) + '-', valor) + 3, length(valor));
@@ -12409,7 +12421,7 @@ begin
 
   Result := trim(copy(valor, pos(IntToStr(posi) + '-', valor) + 3, fim));}
 
-  Result := trim(Result);
+  //Result := trim(Result);
   // ShowMessage(Result);
 end;
 
@@ -16164,6 +16176,138 @@ begin
             else
             begin
               // ShowMessage('2');
+            end;
+
+            if param = '0' then
+              form2.MainMenu1.Items[i].Items[a].Visible := true;
+          end;
+        except
+        end;
+      end; // fim if contido '*'
+
+    end; // for no itens do menu
+  end; // for menus
+
+  // if ConfParamGerais.Strings[17] = 'N' then form2.MainMenu1.Items.Items[0].Items[15].Visible := false
+  // else form2.MainMenu1.Items.Items[0].Items[15].Visible := true;
+
+  // if ConfParamGerais.Strings[17] = 'N' then form2.VendanoAtacado1.Visible := false
+  // else form2.VendanoAtacado1.Visible := true;
+
+  if funcoes.buscaParamGeral(17, '') <> 'S' then
+    form2.AcertodeEstoque1.Visible := False;
+  // venda no atacado esta com esse nome
+  try
+    if funcoes.buscaParamGeral(39, '') <> 'S' then
+      form2.NotaFiscaldeVenda1.Visible := False;
+  except
+  end;
+
+  try
+    if (funcoes.buscaParamGeral(24, '') <> 'S') then // saida de estoque
+    begin
+      form2.SadadeEstoque2.Visible := False;
+    end;
+  except
+  end;
+
+  try
+    if funcoes.buscaParamGeral(14, '') = 'N' then
+    begin
+      form2.Servios1.Visible := False;
+    end;
+  except
+  end;
+
+  if form22.superUsu = 1 then
+    form2.AvanarNumerao1.Visible := true
+  else
+    form2.AvanarNumerao1.Visible := False;
+
+  if form22.superUsu = 1 then
+    form2.avanumNFCe.Visible := true
+  else
+    form2.avanumNFCe.Visible := False;
+
+  { if form2.Nfe1.Visible = false then begin
+    for I := 0 to form2.Nfe1.Count -1 do begin
+    form2.Nfe1.Items[i].Visible := false;
+    end;
+    form2.EnviarporEmail1.Visible := true;
+    form2.Utilitarios1.Visible    := true;
+    form2.Nfe1.Visible := true;
+    end;
+    if tmf <> '' then
+    begin
+    dm.IBQuery4.Close;
+    dm.IBQuery4.SQL.Clear;
+    dm.IBQuery4.SQL.Add('update acesso set acesso = :acesso where acesso <> ''');
+    dm.IBQuery4.ParamByName('acesso').AsString := form22.Pgerais.Values['acesso'];
+    dm.IBQuery4.ExecSQL;
+
+    //dm.IBQuery4.Transaction.Commit;
+    end;
+  }
+end;
+
+function Tfuncoes.VerAcesso1(param: string): string;
+var
+  i, a, posi: integer;
+  tmf, acc: string;
+begin
+  Result := '';
+
+  if form22.USUARIO = 'ADMIN' then
+  begin
+    form2.ExecutarComando1.Visible           := true;
+    form2.ManutenoNFCe1.Visible              := true;
+    form2.CorrigirDataErradanaVenda1.Visible := true;
+  end
+  else
+  begin
+    form2.ExecutarComando1.Visible           := False;
+    form2.ManutenoNFCe1.Visible              := False;
+    form2.CorrigirDataErradanaVenda1.Visible := false;
+  end;
+
+  for i := 0 to form2.MainMenu1.Items.count - 1 do
+  begin
+
+    acc := funcoes.LerConfig(form22.Pgerais.Values['acesso'], i, false);
+    //ShowMessage(acc);
+
+    for a := 0 to form2.MainMenu1.Items[i].count - 1 do
+    begin
+      if funcoes.Contido('*', form2.MainMenu1.Items[i].Items[a].caption) then
+      begin
+        form2.MainMenu1.Items[i].Items[a].Visible := False;
+      end
+      else
+      // if not funcoes.Contido('*', form22.Pgerais.Values['acesso'][posi+a]) then
+      begin
+        try
+          {if copy(a,a +1, 1) = '-' then
+          begin
+            Result := form22.Pgerais.Values['acesso'];
+            Insert('0', Result, posi + a);
+            form22.Pgerais.Values['acesso'] := Result;
+          end;}
+
+          //ShowMessage(form2.MainMenu1.Items[i].Items[a].Caption + #13 + copy(acc,a +1, 1));
+
+          if copy(acc,a +1, 1) <> ' ' then begin
+            if funcoes.Contido(IntToStr(i), form22.Pgerais.Values['acessousu']) then begin
+              form2.MainMenu1.Items[i].Items[a].Visible := False;
+            end;
+            // else if length(form22.Pgerais.Values['acessousu']) >
+            // StrToInt(form22.Pgerais.Values['acesso'][posi + a]) then
+            if length(form22.Pgerais.Values['acessousu']) > StrToIntDef(copy(acc,a +1, 1), 0) then
+            begin
+              form2.MainMenu1.Items[i].Items[a].Visible := False;
+            end
+            else
+            begin
+              form2.MainMenu1.Items[i].Items[a].Visible := true;
             end;
 
             if param = '0' then
@@ -25589,6 +25733,8 @@ begin
     exit;
   end;
 
+
+  //ShowMessage('versaoSite='+versaoSite + #13 + #13 +'buscaVersaoIBPT_Local='+ buscaVersaoIBPT_Local);
   if buscaVersaoIBPT_Local <> versaoSite then
   begin
     ibpt := buscaVersaoIBPT_Site(2);

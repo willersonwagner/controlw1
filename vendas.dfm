@@ -1,8 +1,8 @@
 object Form20: TForm20
   Left = 193
   Top = 81
-  Caption = 'Modo Venda: '
-  ClientHeight = 582
+  Caption = '2'
+  ClientHeight = 590
   ClientWidth = 800
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -25,7 +25,7 @@ object Form20: TForm20
     Left = 0
     Top = 0
     Width = 800
-    Height = 582
+    Height = 590
     Align = alClient
     TabOrder = 0
     object Label1: TLabel
@@ -148,7 +148,7 @@ object Form20: TForm20
     end
     object ToolBar1: TPanel
       Left = 1
-      Top = 552
+      Top = 560
       Width = 798
       Height = 29
       Align = alBottom
@@ -156,9 +156,9 @@ object Form20: TForm20
       TabOrder = 0
       object StaticText2: TStaticText
         Left = 2
-        Top = 2
+        Top = 8
         Width = 794
-        Height = 25
+        Height = 19
         Align = alBottom
         AutoSize = False
         Caption = 

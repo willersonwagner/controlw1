@@ -805,7 +805,7 @@ end;
 
 procedure TForm2.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-  funcoes.VerAcesso('0');
+  funcoes.VerAcesso1('0');
   form22.Pgerais := nil;
 
   form22.Show;
@@ -1138,6 +1138,14 @@ begin
   else begin
     ControledeEntregaMademato.Visible := false;
   end;   }
+
+  if funcoes.LerConfig(form22.Pgerais.Values['configu'], 15) = 'S' then begin
+    Reimpresso1.Visible := true;
+  end;
+
+  if funcoes.LerConfig(form22.Pgerais.Values['configu'], 16) = 'N' then begin
+    CancelarNFe1.Visible := false;
+  end;
 
   if ini = 1 then
   begin
@@ -5271,12 +5279,6 @@ end;
 
 procedure TForm2.ControledeEntrada1Click(Sender: TObject);
 begin
-  if RetornaAcessoUsuario > 0 then
-  begin
-    MessageDlg('Rotina Bloqueada!', mtInformation, [mbOK], 1);
-    exit;
-  end;
-
   nota := funcoes.dialogo('generico', 0, '1234567890,.' + #8, 100, false, '',
     'Relatório de Entradas', 'Qual o Número da Nota ?', '');
   if (nota = '*') or (nota = '') then
@@ -5324,12 +5326,6 @@ end;
 
 procedure TForm2.ControledeEntregaMadematoClick(Sender: TObject);
 begin
-    if RetornaAcessoUsuario > 0 then
-  begin
-    MessageDlg('Rotina Bloqueada!', mtInformation, [mbOK], 1);
-    exit;
-  end;
-
   {nota := funcoes.dialogo('generico', 0, '1234567890,.' + #8, 100, false, '',
     'Relatório de Entradas', 'Qual o Número da Nota ?', '');
   //if (nota = '*') or (nota = '') then
@@ -9659,6 +9655,8 @@ begin
     form36.teclas.Add('SNO'); // 12
     form36.teclas.Add('SNX'); // 13
     form36.teclas.Add('SN'); // 14
+    form36.teclas.Add('SN'); // 15
+    form36.teclas.Add('SN'); // 16
 
     form36.tipo.Add('numero');
     form36.tipo.Add('generico');
@@ -9675,6 +9673,8 @@ begin
     form36.tipo.Add('generico'); // 12
     form36.tipo.Add('generico'); // 13
     form36.tipo.Add('generico'); // 14
+    form36.tipo.Add('generico'); // 15
+    form36.tipo.Add('generico'); // 16
 
     form36.troca.Add('');
     form36.troca.Add('S');
@@ -9691,6 +9691,8 @@ begin
     form36.troca.Add('S'); // 12
     form36.troca.Add('S'); // 13
     form36.troca.Add('S'); // 14
+    form36.troca.Add('S'); // 15
+    form36.troca.Add('S'); // 16
 
     form36.ListBox1.Items.Add
       ('0-Qual o Desconto Máximo Permitido (de 0 a 99%)?');
@@ -9712,8 +9714,10 @@ begin
     form36.ListBox1.Items.Add('10-Imprimir Ref. Original na Nota de Orcamento ?');
     form36.ListBox1.Items.Add('11-Permitir Venda de Quantidades Negativas (S/N)?');
     form36.ListBox1.Items.Add('12-Permitir Troca de Vendedor na Venda ?');
-    form36.ListBox1.Items.Add('13-Permitir Venda de Produtos Quantidades Negativas (S/N/X-Bloquear Somente em Vendas)?');
+    form36.ListBox1.Items.Add('13-Permitir Venda de Produtos com Quantidades Negativas (S/N/X-Bloquear Somente em Vendas)?');
     form36.ListBox1.Items.Add('14-Perguntar Juros em Conta Atrasada de Cliente(Verificar Param Geral 44 = U)?');
+    form36.ListBox1.Items.Add('15-Permitir uso da Rotina de Reimpressao ?');
+    form36.ListBox1.Items.Add('16-Permitir uso da Rotina de Cancelamento de NFe ?');
 
     form36.configu := dm.ibselect.FieldByName('configu').AsString;
     dm.ibselect.Close;

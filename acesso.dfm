@@ -1,9 +1,9 @@
 object Form37: TForm37
   Left = 133
   Top = 115
-  Width = 696
-  Height = 375
   Caption = 'N'#237'veis de Acesso - ControlW'
+  ClientHeight = 336
+  ClientWidth = 680
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -51,7 +51,6 @@ object Form37: TForm37
     Font.Height = -13
     Font.Name = 'MS Sans Serif'
     Font.Style = []
-    ItemHeight = 16
     ParentFont = False
     TabOrder = 0
     OnEnter = ListBox1Enter
@@ -67,7 +66,6 @@ object Form37: TForm37
     Font.Height = -13
     Font.Name = 'MS Sans Serif'
     Font.Style = []
-    ItemHeight = 16
     ParentFont = False
     TabOrder = 1
     OnEnter = ListBox2Enter
