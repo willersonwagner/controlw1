@@ -1,7 +1,7 @@
 object Form20: TForm20
   Left = 193
   Top = 81
-  Caption = '2'
+  Caption = 'M'#243'dulo de Vendas - ControlW'
   ClientHeight = 590
   ClientWidth = 800
   Color = clBtnFace

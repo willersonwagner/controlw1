@@ -125,7 +125,8 @@ type
     testa, EXPORTADO, tamanhoFonteTotal, tamFontDesc: Smallint;
     pedido, configUsuarioConfirmarPreco, NomeOrcamento, formaAlterada: string;
     bdSmall: boolean;
-    configUsuario, clienteNome, ultimaNota, ordemCompra, ENDE_ENTREGA, adicionarEntrega: String;
+    configUsuario, clienteNome, ultimaNota, ordemCompra, ENDE_ENTREGA, adicionarEntrega,
+    tipoTrocaDescontoUsuario : String;
     semCliente: boolean;
     produtosServico: TStringList;
     // function baixa
@@ -190,8 +191,8 @@ type
       COD_SERVICO, sqlVenda, campoEstoque: string;
     Desconto, total1, total_compras_a_prazo_cliente, total_A_Limitar,
       lim_compra, minimo, lim_atraso: currency;
-    function CalculaMinimoVendaCDS(var descDado: currency;
-      var totOriginal: currency; var deuDesconto: boolean): currency;
+    function CalculaMinimoVendaCDS(var descDado: currency;var totOriginal: currency; var deuDesconto: boolean): currency;
+    function CalculaMinimoVendaCDS1(var descDado: currency;var totOriginal: currency; var deuDesconto: boolean): currency;
     function buscaProdutoCDS(cod: String; Preco: currency; descri: string = '';
       m2: integer = 0): boolean;
     procedure recuperaServico(const nota: String);
@@ -1112,6 +1113,101 @@ begin
 
     if minimotemp > 0 then
     begin
+      Result := minimotemp - descDado;
+
+      ClientDataSet1.First;
+      ClientDataSet1.EnableControls;
+      exit;
+    end;
+
+    porcMaxima := StrToCurrDef
+      (funcoes.LerConfig(form22.Pgerais.Values['configu'], 0), 0);
+    // totVolumes é o desconto mmáximo que pode ser dado nesta venda
+    totVolumes := funcoes.ArredondaTrunca((Result * porcMaxima) / 100, 2);
+
+    Result := totVolumes - descDado;
+
+    ClientDataSet1.First;
+    ClientDataSet1.EnableControls;
+    exit;
+  except
+    Result := 0;
+    ClientDataSet1.First;
+    ClientDataSet1.EnableControls;
+  end;
+end;
+
+function TForm20.CalculaMinimoVendaCDS1(var descDado: currency;
+  var totOriginal: currency; var deuDesconto: boolean): currency;
+var
+  porcMaxima, minimotemp, porcentMaior, acc: currency;
+begin
+  Result := 0;
+  descDado := 0;
+  minimotemp := 0;
+  totOriginal := 0;
+  try
+    ClientDataSet1.DisableControls;
+    ClientDataSet1.First;
+
+    while not ClientDataSet1.Eof do begin
+      //se colocou desconto por forma de pagamento F1
+      if tipoTrocaDescontoUsuario = 'F' then begin
+        descDado := descDado + (ClientDataSet1TOT_ORIGI2.AsCurrency - ClientDataSet1TOTAL.AsCurrency);
+        //somou os descontos que ja foram dados
+
+        acc := (ClientDataSet1minimo.AsCurrency + StrToCurrDef(funcoes.LerConfig(configUsuario, 0), 0));
+        if acc > 100 then acc := 100;
+        
+        acc := (ClientDataSet1PRECO_ORIGI.AsCurrency * (acc / 100));
+        //soma os desconto maximo por unidade, desconto maximo por 1 unidade
+
+        //ShowMessage(CurrToStr(acc));
+        acc :=  ArredondaTrunca(ClientDataSet1QUANT.AsCurrency * acc, 2);
+        //multiplica pela quantidade
+
+        acc := acc - (ClientDataSet1TOT_ORIGI2.AsCurrency - ClientDataSet1TOTAL.AsCurrency);
+        //ShowMessage(ClientDataSet1PRECO_ORIGI.AsString + #13 + ClientDataSet1minimo.AsString + #13 +'acc='+ CurrToStr(acc) + #13 + CurrToStr(descDado) + #13 + ClientDataSet1TOT_ORIGI2.AsString + #13 + ClientDataSet1TOTAL.AsString);
+
+
+        acc := ArredondaTrunca(acc, 2);
+        if acc < 0 then acc := 0;
+        
+        Result := Result + acc;
+      end
+      else begin
+       if (ClientDataSet1TOT_ORIGI2.AsCurrency - ClientDataSet1TOTAL.AsCurrency) >= 0 then begin
+        Result := Result + ClientDataSet1TOT_ORIGI2.AsCurrency;
+        descDado := descDado + (ClientDataSet1TOT_ORIGI2.AsCurrency - ClientDataSet1TOTAL.AsCurrency);
+
+        if funcoes.buscaParamGeral(55, 'N') = 'S' then begin
+          porcentMaior := StrToCurrDef(funcoes.LerConfig(form22.Pgerais.Values['configu'], 0), 0);
+
+          if ClientDataSet1minimo.AsCurrency > porcentMaior then porcentMaior := ClientDataSet1minimo.AsCurrency;
+          if funcoes.buscaDescontoProduto(ClientDataSet1CODIGO.AsInteger) > 0 then porcentMaior := funcoes.buscaDescontoProduto(ClientDataSet1CODIGO.AsInteger);
+
+          //minimotemp := minimotemp + (Arredonda(ClientDataSet1TOT_ORIGI2.AsCurrency * (porcentMaior / 100), 2));
+          minimotemp := minimotemp + (ClientDataSet1TOT_ORIGI2.AsCurrency * (porcentMaior / 100));
+        end;
+       end;
+      end;
+
+      totOriginal := totOriginal + ClientDataSet1TOT_ORIGI2.AsCurrency;
+
+      ClientDataSet1.Next;
+    end;
+
+    deuDesconto := false;
+    if tipoTrocaDescontoUsuario = 'F' then begin
+      ClientDataSet1.First;
+      ClientDataSet1.EnableControls;
+      exit;
+    end;
+
+    if descDado <> 0 then
+      deuDesconto := true;
+
+    if minimotemp > 0 then begin
       Result := minimotemp - descDado;
 
       ClientDataSet1.First;
@@ -4978,7 +5074,7 @@ begin
 
   total31 := total1;
   // minimo é o valor maximo que pode ser dado de desconto em reais
-  minimo := CalculaMinimoVendaCDS(descDado, totalOriginal, teveDesconto);
+  minimo := CalculaMinimoVendaCDS1(descDado, totalOriginal, teveDesconto);
 
   minimo := total1 - minimo;
 
@@ -6181,7 +6277,7 @@ begin
           IfThen(codhis = '2', '1', codhis));
       end;
 
-      if ((formaAlterada <> '') and (Modo_Venda) and (formaAlterada <> codhis)) then begin
+      if ((formaAlterada <> '') and (Modo_Venda) and (formaAlterada <> codhis) and (codhis <> '*')) then begin
         ShowMessage('A Venda Não Pode Ser Finalizada por Divergência entre Formas de Pagamento!' + #13 +
                     'Forma Escolhida F1:      ' + formaAlterada + #13 +
                     'Forma Escolhida no Final:' + codhis + #13 + #13+
@@ -6323,6 +6419,7 @@ begin
       funcoes.OrdenaCamposVenda(funcoes.buscaParamGeral(1, ''));
       funcoes.BuscaResizeDBgrid(DBGrid1, 'FORM20');
 
+      tipoTrocaDescontoUsuario         := '';
       form22.Pgerais.Values['configu'] := configUsuario;
 
       if Modo_Venda then
@@ -6374,7 +6471,9 @@ begin
         IF NOT separaPecas THEN
         begin
           if saidaDeEstoque <> true then
-            funcoes.voltarLogin(TForm(self));
+            //funcoes.voltarLogin(TForm(self));
+            form2.nota := 'SAI';
+            close;
         end;
         exit;
       end;
@@ -6449,13 +6548,23 @@ end;
 
 procedure TForm20.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-  jsedit.LiberaMemoria(self);
+  try
+    form22.Pgerais.Values['configu'] := configUsuario;
+  except
+  end;
+
+  try
+   jsedit.LiberaMemoria(self);
+  except
+
+  end;
   // funcoes.fechaClientDataSet(ClientDataSet1);
   dm.produto.Close;
 end;
 
 procedure TForm20.FormCreate(Sender: TObject);
 begin
+  tipoTrocaDescontoUsuario := '';
   adicionarEntrega := 'N';
   formaAlterada := '';
   COD_SERVICO  := '0';
@@ -7492,6 +7601,9 @@ end;
 procedure TForm20.ClientDataSet1AfterPost(DataSet: TDataSet);
 begin
   escrveValor;
+  if tipoTrocaDescontoUsuario <> 'F' then begin
+    form22.Pgerais.Values['configu'] := configUsuario;
+  end;
 end;
 
 procedure TForm20.DBGrid2KeyUp(Sender: TObject; var Key: Word;
@@ -8084,7 +8196,7 @@ begin
 
   total31 := total1;
   // minimo é o valor maximo que pode ser dado de desconto em reais
-  minimo := CalculaMinimoVendaCDS(porcentUtilizada, totalOriginal,
+  minimo := CalculaMinimoVendaCDS1(porcentUtilizada, totalOriginal,
     teveDesconto);
 
 
@@ -8308,7 +8420,7 @@ begin
 
   total31 := total1;
   // minimo é o valor maximo que pode ser dado de desconto em reais
-  minimo := CalculaMinimoVendaCDS(porcentUtilizada, totalOriginal,
+  minimo := CalculaMinimoVendaCDS1(porcentUtilizada, totalOriginal,
     teveDesconto);
 
   totalOriginal := total1;
@@ -8586,8 +8698,8 @@ begin
 
   if tipo = '1' then
   begin
-    prec := p_venda - (p_venda * prec / 100);
-    prec := Arredonda(prec, 2);
+    prec := p_venda - (p_venda * (prec / 100));
+    //prec := Arredonda(prec, 2);
   end;
 
   ClientDataSet1.First;
@@ -8992,6 +9104,8 @@ begin
   if dinheiro = 'X' then avista := StrToCurrDef(funcoes.buscaParamGeral(28, ''), 0);
   if dinheiro = 'C' then avista := StrToCurrDef(funcoes.buscaParamGeral(29, ''), 0);
 
+  tipoTrocaDescontoUsuario := 'F';
+
   fim := ClientDataSet1.RecordCount;
   for ini := 1 to fim do
   begin
@@ -9003,16 +9117,19 @@ begin
 
     try
       ClientDataSet1.Edit;
-      ClientDataSet1PRECO.AsCurrency :=
-        Arredonda(dm.IBselect.FieldByName('p_venda').AsCurrency -
-        (dm.IBselect.FieldByName('p_venda').AsCurrency * (avista / 100)), 2);
+      ClientDataSet1PRECO.AsCurrency := ArredondaTrunca(dm.IBselect.FieldByName('p_venda').AsCurrency -
+        (dm.IBselect.FieldByName('p_venda').AsCurrency * (avista / 100)), 3);
       ClientDataSet1TOTAL.AsCurrency :=
         Arredonda(ClientDataSet1PRECO.AsCurrency *
         ClientDataSet1QUANT.AsCurrency, 2);
+
+      ClientDataSet1minimo.AsCurrency := avista;
       ClientDataSet1.Post;
     except
     end;
   end;
+
+  form22.Pgerais.Values['configu'] := GravarConfig(form22.Pgerais.Values['configu'], CurrToStr(avista), 0);
 
   ClientDataSet1.First;
   ClientDataSet1.EnableControls;

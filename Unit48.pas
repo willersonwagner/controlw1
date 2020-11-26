@@ -639,6 +639,12 @@ begin
         ClientDataSet1.Post;
       end;
 
+      if (ClientDataSet1.FieldByName('CODIGO').AsString = mat.Values['0']) and (ClientDataSet1.FieldByName('ALIQ').AsString <> mat.Values['2']) and (StrToCurrDef(mat.Values['2'], 0) > 0) then begin
+        ClientDataSet1.Edit;
+        ClientDataSet1.FieldByName('ALIQ').AsCurrency := StrToCurrDef(mat.Values['2'], 2);
+        ClientDataSet1.Post;
+      end;
+
       mat.Free;
     end;
 

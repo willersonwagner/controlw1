@@ -3237,8 +3237,12 @@ end;
 
 function Tfuncoes.voltarLogin(var form: TForm): boolean;
 begin
-  form.Close;
+  try
+    form.Close;
+    form.Free;
+  except
 
+  end;
   form2.Close;
   form22.Show;
 end;

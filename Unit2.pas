@@ -1060,6 +1060,7 @@ var
   cupons: TTWtheadEnviaCupons1;
   nomeMecanico: String;
 begin
+
   stb.Panels[3].Text :=  FileAgeCreate(ParamStr(0));
 
   nomeMecanico                    := UpperCase(LeftStr(form22.nomesServico.Values['5'], 1)) + LowerCase(copy(form22.nomesServico.Values['5'], 2, 100));
@@ -1307,6 +1308,11 @@ begin
   // funcoes.AjustaForm(Form20);
   Form20.showmodal;
   Form20.Free;
+
+  if form2.nota = 'SAI' then begin
+    nota := '';
+    close;
+  end;
 end;
 
 procedure TForm2.AlfabticaGeral1Click(Sender: TObject);
@@ -2342,7 +2348,7 @@ begin
           dm.ibselect.FieldByName('cod').AsString; // produto
         dm.IBQuery2.Open;
 
-        if not dm.IBQuery2.IsEmpty then
+        {if not dm.IBQuery2.IsEmpty then
         begin
           _FRET := _FRET + ((_QTD * dm.IBQuery2.FieldByName('frete').AsCurrency)
             / 100); // FRETE PELO CAD. PRODUTO
@@ -2352,7 +2358,7 @@ begin
           // TOTAL DEBITO ICMS
           _TOT := _TOT - _QTD; // ICMS TOTAL A PAGAR
           _ICM := _ICM + _TOT; // ACUMULA NO TOTAL GERAL
-        end;
+        end;}//tirado no dia 17/11/2020 wagner
 
         _COD := dm.ibselect.FieldByName('cod').AsString;
         _QTD := 0;
@@ -2553,11 +2559,13 @@ begin
       dm.IBselect.SQL.Add('select grupo from '+ tmpGru +' where cod = :cod');
     }
 
+
+    //ShowMessage(caixaSai.GetText);
     fi := hisNomes.Count - 1;
     for i := 0 to fi do
     begin
       ini := hisNomes.Names[i];
-      fim := hisNomes.Values[ini];
+      fim := hisNomes.ValueFromIndex[i];
 
       IF ICM_VENDA then
       begin

@@ -1508,8 +1508,8 @@ procedure TForm17.FormCreate(Sender: TObject);
 var
   param50 : string;
 begin
-  Application.HintPause:=500; //meio segundo para mostrar o hint
-  Application.HintHidePause:=12000; //tempo de duração = 5 segundos
+  Application.HintPause := 500; //meio segundo para mostrar o hint
+  Application.HintHidePause := 12000; //tempo de duração = 5 segundos
 
   FHint := THintWindow.Create(Self);
 

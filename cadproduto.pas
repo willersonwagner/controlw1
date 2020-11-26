@@ -1110,7 +1110,7 @@ begin
       descr := 'ALTERADO POR: ' + form22.codusario + '-' + form22.usuario;
 
 
-    produto_preco := '|' + cod.Text + '|' + CurrToStr(p_venda.getValor) + '|';
+    produto_preco := '|' + cod.Text + '|' + CurrToStr(p_venda.getValor) + '|' + aliquota.Text +'|';
 
     codUlt       := cod.Text;
     valorRetorno := JsEdit.GravaNoBD(self);

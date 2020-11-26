@@ -406,7 +406,8 @@ begin
     PainelManaus.Left := PainelBV.Left;
     PainelManaus.Visible := true;
     PainelBV.Visible     := false;
-  end;
+  end
+  else PainelManaus.Width := 0;
   //verifica atualiza BD foi colocado aqui pq não pode ser no oncreate
   //essa função vai ser chamada e vai verificar se existe o ARQUIVO BD0.FDB
   // e vai criar os campos que deve criar
