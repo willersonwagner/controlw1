@@ -118,6 +118,7 @@ type
       DataCol: Integer; Column: TColumn; State: TGridDrawState);
     procedure DBGrid1DrawColumnCell(Sender: TObject; const Rect: TRect;
       DataCol: Integer; Column: TColumn; State: TGridDrawState);
+    procedure JsEdit1Enter(Sender: TObject);
 
   private
     l1, l2, l3: TLabel;
@@ -157,7 +158,7 @@ type
     function confirmaPrecoProduto(cod: String; var qtd, valor: String;
       opcao: Smallint; servico: boolean = false): string;
     procedure GeraParcelamento;
-    procedure gravaVenda;
+    function gravaVenda : boolean;
     procedure gravaOrcamento;
     procedure gravaServico();
     procedure limpatela;
@@ -177,6 +178,7 @@ type
     procedure WMSysCommand(var Msg: TWMSysCommand);
     function geraCaptionTeclasDeAtalho(): String;
     procedure BuscaCodBar_F6_AutoPecas1;
+    function validaVendedor() : boolean;
     { Private declarations }
   public
     ordenaCampos: boolean;
@@ -5810,13 +5812,14 @@ begin
   end;
 end;
 
-procedure TForm20.gravaVenda;
+function TForm20.gravaVenda : boolean;
 var
   cod, codmov, tabela, padrao: string;
   totProd, vlcaixa: currency;
   InsereCaixa: boolean;
   ini: integer;
 begin
+  Result := false;
   { if  testa = 1 then
     begin
     WWMessage('Houve um Conflito de Transações e a Venda Não foi Gravada. Por Favor Tente Novamente!',mtError,[mbOK],clBlack,true,false,clWindow);
@@ -5838,53 +5841,7 @@ begin
     insereEntrada(LeftStr(novocod + '-' + clienteNome, 30) + ' 1 /1', entrada);
   end;
 
-  // desconto := desconto * (-1);
-
-  // As codições abaixo serve para adicionar as vendas a vista no caixa
-  // pode adicionar o valor da venda como pode adicionar somente a entrada
-  if ((StrToInt(codhis) = 1) and (StrToIntDef(JsEdit1.Text, 0) = 0)) then
-  begin
-    InsereCaixa := true;
-    vlcaixa := total1;
-  end
-  // else if ((StrToInt(codhis) <> 1) and (entrada > 0)) then
-  else if ((StrToInt(codhis) <> 2) and (entrada > 0)) then
-  begin
-    InsereCaixa := true;
-    vlcaixa := entrada;
-  end;
-
-  if InsereCaixa then
-  begin
-    dm.IBQuery1.Close;
-    dm.IBQuery1.SQL.Clear;
-    dm.IBQuery1.SQL.Add('select historico, codmov from caixa where (historico='
-      + QuotedStr('VENDAS DO DIA A VISTA') + ') and (cast(data as date) = :d)');
-    dm.IBQuery1.ParamByName('d').AsDateTime := form22.datamov;
-    dm.IBQuery1.Open;
-
-    if dm.IBQuery1.IsEmpty then
-    begin
-      dm.IBQuery1.Close;
-      dm.IBQuery1.SQL.Clear;
-      dm.IBQuery1.SQL.Add
-        ('insert into caixa(formpagto,codgru,codmov,codhis,data,datamov,historico,entrada) values('
-        + codhis + ',1,' + funcoes.novocod('movcaixa') + ',1,:dati,:dati,' +
-        QuotedStr('VENDAS DO DIA A VISTA') + ',:ent) ');
-      dm.IBQuery1.ParamByName('dati').AsDateTime := DateOf(form22.datamov) +
-        TimeOf(NOW);
-      dm.IBQuery1.ParamByName('ent').AsCurrency := vlcaixa;
-      dm.IBQuery1.ExecSQL;
-      dm.IBQuery1.Transaction.commit;
-    end
-    else
-    begin
-      codmov := dm.IBQuery1.FieldByName('codmov').AsString;
-
-      funcoes.ALTERA_CAIXA(StrToIntDef(codmov, 0), vlcaixa, 1);
-    end;
-  end;
-
+ 
   if origem = 1 then
     tabela := 'quant'
   else
@@ -5922,6 +5879,7 @@ begin
         IntToStr(origem) +
         ',:p_compra, :codbar,:aliq, :unid, :desconto, :nome, :vend, :tipo, gen_id(item_venda, 1))');
     end;
+
     dm.IBQuery1.ParamByName('data').AsDateTime := form22.datamov;
     dm.IBQuery1.ParamByName('cod').AsString := ClientDataSet1CODIGO.AsString;
     dm.IBQuery1.ParamByName('codbar').AsString :=
@@ -6074,6 +6032,7 @@ begin
   // funcoes.GeraNota(novocod,form22.Pgerais.Values['nota'],'S',Modo_Venda);
   numvenda := novocod;
   novocod  := '';
+  Result := true;
 end;
 
 procedure TForm20.DBGrid1KeyPress(Sender: TObject; var Key: Char);
@@ -6377,7 +6336,7 @@ begin
           if (CLIENTE_ENTREGA = '') then CLIENTE_ENTREGA := funcoes.localizar('Localizar Cliente', 'cliente', 'cod,nome,telres,telcom,cnpj,bairro', 'cod,nome', '', 'nome', 'nome', true, false, false, '', 0, nil);
         end;
 
-        gravaVenda;
+        if gravaVenda = false then exit;
 
         if adicionarEntrega = 'S' then begin
           //adiciona o registro na tabela ENTREGA_NOVO
@@ -7628,6 +7587,7 @@ end;
 
 procedure TForm20.JsEdit3Enter(Sender: TObject);
 begin
+  validaVendedor;
   verificaCliente := true;
   JsEdit1.Enabled := true;
   DBGrid1.Repaint;
@@ -7676,6 +7636,11 @@ begin
   end;
 end;
 
+procedure TForm20.JsEdit1Enter(Sender: TObject);
+begin
+  validaVendedor;
+end;
+
 procedure TForm20.JsEdit1KeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
@@ -7709,6 +7674,8 @@ end;
 
 procedure TForm20.DBGrid1Enter(Sender: TObject);
 begin
+
+
   if JsEdit1.getValor > 0 then JsEdit3.Enabled := false;
   DBGrid1.Repaint;
 
@@ -9195,6 +9162,23 @@ begin
   dm.IBQuery1.Transaction.Commit;
 
   numvenda := '0';
+end;
+
+function TForm20.validaVendedor() : boolean;
+begin
+  Result := false;
+
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select cod from vendedor where cod = ' + StrNum(JsEdit2.Text);
+  dm.IBselect.Open;
+
+  if dm.IBselect.IsEmpty then begin
+    ShowMessage('Códiog de Vendedor Inválido, Preencha com as informações Corretas!');
+    JsEdit2.SetFocus;
+    exit;
+  end;
+
+  Result := true;
 end;
 
 

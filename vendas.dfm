@@ -210,6 +210,7 @@ object Form20: TForm20
       CharCase = ecUpperCase
       TabOrder = 3
       Text = '0'
+      OnEnter = JsEdit1Enter
       OnKeyDown = JsEdit1KeyDown
       OnKeyPress = JsEdit1KeyPress
       OnKeyUp = JsEdit1KeyUp

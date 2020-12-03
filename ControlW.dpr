@@ -118,7 +118,8 @@ uses
   cadmecanico in 'cadmecanico.pas' {Form80},
   Unit81 in 'Unit81.pas' {Form81},
   pagamento in 'pagamento.pas' {Form82},
-  Unit83 in 'Unit83.pas' {Form83};
+  Unit83 in 'Unit83.pas' {Form83},
+  qrcodePIX in 'qrcodePIX.pas' {Form84};
 
 {$R *.res}
 
@@ -138,6 +139,7 @@ begin
   Application.CreateForm(TForm73, Form73);
   Application.CreateForm(TForm74, Form74);
   Application.CreateForm(TForm75, Form75);
+  Application.CreateForm(TForm84, Form84);
   //Application.CreateForm(TForm83, Form83);
   //Application.CreateForm(TForm82, Form82);
   //Application.CreateForm(TForm81, Form81);

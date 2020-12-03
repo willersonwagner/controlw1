@@ -3,8 +3,8 @@ object Form58: TForm58
   Top = 125
   BorderStyle = bsNone
   Caption = 'Form58'
-  ClientHeight = 421
-  ClientWidth = 545
+  ClientHeight = 431
+  ClientWidth = 510
   Color = 788168
   Ctl3D = False
   Font.Charset = DEFAULT_CHARSET
@@ -12,6 +12,7 @@ object Form58: TForm58
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Font.Style = []
+  KeyPreview = True
   OldCreateOrder = False
   Position = poScreenCenter
   OnKeyDown = FormKeyDown
@@ -62,7 +63,7 @@ object Form58: TForm58
   end
   object segundosres: TLabel
     Left = 80
-    Top = 288
+    Top = 272
     Width = 394
     Height = 38
     Caption = '01/10 Segundos Restantes'
@@ -73,8 +74,23 @@ object Form58: TForm58
     Font.Style = [fsBold]
     ParentFont = False
   end
+  object Label4: TLabel
+    Left = 163
+    Top = 324
+    Width = 213
+    Height = 22
+    Caption = 'F2 - Pagamento por PIX'
+    Color = clNone
+    Font.Charset = ANSI_CHARSET
+    Font.Color = clLime
+    Font.Height = -19
+    Font.Name = 'Arial Rounded MT Bold'
+    Font.Style = []
+    ParentColor = False
+    ParentFont = False
+  end
   object SIM: TBitBtn
-    Left = 88
+    Left = 128
     Top = 368
     Width = 105
     Height = 41
@@ -89,7 +105,7 @@ object Form58: TForm58
     OnClick = SIMClick
   end
   object NAO: TBitBtn
-    Left = 208
+    Left = 296
     Top = 368
     Width = 105
     Height = 41
@@ -103,8 +119,8 @@ object Form58: TForm58
     TabOrder = 1
   end
   object BitBtn1: TBitBtn
-    Left = 328
-    Top = 368
+    Left = 440
+    Top = 360
     Width = 105
     Height = 41
     Caption = 'Inserir C'#243'digo'
@@ -115,6 +131,7 @@ object Form58: TForm58
     Font.Style = [fsBold]
     ParentFont = False
     TabOrder = 2
+    Visible = False
   end
   object Timer1: TTimer
     Enabled = False

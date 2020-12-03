@@ -403,6 +403,7 @@ type
     LivrodeCaixaGrfico1: TMenuItem;
     GerarVendasTransferenciadeEstoque1: TMenuItem;
     ControledeEntregaMademato: TMenuItem;
+    ProdutosExcluidosdeServios1: TMenuItem;
     procedure LimparBloqueios1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure CadastrarUsurio1Click(Sender: TObject);
@@ -693,6 +694,7 @@ type
     procedure SaldosEstoque1Click(Sender: TObject);
     procedure ControledeEntregaMadematoClick(Sender: TObject);
     procedure ProdComissoDif1Click(Sender: TObject);
+    procedure ProdutosExcluidosdeServios1Click(Sender: TObject);
   private
     b, cont: integer;
     ini: Smallint;
@@ -732,7 +734,8 @@ uses CadUsuario, StrUtils, Math, dialog, cadfrabricante, cadfornecedor,
   configImpressora, batepapo, CadServ, consultaOrdem, cadECF,
   cadReducaoZ, untMovto, acerto1, Unit56, envicupom, Unit59, cadCestNCM,
   PROMOC, cadNotasFiscais, U_Principal, ConsultaCPF, Unit67, Unit68, param1,
-  Unit71, uConsultaCNPJ, Unit74, Unit77, Unit78, dadosnfe, cadmecanico, Unit83;
+  Unit71, uConsultaCNPJ, Unit74, Unit77, Unit78, dadosnfe, cadmecanico, Unit83,
+  qrcodePIX;
 
 {$R *.dfm}
 
@@ -3745,7 +3748,9 @@ end;
 
 procedure TForm2.Button2Click(Sender: TObject);
 begin
-  ShowMessage(funcoes.le_configTerminalWindows(0,'', 'IMP2'));
+  form84 := tform84.Create(self);
+  form84.ShowModal;
+  form84.Free;
 end;
 
 procedure TForm2.RefOriginalGrupo1Click(Sender: TObject);
@@ -9817,8 +9822,7 @@ begin
   nota := Incrementa_Generator('venda', 0);
   nota := funcoes.dialogo('generico', 0, '1234567890' + #8, 90, false, '',
     application.Title, 'Informe o Número Da Nota:', nota);
-  if ((nota = '*') or (nota = '')) then
-    exit;
+  if ((nota = '*') or (nota = '')) then exit;
 
   dm.IBQuery2.Close;
   dm.IBQuery2.SQL.Clear;
@@ -10649,7 +10653,7 @@ begin
       dm.ibselect.Next;
     end;
 
-    dm.ibselect.Close;
+    {dm.ibselect.Close;
     dm.ibselect.SQL.Text :=
       'select e.cod, p.nome, p.codbar, e.quant, e.usuario || ''-'' ||u.nome as usuario, datahora, serv from '
       + 'excserv e left join produto p on (e.cod = p.cod) left join usuario u on (u.cod = e.usuario) where '
@@ -10698,7 +10702,7 @@ begin
 
       ContaNota := ContaNota + 1;
       dm.ibselect.Next;
-    end;
+    end;      }
 
     if ContaNota > 0 then
       addRelatorioForm19
@@ -18498,6 +18502,74 @@ begin
   funcoes.comparaProdutosComAFicha;
 end;
 
+procedure TForm2.ProdutosExcluidosdeServios1Click(Sender: TObject);
+var
+  imprimirtotaldia, ini, fim : String;
+  ContaNota : integer;
+begin
+  ini := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,
+    'Qual a Data Inicial?', formataDataDDMMYY(StartOfTheMonth(form22.datamov)));
+  if ini = '*' then
+    exit;
+
+  fim := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,
+    'Qual a Data Final?', formataDataDDMMYY(endOfTheMonth(form22.datamov)));
+  if fim = '*' then
+    exit;
+  form19.RichEdit1.Lines.Clear;
+
+ dm.ibselect.Close;
+    dm.ibselect.SQL.Text :=
+      'select e.cod, p.nome, p.codbar, e.quant, e.usuario || ''-'' ||u.nome as usuario, datahora, serv from '
+      + 'excserv e left join produto p on (e.cod = p.cod) left join usuario u on (u.cod = e.usuario) where '
+      + 'cast(datahora as date) >= :v1 and  cast(datahora as date) <= :v2';
+    dm.ibselect.ParamByName('v1').AsDateTime := StrToDate(ini);
+    dm.ibselect.ParamByName('v2').AsDateTime := StrToDate(fim);
+    dm.ibselect.Open;
+
+    ContaNota := 0;
+    while not dm.ibselect.Eof do
+    begin
+      if ContaNota = 0 then
+      begin
+        addRelatorioForm19
+          ('+-----------------------------------------------------------------------+'
+          + CRLF);
+        addRelatorioForm19
+          ('|                   PRODUTOS EXCLUIDOS DE SERVICOS                      |'
+          + CRLF);
+        addRelatorioForm19
+          ('+-----------------------------------------------------------------------+'
+          + CRLF);
+        addRelatorioForm19
+          ('|COD NOME                         QUANT USUARIO        DATAHORA   SERVI |'
+          + CRLF);
+        addRelatorioForm19('+-----------------------------------------------------------------------+'+ CRLF);
+      end;
+
+      if funcoes.buscaParamGeral(5, 'N') = 'S' then
+        imprimirtotaldia := 'codbar'
+      else
+        imprimirtotaldia := 'cod';
+
+      addRelatorioForm19(funcoes.CompletaOuRepete
+        (LeftStr(dm.ibselect.FieldByName(imprimirtotaldia).AsString + '-' +
+        dm.ibselect.FieldByName('nome').AsString, 28), '', ' ', 28) + ' ' +
+        CompletaOuRepete('', formataCurrency(dm.ibselect.FieldByName('quant')
+        .AsCurrency), ' ', 10) + ' ' + CompletaOuRepete
+        (LeftStr(dm.ibselect.FieldByName('usuario').AsString, 10), '', ' ', 10)
+        + ' ' + FormatDateTime('dd/mm/yy hh:mm',
+        dm.ibselect.FieldByName('datahora').AsDateTime) + ' ' +
+        CompletaOuRepete('', dm.ibselect.FieldByName('serv').AsString, '0',
+        6) + CRLF);
+
+      ContaNota := ContaNota + 1;
+      dm.ibselect.Next;
+    end;
+
+  addRelatorioForm19('+-----------------------------------------------------------------------+'+ CRLF);
+end;
+
 procedure TForm2.ProdutosporAliquotas1Click(Sender: TObject);
 var
   aliq, A1: String;
@@ -18589,7 +18661,7 @@ end;
 procedure TForm2.EntradasPorNota1Click(Sender: TObject);
 var
   ini, fim, cons, cab: String;
-  TOT: currency;
+  TOT, totNota: currency;
 begin
   ini := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,
     'Qual a Data Inicial?', formataDataDDMMYY(StartOfTheMonth(form22.datamov)));
@@ -18639,9 +18711,11 @@ begin
   dm.ibselect.Open;
   dm.ibselect.FetchAll;
 
-  TOT := 0;
+  TOT     := 0;
+  totNota := 0;
   while not dm.ibselect.Eof do
   begin
+    totNota := IfThen(dm.ibselect.FieldByName('total_nota').IsNull, 0, dm.ibselect.FieldByName('total_nota').AsCurrency);
     addRelatorioForm19(funcoes.CompletaOuRepete('', dm.ibselect.FieldByName('nota').AsString, '0', 9) + ' ' +
       funcoes.CompletaOuRepete(FormatDateTime('dd/mm/yyyy',
       dm.ibselect.FieldByName('data').AsDateTime), '', ' ', 11) +
@@ -18650,9 +18724,9 @@ begin
       CompletaOuRepete(LeftStr(dm.ibselect.FieldByName('fornec').AsString + '-'
       + dm.ibselect.FieldByName('nome').AsString, 32), '', ' ', 32) +
       funcoes.CompletaOuRepete('',
-      formataCurrency(dm.ibselect.FieldByName('total_nota').AsCurrency), ' ',
+      formataCurrency( totNota), ' ',
       12) + CRLF);
-    TOT := TOT + dm.ibselect.FieldByName('total_nota').AsCurrency;
+    TOT := TOT + totNota;
     dm.ibselect.Next;
   end;
 

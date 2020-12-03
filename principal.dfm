@@ -12011,6 +12011,16 @@ object form22: Tform22
         Transparent = True
       end
     end
+    object Button2: TButton
+      Left = 24
+      Top = 99
+      Width = 75
+      Height = 25
+      Caption = 'Button2'
+      TabOrder = 5
+      Visible = False
+      OnClick = Button2Click
+    end
   end
   object Timer1: TTimer
     Enabled = False

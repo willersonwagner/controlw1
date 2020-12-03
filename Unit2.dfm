@@ -11993,6 +11993,10 @@ object Form2: TForm2
           Caption = 'Estoque Atual em M3'
           OnClick = EstoqueAtualemM31Click
         end
+        object ProdutosExcluidosdeServios1: TMenuItem
+          Caption = 'Produtos Excluidos de Servi'#231'os'
+          OnClick = ProdutosExcluidosdeServios1Click
+        end
       end
       object Faturamento1: TMenuItem
         Caption = 'Faturamento *'

@@ -18,6 +18,7 @@ type
     segn: TTimer;
     BitBtn1: TBitBtn;
     timerThread: TTimer;
+    Label4: TLabel;
     procedure FormShow(Sender: TObject);
     procedure SIMClick(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
@@ -26,6 +27,7 @@ type
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   private
     { Private declarations }
+    procedure abrePIX;
   public
     segundos, cont : integer;
     threadDesbloqueio : TTWThreadVerificaPagamento;
@@ -39,11 +41,25 @@ implementation
 
 {$R *.dfm}
 
+uses qrcodePIX;
+
+
+procedure TForm58.abrePIX;
+begin
+  //form84 := form84.Create(Application);
+  form84.Show;
+  //form84.Free;
+end;
+
 procedure TForm58.FormKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
   if key=vk_f4 then
     abort;
+
+  if key=VK_F2 then begin
+    abrePIX;
+  end;
 end;
 
 procedure TForm58.FormShow(Sender: TObject);
@@ -64,6 +80,8 @@ end;
 
 procedure TForm58.SIMClick(Sender: TObject);
 begin
+  if form84.Showing then form84.Close;
+  
   CLOSE;
 end;
 

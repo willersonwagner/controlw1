@@ -10509,7 +10509,8 @@ begin
 
     if not VerSeExistePROCEDUREPeloNome('BAIXAESTOQUE') then begin
       //dm.IBScript1.Close;
-      dm.IBScript1.Script.Text := ('CREATE PROCEDURE baixaEstoque(cod integer, quant numeric(10, 4), origem integer) returns (nota integer) as' +
+      dm.IBScript1.Script.Text := (
+      'CREATE PROCEDURE baixaEstoque(cod integer, quant numeric(10, 4), origem integer) returns (nota integer) as' +
       ' DECLARE VARIABLE tipo VARCHAR(25); BEGIN ' +
       ' nota = 1; '+
       ' IF (origem = 2) THEN BEGIN ' +
@@ -10658,7 +10659,8 @@ begin
 
     if not VerSeExisteTRIGGERPeloNome('ALTERA_PRODUTO_ENTRADA') then begin
       //dm.IBScript1.Close;
-      dm.IBScript1.Script.Text := ('CREATE TRIGGER altera_produto_entrada FOR item_entrada ' +
+      dm.IBScript1.Script.Text := (
+      'CREATE TRIGGER altera_produto_entrada FOR item_entrada ' +
       ' ACTIVE BEFORE INSERT POSITION 0 AS BEGIN ' +
       ' if (new.destino <= 1) then begin ' +
       ' update produto set quant = quant + new.QTD_ENT where cod = new.cod; ' +
@@ -11093,6 +11095,23 @@ begin
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Text := 'CREATE SEQUENCE ENTREGA_NOVO';
       dm.IBQuery1.ExecSQL;
+    end;
+
+    if not VerSeExisteTRIGGERPeloNome('ALTERA_CAIXA_VENDA_AVISTA') then begin
+      //dm.IBScript1.Close;
+      dm.IBScript1.Script.Text := (
+      'CREATE TRIGGER altera_caixa_venda_avista FOR venda ACTIVE after INSERT POSITION 0 AS declare variable valor numeric(10, 2); declare variable codmov integer; begin ' +
+      ' valor = 0; ' +
+      ' if (new.codhis = 1) then begin '+
+      ' valor = new.total; end ' +
+      ' select codmov from caixa where (historico = ''VENDAS DO DIA A VISTA'') and (cast(data as date) = new.data) into :codmov; ' +
+
+      ' if (valor > 0) then BEGIN if (codmov > 0) then begin  ' +
+      ' update caixa set entrada = entrada + :valor where codmov = :codmov; end else begin ' +
+      ' insert into caixa(formpagto,codgru,codmov,codhis,data,datamov,historico,entrada) values(new.codhis ,1, gen_id(movcaixa, 1) ,1,cast(new.data as date) + cast(current_time as time),new.data,''VENDAS DO DIA A VISTA'',:valor); '+
+      ' END end end;');
+      dm.IBScript1.ExecuteScript;
+      //dm.IBQuery1.Transaction.Commit;
     end;
 
     //VerificaVersao_do_bd
@@ -14884,6 +14903,11 @@ begin
 
     if EnviarImpressora = 'S' then
     begin
+      criaPasta(caminhoEXE_com_barra_no_final+ 'IMP\');
+      if FileExists(caminhoEXE_com_barra_no_final+ 'IMP\TEXTO.txt') then
+        DeleteFile(caminhoEXE_com_barra_no_final+ 'IMP\TEXTO.txt');
+      form19.RichEdit1.Lines.SaveToFile(caminhoEXE_com_barra_no_final+ 'IMP\TEXTO.txt');
+
       imprime.textx('texto.txt');
     end
     else
@@ -15714,6 +15738,11 @@ begin
 
     if EnviarImpressora = 'S' then
     begin
+      criaPasta(caminhoEXE_com_barra_no_final+ 'IMP\');
+      if FileExists(caminhoEXE_com_barra_no_final+ 'IMP\TEXTO.txt') then
+        DeleteFile(caminhoEXE_com_barra_no_final+ 'IMP\TEXTO.txt');
+      form19.RichEdit1.Lines.SaveToFile(caminhoEXE_com_barra_no_final+ 'IMP\TEXTO.txt');
+
       imprime.textx('');
 
       if ((opcao = 1) and (funcoes.buscaParamGeral(118, '') = 'S')) then begin
@@ -22350,15 +22379,26 @@ var
   data: TDateTime;
   SystemTime: TSystemTime;
   cont: integer;
-  retorno : String;
+  retorno, cnpj : String;
+  arq : TStringList;
 begin
+
   Result := False;
   cont := 0;
   funcoes.Mensagem(Application.Title, 'Aguarde, Buscando Data...', 15,
     'Courier New', False, 0, clRed);
+
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select cnpj from registro';
+  dm.IBselect.Open;
+
+  cnpj := StrNum(dm.IBselect.FieldByName('cnpj').AsString);
+  dm.IBselect.Close;
+
   Application.ProcessMessages;
+
   try
-    Result := acertaDataSite(dataMov, retorno, StrNum(form22.Pgerais.Values['cnpj']));
+    Result := acertaDataSite(dataMov, retorno, cnpj);
   finally
     pergunta1.option := 2;
     funcoes.Mensagem(Application.Title, '', 15, '',False, 0, clBlack, true);
@@ -22366,8 +22406,23 @@ begin
 
   if Contido('|BLOQUEADO|', retorno) then begin
     cont := 15;
-    funcoes.adicionaRegistroDataBloqueio(true, true, cont,query1, true);
+    if form58.Showing = false then
+    funcoes.adicionaRegistroDataBloqueio(false, true, cont,query1, true);
   end;
+
+  if Contido('|DESBLOQUEADO|', retorno) then begin
+    funcoes.limpaBloqueado(query1);
+  end;
+
+  arq := TStringList.Create;
+  LE_CAMPOS(arq, retorno, '|', false);
+
+  form22.qrcodePIX := arq.Values['7'];
+  form22.beneNome  := arq.Values['8'];
+  form22.beneCNPJ  := arq.Values['9'];
+  form22.beneFone  := arq.Values['10'];
+
+  if form22.beneNome = '' then form22.beneCNPJ := cnpj;
 
   exit;
 
@@ -28971,3 +29026,4 @@ end;
 
 
 end.
+

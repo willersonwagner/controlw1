@@ -487,8 +487,14 @@ begin
   frete.Text := iif(trim(dm.IBQuery3.fieldbyname('frete').AsString) = '', '0,00', FormatCurr('#,###,###0.00', dm.IBQuery3.fieldbyname('frete').AsCurrency));
   valores[7] := iif(trim(dm.IBQuery3.fieldbyname('frete').AsString) = '', 0, dm.IBQuery3.fieldbyname('frete').AsCurrency);
 
-  p_compra.Text := iif(trim(dm.IBQuery3.fieldbyname('p_compra').AsString) = '', '0,00', FormatCurr('#,###,###0.0000000000', dm.IBQuery3.fieldbyname('p_compra').AsCurrency));
-  valores[8] := iif(trim(dm.IBQuery3.fieldbyname('p_compra').AsString) = '', 0, dm.IBQuery3.fieldbyname('p_compra').AsCurrency);
+  if Contido(form22.Pgerais.Values['empresa'],'MOTO PECAS UNIAO') = false then begin
+    p_compra.Text := iif(trim(dm.IBQuery3.fieldbyname('p_compra').AsString) = '', '0,00', FormatCurr('#,###,###0.0000000000', dm.IBQuery3.fieldbyname('p_compra').AsCurrency));
+    valores[8] := iif(trim(dm.IBQuery3.fieldbyname('p_compra').AsString) = '', 0, dm.IBQuery3.fieldbyname('p_compra').AsCurrency);
+  end
+  else begin
+    p_compra.Text := iif(trim(dm.IBQuery3.fieldbyname('p_compra').AsString) = '', '0,00', FormatCurr('#,###,###0.000', dm.IBQuery3.fieldbyname('p_compra').AsCurrency));
+    valores[8] := iif(trim(dm.IBQuery3.fieldbyname('p_compra').AsString) = '', 0, dm.IBQuery3.fieldbyname('p_compra').AsCurrency);
+  end;
 
   lucro.Text := iif(trim(dm.IBQuery3.fieldbyname('lucro').AsString) = '', '0,00', FormatCurr('#,###,###0.00', dm.IBQuery3.fieldbyname('lucro').AsCurrency));
   valores[9] := iif(trim(dm.IBQuery3.fieldbyname('lucro').AsString) = '', 0, dm.IBQuery3.fieldbyname('lucro').AsCurrency);

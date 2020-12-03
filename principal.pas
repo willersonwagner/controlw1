@@ -41,6 +41,7 @@ type
     ClientDataSet1: TClientDataSet;
     ClientDataSet1COOD: TIntegerField;
     ClientDataSet1NOME: TStringField;
+    Button2: TButton;
     procedure nomeKeyPress(Sender: TObject; var Key: Char);
     procedure senhaKeyPress(Sender: TObject; var Key: Char);
     procedure FormShow(Sender: TObject);
@@ -51,6 +52,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure ApplicationEvents1Minimize(Sender: TObject);
     procedure Button1Click(Sender: TObject);
+    procedure Button2Click(Sender: TObject);
   private
     cont : integer;
     { Private declarations }
@@ -60,7 +62,7 @@ type
     Pgerais, nomesServico : TStringList;
     datamov: tdatetime;
     superUsu : integer;
-    UnidInteiro : string;
+    UnidInteiro, qrcodePIX, beneNome, beneCNPJ, beneFone : string;
     procedure TrimAppMemorySize;
     procedure EventoErro(Sender: TObject; E: Exception);
     function enviNFCe(const perg : String = ''; nnf : String = ''; recebido : currency = 0) : boolean;
@@ -82,7 +84,7 @@ implementation
 uses Unit1,  func, Unit2, relatorio, minilocalizar, Math, Unit38,
   creceberposicao, registro, TypInfo, StrUtils, backup, dialog, nfe, spedfiscal,
   Unit49, Unit48, cadCli, untConfiguracoesNFCe, U_Principal, gifAguarde,
-  pagamento;
+  pagamento, qrcodePIX;
 
 {$R *.dfm}                
 
@@ -487,6 +489,13 @@ end;
 procedure Tform22.Button1Click(Sender: TObject);
 begin
   funcoes.acertaVendasDoDiaAVista;
+end;
+
+procedure Tform22.Button2Click(Sender: TObject);
+begin
+  form84 := tform84.Create(self);
+  form84.ShowModal;
+  form84.Free;
 end;
 
 function Tform22.enviNFCe(const perg : String = ''; nnf : String = ''; recebido : currency = 0) : boolean;
