@@ -4367,19 +4367,18 @@ begin
           totVolumes), '.', 40) + CRLF);
       end;
     end
-    else
-    begin
+    else begin
       form19.RichEdit1.Perform(EM_REPLACESEL, 1,
         Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 40) + #13
         + #10))));
 
-      if funcoes.buscaParamGeral(112, 'S') = 'S' then
-      begin
+      if funcoes.buscaParamGeral(112, 'S') = 'S' then begin
         if Modo_Venda then
           addRelatorioForm19(funcoes.CompletaOuRepete(nomevol,
             FormatCurr('#,###,###0.00' + IfThen(contido('M3', nomevol), '00',
             ''), totVolumes), '.', 40) + CRLF);
       end;
+
       addRelatorioForm19(funcoes.CompletaOuRepete('SUBTOTAL:',
         FormatCurr('#,##,###0.00', total1 - Desconto), '.', 40) + CRLF);
       addRelatorioForm19(funcoes.CompletaOuRepete('DESCONTO(' +
@@ -4529,6 +4528,7 @@ begin
   ClientDataSet1.First;
 
   novocod := funcoes.novocod('orcamento');
+  JsEdit1.Text := IntToStr(StrToIntDef(JsEdit1.Text, 0));
 
   dm.IBQuery1.Close;
   dm.IBQuery1.SQL.Clear;
@@ -4601,6 +4601,7 @@ begin
   ClientDataSet1.First;
 
   novocod := funcoes.novocod('COMPRA');
+  JsEdit1.Text := IntToStr(StrToIntDef(JsEdit1.Text, 0));
 
   dm.IBQuery1.Close;
   dm.IBQuery1.SQL.Clear;
@@ -5967,10 +5968,11 @@ begin
   dm.IBQuery1.ParamByName('pagto').AsInteger := StrToIntDef(codhis, 0);
   dm.IBQuery1.ParamByName('desc').AsCurrency := Desconto;
 
-  if length(trim(JsEdit1.Text)) >= 3 then
+  JsEdit1.Text := IntToStr(StrToIntDef(JsEdit1.Text, 0));
+  if ((length(trim(JsEdit1.Text)) >= 3) or (JsEdit1.Text = '')) then
     JsEdit1.Text := '30';
   dm.IBQuery1.ParamByName('prazo').AsCurrency :=
-    StrToCurrDef(trim(JsEdit1.Text), 30);
+    StrToCurrDef(trim(JsEdit1.Text), 0);
   dm.IBQuery1.ParamByName('entrada').AsCurrency := entrada;
   dm.IBQuery1.ParamByName('exportado').AsInteger := EXPORTADO;
   dm.IBQuery1.ParamByName('USUARIO').AsInteger :=
@@ -6164,6 +6166,8 @@ begin
       'Control for Windows:', 'Finalizar Venda: S/N', 'S');
     if fim = 'S' then
     begin
+      JsEdit1.Text := IntToStr(StrToIntDef(JsEdit1.Text, 0));
+
       if Compra then
       begin
         total1 := somaValor;

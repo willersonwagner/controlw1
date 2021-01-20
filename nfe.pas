@@ -3575,8 +3575,8 @@ begin
 
           query2.SQL.Clear;
 
-          if existeCampoTipo_item then query2.SQL.Add('select cod, dev_icm, nome, tipo_item, codbar, unid, aliquota, is_pis, cod_ispis, p_compra, p_venda, obs from produto where cod = :cod')
-          else query2.SQL.Add('select cod, dev_icm, nome, codbar, unid, aliquota, is_pis, cod_ispis, p_compra, p_venda, obs from produto where cod = :cod');
+          if existeCampoTipo_item then query2.SQL.Add('select p.cod, a.reducao, p.dev_icm, p.nome, p.tipo_item, p.codbar, p.unid, p.aliquota, p.is_pis, p.cod_ispis, p.p_compra, p.p_venda,'+' p.obs from produto p left join aliq a on (iif(p.aliquota = '''', 0, p.aliquota) = a.cod) where p.cod = :cod')
+          else query2.SQL.Add('select p.cod, a.reducao, p.dev_icm, p.nome, p.tipo_item, p.codbar, p.unid, p.aliquota, p.is_pis, p.cod_ispis, p.p_compra, p.p_venda, p.obs from produto p'+' left join aliq a on (iif(p.aliquota = '''', 0, p.aliquota) = a.cod) where p.cod = :cod');
           query2.ParamByName('cod').AsString := query1.fieldbyname('cod').AsString;
           query2.Open;
 
@@ -3629,7 +3629,7 @@ begin
                  item.VlrICMS            := 0;
                  item.DescICMS           := 0;
                  item.Aliq               := query2.fieldbyname('aliquota').AsString;
-                 item.Reducao            := 0;
+                 item.Reducao            := query2.fieldbyname('reducao').AsCurrency;
                  item.CodAliq            := StrToIntdef(StrNum(query1.fieldbyname('aliquota').AsString), 2);
                  item.Total_Preco_Compra := abs(arrendondaNFe(query1.fieldbyname('p_compra').AsCurrency * query1.fieldbyname('quant').AsCurrency,2));
                  item.Pis                := query2.fieldbyname('is_pis').AsString;

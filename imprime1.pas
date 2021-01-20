@@ -137,6 +137,8 @@ type
     RLDBText9: TRLDBText;
     RLDBText10: TRLDBText;
     RLDBText11: TRLDBText;
+    RLReport3: TRLReport;
+    RLMemo5: TRLMemo;
     procedure Timer1Timer(Sender: TObject);
     procedure RLBand7BeforePrint(Sender: TObject; var PrintIt: Boolean);
     procedure RLReport2AfterPrint(Sender: TObject);

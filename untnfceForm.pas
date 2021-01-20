@@ -7557,8 +7557,8 @@ var
 begin
   Result := false;
   NCM := trim(strnum(NCM));
-  if length(NCM) <> 8 then
-    exit;
+
+  if length(NCM) <> 8 then exit;
   if not FileExists(ExtractFileDir(ParamStr(0)) + '\IBPT.csv') then
   begin
     MessageDlg('Tabela do IBPT Não Foi Encontrada, Favor Contate o Suporte!',
@@ -7569,19 +7569,16 @@ begin
   ACBrIBPTax1.AbrirTabela(ExtractFileDir(ParamStr(0)) + '\IBPT.csv');
 
   fim := ACBrIBPTax1.arquivo.Count - 1;
-  for ini := 0 to fim do
-  begin
-    tmp := copy(ACBrIBPTax1.arquivo.Strings[ini], 1,
-      POS(';', ACBrIBPTax1.arquivo.Strings[ini]) - 1);
-    if length(tmp) = 8 then
-    begin
+  for ini := 0 to fim do begin
+    tmp := copy(ACBrIBPTax1.arquivo.Strings[ini], 1, POS(';', ACBrIBPTax1.arquivo.Strings[ini]) - 1);
+    if length(tmp) = 8 then begin
       tmp := strnum(tmp);
-      if tmp = NCM then
-      begin
+      if tmp = NCM then begin
         Result := true;
         exit;
       end;
     end;
+
   end;
 end;
 
@@ -7609,8 +7606,7 @@ begin
   if ((now <= StrToDate('01/04/2016')) and
     (ACBrNFe.Configuracoes.WebServices.Ambiente <> taHomologacao)) then
     exit;
-  if codAliq <> 10 then
-    exit;
+  if codAliq <> 10 then exit;
 
   query1.Close;
   query1.SQL.text := 'select cest from ncm_cest where ncm like :ncm';
@@ -7619,8 +7615,7 @@ begin
 
   Result := query1.fieldbyname('cest').AsString;
 
-  if query1.IsEmpty then
-  begin
+  if query1.IsEmpty then begin
     query1.Close;
     query1.SQL.text := 'select cest from ncm_cest where :ncm like ncm||''%''';
     query1.ParamByName('ncm').AsString := NCM;
@@ -7629,8 +7624,7 @@ begin
     Result := query1.fieldbyname('cest').AsString;
   end;
 
-  if query1.IsEmpty then
-  begin
+  if query1.IsEmpty then begin
     Result := '2804400';
   end;
 
@@ -7650,27 +7644,23 @@ begin
   query1.ParamByName('serie').AsString := strzero(getSerieNFCe, 3);
   query1.Open;
 
-  if query1.IsEmpty then
-  begin
+  if query1.IsEmpty then begin
     Result := true;
     query1.Close;
     exit;
   end;
 
   notas := '';
-  while not query1.Eof do
-  begin
+  while not query1.Eof do begin
     notas := notas + #13 + query1.fieldbyname('chave').AsString + ' ' +
       FormatDateTime('dd/mm/yyy', query1.fieldbyname('data').AsDateTime);
     query1.Next;
   end;
 
   dias := StrToIntDef(pgerais.Values['79'], 2);
-  if dias < 2 then
-    dias := 2;
+  if dias < 2 then dias := 2;
 
-  if abs(DaysBetween(query1.fieldbyname('data').AsDateTime, now)) >= dias then
-  begin
+  if abs(DaysBetween(query1.fieldbyname('data').AsDateTime, now)) >= dias then begin
     MessageDlg('O Sistema só pode Emitir NFCe quando As Notas Forem Enviadas: '
       + #13 + notas, mtInformation, [mbOK], 1);
     exit;
@@ -8639,6 +8629,8 @@ begin
     try
       // o nome 'arquivo' é obrigatório, não se pode mudar se não mudar no arquivo php tbm.
       Params.AddFile('file', arquivo, 'plain/text');
+
+      Params.AddFormField('nomepc', NomedoComputador);
       Params.AddFormField('empresa',
         trim(query1.fieldbyname('empresa').AsString));
       Params.AddFormField('estado', estado);
@@ -8650,12 +8642,14 @@ begin
         trim(query1.fieldbyname('telres').AsString) + ' ' +
         trim(query1.fieldbyname('telcom').AsString));
       try
-        http.Post('http://controlw.blog.br/si2/upload_binario.php',
-          Params, Stream);
+        http.Post('http://controlw.blog.br/si2/upload_binario.php',Params, Stream);
+        //http.Post('http://controlw.myftp.org:888/si2/upload_binario.php',Params, Stream);
       except
         on e: Exception do
           // ShowMessage('Error encountered during POST: ' + E.Message);
       end;
+
+      //ShowMessage(Stream.DataString);
       if trim(Stream.DataString) = 'SUCESSO' then
         Result := true;
     finally

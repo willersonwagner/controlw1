@@ -236,13 +236,13 @@ begin
    end;
 
    try
-    if ParamCount > 0 then
-      begin
+    //if ParamCount > 0 then
+      //begin
         if funcoes.le_configTerminalWindows(6, 'S') = 'S' then
           begin
             funcoes.fazBackupDoBD(true);
           end;
-      end;
+      //end;
      //copia bd do servidor
    except
    end;

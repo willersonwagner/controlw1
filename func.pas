@@ -112,6 +112,7 @@ type
     cdsEquiva: TClientDataSet;
     buscaTimer: String;
     listaProdutos: Tprodutos;
+    procedure salvaRicheditForm19comoPDF;
     procedure alteraDataHoraLocal(var data1 : TDateTime);
     procedure corrigeUnidades();
     procedure SOMA_EST(const cod: integer; const qtd, DEP: currency;
@@ -2846,13 +2847,16 @@ begin
     Add := 0;
     arq.LoadFromFile(caminhoEXE_com_barra_no_final + buscaNomeConfigDat);
 
-    pastaServidorControlW := funcoes.buscaConfigNaPastaDoControlW
-      ('pasta_ControlW_servidor', '\\' + ParamStr(1) + '\ControlW\');
-    dBackup := funcoes.buscaConfigNaPastaDoControlW('dataBackupBd',
-      '01/01/1900');
 
-    if dBackup = FormatDateTime('dd/mm/yyyy', now) then
-    begin
+    if ParamCount > 1 then begin
+      pastaServidorControlW := funcoes.buscaConfigNaPastaDoControlW('pasta_ControlW_servidor', '\\' + ParamStr(1) + '\ControlW\');
+    end
+    else begin
+      pastaServidorControlW := caminhoEXE_com_barra_no_final;
+    end;
+      dBackup := funcoes.buscaConfigNaPastaDoControlW('dataBackupBd','01/01/1900');
+
+    if dBackup = FormatDateTime('dd/mm/yyyy', now) then begin
       arq.Free;
       exit;
     end;
@@ -2872,6 +2876,7 @@ begin
       exit;
   end;
 
+  //ShowMessage(pastaServidorControlW);
   if not DirectoryExists(pastaServidorControlW) then
   begin
     ShowMessage('Backup de BD não foi realizado na pasta:' + #13 + arq.Values
@@ -14908,6 +14913,8 @@ begin
         DeleteFile(caminhoEXE_com_barra_no_final+ 'IMP\TEXTO.txt');
       form19.RichEdit1.Lines.SaveToFile(caminhoEXE_com_barra_no_final+ 'IMP\TEXTO.txt');
 
+      salvaRicheditForm19comoPDF;
+
       imprime.textx('texto.txt');
     end
     else
@@ -15742,6 +15749,8 @@ begin
       if FileExists(caminhoEXE_com_barra_no_final+ 'IMP\TEXTO.txt') then
         DeleteFile(caminhoEXE_com_barra_no_final+ 'IMP\TEXTO.txt');
       form19.RichEdit1.Lines.SaveToFile(caminhoEXE_com_barra_no_final+ 'IMP\TEXTO.txt');
+
+      salvaRicheditForm19comoPDF;
 
       imprime.textx('');
 
@@ -23400,7 +23409,7 @@ begin
     balItem.ValorVenda := dm.IBselect.FieldByName('p_venda').AsCurrency;
     balItem.Validade :=
       StrToIntDef(copy(dm.IBselect.FieldByName('codbar').AsString, 6, 3), 15);
-    balItem.Tecla := 0;
+    //balItem.Tecla := 0;
     //balItem.Receita := dm.IBselect.FieldByName('nome').AsString;
     // Nutricional     := Format('Informação Nutricional do item %d', [I]);;
 
@@ -24824,19 +24833,19 @@ begin
   begin
     dm.IBselect.Close;
     dm.IBselect.SQL.text :=
-      ('select i.quant, i.cod, i.p_venda, i.total, v.vendedor, p.nome' +
-      ' from item_venda i left join produto p on (p.cod = i.cod) left join venda v on (i.nota = v.nota)'
+      ('select p.nome,i.quant, i.cod, i.p_venda, i.total, i.vendedor, i.cod || i.vendedor as teste ' +
+      '  from item_venda i left join venda v on (i.nota = v.nota)  left join produto p on (p.cod = i.cod) '
       + ' where (v.cancelado = 0) and ((i.data >= :dini) and (i.data <= :dfim)) '
-      + h1 + h2 + h3 + ' order by v.vendedor, p.nome');
+      + h1 + h2 + h3 + ' order by  cast(iif(i.vendedor = '''', 0, i.vendedor) as integer), i.cod');
   end
   else
   begin
     dm.IBselect.Close;
     dm.IBselect.SQL.text :=
-      ('select i.quant, i.cod, i.p_venda, i.total, v.vendedor' +
+      ('select p.nome,i.quant, i.cod, i.p_venda, i.total, i.vendedor, i.cod || i.vendedor as teste' +
       ' from item_venda i left join venda v on (i.nota = v.nota)  left join produto p on (p.cod = i.cod) '
       + ' where (v.cancelado = 0) and ((i.data >= :dini) and (i.data <= :dfim)) '
-      + h1 + h2 + h3 + ' order by v.vendedor, i.cod');
+      + h1 + h2 + h3 + ' order by cast(iif(i.vendedor = '''', 0, i.vendedor) as integer), i.cod');
   end;
 
   dm.IBselect.ParamByName('dini').AsDateTime :=
@@ -24915,8 +24924,7 @@ begin
 
     while not dm.IBselect.Eof do
     begin
-      if Produtos.count = 0 then
-      begin
+      if Produtos.count = 0 then begin
         addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', tam) +
           #13 + #10);
         addRelatorioForm19
@@ -24952,32 +24960,26 @@ begin
 
       vendAnt := dm.IBselect.FieldByName('vendedor').AsString;
 
-      { if no <> dm.IBselect.fieldbyname('nota').AsString then
-        begin
-        desc := desc + dm.IBselect.fieldbyname('desconto').AsCurrency;
-        no   := dm.IBselect.fieldbyname('nota').AsString;
-        end; }
 
-      tmp := Produtos.Find(dm.IBselect.FieldByName('cod').AsInteger);
+      //tmp := Produtos.Find(dm.IBselect.FieldByName('cod').AsInteger);
+
+      tmp := Produtos.FindCodSTR(dm.IBselect.FieldByName('vendedor').AsString + dm.IBselect.FieldByName('teste').AsString);
       if tmp = -1 then
       begin
         tmp := Produtos.Add(TregProd.Create);
-        Produtos[tmp].cod := dm.IBselect.FieldByName('cod').AsInteger;
-        dm.IBQuery2.Close;
-        dm.IBQuery2.SQL.text := 'select nome from produto where cod = :cod';
-        dm.IBQuery2.ParamByName('cod').AsInteger := Produtos[tmp].cod;
-        dm.IBQuery2.Open;
+
+        Produtos[tmp].codStr := dm.IBselect.FieldByName('vendedor').AsString + dm.IBselect.FieldByName('teste').AsString;
+        Produtos[tmp].temp   := dm.IBselect.FieldByName('vendedor').AsString;
+        Produtos[tmp].cod    := dm.IBselect.FieldByName('cod').AsInteger;
         Produtos[tmp].nome :=
-          copy(dm.IBQuery2.FieldByName('nome').AsString, 1, 40);
+          copy(dm.IBselect.FieldByName('nome').AsString, 1, 40);
         Produtos[tmp].quant := dm.IBselect.FieldByName('quant').AsCurrency;
-        // produtos[tmp].total := dm.IBselect.fieldbyname('total').AsCurrency;
         Produtos[tmp].total := dm.IBselect.FieldByName('total').AsCurrency;
       end
       else
       begin
         Produtos[tmp].quant := Produtos[tmp].quant + dm.IBselect.FieldByName
           ('quant').AsCurrency;
-        // produtos[tmp].total := produtos[tmp].total + dm.IBselect.fieldbyname('total').AsCurrency;
         Produtos[tmp].total := Produtos[tmp].total + dm.IBselect.FieldByName
           ('total').AsCurrency;
       end;
@@ -25033,6 +25035,9 @@ begin
     desc := StrToCurrDef(dm.IBQuery2.FieldByName('desc').AsString, 0);
     dm.IBQuery2.Close;
     totalGeral := totalGeral + desc;
+
+    if fornecNFe <> '' then desc := 0;
+
 
     if tam = 80 then
     begin
@@ -25426,10 +25431,10 @@ end;
 procedure Tfuncoes.distribuicaoNFe();
 var
   cnpj, UltNSU, sStat: string[20];
-  sChave, CODestado, msgERRO, Impresso, sTemMais: String;
+  sChave, CODestado, msgERRO, Impresso, sTemMais, xml: String;
   dataset: TClientDataSet;
-  i, fim: integer;
-  lista: tstringList;
+  i, fim, xmlsBaixados, xmlsResumos, xmlsEventos: integer;
+  lista: tstringlist;
 begin
   dataset := TClientDataSet.Create(self);
   dataset.FieldDefs.Add('NOME', ftString, 50);
@@ -25490,41 +25495,78 @@ begin
     UltNSU := StrNum(dm.IBselect.FieldByName('valor').AsString);
   dm.IBselect.Close;
 
-  funcoes.Mensagem(Application.Title, 'Aguarde, Conectando...', 15, 'Arial',
+  funcoes.Mensagem(Application.Title, 'Aguarde, Conectando 1...', 15, 'Arial',
     False, 0, clBlack);
   Application.ProcessMessages;
   i := 0;
 
+  //ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.LerXMLFromFile('F:\clientes\agropesca\Distri_nfes.xml');
+  //ShowMessage('1');
+
   //ShowMessage(UltNSU);
 
-  while true do
-  begin
+  while true do begin
     Inc(i);
-    if i = 7 then
-      break;
+    if i = 7 then break;
     Application.ProcessMessages;
     try
-      ACBrNFe.DistribuicaoDFe(StrToInt(CODestado), cnpj, UltNSU, '');
+      if StrToIntDef(UltNSU, 0) > 0 then begin
+        ACBrNFe.DistribuicaoDFePorUltNSU(StrToInt(CODestado), cnpj, UltNSU);
+      end
+      else begin
+        ACBrNFe.DistribuicaoDFe(StrToInt(CODestado), cnpj, UltNSU, '');
+      end;
       msgERRO := 'OK';
       funcoes.Mensagem(Application.Title, '', 15, '',False, 0, clBlack, true);
       break;
     except
-      on e: exception do
-      begin
+      on e: exception do begin
         msgERRO := e.Message;
       end;
     end;
+
+    if (Contido('Rejeicao:', msgERRO)) then begin
+      GravarTexto(caminhoEXE_com_barra_no_final + 'Distri_nfes.xml', ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.XML);
+      funcoes.Mensagem(Application.Title, '', 15, '',False, 0, clBlack, true);
+      MessageDlg('Atenção! '+#13+#13+'Ocorreu uma Rejeição: ' + #13 +
+       #13 + msgERRO + #13 + 'Cstat: ' + IntToStr(ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.cStat), mtError, [mbok], 1);
+      exit;
+    end;
+
+    sStat := IntToStr(ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.cStat);
+
+    if sStat = '137' then begin
+      funcoes.Mensagem(Application.Title, '', 15, '',False, 0, clBlack, true);
+      MessageDlg('Retorno 137: ' + #13 +
+      #13 + ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.xMotivo + #13 + 'Cstat: ' + IntToStr(ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.cStat), mtError, [mbok], 1);
+      exit;
+    end;
+
+    if sStat = '138' then begin
+      funcoes.Mensagem(Application.Title, '', 15, '',False, 0, clBlack, true);
+      break;
+    end;
   end;
 
-  if (i = 4) then
-  begin
+  //sleep(500);
+
+  //GravarTexto(caminhoEXE_com_barra_no_final + 'Distri_nfes.xml', ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.XML);
+
+  if (i = 7) then begin
     funcoes.Mensagem(Application.Title, '', 15, '',False, 0, clBlack, true);
-    MessageDlg('O Sistema Não Conseguiu Comunicar com a Sefaz, ERRO: ' + #13 +
-      #13 + msgERRO, mtError, [mbok], 1);
+    MessageDlg('O Sistema Não Conseguiu Comunicar com a Sefaz, ERRO: ' + #13 + #13 + msgERRO, mtError, [mbok], 1);
     exit;
   end;
 
   sStat := IntToStr(ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.cStat);
+
+  if sStat = '137' then begin
+    //funcoes.Mensagem(Application.Title, '', 15, '',False, 0, clBlack, true);
+    MessageDlg('Retorno 137: ' + #13 +
+      #13 + ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.xMotivo + #13 + 'Cstat: ' + IntToStr(ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.cStat), mtError, [mbok], 1);
+    exit;
+  end;
+
 
   if sStat = '137' then
     sTemMais := 'N'
@@ -25533,25 +25575,49 @@ begin
 
   lista := tstringList.Create;
 
-  dm.IBselect.Close;
-  dm.IBselect.SQL.text := 'select chave from NFEDISTRIBUICAO';
-  dm.IBselect.Open;
+  dm.IBQuery1.Close;
+  dm.IBQuery1.SQL.text := 'select chave from NFEDISTRIBUICAO';
+  dm.IBQuery1.Open;
 
-  while not dm.IBselect.Eof do
+  while not dm.IBQuery1.Eof do
   begin
-    lista.Add(dm.IBselect.FieldByName('chave').AsString + '=X');
-    dm.IBselect.Next;
+    lista.Add(dm.IBQuery1.FieldByName('chave').AsString + '=X');
+    dm.IBQuery1.Next;
   end;
 
-  fim := ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.count - 1;
+  fim := 0;
+  try
+    fim := ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.count - 1;
+  except
+  end;
+
+  xmlsBaixados := 0;
+  xmlsResumos  := 0;
+  xmlsEventos  := 0;
 
   for i := 0 to fim do
   begin
-    if ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[i].resDFe.chDFe <> '' then
-    begin
-      UltNSU := ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.
-        Items[i].NSU;
-      sChave := ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[i].resDFe.chDFe;
+    sChave := ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[i].resDFe.chDFe;
+    UltNSU := ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[i].NSU;
+    xml := ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[i].XML;
+
+    if Contido('nfeProc', ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[i].XML) then begin
+      criaPasta(caminhoEXE_com_barra_no_final+'ENTRADAXML\');
+      GravarTexto(caminhoEXE_com_barra_no_final+'ENTRADAXML\'+ sChave +'.xml', xml);
+
+      Inc(xmlsBaixados);
+    end
+    else if Contido('resNFe', ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[i].XML) then begin
+      Inc(xmlsResumos);
+    end
+    else begin
+      inc(xmlsEventos);
+    end;
+
+
+    if ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[i].resDFe.chDFe <> '' then begin
+
+      //ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[i].
 
       dataset.Append;
       dataset.FieldByName('nome').AsString :=
@@ -25613,31 +25679,28 @@ begin
         dm.IBQuery1.SQL.text :=
           'insert into NFEDISTRIBUICAO(chave, CNPJ, DATA, NOME, valor, ie, tpnf, NSU, SIT)'
           + 'values(:chave, :CNPJ, :DATA, :NOME, :valor, :ie, :tpnf, :NSU, :SIT)';
-        dm.IBQuery1.ParamByName('chave').AsString := sChave;
-        dm.IBQuery1.ParamByName('CNPJ').AsString :=
-          dataset.FieldByName('CPFCNPJ').AsString;
-        dm.IBQuery1.ParamByName('DATA').AsDate := dataset.FieldByName('EMISSAO')
-          .AsDateTime;
-        dm.IBQuery1.ParamByName('NOME').AsString :=
-          dataset.FieldByName('nome').AsString;
-        dm.IBQuery1.ParamByName('valor').AsCurrency :=
-          dataset.FieldByName('VALOR').AsCurrency;
-        dm.IBQuery1.ParamByName('ie').AsString :=
-          dataset.FieldByName('IE').AsString;
+        dm.IBQuery1.ParamByName('chave').AsString := LeftStr(sChave, 45);
+        dm.IBQuery1.ParamByName('CNPJ').AsString  := LeftStr(dataset.FieldByName('CPFCNPJ').AsString,22);
+        dm.IBQuery1.ParamByName('DATA').AsDate := dataset.FieldByName('EMISSAO').AsDateTime;
+        dm.IBQuery1.ParamByName('NOME').AsString := UpperCase(LeftStr(dataset.FieldByName('nome').AsString, 50));
+        dm.IBQuery1.ParamByName('valor').AsCurrency := dataset.FieldByName('VALOR').AsCurrency;
+        dm.IBQuery1.ParamByName('ie').AsString := LeftStr(dataset.FieldByName('IE').AsString, 25);
 
-        case ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[i]
-          .resDFe.tpNF of
+        case ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[i].resDFe.tpNF of
           tnEntrada:
             dm.IBQuery1.ParamByName('tpnf').AsString := 'E';
           tnSaida:
             dm.IBQuery1.ParamByName('tpnf').AsString := 'S';
         end;
-        dm.IBQuery1.ParamByName('NSU').AsString := UltNSU;
-        dm.IBQuery1.ParamByName('SIT').AsString := Impresso;
+
+        dm.IBQuery1.ParamByName('NSU').AsString := RightStr(UltNSU, 30);
+        dm.IBQuery1.ParamByName('SIT').AsString := LeftStr(Impresso, 2);
         try
           dm.IBQuery1.ExecSQL;
         except
-
+          on e:exception do begin
+            //ShowMessage('Erro:' + e.Message);
+          end;
         end;
       end;
 
@@ -25645,8 +25708,10 @@ begin
     end;
   end;
 
-  if sStat = '138' then
-  begin
+  //ShowMessage('2');
+  //funcoes.Mensagem(Application.Title, '', 15, '',False, 0, clBlack, true);
+
+  if sStat = '138' then begin
     dm.IBQuery1.Close;
     dm.IBQuery1.SQL.text :=
       'update or insert into pgerais(cod, valor) values(10000, :valor) matching(cod)';
@@ -25667,7 +25732,10 @@ begin
     dm.IBQuery1.Transaction.Commit;
 
   if sStat = '138' then
-    ShowMessage(IntToStr(fim) + ' Consultas Realizadas e tem mais Documentos. cStat ' + sStat)
+    ShowMessage(IntToStr(fim + 1) + ' Consultas Realizadas e tem mais Documentos:'+#13+
+    'XMLs Baixados: ' + IntToStr(xmlsBaixados) +#13+
+    'XMLs Eventos : ' + IntToStr(xmlsEventos)  +#13+
+    'XMLs Resumos : ' + IntToStr(xmlsResumos)  +#13+#13+'cStat: ' + sStat)
   else
     ShowMessage(IntToStr(fim) +
       ' Consultas Realizadas e não tem mais Documentos. cStat ' + sStat);
@@ -25677,8 +25745,11 @@ begin
     form33.ShowModal;
     form33.Free; }
 
-  lista.Free;
-  dataset.Free;
+  try
+    lista.Free;
+    dataset.Free;
+  finally
+  end;
 end;
 
 procedure Tfuncoes.LimparEntregues(nota: String);
@@ -29021,6 +29092,19 @@ begin
     end;
   finally
   end;
+end;
+
+procedure Tfuncoes.salvaRicheditForm19comoPDF;
+var
+  ini : integer;
+begin
+  imprime.RLMemo5.Lines.Clear;
+  imprime.RLMemo5.Font := form19.RichEdit1.Font;
+  for ini := 0 to form19.RichEdit1.Lines.Count - 1 do begin
+    imprime.RLMemo5.Lines.Add(form19.RichEdit1.Lines[ini]);
+  end;
+
+  imprime.RLReport3.SaveToFile(caminhoEXE_com_barra_no_final + 'IMP\REL.PDF');
 end;
 
 

@@ -1406,6 +1406,26 @@ object imprime: Timprime
       end
     end
   end
+  object RLReport3: TRLReport
+    Left = 304
+    Top = 24
+    Width = 794
+    Height = 1123
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clBlack
+    Font.Height = -13
+    Font.Name = 'Arial'
+    Font.Style = []
+    ShowProgress = False
+    object RLMemo5: TRLMemo
+      Left = 38
+      Top = 38
+      Width = 718
+      Height = 1047
+      Align = faClient
+      Behavior = [beSiteExpander]
+    end
+  end
   object Timer1: TTimer
     Enabled = False
     OnTimer = Timer1Timer

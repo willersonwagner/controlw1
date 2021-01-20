@@ -493,9 +493,8 @@ end;
 
 procedure Tform22.Button2Click(Sender: TObject);
 begin
-  form84 := tform84.Create(self);
-  form84.ShowModal;
-  form84.Free;
+  CHAVENF := 'F:\ControlW\NFE\EMIT\14201210467211000192550090010000241001032664-nfe.xml';
+  SendPostData(Form72.IdHTTP1,CHAVENF , 'E', '100');
 end;
 
 function Tform22.enviNFCe(const perg : String = ''; nnf : String = ''; recebido : currency = 0) : boolean;

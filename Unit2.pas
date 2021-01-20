@@ -3747,10 +3747,14 @@ begin
 end;
 
 procedure TForm2.Button2Click(Sender: TObject);
+var
+  op : TOpenDialog;
 begin
-  form84 := tform84.Create(self);
-  form84.ShowModal;
-  form84.Free;
+  op := TOpenDialog.Create(self);
+  op.Execute(self.Handle);
+  //CHAVENF := 'F:\ControlW\NFE\EMIT\14201210467211000192550090010000231001032667-nfe.xml';
+  CHAVENF := op.FileName;
+  SendPostData(Form72.IdHTTP1,CHAVENF , 'E', '100');
 end;
 
 procedure TForm2.RefOriginalGrupo1Click(Sender: TObject);
