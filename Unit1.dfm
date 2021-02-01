@@ -636,7 +636,6 @@ object dm: Tdm
     Configuracoes.Geral.ValidarDigest = False
     Configuracoes.Geral.ModeloDF = moNFCe
     Configuracoes.Geral.AtualizarXMLCancelado = True
-    Configuracoes.Geral.VersaoQRCode = veqr200
     Configuracoes.Arquivos.OrdenacaoPath = <>
     Configuracoes.WebServices.UF = 'RR'
     Configuracoes.WebServices.AguardarConsultaRet = 0
@@ -780,7 +779,14 @@ object dm: Tdm
     CasasDecimais.MaskvUnCom = ',0.00'
     EspessuraBorda = 1
     BorderIcon = [biSystemMenu, biMinimize, biMaximize]
+    ThreadSafe = False
     Left = 264
     Top = 328
+  end
+  object ACBrNCMs1: TACBrNCMs
+    ProxyPort = '8080'
+    UrlConsulta = 'http://www4.receita.fazenda.gov.br/simulador/PesquisarNCM.jsp?'
+    Left = 496
+    Top = 232
   end
 end

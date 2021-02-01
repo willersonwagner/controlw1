@@ -13400,7 +13400,10 @@ begin
           mattVal[4] := 0;
 
           if ((venda <> dm.ibselect.FieldByName('nota').AsString)) then begin
+
             totrel := totrel + dm.ibselect.FieldByName('total1').AsCurrency;
+
+            //ShowMessage(dm.ibselect.FieldByName('nota').AsString + #13 + dm.ibselect.FieldByName('total1').AsString + #13 + CurrToStr(totrel));
 
             desconto := dm.ibselect.FieldByName('desconto').AsCurrency;
             venda := dm.ibselect.FieldByName('nota').AsString;
@@ -13462,6 +13465,8 @@ begin
     ini := ini + 1;
     dm.ibselect.Next; // next do dataset de venda
   end;
+
+  //ShowMessage(com0.GetText + #13 + #13 + com3.GetText + #13 + #13 + com4.GetText);
 
   fim := com0.Count - 1;
   for i := 0 to fim do
@@ -17824,7 +17829,7 @@ begin
 
         if ven <> dm.ibselect.FieldByName('vendedor').AsString then
         begin
-          com2.Values[ven] := CurrToStr(StrToCurr(com2.Values[ven]) +
+          com2.Values[ven] := CurrToStr(StrToCurrDef(com2.Values[ven], 0) +
             (desconto * (comiAvista / 100)));
           com1.Values[ven] := CurrToStr(StrToCurr(com1.Values[ven]) + desconto);
           addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10);
@@ -17905,9 +17910,9 @@ begin
 
         if venda <> dm.ibselect.FieldByName('nota').AsString then
         begin
-          com2.Values[vended] := CurrToStr(StrToCurr(com2.Values[vended]) +
+          com2.Values[vended] := CurrToStr(StrToCurrDef(com2.Values[vended], 0) +
             (desconto * (comiAvista / 100)));
-          com1.Values[vended] := CurrToStr(StrToCurr(com1.Values[vended]) +
+          com1.Values[vended] := CurrToStr(StrToCurrDef(com1.Values[vended], 0) +
             desconto);
 
           // com1.Values[vended] := CurrToStr(StrToCurr(com1.Values[vended]) + desconto );
@@ -17925,16 +17930,16 @@ begin
         begin
           if mattVal[3] <> 0 then
             com3.Values[dm.ibselect.FieldByName('vendedor').AsString] :=
-              CurrToStr(StrToCurr(com3.Values[dm.ibselect.FieldByName('vendedor')
-              .AsString]) + mattVal[3]);
+              CurrToStr(StrToCurrDef(com3.Values[dm.ibselect.FieldByName('vendedor')
+              .AsString], 0) + mattVal[3]);
           if mattVal[1] <> 0 then
             com1.Values[dm.ibselect.FieldByName('vendedor').AsString] :=
-              CurrToStr(StrToCurr(com1.Values[dm.ibselect.FieldByName('vendedor')
-              .AsString]) + mattVal[1]);
+              CurrToStr(StrToCurrDef(com1.Values[dm.ibselect.FieldByName('vendedor')
+              .AsString], 0) + mattVal[1]);
           if mattVal[2] <> 0 then
             com2.Values[dm.ibselect.FieldByName('vendedor').AsString] :=
-              CurrToStr(StrToCurr(com2.Values[dm.ibselect.FieldByName('vendedor')
-              .AsString]) + mattVal[2]);
+              CurrToStr(StrToCurrDef(com2.Values[dm.ibselect.FieldByName('vendedor')
+              .AsString], 0) + mattVal[2]);
         end
         else
         begin
@@ -17950,18 +17955,18 @@ begin
     dm.ibselect.Next; // next do dataset de venda
   end;
 
-  com2.Values[vended] := CurrToStr(StrToCurr(com2.Values[vended]) +
-    (desconto * (comiAvista / 100)));
-  com1.Values[vended] := CurrToStr(StrToCurr(com1.Values[vended]) + desconto);
+  com2.Values[vended] := CurrToStr(StrToCurrDef(com2.Values[vended], 0) + (desconto * (comiAvista / 100)));
+  com1.Values[vended] := CurrToStr(StrToCurrDef(com1.Values[vended], 0) + desconto);
+
 
   addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10);
   addRelatorioForm19(funcoes.CompletaOuRepete('TOTAL ' + ven + ' ===> ' +
     funcoes.CompletaOuRepete('VENDAS:',
-    formataCurrency(StrToCurr(com1.Values[ven])), ' ', 20) + ' ' +
+    formataCurrency(StrToCurrDef(com1.Values[ven], 0)), ' ', 20) + ' ' +
     funcoes.CompletaOuRepete('NORMAL:',
-    formataCurrency(StrToCurr(com2.Values[ven])), ' ', 20) + ' ' +
+    formataCurrency(StrToCurrDef(com2.Values[ven], 0)), ' ', 20) + ' ' +
     funcoes.CompletaOuRepete('DIFERENCIADA:',
-    formataCurrency(StrToCurr(com3.Values[ven])), ' ', 24), '', ' ', 80) +
+    formataCurrency(StrToCurrDef(com3.Values[ven], 0)), ' ', 24), '', ' ', 80) +
     #13 + #10);
   addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10);
 
@@ -17973,7 +17978,7 @@ begin
   begin
     totVende := totVende + StrToCurrDef(com2.Values[com1.Names[i]], 0) +
       StrToCurrDef(com3.Values[com1.Names[i]], 0);
-    total := total + StrToCurr(com1.Values[com1.Names[i]]);
+    total := total + StrToCurrDef(com1.Values[com1.Names[i]], 0);
   end;
 
   addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10);

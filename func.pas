@@ -11119,6 +11119,15 @@ begin
       //dm.IBQuery1.Transaction.Commit;
     end;
 
+    if not VerificaCampoTabela('ult_usu_alterado', 'CONTASRECEBER') then
+    begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add
+        ('ALTER TABLE CONTASRECEBER ADD ult_usu_alterado smallint');
+      dm.IBQuery1.ExecSQL;
+    end;
+
     //VerificaVersao_do_bd
   end;
 
@@ -24818,7 +24827,7 @@ begin
     h3 := ' and (p.fornec = ' + StrNum(fornecNFe) + ') ';
 
   if vend <> '' then
-    h1 := ' and (v.vendedor =' + vend + ')';
+    h1 := ' and (i.vendedor =' + vend + ')';
   i := 55;
 
   { dm.IBselect.SQL.Clear;
@@ -29110,4 +29119,3 @@ end;
 
 
 end.
-

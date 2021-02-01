@@ -7594,6 +7594,7 @@ begin
   validaVendedor;
   verificaCliente := true;
   JsEdit1.Enabled := true;
+  JsEdit2.Enabled := true;
   DBGrid1.Repaint;
 
   if separaPecas and (finaliza = false) then
@@ -7678,8 +7679,6 @@ end;
 
 procedure TForm20.DBGrid1Enter(Sender: TObject);
 begin
-
-
   if JsEdit1.getValor > 0 then JsEdit3.Enabled := false;
   DBGrid1.Repaint;
 
@@ -7691,6 +7690,10 @@ begin
   if ((form22.Pgerais.Values['codvendedor'] = '0') and (VerificaAcesso_Se_Nao_tiver_Nenhum_bloqueio_true_senao_false = false)) then begin
     JsEdit2.Enabled := false;
     JsEdit1.Enabled := false;
+  end;
+
+  if (JsEdit2.Text <> '0') then begin
+    JsEdit2.Enabled := false;
   end;
 end;
 

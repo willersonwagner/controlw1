@@ -42,6 +42,20 @@ object Form1: TForm1
     Height = 13
     Caption = 'Auth-Token'
   end
+  object Label5: TLabel
+    Left = 84
+    Top = 404
+    Width = 230
+    Height = 49
+    Caption = 'Conectando...'
+    Font.Charset = ANSI_CHARSET
+    Font.Color = clRed
+    Font.Height = -37
+    Font.Name = 'Tempus Sans ITC'
+    Font.Style = [fsBold]
+    ParentFont = False
+    Visible = False
+  end
   object Edit1: TEdit
     Left = 16
     Top = 24
@@ -143,14 +157,24 @@ object Form1: TForm1
     ItemHeight = 13
     TabOrder = 11
   end
+  object Button6: TButton
+    Left = 16
+    Top = 351
+    Width = 81
+    Height = 25
+    Caption = 'Download'
+    TabOrder = 12
+    OnClick = Button6Click
+  end
   object BindSourceRESTResponse: TBindSourceDB
     ScopeMappings = <>
     Left = 475
     Top = 161
   end
   object OAuth2Authenticator: TOAuth2Authenticator
-    Left = 659
-    Top = 153
+    TokenType = ttBEARER
+    Left = 683
+    Top = 185
   end
   object RESTResponseDataSetAdapter: TRESTResponseDataSetAdapter
     Dataset = FDMemTable1
@@ -191,8 +215,8 @@ object Form1: TForm1
     Top = 209
   end
   object FDStanStorageJSONLink1: TFDStanStorageJSONLink
-    Left = 672
-    Top = 232
+    Left = 688
+    Top = 240
   end
   object FDMemTable1: TFDMemTable
     FetchOptions.AssignedValues = [evMode]
@@ -201,12 +225,18 @@ object Form1: TForm1
     ResourceOptions.SilentMode = True
     UpdateOptions.AssignedValues = [uvCheckRequired]
     UpdateOptions.CheckRequired = False
-    Left = 648
-    Top = 289
+    Left = 688
+    Top = 297
   end
   object DataSource1: TDataSource
     DataSet = FDMemTable1
-    Left = 328
-    Top = 232
+    Left = 352
+    Top = 328
+  end
+  object Timer1: TTimer
+    Enabled = False
+    OnTimer = Timer1Timer
+    Left = 704
+    Top = 128
   end
 end

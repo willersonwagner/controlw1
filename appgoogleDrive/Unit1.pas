@@ -12,7 +12,7 @@ uses
   FireDAC.Stan.Intf, FireDAC.Stan.Option, FireDAC.Stan.Param,
   FireDAC.Stan.Error, FireDAC.DatS, FireDAC.Phys.Intf, FireDAC.DApt.Intf,
   Vcl.Grids, Vcl.DBGrids, Data.DB, FireDAC.Comp.DataSet, FireDAC.Comp.Client, REST.Types,
-  Vcl.FileCtrl;
+  Vcl.FileCtrl, Vcl.ExtCtrls;
 
 type
   TForm1 = class(TForm)
@@ -42,17 +42,23 @@ type
     DBGrid1: TDBGrid;
     Button5: TButton;
     ListBox1: TListBox;
+    Button6: TButton;
+    Timer1: TTimer;
+    Label5: TLabel;
     procedure Button1Click(Sender: TObject);
     procedure Button3Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure Button4Click(Sender: TObject);
     procedure Button5Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure Button6Click(Sender: TObject);
+    procedure Timer1Timer(Sender: TObject);
   private
     arq : TStringList;
     procedure salvaConfig;
     procedure carregaConfig;
     procedure carregaListaItems;
+    procedure criarPasta(nome : String);
     { Private declarations }
   public
     { Public declarations }
@@ -108,7 +114,7 @@ begin
       carregaListaItems;
   end;
 
-  //RESTResponse.GetSimpleValue('access_token', LValue) then
+  //RESTResponse.GetSimpleValue('access_tokens', LValue) then
 
 
   memo1.Lines.Add( StringReplace( RESTResponse.FullRequestURI, '&', '&&', [rfReplaceAll] ));
@@ -190,6 +196,11 @@ begin
   END;
 end;
 
+procedure TForm1.Button6Click(Sender: TObject);
+begin
+  criarPasta('');
+end;
+
 procedure TForm1.salvaConfig;
 var
   arq1 : TStringList;
@@ -208,6 +219,15 @@ begin
   arq1.Add('RefreshToken='          + Edit2.text);
   arq1.SaveToFile(ExtractFileDir(ParamStr(0)) + '\REST.DAT') ;
   arq1.Free;
+end;
+
+procedure TForm1.Timer1Timer(Sender: TObject);
+begin
+  Timer1.Enabled := false;
+  Label5.Visible := true;
+  Button3.Click;
+  Button1.Click;
+  Label5.Visible := false;
 end;
 
 procedure TForm1.carregaConfig;
@@ -230,6 +250,7 @@ end;
 procedure TForm1.FormCreate(Sender: TObject);
 begin
   arq := TStringList.Create;
+  Timer1.Enabled := true;
 end;
 
 procedure TForm1.carregaListaItems;
@@ -243,5 +264,76 @@ begin
     FDMemTable1.Next;
   end;
 end;
+
+
+procedure TForm1.criarPasta(nome : String);
+var
+  lresponse : TRESTResponse;
+  LClient: TRESTClient;
+  LRequest: TRESTRequest;
+  LValue: string;
+  fileDownload : TFileStream;
+  LURL : String;
+begin
+   /// we need at least two things here:
+  /// (1) an token-endpoint
+  /// (2) a client-id
+  /// (3) a client-secret
+  /// (4) an auth-code (from step #1)
+
+
+  {LURL := 'https://drive.google.com/uc?id='+FDMemTable1.FieldByName('id').AsString+'&export=download';
+  LURL := 'https://www.googleapis.com/drive/v2/files/'+FDMemTable1.FieldByName('id').AsString+'';
+  LURL := LURL + '?mimeType=JPEG' ;
+  LURL := LURL + '&access_token=' + edit3.Text;
+  LURL := LURL + '&client_id=' + edit1.Text;
+  //LURL := LURL + '&client_secret=' + edit4.Text;
+
+  ShellExecute(0, 'OPEN', PChar(LURL), '', '', SW_SHOWNORMAL);
+
+  exit;
+}  LClient  := TRESTClient.Create(self);
+  lresponse := TRESTResponse.Create(self);
+  LRequest  := TRESTRequest.Create(self);
+  LRequest.Client := LClient;
+  LRequest.Method := TRESTRequestMethod.rmGET;
+  LRequest.Response := lresponse;
+  RESTClient.Authenticator := OAuth2Authenticator;
+  //LRequest
+
+  TRY
+    LClient.BaseURL := 'https://www.googleapis.com/drive/v3/files/'+ FDMemTable1.FieldByName('id').AsString;
+    //LRequest.AddParameter('alt', 'media');
+    //LRequest.AddParameter('id', FDMemTable1.FieldByName('id').AsString);
+    //LRequest.AddParameter('access_token', edit3.Text);
+    //LRequest.AddParameter('client_id', edit1.Text);
+    //LRequest.AddParameter('client_secret', edit4.Text);
+    LRequest.AddParameter('alt', 'media');
+
+
+    LRequest.Execute;
+    if (LRequest.Response.StatusCode = 200) then
+    begin
+      fileDownload := TFileStream.Create(FDMemTable1.FieldByName('title').AsString, fmCreate);
+
+      Memo1.Lines.Add('');
+      Memo1.Lines.Add('');
+      Memo1.Lines.Add( LRequest.Response.Content);
+
+      LRequest.Response.Content
+    end
+    else begin
+      Memo1.Lines.Add(IntToStr(LRequest.Response.StatusCode) + ' '+ LRequest.Response.Content);
+      Memo1.Lines.Add('----------------------------------------------------------------------');
+      Memo1.Lines.Add(lresponse.FullRequestURI);
+    end;
+
+  FINALLY
+    FreeAndNIL(LRequest);
+    FreeAndNIL(LClient);
+  END;
+end;
+
+
 
 end.

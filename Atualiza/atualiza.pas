@@ -65,6 +65,7 @@ type
     procedure copiaExecutavel(LANurl: String);
     function GetDesktopPath: string;
     function TerminarProcesso(sFile: String): boolean;
+    procedure copiaControlwexeSeTiverMaisArquivosComMesmoNomeLak(var arq : TStringList);
     { Private declarations }
   public
     { Public declarations }
@@ -682,6 +683,8 @@ begin
   arq.Add('timeout /t 3 /nobreak');
   arq.Add('xcopy ' + ExtractFileDir(ParamStr(0)) + '\temp\*.*' + ' ' + ExtractFileDir(ParamStr(0)) + '\' + ' /y /e');
 
+  copiaControlwexeSeTiverMaisArquivosComMesmoNomeLak(arq);
+
   if pastaServer <> '' then
   begin
     arq.Add('xcopy ' + ExtractFileDir(ParamStr(0)) + '\temp\*.*' + ' ' + pastaServer + ' /y /e');
@@ -693,6 +696,7 @@ begin
   ShellExecute(Handle, nil, PChar(ExtractFileDir(ParamStr(0)) + '\copy.bat'),
     nil, nil, SW_SHOWNORMAL);
   // sleep(2000);
+
   Application.Terminate;
 end;
 
@@ -752,6 +756,23 @@ begin
       CopiarArquivos(Origem + '\' + Arquivos.Name, Destino, Filtro);
     Encontrou := FindNext(Arquivos);
   end;
+end;
+
+
+procedure TForm1.copiaControlwexeSeTiverMaisArquivosComMesmoNomeLak(var arq : TStringList);
+var
+  lista : TStringList;
+  i : integer;
+  pasta : String;
+begin
+  pasta := ExtractFileDir(ParamStr(0));
+  lista := listaArquivos(pasta+'\ControlW*.exe');
+  for i := 0 to lista.Count -1 do begin
+    arq.Add('xcopy '+ pasta + '\temp\ControlW.exe ' + pasta +'\'+ lista[i] + ' /y /e');
+    //CopyFile(pchar(pasta + '\temp\ControlW.exe'), pchar(pasta + lista[i]), true);
+  end;
+
+  FreeAndNil(lista);
 end;
 
 end.

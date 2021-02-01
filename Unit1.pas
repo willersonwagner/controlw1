@@ -13,7 +13,7 @@ uses
   FireDAC.Stan.Option, FireDAC.Stan.Error, FireDAC.Phys.Intf, FireDAC.Stan.Def,
   FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys, FireDAC.Phys.FB,
   FireDAC.Phys.PG, FireDAC.Phys.Oracle, FireDAC.Comp.Client, StdCtrls, Controls, Windows, Messages, Variants,
-  Graphics, IBX.IBScript, ACBrDFeReport, ACBrDFeDANFeReport;
+  Graphics, IBX.IBScript, ACBrDFeReport, ACBrDFeDANFeReport, ACBrNCMs;
 
 
 type
@@ -99,6 +99,7 @@ type
     IBcid: TIBQuery;
     IBTransaction6: TIBTransaction;
     IBTransaction7: TIBTransaction;
+    ACBrNCMs1: TACBrNCMs;
     procedure TabelaOrdemCalcFields(DataSet: TDataSet);
     procedure ACBrNFeGerarLog(const Mensagem: String);
     procedure DataModuleCreate(Sender: TObject);

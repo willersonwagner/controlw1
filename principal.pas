@@ -52,7 +52,6 @@ type
     procedure FormCreate(Sender: TObject);
     procedure ApplicationEvents1Minimize(Sender: TObject);
     procedure Button1Click(Sender: TObject);
-    procedure Button2Click(Sender: TObject);
   private
     cont : integer;
     { Private declarations }
@@ -489,12 +488,6 @@ end;
 procedure Tform22.Button1Click(Sender: TObject);
 begin
   funcoes.acertaVendasDoDiaAVista;
-end;
-
-procedure Tform22.Button2Click(Sender: TObject);
-begin
-  CHAVENF := 'F:\ControlW\NFE\EMIT\14201210467211000192550090010000241001032664-nfe.xml';
-  SendPostData(Form72.IdHTTP1,CHAVENF , 'E', '100');
 end;
 
 function Tform22.enviNFCe(const perg : String = ''; nnf : String = ''; recebido : currency = 0) : boolean;
