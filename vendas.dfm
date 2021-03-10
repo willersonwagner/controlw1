@@ -449,8 +449,8 @@ object Form20: TForm20
     end
     object ClientDataSet1QUANT: TCurrencyField
       FieldName = 'QUANT'
-      DisplayFormat = '#,###,###0.000'
-      EditFormat = '#,###,###0.000'
+      DisplayFormat = '#,###,###0.000000'
+      EditFormat = '#,###,###0.000000'
       currency = False
     end
     object ClientDataSet1PRECO: TCurrencyField

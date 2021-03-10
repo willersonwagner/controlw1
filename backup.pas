@@ -445,7 +445,7 @@ begin
   criaDataSetVendaEntrega;
  
   dm.IBQuery2.Close;
-  dm.IBQuery2.SQL.Text := 'select i.nota, i.DATA_ENTREGA, i.cod, p.nome, i.quant, i.numdoc from CONT_ENTREGA ' +
+  dm.IBQuery2.SQL.Text := 'select i.nota, i.DATA_ENTREGA + HORA AS DATA_ENTREGA, i.cod, p.nome, i.quant, i.numdoc from CONT_ENTREGA ' +
   'i left join produto p on (i.cod = p.cod) where i.nota = :nota';
   dm.IBQuery2.ParamByName('nota').AsString := nota;
   dm.IBQuery2.Open;
@@ -537,13 +537,14 @@ begin
   end;
 
   dm.IBQuery1.Close;
-  dm.IBQuery1.SQL.Text := 'insert into CONT_ENTREGA(NUMDOC, NOTA, COD, DATA_ENTREGA, QUANT, USUARIO, ENT_AGORA) values' +
-  '(gen_id(CONT_ENTREGA, 1), :NOTA, :COD, :DATA_ENTREGA, :QUANT, :USUARIO, ''X'')';
+  dm.IBQuery1.SQL.Text := 'insert into CONT_ENTREGA(NUMDOC, NOTA, COD, DATA_ENTREGA, QUANT, USUARIO, HORA, ENT_AGORA) values' +
+  '(gen_id(CONT_ENTREGA, 1), :NOTA, :COD, :DATA_ENTREGA, :QUANT, :USUARIO, :HORA, ''X'')';
   dm.IBQuery1.ParamByName('nota').AsString := DBGrid1.DataSource.DataSet.FieldByName('nota').AsString;
   dm.IBQuery1.ParamByName('cod').AsString  := DBGrid1.DataSource.DataSet.FieldByName('cod').AsString;
   dm.IBQuery1.ParamByName('DATA_ENTREGA').AsDate := form22.datamov;
   dm.IBQuery1.ParamByName('QUANT').AsCurrency    := StrToCurr(quant);
   dm.IBQuery1.ParamByName('USUARIO').AsString    := form22.codusario;
+  dm.IBQuery1.ParamByName('HORA').AsTime         := Now;
   dm.IBQuery1.ExecSQL;
   dm.IBQuery1.Transaction.Commit;
 
@@ -629,9 +630,3 @@ begin
 end;
 
 end.
-
-
-
-
-
-

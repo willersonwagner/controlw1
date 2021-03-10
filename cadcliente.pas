@@ -218,7 +218,6 @@ begin
   if param92 = 'S' then Label22.Caption := 'Trabalho:'
    else if param92 = 'X' then Label22.Caption := 'Suframa:';
 
-
    Label6.Caption := funcoes.buscaParamGeral(7, '')+':';
    jsedit.SetTabelaDoBd(self,'cliente',dm.IBQuery1);
    ativo.Text := funcoes.buscaParamGeral(3, '');
@@ -911,4 +910,5 @@ begin
 end;
 
 end.
+
 

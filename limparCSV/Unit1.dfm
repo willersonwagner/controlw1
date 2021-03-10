@@ -18,8 +18,17 @@ object Form1: TForm1
     Top = 16
     Width = 75
     Height = 25
-    Caption = 'Organizar'
+    Caption = 'Inter'
     TabOrder = 0
     OnClick = Button1Click
+  end
+  object Button2: TButton
+    Left = 112
+    Top = 16
+    Width = 75
+    Height = 25
+    Caption = 'asaas'
+    TabOrder = 1
+    OnClick = Button2Click
   end
 end

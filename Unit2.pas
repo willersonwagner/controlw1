@@ -404,6 +404,7 @@ type
     GerarVendasTransferenciadeEstoque1: TMenuItem;
     ControledeEntregaMademato: TMenuItem;
     ProdutosExcluidosdeServios1: TMenuItem;
+    ResumodeContas1: TMenuItem;
     procedure LimparBloqueios1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure CadastrarUsurio1Click(Sender: TObject);
@@ -695,6 +696,7 @@ type
     procedure ControledeEntregaMadematoClick(Sender: TObject);
     procedure ProdComissoDif1Click(Sender: TObject);
     procedure ProdutosExcluidosdeServios1Click(Sender: TObject);
+    procedure ResumodeContas1Click(Sender: TObject);
   private
     b, cont: integer;
     ini: Smallint;
@@ -3750,11 +3752,7 @@ procedure TForm2.Button2Click(Sender: TObject);
 var
   op : TOpenDialog;
 begin
-  op := TOpenDialog.Create(self);
-  op.Execute(self.Handle);
-  //CHAVENF := 'F:\ControlW\NFE\EMIT\14201210467211000192550090010000231001032667-nfe.xml';
-  CHAVENF := op.FileName;
-  SendPostData(Form72.IdHTTP1,CHAVENF , 'E', '100');
+  funcoes.imprimeVendaFortesA4(InputBox('','',''));
 end;
 
 procedure TForm2.RefOriginalGrupo1Click(Sender: TObject);
@@ -4151,6 +4149,7 @@ begin
   form40.tipo.Add('120=generico');
   form40.tipo.Add('121=generico');
   form40.tipo.Add('122=generico');
+  form40.tipo.Add('123=generico');
 
   form40.troca := TStringList.Create;
   form40.troca.Add('0=S');
@@ -4279,6 +4278,7 @@ begin
   form40.troca.Add('120=S');
   form40.troca.Add('121=S');
   form40.troca.Add('122=S');
+  form40.troca.Add('123=S');
 
   form40.teclas := TStringList.Create;
   form40.teclas.Add('0=FT');
@@ -4406,6 +4406,7 @@ begin
   form40.teclas.Add('120=SN');
   form40.teclas.Add('121=SN');
   form40.teclas.Add('122=SN');
+  form40.teclas.Add('123=1234567890');
 
   form40.ListBox1.Clear;
   form40.ListBox1.Items.Add
@@ -4607,6 +4608,8 @@ begin
   form40.ListBox1.Items.Add('120=Identificar Orçamentos e Perguntar fator Multiplicativo ?');
   form40.ListBox1.Items.Add('121=Desabilitar campos de formação de preço caso seja optante do Simples Nacional ?');
   form40.ListBox1.Items.Add('122=Usar Controle de Entrega (Mademato) ?');
+  form40.ListBox1.Items.Add('123=Usar Quantas Casas Decimais na Quantidade da Venda ?');
+
 
   form40.ListBox1.Selected[0] := true;
   form40.showmodal;
@@ -5973,8 +5976,10 @@ begin
     if dm.IBQuery2.FieldByName('vencimento').AsDateTime - form22.datamov > 30
     then
       valor[6] := valor[6] + dm.IBQuery2.FieldByName('valor').AsCurrency;
+
     dm.IBQuery2.Next;
   end;
+
   dm.IBQuery2.Close;
   if valor[1] = 0 then
     form28.Chart1.Series[0].Add(0, 'Total' + #13 + 'R$ ' +
@@ -13559,12 +13564,8 @@ begin
     funcoes.CompletaOuRepete('     TOTAL DA VENDA', '|', ' ', 24) +
     funcoes.CompletaOuRepete('     ' + NOME_REL, '|', ' ', 24) +
     funcoes.CompletaOuRepete('', 'TOTAL', ' ', 15) + #13 + #10);
-  addRelatorioForm19(funcoes.CompletaOuRepete('', '+', '-', 17) +
-    funcoes.CompletaOuRepete('', 'NORMAL--+', '-', 11) +
-    funcoes.CompletaOuRepete('', 'DIFERENCIADO+', '-', 13) +
-    funcoes.CompletaOuRepete('', 'NORMAL--+', '-', 11) +
-    funcoes.CompletaOuRepete('', 'DIFERENCIADO+', '-', 13) +
-    funcoes.CompletaOuRepete('', '', '-', 15) + #13 + #10);
+
+  addRelatorioForm19('----------------+---NORMAL---+DIFERENCIA+---NORMAL---+DIFERENCIA+---------------' + #13 + #10);
 
   dm.ibselect.Close;
   dm.ibselect.SQL.Clear;
@@ -13687,21 +13688,14 @@ begin
     addRelatorioForm19(funcoes.CompletaOuRepete(IntToStr(comissao1.cod), '',
       ' ', 3) + funcoes.CompletaOuRepete(copy(funcoes.BuscaNomeBD(dm.IBQuery1,
       'nome', 'vendedor', 'where cod =' + IntToStr(comissao1.cod)), 1, 13), '|',
-      ' ', 14) + funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00',
-      comissao1.aprazo) + '|', ' ', 11) + { TOTAL DA VENDA NORMAL }
-      funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00', comissao1.total)
-      + '|', ' ', 13) + { TOTAL DIFERENCIADO }
-      funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00',
-      comissao1.avista + comissao1.desconto) + '|', ' ', 11) +
-      { TOTAL COMISSAO NORMAL }
-      funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00',
-      comissao1.diferenciado_avista) + '|', ' ', 13) +
-      { TOTAL COMISSAO DIFERENCIADA }
-      funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00',
-      comissao1.avista + comissao1.diferenciado_avista + comissao1.desconto),
-      ' ', 15) + #13 + #10); { TOTAL DE COMISSAO }
-    total := total + comissao1.avista + comissao1.diferenciado_avista +
-      comissao1.desconto;
+      ' ', 14) +
+      funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00', comissao1.aprazo) + '|', ' ', 13) + { TOTAL DA VENDA NORMAL }
+      funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00', comissao1.total) + '|', ' ', 11) + { TOTAL DIFERENCIADO }
+      funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00', comissao1.avista + comissao1.desconto) + '|', ' ', 13) +{ TOTAL COMISSAO NORMAL }
+      funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00',comissao1.diferenciado_avista) + '|', ' ', 11) +{ TOTAL COMISSAO DIFERENCIADA }
+      funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00',comissao1.avista + comissao1.diferenciado_avista + comissao1.desconto),' ', 15) + #13 + #10); { TOTAL DE COMISSAO }
+
+    total := total + comissao1.avista + comissao1.diferenciado_avista + comissao1.desconto;
   end;
 
   addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10);
@@ -15348,6 +15342,116 @@ end;
 procedure TForm2.GerarRemessaSpedFiscal1Click(Sender: TObject);
 begin
   REM_SPED;
+end;
+
+procedure TForm2.ResumodeContas1Click(Sender: TObject);
+var
+  cliente, nome, ini, dataini, datafim, sim, h1: string;
+  totalgeral, totVenda, TOTVENCER, TOTATRASADAS, TOTGERAL: currency;
+  CLICOD, i: integer;
+  listaAtrasados, listaVencer : TStringList;
+begin
+  cliente := funcoes.dialogo('generico', 0, '1234567890,.' + #8, 50, false, '',
+    application.Title, 'Qual o Cód do Cliente?', '');
+  if cliente = '*' then
+    exit;
+
+  sim := funcoes.dialogo('generico', 0, 'SN', 20, false, 'S', application.Title, 'Imprimir Somente Resumo ?', 'N');
+  if sim = '*' then
+    exit;
+
+  CLICOD := StrToIntDef(cliente, 0);
+  h1 := '';
+
+  if CLICOD > 0 then begin
+    dm.ibselect.Close;
+    dm.ibselect.SQL.Text := 'select nome from cliente where cod = :cod';
+    dm.ibselect.ParamByName('cod').AsInteger := CLICOD;
+    dm.ibselect.Open;
+
+    nome := cliente + ' - ' + dm.ibselect.FieldByName('nome').AsString;
+
+    h1 := ' (c.documento = '+StrNum(cliente)+') and '
+  end;
+
+  form19.RichEdit1.Clear;
+  listaAtrasados := TStringList.Create;
+  listaVencer    := TStringList.Create;
+
+  dm.ibselect.Close;
+  dm.ibselect.SQL.Text := 'select c.documento, p.nome, c.vencimento, c.historico, c.valor, c.total'+
+  ' from contasreceber c left join cliente p on (p.cod = c.documento) where '+h1+' (c.pago = 0) order by c.documento, c.vencimento';
+  dm.ibselect.Open;
+
+  totalgeral := 0;
+  TOTATRASADAS := 0;
+  TOTVENCER    := 0;
+  TOTGERAL     := 0;
+
+  while not dm.IBselect.Eof do begin
+    if dm.IBselect.FieldByName('vencimento').AsDateTime > form22.datamov  then begin
+      listaAtrasados.Add(FormatDateTime('dd/mm/yy',dm.ibselect.FieldByName('vencimento').AsDateTime) + ' ' + CompletaOuRepete(LeftStr(dm.IBselect.FieldByName('documento').AsString + '-' + dm.IBselect.FieldByName('nome').AsString, 32), '',' ', 32) + CompletaOuRepete('', formataCurrency(dm.IBselect.FieldByName('valor').AsCurrency), ' ', 11) + CompletaOuRepete('', formataCurrency(dm.IBselect.FieldByName('total').AsCurrency), ' ', 14) + IfThen(dm.IBselect.FieldByName('valor').AsCurrency <> dm.IBselect.FieldByName('total').AsCurrency, ' *', ''));
+      TOTATRASADAS := TOTATRASADAS + dm.IBselect.FieldByName('valor').AsCurrency;
+    end
+    else begin
+      listaVencer.Add(FormatDateTime('dd/mm/yy',dm.ibselect.FieldByName('vencimento').AsDateTime) + ' ' + CompletaOuRepete(LeftStr(dm.IBselect.FieldByName('documento').AsString + '-' + dm.IBselect.FieldByName('nome').AsString, 32), '',' ', 32) + CompletaOuRepete('', formataCurrency(dm.IBselect.FieldByName('valor').AsCurrency), ' ', 11) + CompletaOuRepete('', formataCurrency(dm.IBselect.FieldByName('total').AsCurrency), ' ', 14) + IfThen(dm.IBselect.FieldByName('valor').AsCurrency <> dm.IBselect.FieldByName('total').AsCurrency, ' *', ''));
+      TOTVENCER := TOTVENCER + dm.IBselect.FieldByName('valor').AsCurrency;
+    end;
+
+    TOTGERAL   := TOTGERAL   + dm.IBselect.FieldByName('total').AsCurrency;
+    totalgeral := totalgeral + dm.IBselect.FieldByName('valor').AsCurrency;
+
+    dm.IBselect.Next;
+  end;
+
+  //addRelatorioForm19(funcoes.RelatorioCabecalho(form22.Pgerais.Values['empresa'], 'Resumo de Vendas a Prazo - CONTAS EM DIA', 66));
+    addRelatorioForm19(funcoes.RelatorioCabecalho(form22.Pgerais.Values['empresa'], 'Resumo de Vendas a Prazo - CONTAS EM ATRASO', 66));
+
+  if CLICOD > 0 then begin
+    addRelatorioForm19('CLIENTE: ' + nome + #13 + #10);
+  end;
+
+  addRelatorioForm19(CompletaOuRepete('', '', '-', 66) + CRLF);
+  addRelatorioForm19(' VENCTO  CLIENTE                               VALOR         TOTAL' +#13 + #10);
+  addRelatorioForm19(CompletaOuRepete('', '', '-', 66) + CRLF);
+
+  for I := 0 to listaVencer.Count -1 do begin
+    addRelatorioForm19(listaVencer[I]+ CRLF);
+  end;
+  addRelatorioForm19(CompletaOuRepete('', '', '-', 66) + CRLF);
+  addRelatorioForm19(CompletaOuRepete('TOTAL', formataCurrency(TOTVENCER), '.', 66) + CRLF);
+  addRelatorioForm19(CompletaOuRepete('', '', '-', 66) + CRLF);
+
+
+  addRelatorioForm19(funcoes.RelatorioCabecalho(form22.Pgerais.Values['empresa'], 'Resumo de Vendas a Prazo - CONTAS EM DIA', 66));
+
+  if CLICOD > 0 then begin
+    addRelatorioForm19('CLIENTE: ' + nome + #13 + #10);
+  end;
+
+  addRelatorioForm19(CompletaOuRepete('', '', '-', 66) + CRLF);
+  addRelatorioForm19(' VENCTO  CLIENTE                               VALOR         TOTAL' +#13 + #10);
+  addRelatorioForm19(CompletaOuRepete('', '', '-', 66) + CRLF);
+
+  for I := 0 to listaAtrasados.Count -1 do begin
+    addRelatorioForm19(listaAtrasados[I] + CRLF);
+  end;
+
+  addRelatorioForm19(CompletaOuRepete('', '', '-', 66) + CRLF);
+  addRelatorioForm19(CompletaOuRepete('TOTAL', formataCurrency(TOTATRASADAS), '.', 66) + CRLF);
+  addRelatorioForm19(CompletaOuRepete('', '', '-', 66) + CRLF);
+
+
+  addRelatorioForm19('---------------------------------------' + CRLF);
+  addRelatorioForm19('       * * * R E S U M O * * *' + CRLF);
+  addRelatorioForm19('---------------------------------------' + CRLF);
+  addRelatorioForm19(CompletaOuRepete('ATRASADAS.....: ', FormatCurr('0.00',TOTVENCER), ' ', 39) + CRLF);
+  addRelatorioForm19(CompletaOuRepete('EM DIA........: ', FormatCurr('0.00',TOTATRASADAS), ' ', 39) + CRLF);
+  addRelatorioForm19(CompletaOuRepete('TOTAL A PAGAR.: ', FormatCurr('0.00',totalgeral), ' ', 39) + CRLF);
+  addRelatorioForm19(CompletaOuRepete('TOTAL GERAL...: ', FormatCurr('0.00',TOTGERAL), ' ', 39) + CRLF);
+  addRelatorioForm19('---------------------------------------' + CRLF);
+
+  form19.showmodal;
 end;
 
 procedure TForm2.ResumodoDia1Click(Sender: TObject);
@@ -18878,7 +18982,6 @@ end;
 
 procedure TForm2.Consulta1Click(Sender: TObject);
 begin
-
   form55 := tform55.Create(self);
   form55.condicao := 'where s.venda = 0';
   form55.showmodal;

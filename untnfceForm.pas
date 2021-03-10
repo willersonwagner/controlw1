@@ -6049,7 +6049,7 @@ end;
 FUNCTION NODO_IDE(nota, UF, NUM_NF, FIN_NFE, COD_CFOP, EXT_CFOP, DAT, FORMPAG,
   COD_MUNIC, DV_NF: string; OFFLine: boolean = false): string;
 var
-  TIPO_AMB, idDest, partContigencia: string;
+  TIPO_AMB, idDest, partContigencia, nodo_indIntermed: string;
 begin
   if ACBrNFe.Configuracoes.WebServices.Ambiente = taProducao then
     TIPO_AMB := '1'
@@ -6072,6 +6072,22 @@ begin
   end;
 
   nota := IntToStr(StrToInt(nota));
+
+  nodo_indIntermed := '';
+
+  if ACBrNFe.Configuracoes.WebServices.Ambiente = taHomologacao then begin
+    if now > StrToDate('01/02/2021') then begin
+      nodo_indIntermed := '<indIntermed>0</indIntermed>';
+    end;
+    TIPO_AMB := '2'
+  end
+    else begin
+      if DateOf(now) >= StrToDate('05/04/2021') then begin
+        nodo_indIntermed := '<indIntermed>0</indIntermed>';
+      end;
+      TIPO_AMB := '1';
+    end;
+
  
   Result := '<ide><cUF>' + UF + '</cUF><cNF>'{+ CompletaOuRepete('', nota, '0',8)} + IfThen(NUM_NF = nota, CompletaOuRepete('9', nota, '0',8), CompletaOuRepete('', nota, '0',8))  +
   '</cNF><natOp>VENDA AO CONSUMIDOR</natOp>' + '<indPag>' +
@@ -6080,7 +6096,7 @@ begin
     '</dhEmi>' + '<tpNF>' + IfThen(Contido(COD_CFOP[1], '567'), '1', '0') +
     '</tpNF><idDest>' + idDest + '</idDest><cMunFG>' + COD_MUNIC + '</cMunFG>' +
     '<tpImp>4</tpImp><tpEmis>' + tpEmis + '</tpEmis><cDV>' + DV_NF +
-    '</cDV><tpAmb>' + TIPO_AMB + '</tpAmb><finNFe>' + FIN_NFE +
+    '</cDV><tpAmb>' + TIPO_AMB + '</tpAmb>'+nodo_indIntermed+'<finNFe>' + FIN_NFE +
     '</finNFe><indFinal>1</indFinal><indPres>1</indPres><procEmi>0</procEmi><verProc>ControlW Versao 1</verProc>'
     + partContigencia + '</ide>';
   Result := trim(Result);
@@ -7570,8 +7586,10 @@ begin
 
   fim := ACBrIBPTax1.arquivo.Count - 1;
   for ini := 0 to fim do begin
+
     tmp := copy(ACBrIBPTax1.arquivo.Strings[ini], 1, POS(';', ACBrIBPTax1.arquivo.Strings[ini]) - 1);
-    if length(tmp) = 8 then begin
+    //if length(tmp) = 8 then begin
+    if Contido(tmp, NCM) and (length(ncm) = 8) then begin
       tmp := strnum(tmp);
       if tmp = NCM then begin
         Result := true;

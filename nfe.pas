@@ -137,8 +137,10 @@ type
     FUNCTION NODO_ITENS(var lista : tlist; CFOP, POS, CSTICM_CFP, CSTPIS_CFP, _ORIGE : string) : string;
     Function LITERAL(ent : string) : string;
     FUNCTION NODO_ICMS(var MAT : Item_venda; CSTICM_CFOP, _ORIGE : string) : string;
+    FUNCTION NODO_DI(var item1 : Item_venda; cfop : String) : String;
     FUNCTION FORMAT_QTD(VALOR : currency) : string;
     FUNCTION NODO_PISCOFINS(var item1 : Item_venda; CSTPIS_CFOP : string; cfop : String) : string;
+    function NODO_IPI(var item1 : Item_venda; cfop : String) : string;
     FUNCTION NODO_TOTAL(TOTNOTA, TOT_BASEICM, TOT_ICM, TOT_PIS, TOT_COFINS, TOTDESCICM, TOTDESC : currency) : string;
     FUNCTION NODO_TRANSP(var FRETE1 : TStringList) : string;
 
@@ -166,8 +168,8 @@ type
     espera : boolean;
     tipo_frete, cupom : integer;
     TotalFrete, VLR_DESP : currency;
-    pasta_Acbr, UF_EMI, UF_DEST, IND_FINAL, indIEDest, nodoFAT, ambienteProducao1homologacao2,
-    generator : String;
+    pasta_Acbr, UF_EMI, UF_DEST, IND_FINAL, indIEDest, nodoFAT,
+     ambienteProducao1homologacao2, generator, TAG_DI : String;
     procedure CriaLista_De_itens_Venda(var lista : Tlist);
     function abreDataSetIBselectPelaChave(chave : String) : boolean;
     function achaQTD(const preco, total : currency) : currency;
@@ -1200,7 +1202,7 @@ begin
         end;
 
 
-        if funcoes.Contido(emit, '110-301-302') then emit := 'D'
+        if funcoes.Contido(emit, '110-301-302-303') then emit := 'D'
         else if funcoes.Contido(emit, '100')    then emit := 'E'
         else if funcoes.Contido(emit, '101-135')then emit := 'C';
         if ACBrNFe.NotasFiscais[0].NFe.procNFe.cStat <= 200 then
@@ -2867,6 +2869,10 @@ begin
           '<pICMSST>0.00</pICMSST><vICMSST>0.00</vICMSST>' +
           '<pCredSN>0.00</pCredSN><vCredICMSSN>0.00</vCredICMSSN>' +
           '</ICMSSN900></ICMS>' ;
+
+          TOT_BASEICM := TOT_BASEICM + arrendondaNFe(tot * mat.Reducao / 100, 2);
+          VLR_ICM := arrendondaNFe(BASE_ICM * ITEM.PercICMS / 100, 2);
+          TOTICM := TOTICM + VLR_ICM;
           exit;
         end;
 
@@ -3068,8 +3074,8 @@ begin
       '<uTrib>' + uTrib + '</uTrib><qTrib>' + qTrib + '</qTrib><vUnTrib>' + vTrib + '</vUnTrib>'+
 
        IfThen(item.Vlr_Frete > 0, '<vFrete>'+ Format_num(item.Vlr_Frete)+'</vFrete>', '') + iif(item.Desconto = 0,'','<vDesc>' + FORMAT_NUM(item.Desconto) + '</vDesc>') +
-      IfThen(item.DespAcessorias  > 0 ,'<vOutro>' + FORMAT_NUM(item.DespAcessorias) + '</vOutro>', '')+'<indTot>1</indTot></prod><imposto>' + NODO_ICMS(item, cstIcmCfop, _ORIGE) +
-      NODO_PISCOFINS(item, cstpisCfop, cfop1) + NODO_ICMS_UF_DEST(item) + '</imposto>' +
+      IfThen(item.DespAcessorias  > 0 ,'<vOutro>' + FORMAT_NUM(item.DespAcessorias) + '</vOutro>', '')+'<indTot>1</indTot>'+NODO_DI(item, CFOP1)+'</prod><imposto>' + NODO_ICMS(item, cstIcmCfop, _ORIGE) +
+      NODO_PISCOFINS(item, cstpisCfop, cfop1) + NODO_ICMS_UF_DEST(item)+ NODO_IPI(item, cfop1) + '</imposto>' +
       infAdProd +'</det>'; //NODO_PISCOFINS(MAT, CSTPIS_CFP)
 
       {Result := Result + '<det nItem=' + LITERAL(TRIM(IntToStr(qtd))) + '><prod>' +
@@ -3466,7 +3472,7 @@ end;
 
 FUNCTION TNfeVenda.NODO_IDE(UF, NUM_NF, FIN_NFE,  COD_CFOP, EXT_CFOP, DAT, FORMPAG, COD_MUNIC, DV_NF : string ) : string;
 var
-  TIPO_AMB, dHAtual : string;
+  TIPO_AMB, dHAtual, nodo_indIntermed : string;
 begin
   TIPO_AMB := '1';
   if StrNum(cod_OP) = '0' then cod_OP := '5102';
@@ -3483,17 +3489,30 @@ begin
   FIN_NFE + '</finNFe><indFinal>'+ IfThen(DEST_NFE = '2', '1', '0') +'</indFinal><indPres>' + IND_PRES(FIN_NFE) + '</indPres><procEmi>0</procEmi><verProc>ControlW Versao 1</verProc></ide>';
   Result := trim(Result);}
 
-  if dm.ACBrNFe.Configuracoes.WebServices.Ambiente = taHomologacao then TIPO_AMB := '2'
-    else TIPO_AMB := '1';
+  nodo_indIntermed := '';
+
+  if dm.ACBrNFe.Configuracoes.WebServices.Ambiente = taHomologacao then begin
+    if now > StrToDate('01/02/2021') then begin
+      nodo_indIntermed := '<indIntermed>0</indIntermed>';
+    end;
+    TIPO_AMB := '2'
+  end
+    else begin
+      if DateOf(now) >= StrToDate('05/04/2021') then begin
+        nodo_indIntermed := '<indIntermed>0</indIntermed>';
+      end;
+      TIPO_AMB := '1';
+    end;
 
   dHAtual := getDataHoraAtualXML;
+
 
   Result := '<ide><cUF>' + UF + '</cUF><cNF>' + codNumerico + '</cNF><natOp>' + LeftStr(removeCarateresEspeciais(COD_CFOP), 50) + '</natOp>' +
   '<indPag>' + IND_PAG  + '</indPag><mod>55</mod><serie>'+getSerieNFe+'</serie><nNF>' +
   NUM_NF + '</nNF><dhEmi>' + dHAtual + '</dhEmi><dhSaiEnt>' + dHAtual + '</dhSaiEnt>' +
   '<tpNF>'+ IfThen(Contido(cod_OP[1], '567'), '1', '0') +'</tpNF><idDest>'+ idDest +'</idDest><cMunFG>' + COD_MUNIC + '</cMunFG>' +
    '<tpImp>1</tpImp><tpEmis>1</tpEmis><cDV>' + DV_NF +
-  '</cDV><tpAmb>' + TIPO_AMB + '</tpAmb><finNFe>' +
+  '</cDV><tpAmb>' + TIPO_AMB + '</tpAmb>'+nodo_indIntermed+'<finNFe>' +
   FIN_NFE + '</finNFe><indFinal>'+ IND_FINAL +'</indFinal><indPres>' + IND_PRES(FIN_NFE) + '</indPres><procEmi>0</procEmi><verProc>ControlW Versao 1</verProc>'+TAG_DOCREF +'</ide>';
   Result := trim(Result);
 
@@ -3629,7 +3648,7 @@ begin
                  item.VlrICMS            := 0;
                  item.DescICMS           := 0;
                  item.Aliq               := query2.fieldbyname('aliquota').AsString;
-                 item.Reducao            := query2.fieldbyname('reducao').AsCurrency;
+                 //item.Reducao            := query2.fieldbyname('reducao').AsCurrency;
                  item.CodAliq            := StrToIntdef(StrNum(query1.fieldbyname('aliquota').AsString), 2);
                  item.Total_Preco_Compra := abs(arrendondaNFe(query1.fieldbyname('p_compra').AsCurrency * query1.fieldbyname('quant').AsCurrency,2));
                  item.Pis                := query2.fieldbyname('is_pis').AsString;
@@ -3909,7 +3928,7 @@ begin
     CriaLista_De_itens_Venda(lista_itens);
   except
     on e:exception do begin
-      ShowMessage('');
+      ShowMessage('erro3925: ' + e.Message);
     end;
   end;
 
@@ -4196,10 +4215,10 @@ begin
           exit;
         end;
 
-    if Contido('-' + IntToStr(csta) + '-', '-100-204-110-205-301-302-') then begin
+    if Contido('-' + IntToStr(csta) + '-', '-100-204-110-205-301-302-303-') then begin
       ci       := 'E';
       situacao := 'E';
-      if Contido('-' + IntToStr(csta) + '-', '-110-205-301-302-') then ci := 'D';
+      if Contido('-' + IntToStr(csta) + '-', '-110-205-301-302-303-') then ci := 'D';
 
       ACBrNFe.NotasFiscais[0].GravarXML(ExtractFileName(arq),ExtractFileDir(arq) + '\');
 
@@ -5021,8 +5040,6 @@ begin
 
 end;
 
-
-
 function TNfeVenda.geraCodNumerico(nota12 : String ) : String;
 begin
   Result := funcoes.CompletaOuRepete('',nota,'0',8);
@@ -5030,8 +5047,34 @@ begin
   if Contido(','+Result+',', codigoNumericoInvalido) then Result := funcoes.CompletaOuRepete('','1','0',8);
 end;
 
+FUNCTION TNfeVenda.NODO_DI(var item1 : Item_venda; cfop : String) : String;
+begin
+  Result := '';
 
+  if LeftStr(cfop, 1) <> '3' then exit;
 
+  Result := TAG_DI +
+            '<adi>' +
+            '<nAdicao>'+IntToStr(item1.cod)+'</nAdicao>' +
+            '<nSeqAdic>'+IntToStr(item1.cod)+'</nSeqAdic>'+
+            '<cFabricante>0</cFabricante>'+
+            '</adi>'+
+            '</DI>';
 
+end;
+
+function TNfeVenda.NODO_IPI(var item1 : Item_venda; cfop : String) : String;
+begin
+  Result := '';
+  if LeftStr(cfop, 1) <> '3' then exit;
+
+  Result := '<IPI>'+
+            '<cEnq>999</cEnq>' +
+            '<IPINT>'+
+              '<CST>53</CST>'+
+            '</IPINT>'+
+            '</IPI>';
+end;
 
 end.
+

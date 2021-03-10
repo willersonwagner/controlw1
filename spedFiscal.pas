@@ -133,6 +133,7 @@ function blocoB() : String;
 function blocoF(reg : integer = 1) : String;
 function blocoG() : String;
 function blocoH() : String;
+function CriaBlocoH() : String;
 function blocoI() : String;
 function blocoM() : String;
 function blocoP_vazio() : String;
@@ -1796,6 +1797,33 @@ begin
     end;
 end;
 
+function CriaBlocoH() : String;
+var
+  sim, ano : string;
+  listaConteudo, listaCabecalho : TStringList;
+  totInv : currency;
+begin
+  listaConteudo  := TStringList.Create;
+  listaCabecalho := TStringList.Create;
+  totInv  := 0;
+
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select cod, nome, unid, p_venda, quant from produto';
+  dm.IBselect.Open;
+
+  while not dm.IBselect.Eof do begin
+   // listaConteudo.Add()
+    dm.IBselect.Next;
+  end;
+
+  LINHA := '|H001|0|';
+
+  GRAVA_SPED(ARQ_TMP, LINHA);
+  LINHA := '|H005|3112' + STRZERO(StrToInt(FormatDateTime('yyyy',StrToDateTime(dataIni))) - 1, 4) + '|0|01|';
+  GRAVA_SPED(ARQ_TMP, LINHA);
+end;
+
+
 function bloco1() : String;
 begin
   LINHA := '|1001|0|';
@@ -1819,10 +1847,10 @@ begin
       IF StrToDateTime(dataIni) >= StrToDateTime('01/06/2018') THEN MODELO := '004';
       IF StrToDateTime(dataIni) >= StrToDateTime('01/01/2019') THEN MODELO := '005';
       IF StrToDateTime(dataIni) >= StrToDateTime('01/01/2020') THEN MODELO := '006';
-      IF StrToDateTime(dataIni) >= StrToDateTime('01/01/2021') THEN MODELO := '007';
+      {IF StrToDateTime(dataIni) >= StrToDateTime('01/01/2021') THEN MODELO := '007';
       IF StrToDateTime(dataIni) >= StrToDateTime('01/01/2022') THEN MODELO := '008';
       IF StrToDateTime(dataIni) >= StrToDateTime('01/01/2023') THEN MODELO := '009';
-      LINHA := '|0000|'+ MODELO +'|0|||' + DATA_BRA_FULL(StrToDateTime(dataIni)) + '|' + DATA_BRA_FULL(StrToDateTime(DataFim)) + '|';
+      }LINHA := '|0000|'+ MODELO +'|0|||' + DATA_BRA_FULL(StrToDateTime(dataIni)) + '|' + DATA_BRA_FULL(StrToDateTime(DataFim)) + '|';
 
       dm.IBselect.Close;
       dm.IBselect.SQL.Clear;

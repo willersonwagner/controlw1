@@ -11655,6 +11655,10 @@ object Form2: TForm2
           Caption = 'Conta do Cliente'
           OnClick = ContadoCliente1Click
         end
+        object ResumodeContas1: TMenuItem
+          Caption = 'Resumo de Contas'
+          OnClick = ResumodeContas1Click
+        end
       end
       object ContasaPagar1: TMenuItem
         Caption = 'Contas a Pagar'

@@ -98,20 +98,21 @@ type
     procedure executa_proximo_ouVolta(key : word;primeiro, ultimo :boolean);
     function buscaNFCE() : String;
     procedure acertaCFOP_Automatico;
-    function buscafrete() : string;
-    function verificaSeExisteVendaValidaComNumeracao(trocaCliente : boolean) : boolean;
-    function salvaDadosAdic(opcao : integer = 0) : string;
-    function buscaDadosAdic() : string;
+    function  buscafrete() : string;
+    function  verificaSeExisteVendaValidaComNumeracao(trocaCliente : boolean) : boolean;
+    function  salvaDadosAdic(opcao : integer = 0) : string;
+    function  buscaDadosAdic() : string;
     procedure atualizaNumeracaoGeneratorTela;
-    function buscaCliente() : string;
-    function buscaFornecedor() : string;
+    function  buscaCliente() : string;
+    function  buscaFornecedor() : string;
     procedure emitenfe();
     procedure buscaUltimaVenda;
-    function geraDadosAdic(var ddosAdic : TMemo) : String;
+    function  geraDadosAdic(var ddosAdic : TMemo) : String;
+    procedure buscaDadosDeclaImportacao;
     { Private declarations }
   public
     FIN_NFE, nomeFIN_NFE, DOC_REF, NFE_REF, estorno, TAG_DOCREF, NUM_ECF, natOP1,
-    infoAdi, NUM_COO, COD_PAIS, iescliente, UF_DEST, UF_EMI, vFrete : String;
+    infoAdi, NUM_COO, COD_PAIS, iescliente, UF_DEST, UF_EMI, vFrete, TAG_DI : String;
     cupom : integer;
     frete, notas : TStringList;
     { Public declarations }
@@ -124,7 +125,8 @@ implementation
 
 {$R *.dfm}
 
-uses func, cadcliente, nfe, buscaSelecao, Unit1, Unit73, dadosTransp, principal;
+uses func, cadcliente, nfe, buscaSelecao, Unit1, Unit73, dadosTransp, principal,
+  declaracaoImportacao;
 
 procedure TForm79.emitenfe();
 var
@@ -176,9 +178,10 @@ begin
     NfeVenda.cstpisCfop  := dm.IBQuery2.FieldByName('pis').AsString;
     NfeVenda.natOp       := natOP1;
 
-    NfeVenda.cupom := cupom;
-    NfeVenda.DEST  := Cliente.Text;
-    NfeVenda.frete := frete;
+    NfeVenda.cupom  := cupom;
+    NfeVenda.DEST   := Cliente.Text;
+    NfeVenda.frete  := frete;
+    NfeVenda.TAG_DI := TAG_DI;
 
     NfeVenda.frete.Values['0'] := funcoes.StrNum(FretePorConta.Text);
     NfeVenda.tipo_frete := StrToInt(funcoes.StrNum(FretePorConta.Text));
@@ -234,6 +237,10 @@ end;
 
 procedure TForm79.ButBaixarClick(Sender: TObject);
 begin
+  //essa funcao é executada caso o primeiro digito do cfop for igual a 3
+  buscaDadosDeclaImportacao;
+
+  //funcao de emissao de nfe
   emitenfe;
 end;
 
@@ -435,6 +442,8 @@ procedure TForm79.FormCreate(Sender: TObject);
 begin
   notas := TStringList.Create;
   frete := TStringList.Create;
+
+  TAG_DI := '';
 end;
 
 procedure TForm79.FormKeyDown(Sender: TObject; var Key: Word;
@@ -1210,6 +1219,37 @@ begin
 
   for I := 0 to ddosAdic.Lines.Count -1 do begin
     Result := Result + ddosAdic.Lines[i] + ';';
+  end;
+end;
+
+procedure TForm79.buscaDadosDeclaImportacao;
+var
+  listDI : TStringList;
+begin
+  if (LeftStr(cfop.Text, 1) = '3') then begin
+    //Form85 := form85.Create(Application);
+    form85.clearCampos;
+    form85.nota := nota.Text;
+    form85.ShowModal;
+    TAG_DI := Form85.getRetornoCampos;
+
+    LE_CAMPOS(listDI, TAG_DI, '|', true);
+    TAG_DI := '<DI>'+
+              '<nDI>'+listDI.Values['0']+'</nDI>'+
+              '<dDI>'+FormatDateTime('yyyy-mm-dd', StrToDate(listDI.Values['1']))+'</dDI>'+
+              '<xLocDesemb>'+listDI.Values['2']+'</xLocDesemb>'+
+              '<UFDesemb>'+listDI.Values['3']+'</UFDesemb>'+
+              '<dDesemb>'+FormatDateTime('yyyy-mm-dd', StrToDate(listDI.Values['4']))+'</dDesemb>' +
+              '<tpViaTransp>'+listDI.Values['5']+'</tpViaTransp>'+
+              '<tpIntermedio>'+listDI.Values['6']+'</tpIntermedio>'+
+              '<cExportador>'+cliente.Text+'</cExportador>';
+              {'<adi>' +
+              '<nAdicao>1</nAdicao>' +
+              '<nSeqAdic>1</nSeqAdic>'+
+              '<cFabricante>'+cliente.Text+'</cFabricante>'+
+              '</adi>'+  }
+              //'</DI>';
+    //form85.Free;
   end;
 end;
 

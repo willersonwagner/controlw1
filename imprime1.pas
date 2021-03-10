@@ -6,7 +6,7 @@ uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Printers,
   StdCtrls, ExtCtrls, imprNovo, ComCtrls, Richedit, charprinter, unit1, ACBrETQ, ACBrDevice,
   RLReport, RLBarcode, funcoesdav, RLRichText, Data.DB, RLPreviewForm,
-  RLFilters, RLPDFFilter;
+  RLFilters, RLPDFFilter, Vcl.Imaging.pngimage;
 
 type
 
@@ -139,6 +139,45 @@ type
     RLDBText11: TRLDBText;
     RLReport3: TRLReport;
     RLMemo5: TRLMemo;
+    pedidoVendaA4: TRLReport;
+    RLBand14: TRLBand;
+    RLLabel34: TRLLabel;
+    RLLabel36: TRLLabel;
+    RLLabel37: TRLLabel;
+    RLBand17: TRLBand;
+    RLLabel38: TRLLabel;
+    RLLabel39: TRLLabel;
+    RLLabel40: TRLLabel;
+    RLLabel41: TRLLabel;
+    RLLabel42: TRLLabel;
+    RLLabel35: TRLLabel;
+    RLImage1: TRLImage;
+    RLLabel43: TRLLabel;
+    RLLabel44: TRLLabel;
+    RLBand18: TRLBand;
+    RLLabel45: TRLLabel;
+    RLLabel47: TRLLabel;
+    RLLabel46: TRLLabel;
+    RLLabel48: TRLLabel;
+    RLLabel49: TRLLabel;
+    RLLabel50: TRLLabel;
+    RLSubDetail1: TRLSubDetail;
+    RLBand13: TRLBand;
+    RLLabel30: TRLLabel;
+    RLLabel31: TRLLabel;
+    RLLabel32: TRLLabel;
+    RLLabel33: TRLLabel;
+    RLLabel51: TRLLabel;
+    RLLabel52: TRLLabel;
+    RLBand15: TRLBand;
+    RLDBText12: TRLDBText;
+    RLDBText13: TRLDBText;
+    RLDBText14: TRLDBText;
+    RLDBText15: TRLDBText;
+    RLDBText16: TRLDBText;
+    RLDBText17: TRLDBText;
+    RLBand16: TRLBand;
+    RLLabel53: TRLLabel;
     procedure Timer1Timer(Sender: TObject);
     procedure RLBand7BeforePrint(Sender: TObject; var PrintIt: Boolean);
     procedure RLReport2AfterPrint(Sender: TObject);

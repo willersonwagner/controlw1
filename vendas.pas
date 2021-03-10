@@ -123,7 +123,7 @@ type
   private
     l1, l2, l3: TLabel;
     entrada, avista, aprazo, troco, recebido, totVolumes, totVenda: currency;
-    testa, EXPORTADO, tamanhoFonteTotal, tamFontDesc: Smallint;
+    testa, EXPORTADO, tamanhoFonteTotal, tamFontDesc, CasasDecimaisQuantidade: Smallint;
     pedido, configUsuarioConfirmarPreco, NomeOrcamento, formaAlterada: string;
     bdSmall: boolean;
     configUsuario, clienteNome, ultimaNota, ordemCompra, ENDE_ENTREGA, adicionarEntrega,
@@ -212,7 +212,7 @@ type
     procedure lancaDescontoAtual_Antigo;
     procedure AddSegundaClienteDataSet(quanti, valor: currency;
       nome: String = ''; m2: integer = 0);
-    procedure AddSegundaClienteDataSet_antigo(quanti, valor: currency;
+    procedure AddSegundaClienteDataSet_antigo(quanti, valor: double;
       nome: String = ''; m2: integer = 0);
     function VerificaForma_de_Pagamento_e_Prazo: Smallint;
     function RetornaString_Modo_Venda_ou_Orcamento: string;
@@ -235,7 +235,7 @@ implementation
 
 uses Unit1, Math, localizar, entrasimples, func, formpagtoformulario,
   principal, subconsulta, Unit38, DateUtils, relatorio, imprime1,
-  cadcliente, cadfornecedor, dm1, StrUtils, Unit2, Unit83;
+  cadcliente, cadfornecedor, dm1, StrUtils, Unit2, Unit83, cadproduto;
 
 {$R *.dfm}
 
@@ -564,8 +564,8 @@ begin
 
     if funcoes.buscaParamGeral(34, '') = 'S' then
     begin
-      qtd := funcoes.dialogo('numero', 3, 'SN', 3, false, 'S',
-        'Control for Windows:', 'Quantidade:', '1,000');
+      qtd := funcoes.dialogo('numero', CasasDecimaisQuantidade, 'SN', CasasDecimaisQuantidade, false, 'S',
+        'Control for Windows:', 'Quantidade:', '1,'+ CompletaOuRepete('','','0', CasasDecimaisQuantidade));
       if qtd = '*' then
         exit;
     end;
@@ -671,10 +671,9 @@ begin
   valor := '0';
   Result := '0';
 
-  if opcao = 0 then
-  begin
-    qtd := funcoes.dialogo('numero', 3, 'SN', 3, false, 'S',
-      'Control for Windows:', 'Quantidade:', '0,000');
+  if opcao = 0 then begin
+    qtd := funcoes.dialogo('numero', CasasDecimaisQuantidade, 'SN', CasasDecimaisQuantidade, false, 'S',
+      'Control for Windows:', 'Quantidade:', '0,'+ CompletaOuRepete('','','0', CasasDecimaisQuantidade));
     if ((qtd = '*') or (StrToCurrDef(qtd, 0) = 0)) then
     begin
       valor := '*';
@@ -682,6 +681,7 @@ begin
       exit;
     end;
   end;
+
 
   campo := 'p_venda';
   if atacado then
@@ -4527,7 +4527,8 @@ begin
   ClientDataSet1.DisableControls;
   ClientDataSet1.First;
 
-  novocod := funcoes.novocod('orcamento');
+  //novocod := funcoes.novocod('orcamento');
+  novocod := Incrementa_Generator('orcamento', 1);
   JsEdit1.Text := IntToStr(StrToIntDef(JsEdit1.Text, 0));
 
   dm.IBQuery1.Close;
@@ -4853,8 +4854,8 @@ begin
     busca := CurrToStr(quanti)
   else
   begin
-    busca := funcoes.dialogo('numero', 0, '1234567890,.' + #8, 3, false, '',
-      'Control For Windows', 'Quantidade:', '0,000');
+    busca := funcoes.dialogo('numero', 0, '1234567890,.' + #8, CasasDecimaisQuantidade, false, '',
+      'Control For Windows', 'Quantidade:', '0,'+ CompletaOuRepete('','','0', CasasDecimaisQuantidade));
     if (busca = '*') or (busca[1] + busca[2] + busca[3] = '0,0') then
       exit;
     busca := funcoes.ConverteNumerico(busca);
@@ -5550,7 +5551,7 @@ begin
   total_atraso := dm.IBselect.FieldByName('valor').AsCurrency;
   dm.IBselect.Close;
 
-  if total_devendo = 0 then
+  if ((total_devendo = 0) and (lim_compra = 0) and (lim_atraso = 0)) then
   begin
     Result := -1;
     exit;
@@ -5580,32 +5581,6 @@ begin
       [mbok], HexToTColor('FFD700'), true, false, HexToTColor('B22222'));
     Result := 0;
     exit;
-  end;
-
-  if lim_compra > 0 then
-  begin
-    if lim_compra > total_devendo then
-    begin
-      WWMessage(
-        'Este cliente tem um restante de limite para Compra de apenas R$ ' +
-        FormatCurr('#,###,###0.00', lim_compra - total_devendo) + '.' + #13 +
-        #13 + 'Limite Compra:' + funcoes.CompletaOuRepete('',
-        FormatCurr('#,###,###0.00', lim_compra), ' ', 10) + #13 +
-        'Limite Atraso:' + funcoes.CompletaOuRepete('',
-        FormatCurr('#,###,###0.00', lim_atraso), ' ', 10) + #13 +
-        'Total Compras:' + funcoes.CompletaOuRepete('',
-        FormatCurr('#,###,###0.00', total_devendo), ' ', 10) + #13 +
-        'Total Atrasos:' + funcoes.CompletaOuRepete('',
-        FormatCurr('#,###,###0.00', total_atraso), ' ', 10), mtInformation,
-        [mbok], HexToTColor('FFD700'), true, false, HexToTColor('B22222'));
-      WWMessage('Esta Venda está Sendo Autorizada com Valor Até: R$ ' +
-        FormatCurr('#,###,###0.00', lim_compra - total_devendo), mtInformation,
-        [mbok], HexToTColor('FFD700'), true, false, HexToTColor('B22222'));
-      Result := lim_compra - total_devendo;
-      Form20.Caption := Form20.Caption + ' ' + '(Venda Limitada R$ ' +
-        FormatCurr('#,###,###0.00', Result) + ')';
-      exit;
-    end;
   end;
 
   if total_atraso > 0 then
@@ -5735,6 +5710,33 @@ begin
       exit;
     end;
   end;
+
+
+  if lim_compra > 0 then begin
+    if lim_compra > total_devendo then
+    begin
+      WWMessage(
+        'Este cliente tem um restante de limite para Compra de apenas R$ ' +
+        FormatCurr('#,###,###0.00', lim_compra - total_devendo) + '.' + #13 +
+        #13 + 'Limite Compra:' + funcoes.CompletaOuRepete('',
+        FormatCurr('#,###,###0.00', lim_compra), ' ', 10) + #13 +
+        'Limite Atraso:' + funcoes.CompletaOuRepete('',
+        FormatCurr('#,###,###0.00', lim_atraso), ' ', 10) + #13 +
+        'Total Compras:' + funcoes.CompletaOuRepete('',
+        FormatCurr('#,###,###0.00', total_devendo), ' ', 10) + #13 +
+        'Total Atrasos:' + funcoes.CompletaOuRepete('',
+        FormatCurr('#,###,###0.00', total_atraso), ' ', 10), mtInformation,
+        [mbok], HexToTColor('FFD700'), true, false, HexToTColor('B22222'));
+      WWMessage('Esta Venda está Sendo Autorizada com Valor Até: R$ ' +
+        FormatCurr('#,###,###0.00', lim_compra - total_devendo), mtInformation,
+        [mbok], HexToTColor('FFD700'), true, false, HexToTColor('B22222'));
+      Result := lim_compra - total_devendo;
+      Form20.Caption := Form20.Caption + ' ' + '(Venda Limitada R$ ' +
+        FormatCurr('#,###,###0.00', Result) + ')';
+      exit;
+    end;
+  end;
+
 end;
 
 function TForm20.AchaFieldDbgrid(DB: TDBGrid; nome: string): integer;
@@ -5886,8 +5888,7 @@ begin
     dm.IBQuery1.ParamByName('codbar').AsString :=
       funcoes.BuscaNomeBD(dm.IBQuery2, 'codbar', 'produto',
       'where cod=' + ClientDataSet1CODIGO.AsString);
-    dm.IBQuery1.ParamByName('quant').AsCurrency :=
-      StrToCurr(ClientDataSet1QUANT.AsString);
+    dm.IBQuery1.ParamByName('quant').AsFloat := ClientDataSet1QUANT.AsFloat;
     dm.IBQuery1.ParamByName('p_venda').AsCurrency := total_A_Limitar;
     dm.IBQuery1.ParamByName('total').AsCurrency := totProd;
 
@@ -6092,8 +6093,8 @@ begin
   begin
     if Compra then
     begin
-      busca := funcoes.dialogo('numero', 3, 'SN', 3, false, 'S',
-        'Control for Windows:', 'Quantidade:', '0,000');
+      busca := funcoes.dialogo('numero', CasasDecimaisQuantidade, 'SN', CasasDecimaisQuantidade, false, 'S',
+        'Control for Windows:', 'Quantidade:', '0,'+ CompletaOuRepete('','','0', CasasDecimaisQuantidade));
       if (busca = '*') or (StrToCurrDef(funcoes.ConverteNumerico(busca), 0) = 0)
       then
         exit;
@@ -6149,8 +6150,7 @@ begin
         if (ativo = '*') then
           exit;
 
-        AddSegundaClienteDataSet_antigo(StrToCurrDef(busca, 0),
-          StrToCurrDef(ativo, 0));
+        AddSegundaClienteDataSet_antigo(StrToFloatDef(busca, 0),StrToFloatDef(ativo, 0));
         exit;
       end;
     end;
@@ -6310,8 +6310,9 @@ begin
 
       if Modo_Venda then
       begin
-        if novocod = '' then
-          novocod := funcoes.novocod('venda');
+        //if novocod = '' then novocod := funcoes.novocod('venda');
+
+        if novocod = '' then novocod := Incrementa_Generator('venda', 1);
         if VerificaForma_de_Pagamento_e_Prazo = 0 then
           exit; // funcao que gera o parcelamento
         // if novocod = '' then novocod := funcoes.novocod('venda');
@@ -6647,6 +6648,8 @@ begin
   end;
 
 
+
+  CasasDecimaisQuantidade := StrToIntDef(funcoes.buscaParamGeral(123, '3') , 3);
 
   ordenaCampos := true;
 
@@ -7450,6 +7453,18 @@ begin
       if ((subTot = '*') or (StrToCurrDef(subTot, 0) = 0)) then
         exit;
 
+
+      total_A_Limitar := -1;
+
+      if jsedit1.getValor > 0 then begin
+        total_A_Limitar := ver_limites(JsEdit3.Text, ClientDataSet1QUANT.AsCurrency * StrToCurrDef(subTot, 0));
+
+        if total_A_Limitar = 0 then begin
+          WWMessage('Este Cliente Excedeu Seu Limite de Crédito.', mtInformation,[mbok], HexToTColor('FFD700'), true, false, HexToTColor('B22222'));
+          exit;
+        end;
+      end;
+
       ClientDataSet1.Edit;
       ClientDataSet1.FieldByName('preco').AsCurrency := StrToCurrDef(subTot, 0);
       ClientDataSet1.FieldByName('total').AsCurrency :=
@@ -7460,11 +7475,13 @@ begin
 
     if (DBGrid2.SelectedField.DisplayName = 'QUANT') then
     begin
+
+
       if separaPecas then
         exit;
 
       subTot := funcoes.dialogo('numero', 0, '1234567890,.' + #8, 3, false, '',
-        'Control For Windows', 'Quantidade:', FormatCurr('#,###,###0.000',
+        'Control For Windows', 'Quantidade:', FormatCurr('#,###,###0.'+ CompletaOuRepete('','','0', CasasDecimaisQuantidade),
         ClientDataSet1.FieldByName('quant').AsCurrency));
       if (subTot = '*') or (StrToCurrDef(funcoes.ConverteNumerico(subTot),
         0) = 0) then
@@ -7474,6 +7491,17 @@ begin
 
       quant := StrToCurrDef(subTot, 0);
       sub := quant;
+
+
+      if jsedit1.getValor > 0 then begin
+        total_A_Limitar := ver_limites(JsEdit3.Text, quant * ClientDataSet1PRECO.AsCurrency);
+
+        if total_A_Limitar = 0 then begin
+          WWMessage('Este Cliente Excedeu Seu Limite de Crédito.', mtInformation,[mbok], HexToTColor('FFD700'), true, false, HexToTColor('B22222'));
+          exit;
+        end;
+      end;
+
 
       if funcoes.LerConfig(form22.Pgerais.Values['configu'], 11) = 'N' then
       begin // permitir venda sem estoque disponivel
@@ -7515,9 +7543,10 @@ begin
       if funcoes.verificaSePodeVenderFracionado(ClientDataSet1CODIGO.AsInteger,
         '', quant) = false then
         exit;
-      if not limitar_QTD_Estoque(quant, ClientDataSet1CODIGO.AsInteger, false)
-      then
-        exit;
+
+      if not limitar_QTD_Estoque(quant, ClientDataSet1CODIGO.AsInteger, false) then exit;
+
+
 
       quant := StrToCurr(subTot);
 
@@ -7736,6 +7765,19 @@ procedure TForm20.DBGrid1KeyUp(Sender: TObject; var Key: Word;
 var
   busca: string;
 begin
+  if (ssCtrl in Shift) and (chr(Key) in ['P', 'p']) and (VerificaAcesso_Se_Nao_tiver_Nenhum_bloqueio_true_senao_false) then begin
+      form9 := tform9.Create(self);
+      JsEdit.SetTabelaDoBd(form9,'produto',dm.IBQuery1);
+      form9.cod.Text := DBGrid1.DataSource.DataSet.fieldbyname('cod').AsString;
+      form9.cod.SelecionaDoBD(form9.Name);
+      funcoes.CtrlResize(tform(form9));
+      form9.ShowModal;
+      JsEdit.LiberaMemoria(form9);
+      form9.Free;
+      exit;
+    end;
+
+
   if Compra then
   begin
     { if key = 119 then//F8 busca por codbarras
@@ -8828,11 +8870,12 @@ begin
 
 end;
 
-procedure TForm20.AddSegundaClienteDataSet_antigo(quanti, valor: currency;
+procedure TForm20.AddSegundaClienteDataSet_antigo(quanti, valor: double;
   nome: String = ''; m2: integer = 0);
 var
   cod, busca, cbar: string;
-  v2, qtd, vtot, totProd, tmp: currency;
+  v2, vtot, totProd, tmp: currency;
+  qtd : Double;
   fla, grupo, tam, cont: Smallint;
 begin
   fla := 0;
@@ -8841,18 +8884,19 @@ begin
 
   // adiciona item na segunda tabela
   if quanti <> 0 then
-    busca := CurrToStr(quanti)
+    busca := floatToStr(quanti)
   else
   begin
-    busca := funcoes.dialogo('numero', 0, '1234567890,.' + #8, 3, false, '',
-      'Control For Windows', 'Quantidade:', '0,000');
+    busca := funcoes.dialogo('numero', 0, '1234567890,.' + #8, CasasDecimaisQuantidade, false, '',
+      'Control For Windows', 'Quantidade:', '0,'+ CompletaOuRepete('','','0', CasasDecimaisQuantidade));
     // if (busca = '*') or (busca[1] + busca[2] + busca[3] = '0,0') then exit;
     if (busca = '*') then
       exit;
     busca := funcoes.ConverteNumerico(busca);
   end;
 
-  qtd := StrToCurrDef(busca, 0);
+  qtd := StrToFloatDef(busca, 0);
+
 
   if qtd = 0 then
     exit;
@@ -8933,6 +8977,7 @@ begin
           totProd := Arredonda((ClientDataSet1.FieldByName('quant').AsCurrency +
             qtd) * v2, 2);
 
+
         ClientDataSet1.Open;
         ClientDataSet1.Edit;
         ClientDataSet1.FieldByName('quant').AsCurrency :=
@@ -8969,7 +9014,7 @@ begin
         ClientDataSet1.FieldByName('codigo').AsString :=
           dm.produto.FieldByName('cod').AsString;
         ClientDataSet1DESCRICAO.Text := nome;
-        ClientDataSet1.FieldByName('quant').AsCurrency := qtd;
+        ClientDataSet1.FieldByName('quant').AsFloat := qtd;
         ClientDataSet1.FieldByName('preco').AsCurrency := v2;
         ClientDataSet1Refori.AsString :=
           dm.produto.FieldByName('codbar').AsString;
@@ -9061,7 +9106,7 @@ begin
   aprazo := StrToCurrDef(funcoes.buscaParamGeral(29, ''), 0);
 
   dm.IBselect.Close;
-  dm.IBselect.SQL.Text := 'select dinheiro from FORMPAGTO where cod = :cod';
+  dm.IBselect.SQL.Text := 'select dinheiro, desc_pag from FORMPAGTO where cod = :cod';
   dm.IBselect.ParamByName('cod').AsInteger := formapagamento;
   dm.IBselect.Open;
 
@@ -9077,6 +9122,11 @@ begin
 
   if dinheiro = 'X' then avista := StrToCurrDef(funcoes.buscaParamGeral(28, ''), 0);
   if dinheiro = 'C' then avista := StrToCurrDef(funcoes.buscaParamGeral(29, ''), 0);
+
+  if dinheiro = 'D' then begin
+    avista := dm.IBselect.FieldByName('desc_pag').AsCurrency;
+  end;
+
 
   tipoTrocaDescontoUsuario := 'F';
 

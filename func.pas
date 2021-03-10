@@ -140,6 +140,7 @@ type
     enviandoCupom, enviandoBackup: boolean;
     fonteRelatorioForm19: integer;
     NegritoRelatorioForm19, saiComEnter: boolean;
+    procedure imprimeVendaFortesA4(numVenda : String);
     procedure DownloadSincronizacaoDeEstoqueOnline;
     procedure sincronizacaoDeEstoqueOnline;
     procedure imprimeEnderecoEntregaCodEndereco(nota : String; codEndeEntrega : String);
@@ -11076,8 +11077,7 @@ begin
       dm.IBQuery1.ExecSQL;
     end;
 
-    if retornaEscalaDoCampo('quant', 'ITEM_entrada') <> 10 then
-    begin
+    if retornaEscalaDoCampo('quant', 'ITEM_entrada') <> 10 then begin
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Clear;
       dm.IBQuery1.SQL.Add
@@ -11125,6 +11125,23 @@ begin
       dm.IBQuery1.SQL.Clear;
       dm.IBQuery1.SQL.Add
         ('ALTER TABLE CONTASRECEBER ADD ult_usu_alterado smallint');
+      dm.IBQuery1.ExecSQL;
+    end;
+
+    if not VerificaCampoTabela('HORA', 'CONT_ENTREGA') then
+    begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add
+        ('ALTER TABLE CONT_ENTREGA ADD HORA TIME');
+      dm.IBQuery1.ExecSQL;
+    end;
+
+    if retornaEscalaDoCampo('quant', 'ITEM_venda') <> 6 then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add
+        ('update RDB$FIELDS set RDB$FIELD_SCALE = -6 where RDB$FIELD_NAME = ''RDB$440''');
       dm.IBQuery1.ExecSQL;
     end;
 
@@ -23422,8 +23439,7 @@ begin
     //balItem.Receita := dm.IBselect.FieldByName('nome').AsString;
     // Nutricional     := Format('Informação Nutricional do item %d', [I]);;
 
-    balItem.Nutricional.Codigo :=
-      StrToIntDef(copy(dm.IBselect.FieldByName('codbar').AsString, 2, 4), 0);
+    balItem.Nutricional.Codigo := StrToIntDef(copy(dm.IBselect.FieldByName('codbar').AsString, 2, 4), 0);
     balItem.Nutricional.qtd := 1;
     balItem.Nutricional.UndPorcao := tpGramas;
     balItem.Nutricional.PartInteira := 1;
@@ -28998,7 +29014,9 @@ begin
   addRelatorioForm19('Data: ' + formataDataDDMMYY(dm.IBselect.FieldByName('data').AsDateTime) + ' ' + dm.IBselect.FieldByName('hora').AsString + CRLF);
   addRelatorioForm19('Vendedor: ' + dm.IBselect.FieldByName('vendedor').AsString + '-' + dm.IBselect.FieldByName('nome').AsString + CRLF+CRLF);
   addRelatorioForm19('Entregador:____________________________' + CRLF +CRLF);
-  addRelatorioForm19('Troco.....:____________________________' + CRLF);
+  addRelatorioForm19('Troco.....:____________________________' + CRLF +CRLF);
+  addRelatorioForm19('Hora Saida:____________________________' + CRLF +CRLF);
+  addRelatorioForm19('Quant Rota:____________________________' + CRLF);
   addRelatorioForm19('* * * * * * * * * * * * * * * * * * * *' + CRLF);
 
   funcoes.ImprimirPedidoVias(1, false);
@@ -29018,7 +29036,6 @@ begin
   end;
 
   ShowMessage('Sincronização Enviada!');
-
 end;
 
 
@@ -29115,6 +29132,54 @@ begin
 
   imprime.RLReport3.SaveToFile(caminhoEXE_com_barra_no_final + 'IMP\REL.PDF');
 end;
+
+procedure Tfuncoes.imprimeVendaFortesA4(numVenda : String);
+begin
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select * from registro';
+  dm.IBselect.Open;
+
+  imprime1.imprime.RLLabel38.Caption := form22.Pgerais.Values['empresa'];
+  imprime1.imprime.RLLabel39.Caption := dm.IBselect.FieldByName('ende').AsString + ' - ' + dm.IBselect.FieldByName('bairro').AsString + '      ' + dm.IBselect.FieldByName('cid').AsString + ' / ' +dm.IBselect.FieldByName('est').AsString;
+  imprime1.imprime.RLLabel43.Caption := 'Fone: ' + dm.IBselect.FieldByName('telres').AsString + ' Cel: ' + dm.IBselect.FieldByName('telcom').AsString ;
+  imprime1.imprime.RLLabel44.Caption := 'Obs: ' + dm.IBselect.FieldByName('OBS').AsString;
+  imprime1.imprime.RLLabel40.Caption := 'CNPJ: ' + dm.IBselect.FieldByName('CNPJ').AsString;
+  imprime1.imprime.RLLabel41.Caption := 'IE: ' + dm.IBselect.FieldByName('ies').AsString;
+
+  imprime1.imprime.RLLabel34.Caption := 'Pedido Nr: ' + numVenda;
+
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select v.codhis, p.nome from venda v left join formpagto p on (p.cod = v.codhis) where nota = ' + numVenda;
+  dm.IBselect.Open;
+
+  imprime1.imprime.RLLabel42.Caption := 'Form. Pagto: ' + dm.IBselect.FieldByName('codhis').AsString + '-' + dm.IBselect.FieldByName('nome').AsString;
+
+
+  dm.ProdutoQY.Close;
+  dm.ProdutoQY.SQL.Clear;
+  dm.ProdutoQY.SQL.Add('select i.cod, v.codhis, v.hora, i.data, i.quant, i.total, p.nome, p.unid, i.p_venda, v.total, v.desconto from item_venda i ' +
+  ' left join produto p on (p.cod = i.cod) left join venda v on (i.nota = v.nota) where i.nota = :nota' );
+  dm.ProdutoQY.ParamByName('nota').AsString := numVenda;
+  dm.ProdutoQY.Open;
+  dm.ProdutoQY.FetchAll;
+
+    TcurrencyField(dm.ProdutoQY.FieldByName('quant')).DisplayFormat :=
+      '###,##0.000';
+
+  TcurrencyField(dm.ProdutoQY.FieldByName('p_venda')).DisplayFormat :=
+    '###,##0.00';
+
+    TcurrencyField(dm.ProdutoQY.FieldByName('total')).DisplayFormat :=
+    '###,##0.00';
+
+  imprime1.imprime.RLLabel38.Caption := form22.Pgerais.Values['empresa'];
+  imprime1.imprime.RLLabel36.Caption := FormatDateTime('dd/mm/yy',dm.ProdutoQY.FieldByName('data').AsDateTime);
+  imprime1.imprime.RLLabel37.Caption := FormatDateTime('hh:mm:ss', dm.ProdutoQY.FieldByName('hora').AsDateTime);
+  imprime1.imprime.DataSource1.DataSet := dm.ProdutoQY;
+  // imprime1.imprime.RLReport2.PrintDialog := false;
+  imprime1.imprime.pedidoVendaA4.preview();
+end;
+
 
 
 
