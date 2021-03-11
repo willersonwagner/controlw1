@@ -137,7 +137,7 @@ type
     FUNCTION NODO_ITENS(var lista : tlist; CFOP, POS, CSTICM_CFP, CSTPIS_CFP, _ORIGE : string) : string;
     Function LITERAL(ent : string) : string;
     FUNCTION NODO_ICMS(var MAT : Item_venda; CSTICM_CFOP, _ORIGE : string) : string;
-    FUNCTION NODO_DI(var item1 : Item_venda; cfop : String) : String;
+    FUNCTION NODO_DI(var item1 : Item_venda; cfop : String; cont : integer) : String;
     FUNCTION FORMAT_QTD(VALOR : currency) : string;
     FUNCTION NODO_PISCOFINS(var item1 : Item_venda; CSTPIS_CFOP : string; cfop : String) : string;
     function NODO_IPI(var item1 : Item_venda; cfop : String) : string;
@@ -3073,8 +3073,8 @@ begin
       //nota de exportação deve perguntar a quantidade pra preencher os campos tributaveis do nodo do item
       '<uTrib>' + uTrib + '</uTrib><qTrib>' + qTrib + '</qTrib><vUnTrib>' + vTrib + '</vUnTrib>'+
 
-       IfThen(item.Vlr_Frete > 0, '<vFrete>'+ Format_num(item.Vlr_Frete)+'</vFrete>', '') + iif(item.Desconto = 0,'','<vDesc>' + FORMAT_NUM(item.Desconto) + '</vDesc>') +
-      IfThen(item.DespAcessorias  > 0 ,'<vOutro>' + FORMAT_NUM(item.DespAcessorias) + '</vOutro>', '')+'<indTot>1</indTot>'+NODO_DI(item, CFOP1)+'</prod><imposto>' + NODO_ICMS(item, cstIcmCfop, _ORIGE) +
+      IfThen(item.Vlr_Frete > 0, '<vFrete>'+ Format_num(item.Vlr_Frete)+'</vFrete>', '') + iif(item.Desconto = 0,'','<vDesc>' + FORMAT_NUM(item.Desconto) + '</vDesc>') +
+      IfThen(item.DespAcessorias  > 0 ,'<vOutro>' + FORMAT_NUM(item.DespAcessorias) + '</vOutro>', '')+'<indTot>1</indTot>'+NODO_DI(item, CFOP1, qtd)+'</prod><imposto>' + NODO_ICMS(item, cstIcmCfop, _ORIGE) +
       NODO_PISCOFINS(item, cstpisCfop, cfop1) + NODO_ICMS_UF_DEST(item)+ NODO_IPI(item, cfop1) + '</imposto>' +
       infAdProd +'</det>'; //NODO_PISCOFINS(MAT, CSTPIS_CFP)
 
@@ -5047,7 +5047,7 @@ begin
   if Contido(','+Result+',', codigoNumericoInvalido) then Result := funcoes.CompletaOuRepete('','1','0',8);
 end;
 
-FUNCTION TNfeVenda.NODO_DI(var item1 : Item_venda; cfop : String) : String;
+FUNCTION TNfeVenda.NODO_DI(var item1 : Item_venda; cfop : String; cont : integer) : String;
 begin
   Result := '';
 
@@ -5055,8 +5055,8 @@ begin
 
   Result := TAG_DI +
             '<adi>' +
-            '<nAdicao>'+IntToStr(item1.cod)+'</nAdicao>' +
-            '<nSeqAdic>'+IntToStr(item1.cod)+'</nSeqAdic>'+
+            '<nAdicao>'+IntToStr(cont)+'</nAdicao>' +
+            '<nSeqAdic>'+IntToStr(cont)+'</nSeqAdic>'+
             '<cFabricante>0</cFabricante>'+
             '</adi>'+
             '</DI>';
