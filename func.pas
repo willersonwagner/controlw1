@@ -140,6 +140,7 @@ type
     enviandoCupom, enviandoBackup: boolean;
     fonteRelatorioForm19: integer;
     NegritoRelatorioForm19, saiComEnter: boolean;
+    function ver_limites(CodUsu: string;AserAdicionadoNaContaDoClitente: currency): currency;
     procedure imprimeVendaFortesA4(numVenda : String);
     procedure DownloadSincronizacaoDeEstoqueOnline;
     procedure sincronizacaoDeEstoqueOnline;
@@ -1958,7 +1959,7 @@ end;
 procedure Tfuncoes.imprimeOrdemDeServico(var ordem: TOrdem;
   const orcamento: boolean; ImprimeNoFimDaVenda: boolean = False);
 var
-  tot, desc: currency;
+  tot, desc, entrada: currency;
   sim, usu, tmp: String;
   i, linhaFimServico: integer;
   cds: TClientDataSet;
@@ -2035,6 +2036,8 @@ begin
 
     if (true) then
     begin
+      entrada := 0;
+
       if ordem.venda = 0 then
       begin
         dm.IBselect.Close;
@@ -2048,11 +2051,13 @@ begin
       begin
         dm.IBselect.Close;
         dm.IBselect.SQL.text :=
-          'select v.desconto, s.pago, v.desconto, v.total as total1, o.cod,p.codbar, p.refori, p.localiza, p.nome, o.quant, o.p_venda, o.total from item_venda o left join produto p on (p.cod = o.cod) left join venda v on (v.nota = o.nota)'
+          'select v.desconto, s.pago, v.entrada, v.desconto, v.total as total1, o.cod,p.codbar, p.refori, p.localiza, p.nome, o.quant, o.p_venda, o.total from item_venda o left join produto p on (p.cod = o.cod) left join venda v on (v.nota = o.nota)'
           + 'left join servico s on (s.cod = :codserv) where o.nota = :nota';
         dm.IBselect.ParamByName('codserv').AsInteger := ordem.cod;
         dm.IBselect.ParamByName('nota').AsInteger := ordem.venda;
         dm.IBselect.Open;
+
+        entrada := dm.IBselect.FieldByName('entrada').AsCurrency;
       end;
 
       if ImprimeNoFimDaVenda then
@@ -2215,10 +2220,18 @@ begin
 
     addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 40) + CRLF);
 
+
+
     if orcamento then begin
       addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 40) + CRLF);
       addRelatorioForm19('     *  *  O R C A M E N T O *  *      ' + CRLF);
       addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 40) + CRLF);
+    end
+    else begin
+      if funcoes.ExisteParcelamento(IntToStr(ordem.venda)) and
+        (funcoes.buscaParamGeral(20, '') = 'S') then
+        funcoes.ImprimeParcelamento('', '', FormatCurr('#,###,###0.00',
+          entrada), IntToStr(ordem.venda));
     end;
 
 
@@ -3028,13 +3041,16 @@ begin
   quer.Close;
   quer.SQL.Clear;
   quer.SQL.Add
-    ('select empresa, telres, telcom, ende, bairro, cnpj from registro');
+    ('select empresa, telres, telcom, ende, bairro, cnpj, CPF from registro');
   quer.Open;
 
   th := '';
   if emp1 = '' then
     emp1 := quer.FieldByName('empresa').AsString;
   cnpj := StrNum(quer.FieldByName('cnpj').AsString);
+  if StrNum(CNPJ) = '0' then cnpj := StrNum(quer.FieldByName('CPF').AsString);
+
+
   ende := LeftStr(trocaChar(quer.FieldByName('telres').AsString + '_' +
     quer.FieldByName('telcom').AsString + '_' + quer.FieldByName('ende')
     .AsString + '_' + quer.FieldByName('bairro').AsString, ' ', '_'), 195);
@@ -3222,6 +3238,9 @@ begin
     exit;
   end;
 
+
+  if qtdVias > 1 then  fim := qtdVias;
+  
   ini := 0;
   // for ini := 0 to fim -1 do begin
   while true do
@@ -11128,8 +11147,7 @@ begin
       dm.IBQuery1.ExecSQL;
     end;
 
-    if not VerificaCampoTabela('HORA', 'CONT_ENTREGA') then
-    begin
+    if not VerificaCampoTabela('HORA', 'CONT_ENTREGA') then begin
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Clear;
       dm.IBQuery1.SQL.Add
@@ -11145,7 +11163,42 @@ begin
       dm.IBQuery1.ExecSQL;
     end;
 
+    if not VerificaCampoTabela('TAXA', 'ENTREGA') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add
+        ('ALTER TABLE ENTREGA ADD TAXA NUMERIC(10,2)');
+      dm.IBQuery1.ExecSQL;
+    end;
+
+    if not VerificaCampoTabela('CPF', 'REGISTRO') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add
+        ('ALTER TABLE REGISTRO ADD CPF VARCHAR(14)');
+      dm.IBQuery1.ExecSQL;
+    end;
+
+    if NOT verSeExisteTabela('PARCELAMENTO') then
+    begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.text := 'CREATE TABLE PARCELAMENTO (' +
+        'COD INTEGER NOT NULL, NOTA INTEGER, TOTAL NUMERIC(12,2), VALOR_PARC NUMERIC(10,2),'+
+        ' QTD_PARC NUMERIC(10,2), JUROS NUMERIC(10,2), PERIODO SMALLINT,PRIMEIRO_VENC DATE, ENTRADA NUMERIC(10,2))';
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.text := 'alter table PARCELAMENTO add constraint PK_PARCELAMENTO primary key (COD)';
+      dm.IBQuery1.ExecSQL;
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.text := 'create sequence PARCELAMENTO ';
+      dm.IBQuery1.ExecSQL;
+    end;
+
     //VerificaVersao_do_bd
+
   end;
 
   if dm.IBQuery1.Transaction.InTransaction then
@@ -12645,6 +12698,10 @@ begin
   begin
     dm.IBselect.SQL.Add('select * from venda where nota=' + numNota);
     // funcoes.desmarcaVendaPaf(numNota);
+
+    if funcoes.buscaParamGeral(125, '') <> '' then begin
+      txt := funcoes.buscaParamGeral(125, '');
+    end;
   end
   else if opcao = 2 then
   begin
@@ -15351,11 +15408,8 @@ begin
       addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 40) + #13 + #10);
     end;
 
-    form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-      Longint(PChar((funcoes.centraliza(form22.Pgerais.Values['empresa'], ' ',
-      40) + #13 + #10))));
-    form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-      Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 40) + #13 + #10))));
+    //addRelatorioForm19(funcoes.centraliza(form22.Pgerais.Values['empresa'], ' ',40) + #13 + #10);
+    //addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 40) + #13 + #10);
     // form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete('','',' ',40)+#13+#10))));
     addRelatorioForm19
       (funcoes.centraliza(LeftStr(dm.IBQuery2.FieldByName('ende').AsString +
@@ -15486,11 +15540,17 @@ begin
           dm.ibquery3.FieldByName('telcom').AsString, 1, 34), '', ' ', 40) +
           #13 + #10);
 
-        addRelatorioForm19('OBS: ' + CRLF);
 
-        funcoes.QuebraLinhas('', '', dm.ibquery3.FieldByName('obs')
-          .AsString, 40);
-      end;
+        if funcoes.buscaParamGeral(125, '') <> '' then begin
+          addRelatorioForm19('OBS: ' + CRLF);
+          addRelatorioForm19(funcoes.QuebraLinhas('', '',funcoes.buscaParamGeral(125, ''), 40));
+        end
+        else begin
+          addRelatorioForm19('OBS: ' + CRLF);
+          addRelatorioForm19(funcoes.QuebraLinhas('', '',dm.IBQuery3.FieldByName('obs').AsString, 40));
+        end;
+
+       end;
       // addRelatorioForm19(funcoes.CompletaOuRepete('OBS: ' + copy(dm.IBQuery3.fieldbyname('obs').AsString, 1,34),'',' ', 40) + #13 + #10);
       // addRelatorioForm19('' + #13 + #10);
       addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 40) + #13+ #10);
@@ -15694,6 +15754,17 @@ begin
           funcoes.atualizaMensagemUsuario(txt, numNota);
         except
         end;
+      end
+      else begin
+        if txt <> '' then begin
+           addRelatorioForm19(funcoes.QuebraLinhas('', '',txt, 40));
+        if length(txt) > 0 then
+          form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+            Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 40) + #13
+            + #10))));
+
+        end;
+
       end;
       form19.RichEdit1.Perform(EM_REPLACESEL, 1,
         Longint(PChar(('* * *    R E I M P R E S S A O     * * *' + #13
@@ -15778,7 +15849,8 @@ begin
 
       salvaRicheditForm19comoPDF;
 
-      imprime.textx('');
+      funcoes.ImprimirPedidoVias(StrToIntDef(funcoes.LerConfig(form22.Pgerais.Values['conf_ter'], 14), 1), opcao = 2);
+      //imprime.textx('');
 
       if ((opcao = 1) and (funcoes.buscaParamGeral(118, '') = 'S')) then begin
         funcoes.imprimeEnderecoEntregaCodEndereco(numNota, ENDE_ENTREGA);
@@ -28989,8 +29061,9 @@ end;
 procedure Tfuncoes.imprimeEnderecoEntregaCodEndereco(nota : String; codEndeEntrega : string);
 var
   ini : integer;
+  taxa : currency;
 begin
-  if StrToIntDef(nota, 0) = 0 then exit;
+  //if StrToIntDef(nota, 0) = 0 then exit;
   if StrToIntDef(codEndeEntrega, 0) = 0 then exit;
 
   dm.IBselect.Close;
@@ -29005,6 +29078,8 @@ begin
   addRelatorioForm19('Tel: ' + dm.IBselect.FieldByName('telefone').AsString + CRLF);
   addRelatorioForm19('Obs: ' + dm.IBselect.FieldByName('obs').AsString+ CRLF);
 
+  taxa := dm.IBselect.FieldByName('taxa').AsCurrency;
+
   dm.IBselect.Close;
   dm.IBselect.SQL.Text := 'select v.total, v.data, v.hora, v.vendedor, ve.nome from venda v join vendedor ve on (v.vendedor = ve.cod) where v.nota = :cod';
   dm.IBselect.ParamByName('cod').AsString := nota;
@@ -29015,8 +29090,17 @@ begin
   addRelatorioForm19('Vendedor: ' + dm.IBselect.FieldByName('vendedor').AsString + '-' + dm.IBselect.FieldByName('nome').AsString + CRLF+CRLF);
   addRelatorioForm19('Entregador:____________________________' + CRLF +CRLF);
   addRelatorioForm19('Troco.....:____________________________' + CRLF +CRLF);
-  addRelatorioForm19('Hora Saida:____________________________' + CRLF +CRLF);
-  addRelatorioForm19('Quant Rota:____________________________' + CRLF);
+
+  if taxa > 0 then begin
+    addRelatorioForm19('Hora Saida:____________________________' + CRLF + CRLF);
+    addRelatorioForm19(centraliza('TAXA  DE  ENTREGA R$ ' + formataCurrency(TAXA), ' ', 40) + CRLF);
+    addRelatorioForm19('Prazo de Entrega 30 minutos' + CRLF + CRLF);
+  end
+  else begin
+    addRelatorioForm19('Hora Saida:____________________________' + CRLF + CRLF);
+    addRelatorioForm19('Prazo de Entrega 30 minutos' + CRLF + CRLF);
+  end;
+  //addRelatorioForm19('Quant Rota:____________________________' + CRLF);
   addRelatorioForm19('* * * * * * * * * * * * * * * * * * * *' + CRLF);
 
   funcoes.ImprimirPedidoVias(1, false);
@@ -29178,6 +29262,254 @@ begin
   imprime1.imprime.DataSource1.DataSet := dm.ProdutoQY;
   // imprime1.imprime.RLReport2.PrintDialog := false;
   imprime1.imprime.pedidoVendaA4.preview();
+end;
+
+function Tfuncoes.ver_limites(CodUsu: string;AserAdicionadoNaContaDoClitente: currency): currency;
+var
+  clienteNome, ativo : string;
+  total_devendo, total_atraso, maiorLimite, lim_compra, lim_atraso: currency;
+begin
+  try
+    dm.IBselect.Close;
+    dm.IBselect.SQL.Clear;
+    dm.IBselect.SQL.Add
+      ('select ativo, lim_atraso, lim_compra, nome from cliente where cod = :cod');
+    dm.IBselect.ParamByName('cod').AsString := CodUsu;
+    dm.IBselect.Open;
+  except
+    ShowMessage('Verifique se o Cliente foi digitado corretamente');
+    exit;
+  end;
+
+  if dm.IBselect.IsEmpty then
+  begin
+    WWMessage('O Cliente Não Existe!', mtInformation, [mbok],
+      HexToTColor('FFD700'), true, false, HexToTColor('B22222'));
+    dm.IBselect.Close;
+    Result := 0;
+    exit;
+  end;
+
+  clienteNome := dm.IBselect.FieldByName('nome').AsString;
+  ativo := dm.IBselect.FieldByName('ativo').AsString;
+  ativo := 'S';
+  lim_atraso := dm.IBselect.FieldByName('lim_atraso').AsCurrency;
+  lim_compra := dm.IBselect.FieldByName('lim_compra').AsCurrency;
+  dm.IBselect.Close;
+
+  if ativo = 'N' then
+  begin
+    WWMessage('Atenção! A Venda à Prazo Para Este Cliente Não Está Autorizada',
+      mtInformation, [mbok], HexToTColor('FFD700'), true, false,
+      HexToTColor('B22222'));
+    Result := 0;
+    exit;
+  end;
+
+  dm.IBselect.SQL.Clear;
+  dm.IBselect.SQL.Add
+    ('select sum(valor) as valor from contasreceber where (documento = :cod) and (pago = 0)');
+  dm.IBselect.ParamByName('cod').AsString := CodUsu;
+  dm.IBselect.Open;
+  total_devendo := dm.IBselect.FieldByName('valor').AsCurrency;
+
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Clear;
+  dm.IBselect.SQL.Add
+    ('select sum(valor) as valor from contasreceber where (documento = :cod) and (:d > vencimento) and (pago = 0)');
+  dm.IBselect.ParamByName('cod').AsString := CodUsu;
+  dm.IBselect.ParamByName('d').AsDateTime := form22.datamov;
+
+  dm.IBselect.Open;
+  total_atraso := dm.IBselect.FieldByName('valor').AsCurrency;
+  dm.IBselect.Close;
+
+  if ((total_devendo = 0) and (lim_compra = 0) and (lim_atraso = 0)) then
+  begin
+    Result := -1;
+    exit;
+  end;
+
+  if (lim_compra = 0) and (total_atraso = 0) then
+  begin
+    Result := -1;
+    exit;
+  end;
+
+  if (total_devendo + AserAdicionadoNaContaDoClitente >= lim_compra) and
+    (lim_compra <> 0) then
+  begin
+    WWMessage('Este cliente tem um limite para Compras de R$ ' +
+      FormatCurr('#,###,###0.00', lim_compra) +
+      ' e já fez compras no valor de R$ ' + FormatCurr('#,###,###0.00',
+      total_devendo) +
+      '. Somente um usuário autorizado poderá liberar esta venda. Informe esta situação para o cliente.'
+      + #13 + #13 + 'Limite Compra:' + funcoes.CompletaOuRepete('',
+      FormatCurr('#,###,###0.00', lim_compra), ' ', 10) + #13 + 'Limite Atraso:'
+      + funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00', lim_atraso),
+      ' ', 10) + #13 + 'Total Compras:' + funcoes.CompletaOuRepete('',
+      FormatCurr('#,###,###0.00', total_devendo), ' ', 10) + #13 +
+      'Total Atrasos:' + funcoes.CompletaOuRepete('',
+      FormatCurr('#,###,###0.00', total_atraso), ' ', 10), mtInformation,
+      [mbok], HexToTColor('FFD700'), true, false, HexToTColor('B22222'));
+    Result := 0;
+    exit;
+  end;
+
+  if total_atraso > 0 then
+  begin
+    if total_atraso >= lim_atraso then
+    begin
+      WWMessage('Este cliente tem um limite para ATRASO de R$ ' +
+        FormatCurr('#,###,###0.00', lim_atraso) +
+        ' e já tem compras em ATRASO no valor de R$ ' +
+        FormatCurr('#,###,###0.00', total_atraso) +
+        '. Somente um usuário autorizado poderá liberar esta venda. Informe esta situação para o cliente.'
+        + #13 + #13 + 'Limite Compra:' + funcoes.CompletaOuRepete('',
+        FormatCurr('#,###,###0.00', lim_compra), ' ', 10) + #13 +
+        'Limite Atraso:' + funcoes.CompletaOuRepete('',
+        FormatCurr('#,###,###0.00', lim_atraso), ' ', 10) + #13 +
+        'Total Compras:' + funcoes.CompletaOuRepete('',
+        FormatCurr('#,###,###0.00', total_devendo), ' ', 10) + #13 +
+        'Total Atrasos:' + funcoes.CompletaOuRepete('',
+        FormatCurr('#,###,###0.00', total_atraso), ' ', 10), mtInformation,
+        [mbok], HexToTColor('FFD700'), true, false, HexToTColor('B22222'));
+      Result := 0;
+      exit;
+    end;
+
+    // ShowMessage('lim_atraso=' + CurrToStr(lim_atraso) + #13 + 'total_atraso=' + CurrToStr(total_atraso));
+    if lim_atraso + lim_compra <> 0 then
+    begin
+      Result := lim_atraso - total_atraso;
+      // se o restante do limite em atraso vai ser  maior que o limite de compra
+      if lim_atraso > total_atraso then
+      begin
+        WWMessage(
+          'Este cliente tem um restante de limite para COMPRA de apenas R$ ' +
+          FormatCurr('#,###,###0.00', lim_atraso - total_atraso) + '.' + #13 +
+          #13 + 'Limite Compra:' + funcoes.CompletaOuRepete('',
+          FormatCurr('#,###,###0.00', lim_compra), ' ', 10) + #13 +
+          'Limite Atraso:' + funcoes.CompletaOuRepete('',
+          FormatCurr('#,###,###0.00', lim_atraso), ' ', 10) + #13 +
+          'Total Compras:' + funcoes.CompletaOuRepete('',
+          FormatCurr('#,###,###0.00', total_devendo), ' ', 10) + #13 +
+          'Total Atrasos:' + funcoes.CompletaOuRepete('',
+          FormatCurr('#,###,###0.00', total_atraso), ' ', 10), mtInformation,
+          [mbok], HexToTColor('FFD700'), true, false, HexToTColor('B22222'));
+        WWMessage('Esta Venda está Sendo Autorizada com Valor Até: R$ ' +
+          FormatCurr('#,###,###0.00', lim_atraso - total_atraso), mtInformation,
+          [mbok], HexToTColor('FFD700'), true, false, HexToTColor('B22222'));
+        Result := lim_atraso - total_atraso;
+        Form20.Caption := Form20.Caption + ' ' + '(Venda Limitada R$ ' +
+          FormatCurr('#,###,###0.00', Result) + ')';
+        exit;
+      end
+      else
+      begin
+        WWMessage('Este Cliente Excedeu Seu Limite de Crédito.', mtInformation,
+          [mbok], HexToTColor('FFD700'), true, false, HexToTColor('B22222'));
+        Result := 0;
+        exit;
+      end;
+      // end;
+
+      if Result < AserAdicionadoNaContaDoClitente then
+      begin
+        WWMessage('Este Cliente Excedeu Seu Limite de Crédito.', mtInformation,
+          [mbok], HexToTColor('FFD700'), true, false, HexToTColor('B22222'));
+        Result := 0;
+        exit;
+      end;
+
+      WWMessage(
+        'Este cliente tem um restante de limite para Compra de apenas R$ ' +
+        FormatCurr('#,###,###0.00', lim_atraso - total_atraso) + '.' + #13 + #13
+        + 'Limite Compra:' + funcoes.CompletaOuRepete('',
+        FormatCurr('#,###,###0.00', lim_compra), ' ', 10) + #13 +
+        'Limite Atraso:' + funcoes.CompletaOuRepete('',
+        FormatCurr('#,###,###0.00', lim_atraso), ' ', 10) + #13 +
+        'Total Compras:' + funcoes.CompletaOuRepete('',
+        FormatCurr('#,###,###0.00', total_devendo), ' ', 10) + #13 +
+        'Total Atrasos:' + funcoes.CompletaOuRepete('',
+        FormatCurr('#,###,###0.00', total_atraso), ' ', 10), mtInformation,
+        [mbok], HexToTColor('FFD700'), true, false, HexToTColor('B22222'));
+      WWMessage('Esta Venda está Sendo Autorizada com Valor Até: R$ ' +
+        FormatCurr('#,###,###0.00', lim_atraso - total_atraso), mtInformation,
+        [mbok], HexToTColor('FFD700'), true, false, HexToTColor('B22222'));
+      Form20.Caption := Form20.Caption + ' ' + '(Venda Limitada R$ ' +
+        FormatCurr('#,###,###0.00', Result) + ')';
+      exit;
+    end;
+  end
+  else
+  // se não existir atrasos
+  begin
+    if lim_compra = 0 then
+    begin
+      Result := -1;
+      exit;
+    end;
+
+    if lim_compra - total_devendo <> 0 then
+    begin
+      Result := lim_compra - total_devendo;
+      if Result < AserAdicionadoNaContaDoClitente then
+      begin
+        WWMessage('Este Cliente Excedeu Seu Limite de Crédito.', mtInformation,
+          [mbok], HexToTColor('FFD700'), true, false, HexToTColor('B22222'));
+        Result := 0;
+        exit;
+      end;
+
+      WWMessage(
+        'Este cliente tem um restante de limite para Compra de apenas R$ ' +
+        FormatCurr('#,###,###0.00', lim_compra - total_devendo) + '.' + #13 +
+        #13 + 'Limite Compra:' + funcoes.CompletaOuRepete('',
+        FormatCurr('#,###,###0.00', lim_compra), ' ', 10) + #13 +
+        'Limite Atraso:' + funcoes.CompletaOuRepete('',
+        FormatCurr('#,###,###0.00', lim_atraso), ' ', 10) + #13 +
+        'Total Compras:' + funcoes.CompletaOuRepete('',
+        FormatCurr('#,###,###0.00', total_devendo), ' ', 10) + #13 +
+        'Total Atrasos:' + funcoes.CompletaOuRepete('',
+        FormatCurr('#,###,###0.00', total_atraso), ' ', 10), mtInformation,
+        [mbok], HexToTColor('FFD700'), true, false, HexToTColor('B22222'));
+      WWMessage('Esta Venda está Sendo Autorizada com Valor Até: R$ ' +
+        FormatCurr('#,###,###0.00', lim_compra - total_devendo), mtInformation,
+        [mbok], HexToTColor('FFD700'), true, false, HexToTColor('B22222'));
+      Result := lim_compra - total_devendo;
+      Form20.Caption := Form20.Caption + ' ' + '(Venda Limitada R$ ' +
+        FormatCurr('#,###,###0.00', Result) + ')';
+      exit;
+    end;
+  end;
+
+
+  if lim_compra > 0 then begin
+    if lim_compra > total_devendo then
+    begin
+      WWMessage(
+        'Este cliente tem um restante de limite para Compra de apenas R$ ' +
+        FormatCurr('#,###,###0.00', lim_compra - total_devendo) + '.' + #13 +
+        #13 + 'Limite Compra:' + funcoes.CompletaOuRepete('',
+        FormatCurr('#,###,###0.00', lim_compra), ' ', 10) + #13 +
+        'Limite Atraso:' + funcoes.CompletaOuRepete('',
+        FormatCurr('#,###,###0.00', lim_atraso), ' ', 10) + #13 +
+        'Total Compras:' + funcoes.CompletaOuRepete('',
+        FormatCurr('#,###,###0.00', total_devendo), ' ', 10) + #13 +
+        'Total Atrasos:' + funcoes.CompletaOuRepete('',
+        FormatCurr('#,###,###0.00', total_atraso), ' ', 10), mtInformation,
+        [mbok], HexToTColor('FFD700'), true, false, HexToTColor('B22222'));
+      WWMessage('Esta Venda está Sendo Autorizada com Valor Até: R$ ' +
+        FormatCurr('#,###,###0.00', lim_compra - total_devendo), mtInformation,
+        [mbok], HexToTColor('FFD700'), true, false, HexToTColor('B22222'));
+      Result := lim_compra - total_devendo;
+      Form20.Caption := Form20.Caption + ' ' + '(Venda Limitada R$ ' +
+        FormatCurr('#,###,###0.00', Result) + ')';
+      exit;
+    end;
+  end;
+
 end;
 
 

@@ -57,7 +57,6 @@ type
     Function CountChar(Texto: String; C: Char): Integer;
     function buscaNomeExec(): String;
     function ExtractIt(Const FFilename: String; FDir: string): boolean;
-    function PosFinal(substr: string; Texto: string): Integer;
     procedure BaixaAtualizacao;
     procedure ExtraiAtualizacao;
     procedure deletaArquivosTemporarios;
@@ -291,24 +290,6 @@ begin
   ExtractIt(op.FileName, dir);
 end;
 
-function TForm1.PosFinal(substr: string; Texto: string): Integer;
-var
-  a, b: Integer;
-var
-  retorno: string;
-begin
-  b := 0;
-  Result := 0;
-  for a := length(Texto) downto 1 do
-  begin
-    if (Texto[a] = substr) and (b = 0) then
-    begin
-      Result := a;
-      b := 1;
-    end;
-  end;
-end;
-
 procedure TForm1.FormCreate(Sender: TObject);
 begin
   tamanho := 0;
@@ -419,6 +400,8 @@ end;
 procedure TForm1.copiaExecutavel(LANurl: String);
 var
   cont: Integer;
+  lista : TStringList;
+  i : integer;
 begin
   cont := 0;
   Memo1.Lines.Add('----------------------------------------');
@@ -433,16 +416,32 @@ begin
     end;
 
     try
-      if FileExists(ExtractFileDir(ParamStr(0)) + '\ControlW.old') then
-      begin
-        if FileExists(ExtractFileDir(ParamStr(0)) + '\ControlWD.exe') then
-          DeleteFile(ExtractFileDir(ParamStr(0)) + '\ControlWD.exe');
-        RenameFile(ExtractFileDir(ParamStr(0)) + '\ControlW.exe',
-          ExtractFileDir(ParamStr(0)) + '\ControlWD.exe');
-        RenameFile(ExtractFileDir(ParamStr(0)) + '\ControlW.old',
-          ExtractFileDir(ParamStr(0)) + '\ControlW.exe');
-        if FileExists(ExtractFileDir(ParamStr(0)) + '\ControlW.exe') then
-          break;
+      if FileExists(ExtractFileDir(ParamStr(0)) + '\ControlW.old') then begin
+        if FileExists(ExtractFileDir(ParamStr(0)) + '\ControlWD.exe') then DeleteFile(ExtractFileDir(ParamStr(0)) + '\ControlWD.exe');
+
+        lista := listaArquivos(ExtractFileDir(ParamStr(0))+'\ControlW*.exe');
+        RenameFile(ExtractFileDir(ParamStr(0)) + '\ControlW.exe',ExtractFileDir(ParamStr(0)) + '\ControlWD.exe');
+        
+        for i := 0 to lista.Count -1 do begin
+          //ShowMessage(ExtractFileDir(ParamStr(0)) + '\ControlW.old' + #13 +ExtractFileDir(ParamStr(0)) + lista[i]);
+          try
+           //ShowMessage(pwidechar(ExtractFileDir(ParamStr(0)) + '\ControlW.old') + #13 + pwidechar(ExtractFileDir(ParamStr(0)) + lista[i]));
+
+           //ShowMessage('1');
+            CopyFile(pchar(ExtractFileDir(ParamStr(0)) + '\ControlW.old'), pchar(ExtractFileDir(ParamStr(0)) +'\'+ lista[i]), false);
+            //ShowMessage(ExtractFileDir(ParamStr(0)) + lista[i]);
+          except
+            on e:exception do begin
+              ShowMessage('erro:' + e.Message);
+            end;
+          end;
+        end;
+
+        RenameFile(ExtractFileDir(ParamStr(0)) + '\ControlW.old',ExtractFileDir(ParamStr(0)) + '\ControlW.exe');
+
+
+
+        if FileExists(ExtractFileDir(ParamStr(0)) + '\ControlW.exe') then break;
       end;
     except
       if not FileExists(ExtractFileDir(ParamStr(0)) + '\ControlW.exe') then
@@ -460,6 +459,8 @@ begin
     sleep(4000);
   end;
 
+
+  DeleteFile(ExtractFileDir(ParamStr(0)) + '\ControlW.old');
   Memo1.Lines.Add('Atualizado com sucesso!');
   sleep(2000);
 

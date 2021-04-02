@@ -19,6 +19,8 @@ type
     obs: TEdit;
     telefone: TEdit;
     Label3: TLabel;
+    Label4: TLabel;
+    taxa: TEdit;
     procedure clienteKeyPress(Sender: TObject; var Key: Char);
     procedure telefoneKeyPress(Sender: TObject; var Key: Char);
     procedure enderecoKeyPress(Sender: TObject; var Key: Char);
@@ -27,6 +29,7 @@ type
     procedure FormShow(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure BitBtn1Click(Sender: TObject);
+    procedure taxaKeyPress(Sender: TObject; var Key: Char);
   private
     procedure teclaEsc(key : char);
     procedure proximo(key : char);
@@ -65,6 +68,22 @@ procedure TForm83.clienteKeyPress(Sender: TObject; var Key: Char);
 begin
   teclaEsc(key);
   proximo(key);
+end;
+
+procedure TForm83.taxaKeyPress(Sender: TObject; var Key: Char);
+begin
+  if key = #32 then tedit(sender).Text := 'S';
+  if key = #8  then tedit(sender).Text := 'N';
+
+  teclaEsc(key);
+  proximo(key);
+
+  if not(funcoes.Contido(UpCase(key), 'SN'))  then key := #0
+  else begin
+    tedit(sender).Text := UpCase(key);
+    key := #0;
+  end;
+
 end;
 
 procedure TForm83.enderecoKeyPress(Sender: TObject; var Key: Char);
@@ -128,6 +147,11 @@ begin
   end;
 
   if obs.Focused then begin
+    taxa.SetFocus;
+    exit;
+  end;
+
+  if taxa.Focused then begin
     BitBtn1.SetFocus;
     exit;
   end;
@@ -143,8 +167,12 @@ begin
   codEntrega := Incrementa_Generator('ENTREGA', 1);
 
   dm.IBQuery1.Close;
-  dm.IBQuery1.SQL.Text := 'insert into ENTREGA(COD, CLIENTE, TELEFONE, ENDERECO, OBS ) VALUES '+
-  '(:COD, :CLIENTE, :TELEFONE, :ENDERECO, :OBS )';
+  dm.IBQuery1.SQL.Text := 'insert into ENTREGA(TAXA,COD, CLIENTE, TELEFONE, ENDERECO, OBS ) VALUES '+
+  '(:TAXA, :COD, :CLIENTE, :TELEFONE, :ENDERECO, :OBS )';
+  //dm.IBQuery1.ParamByName('TAXA').AsCurrency   := StrToInt(codEntrega);
+  dm.IBQuery1.ParamByName('TAXA').AsCurrency   := 0;
+  if TAXA.Text = 'S' then dm.IBQuery1.ParamByName('TAXA').AsCurrency   := StrToCurr(funcoes.buscaParamGeral(124, '5'));
+
   dm.IBQuery1.ParamByName('cod').AsInteger     := StrToInt(codEntrega);
   dm.IBQuery1.ParamByName('CLIENTE').AsString  := cliente.Text;
   dm.IBQuery1.ParamByName('TELEFONE').AsString := TELEFONE.Text;

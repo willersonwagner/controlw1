@@ -159,7 +159,19 @@ end;
 procedure TForm51.JsBotao1Click(Sender: TObject);
 var
   sim, vende : string;
+  limite : currency;
 begin
+  if funcoes.buscaParamGeral(126, 'N') = 'S' then begin
+    limite := funcoes.ver_limites(cliente.Text, 0);
+
+    if limite = 0 then begin
+      cliente.Text := '';
+      nome.Text    := '';
+      cliente.SetFocus;
+      exit;
+    end;
+  end;
+
   if cod.Text <> '0' then begin
     if VerificaAcesso_Se_Nao_tiver_Nenhum_bloqueio_true_senao_false = false then begin
       ShowMessage('Usuário Bloqueado pra alteração de O. S.');
@@ -203,6 +215,8 @@ begin
 end;
 
 procedure TForm51.clienteKeyPress(Sender: TObject; var Key: Char);
+var
+  limite : currency;
 begin
   if key = #13 then
     begin
@@ -234,6 +248,17 @@ begin
       if tedit(sender).Text <> '' then
         begin
           nome.Text := funcoes.BuscaNomeBD(dm.ibselect, 'nome', 'cliente', 'where cod = ' + cliente.Text);
+
+          if funcoes.buscaParamGeral(126, 'N') = 'S' then begin
+            limite := funcoes.ver_limites(cliente.Text, 0);
+
+            if limite = 0 then begin
+              cliente.Text := '';
+              nome.Text    := '';
+              cliente.SetFocus;
+              exit;
+            end;
+          end;
         end;
     end;
 end;

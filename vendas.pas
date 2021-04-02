@@ -1520,8 +1520,10 @@ begin
   if funcoes.buscaParamGeral(73, 'N') = 'S' then
     txt := '';
 
-  if Modo_Venda then
-    pedido := 'VENDA'
+  if Modo_Venda then begin
+    pedido := 'VENDA';
+
+  end
   else
   begin
     pedido := 'ORCAMENTO';
@@ -1622,8 +1624,8 @@ begin
           Desconto), '.', 28) + ' |', ' ', tam) + #13 + #10))));
       end;
 
-      if contido(funcoes.LerConfig(form22.Pgerais.Values['configu'], 3), 'XS')
-        and (txt <> '') then
+      if {contido(funcoes.LerConfig(form22.Pgerais.Values['configu'], 3), 'XS')
+        and} (txt <> '') then
       begin
         form19.RichEdit1.Perform(EM_REPLACESEL, 1,
           Longint(PChar((funcoes.CompletaOuRepete('|OBS: ' + txt, '|', ' ',
@@ -4112,11 +4114,16 @@ begin
     end;
 
     // form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete('','',' ',40)+#13+#10))));
-    form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-      Longint(PChar((funcoes.centraliza(dm.IBQuery2.FieldByName('ende').AsString
+    {addRelatorioForm19(funcoes.centraliza(dm.IBQuery2.FieldByName('ende').AsString
       + ' - ' + copy(dm.IBQuery2.FieldByName('bairro').AsString, 1,
       37 - length(dm.IBQuery2.FieldByName('ende').AsString)), ' ', 40) + #13
-      + #10))));
+      + #10);}
+
+    addRelatorioForm19
+      (funcoes.centraliza(LeftStr(dm.IBQuery2.FieldByName('ende').AsString +
+      ' - ' + (dm.IBQuery2.FieldByName('bairro').AsString), 38), ' ',
+      40) + CRLF);
+
     form19.RichEdit1.Perform(EM_REPLACESEL, 1,
       Longint(PChar((funcoes.centraliza('FONE: ' + dm.IBQuery2.FieldByName
       ('telres').AsString + '  ' + ' ' + dm.IBQuery2.FieldByName('telcom')
@@ -4188,9 +4195,16 @@ begin
           copy(dm.IBQuery3.FieldByName('telres').AsString + '   ' +
           dm.IBQuery3.FieldByName('telcom').AsString, 1, 34), '', ' ', 40) +
           #13 + #10);
-        addRelatorioForm19('OBS: ' + CRLF);
-        addRelatorioForm19(funcoes.QuebraLinhas('', '',
-          dm.IBQuery3.FieldByName('obs').AsString, 40));
+
+
+        if funcoes.buscaParamGeral(125, '') <> '' then begin
+          addRelatorioForm19('OBS: ' + CRLF);
+          addRelatorioForm19(funcoes.QuebraLinhas('', '',funcoes.buscaParamGeral(125, ''), 40));
+        end
+        else begin
+          addRelatorioForm19('OBS: ' + CRLF);
+          addRelatorioForm19(funcoes.QuebraLinhas('', '',dm.IBQuery3.FieldByName('obs').AsString, 40));
+        end;
       end;
       // addRelatorioForm19(funcoes.CompletaOuRepete('OBS: ' + copy(dm.IBQuery3.fieldbyname('obs').AsString, 1,34),'',' ', 40) + #13 + #10);
       addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 40) + #13 + #10);
@@ -4208,7 +4222,6 @@ begin
     subtotal := 0;
 
     totVolumes := 0;
-
 
     addRelatorioForm19('Codigo    Descricao'+ #13 + #10);
     addRelatorioForm19('*                  Quant   V.Unit  Total'+ #13 + #10);
@@ -4423,6 +4436,16 @@ begin
           except
           end;
         end;
+      end
+      else begin
+        if txt <> '' then begin
+          addRelatorioForm19(funcoes.QuebraLinhas('', '', txt, 40));
+          if length(txt) > 0 then
+            form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+              Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 40) + #13
+              + #10))));
+        end;
+
       end;
     end;
 
@@ -4800,6 +4823,8 @@ begin
         }
         // novocod := funcoes.novocod('venda');
       end;
+
+
       GeraParcelamento();
       exit;
       // end;
@@ -5779,16 +5804,18 @@ begin
   //se tem mais de 1 parcela entao o sistema atribui pagamento mensal
   //if (StrToInt(Parcelamento.Values['qtd']) > 1) then Parcelamento.Values['periodo'] := '30';
 
+  Parcelamento.Values['periodo'] := StrNum(Parcelamento.Values['periodo']);
+
   for i := 1 to StrToInt(Parcelamento.Values['qtd']) do
   begin
     if i = 1 then
       vencimento := StrToDate(Parcelamento.Values['vencto']);
-    dm.IBQuery1.SQL.Clear;
-    dm.IBQuery1.SQL.Add
+
+    dm.IBQuery1.SQL.Text :=
       ('insert into contasreceber(nota,codgru,cod,formpagto,datamov,vendedor,data,vencimento,documento,codhis,historico,total,valor)'
-      + ' values(' + novocod + ',1,' + funcoes.novocod('creceber') + ',' +
-      codhis + ',:datamov,' + JsEdit2.Text + ',:data,:vencimento,' +
-      JsEdit3.Text + ',2,:hist,:total,:valor)');
+      + ' values(' + StrNum(novocod) + ',1,' + funcoes.novocod('creceber') + ',' +
+      StrNum(codhis) + ',:datamov,' + StrNum(JsEdit2.Text) + ',:data,:vencimento,' +
+      StrNum(JsEdit3.Text) + ',2,:hist,:total,:valor)');
     dm.IBQuery1.ParamByName('datamov').AsDateTime :=
       funcoes.PreparaData(FormatDateTime('dd/mm/yyyy', form22.datamov));
     if i <> 1 then
@@ -5807,12 +5834,23 @@ begin
       funcoes.CompletaOuRepete('', IntToStr(i), ' ', 2) + '/' +
       funcoes.CompletaOuRepete('', Parcelamento.Values['qtd'], ' ', 2),
       ' ', 35);
-    dm.IBQuery1.ParamByName('total').AsCurrency :=
-      StrToCurr(Parcelamento.Values['valorp']);
+    dm.IBQuery1.ParamByName('total').AsCurrency := StrToCurr(Parcelamento.Values['valorp']);
     dm.IBQuery1.ParamByName('valor').AsCurrency :=
       StrToCurr(Parcelamento.Values['valorp']);
     dm.IBQuery1.ExecSQL;
   end;
+
+  dm.IBQuery1.SQL.Text := 'insert into parcelamento(cod, nota, total, valor_parc, qtd_parc, juros, periodo, primeiro_venc, entrada) ' +
+  'values(gen_id(parcelamento, 1),:nota, :total, :valor_parc, :qtd_parc, :juros, :periodo, :primeiro_venc, :entrada)';
+  dm.IBQuery1.ParamByName('nota').AsString := StrNum(novocod);
+  dm.IBQuery1.ParamByName('total').AsCurrency := StrToCurrDef(Parcelamento.Values['total'],0);
+  dm.IBQuery1.ParamByName('valor_parc').AsCurrency := StrToCurrDef(Parcelamento.Values['valorp'],0);
+  dm.IBQuery1.ParamByName('qtd_parc').AsCurrency := StrToCurrDef(Parcelamento.Values['qtd'],0);
+  dm.IBQuery1.ParamByName('juros').AsCurrency := StrToCurrDef(Parcelamento.Values['taxa'],0);
+  dm.IBQuery1.ParamByName('periodo').AsString := Parcelamento.Values['periodo'];
+  dm.IBQuery1.ParamByName('primeiro_venc').AsDate := StrToDate(Parcelamento.Values['vencto']);
+  dm.IBQuery1.ParamByName('entrada').AsCurrency := StrToCurrDef(Parcelamento.Values['entrada'],0);
+  dm.IBQuery1.ExecSQL;
 end;
 
 function TForm20.gravaVenda : boolean;
@@ -6182,7 +6220,7 @@ begin
         exit;
       end;
 
-      if ((funcoes.buscaParamGeral(118, '') = 'S') and (Modo_Venda)) then begin
+      if ((funcoes.buscaParamGeral(118, '') = 'S') and ((Modo_Venda) or (separaPecas))) then begin
         form83 := tform83.Create(self);
         form83.codEntrega := ENDE_ENTREGA;
         form83.ShowModal;
@@ -6290,6 +6328,7 @@ begin
             funcoes.lerServicoNoBdEcriaUmObjetoOrdem(COD_SERVICO, ordem1);
             ordem1.cliente := StrToIntDef(JsEdit3.Text, 0);
             funcoes.imprimeOrdemDeServico(ordem1, false, true);
+
             Close;
           end;
         except
@@ -6298,6 +6337,10 @@ begin
             ShowMessage('Ocorreu um Erro: ' + e.Message + CRLF +
               'Consulte o Suporte para mais Informações');
           end;
+        end;
+
+        if ((funcoes.buscaParamGeral(118, 'N') = 'S') and (Modo_Venda) and (form22.Pgerais.Values['nota'] = 'T')) then begin
+          funcoes.imprimeEnderecoEntregaCodEndereco(novocod, ENDE_ENTREGA);
         end;
 
         { se finaliza = true então atualiza a tabela OS_VENDA e grava venda na tabela venda }

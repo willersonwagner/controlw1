@@ -2,7 +2,7 @@ object Form83: TForm83
   Left = 0
   Top = 0
   Caption = 'Dados De Entrega'
-  ClientHeight = 220
+  ClientHeight = 252
   ClientWidth = 470
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -18,7 +18,7 @@ object Form83: TForm83
   TextHeight = 13
   object Panel1: TPanel
     Left = 0
-    Top = 179
+    Top = 211
     Width = 470
     Height = 41
     ParentCustomHint = False
@@ -41,8 +41,7 @@ object Form83: TForm83
     ParentShowHint = False
     ShowHint = False
     TabOrder = 0
-    ExplicitTop = 160
-    ExplicitWidth = 447
+    ExplicitTop = 179
     object BitBtn1: TBitBtn
       Left = -1
       Top = 0
@@ -113,15 +112,14 @@ object Form83: TForm83
   end
   object GroupBox1: TGroupBox
     Left = 0
-    Top = 1
+    Top = 0
     Width = 470
-    Height = 178
-    Align = alBottom
+    Height = 211
+    Align = alClient
     Caption = 'Identifica'#231#227'o'
     TabOrder = 1
-    ExplicitLeft = -8
-    ExplicitTop = 8
-    ExplicitWidth = 547
+    ExplicitTop = 1
+    ExplicitHeight = 178
     object Label2: TLabel
       Left = 11
       Top = 18
@@ -174,6 +172,19 @@ object Form83: TForm83
       Font.Style = [fsBold]
       ParentFont = False
     end
+    object Label4: TLabel
+      Left = 11
+      Top = 162
+      Width = 125
+      Height = 16
+      Caption = 'Cobrar Taxa(S/N) ?'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentFont = False
+    end
     object cliente: TEdit
       Left = 11
       Top = 40
@@ -212,6 +223,17 @@ object Form83: TForm83
       MaxLength = 25
       TabOrder = 3
       OnKeyPress = telefoneKeyPress
+    end
+    object taxa: TEdit
+      Left = 11
+      Top = 180
+      Width = 30
+      Height = 21
+      CharCase = ecUpperCase
+      MaxLength = 35
+      TabOrder = 4
+      Text = 'N'
+      OnKeyPress = taxaKeyPress
     end
   end
 end

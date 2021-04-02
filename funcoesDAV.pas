@@ -3,8 +3,8 @@ unit funcoesDAV;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, ACBrUtil,
-  Graphics, Controls, Forms, Dialogs, StdCtrls, IBQuery, classes1, math, printers, System.Zip;
+  Windows, Messages, SysUtils,IBX.IBQuery, Classes, ACBrUtil,
+  Graphics, Controls, Forms, Dialogs, StdCtrls, classes1, math, printers, System.Zip;
 
   function Trunca(const nValor: currency; const iCasas: integer): currency;
   function le_codbar1(var query : TIBQuery; const codbar, paramGe38 : String; arredon : String = '') : TprodutoVendaCodBar;

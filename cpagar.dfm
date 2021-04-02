@@ -1,9 +1,9 @@
 object Form27: TForm27
   Left = 468
   Top = 298
-  Width = 563
-  Height = 375
   Caption = 'Contas a Pagar'
+  ClientHeight = 336
+  ClientWidth = 547
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -22,9 +22,10 @@ object Form27: TForm27
     Left = 0
     Top = 0
     Width = 547
-    Height = 297
+    Height = 296
     Align = alClient
     TabOrder = 0
+    ExplicitHeight = 297
     object Label1: TLabel
       Left = 8
       Top = 16
@@ -66,6 +67,7 @@ object Form27: TForm27
       FormularioComp = 'Form27'
       ColorOnEnter = clSkyBlue
       Indice = 0
+      TipoDeDado = teNumero
     end
     object JsEditData1: JsEditData
       Left = 88
@@ -91,6 +93,7 @@ object Form27: TForm27
       FormularioComp = 'Form27'
       ColorOnEnter = clSkyBlue
       Indice = 0
+      TipoDeDado = teNumero
     end
     object GroupBox1: TGroupBox
       Left = 248
@@ -110,6 +113,7 @@ object Form27: TForm27
         FormularioComp = 'Form27'
         ColorOnEnter = clSkyBlue
         Indice = 0
+        TipoDeDado = teNumero
       end
       object JsEdit2: JsEdit
         Left = 56
@@ -123,6 +127,7 @@ object Form27: TForm27
         FormularioComp = 'Form27'
         ColorOnEnter = clSkyBlue
         Indice = 0
+        TipoDeDado = teNumero
       end
     end
     object JsEditNumero1: JsEditNumero
@@ -138,6 +143,7 @@ object Form27: TForm27
       ColorOnEnter = clSkyBlue
       ValidaCampo = True
       Indice = 0
+      TipoDeDado = teNumero
       CasasDecimais = 2
     end
     object DBGrid1: TDBGrid
@@ -203,11 +209,12 @@ object Form27: TForm27
   end
   object ToolBar1: TPanel
     Left = 0
-    Top = 297
+    Top = 296
     Width = 547
     Height = 40
     Align = alBottom
     TabOrder = 1
+    ExplicitTop = 297
     object info: TLabel
       Left = 80
       Top = 8
@@ -227,8 +234,6 @@ object Form27: TForm27
       Width = 75
       Height = 35
       Caption = 'Gravar'
-      TabOrder = 0
-      OnClick = JsBotao1Click
       Glyph.Data = {
         F6060000424DF606000000000000360000002800000018000000180000000100
         180000000000C0060000EB0A0000EB0A00000000000000000000CCCCCCCACACA
@@ -286,6 +291,8 @@ object Form27: TForm27
         3D8F64ACB8B1CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
         CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
         CCCCCCCCCCCCCCCCBAC0BCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC}
+      TabOrder = 0
+      OnClick = JsBotao1Click
     end
   end
   object DataSource1: TDataSource
@@ -298,6 +305,7 @@ object Form27: TForm27
     Transaction = dm.IBTransaction2
     BufferChunks = 1000
     CachedUpdates = False
+    ParamCheck = True
     Left = 104
     Top = 72
   end

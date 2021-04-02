@@ -1,3 +1,4 @@
+
 unit Unit2;
 
 interface
@@ -4150,6 +4151,9 @@ begin
   form40.tipo.Add('121=generico');
   form40.tipo.Add('122=generico');
   form40.tipo.Add('123=generico');
+  form40.tipo.Add('124=numero');
+  form40.tipo.Add('125=normal');
+  form40.tipo.Add('126=generico');
 
   form40.troca := TStringList.Create;
   form40.troca.Add('0=S');
@@ -4279,6 +4283,9 @@ begin
   form40.troca.Add('121=S');
   form40.troca.Add('122=S');
   form40.troca.Add('123=S');
+  form40.troca.Add('124=');
+  form40.troca.Add('125=');
+  form40.troca.Add('126=S');
 
   form40.teclas := TStringList.Create;
   form40.teclas.Add('0=FT');
@@ -4407,6 +4414,9 @@ begin
   form40.teclas.Add('121=SN');
   form40.teclas.Add('122=SN');
   form40.teclas.Add('123=1234567890');
+  form40.teclas.Add('124=1234567890');
+  form40.teclas.Add('125=1234567890ABCDEFGHIJLMNOPKXYZWQRSTUVXZ|' + #46);
+  form40.teclas.Add('126=SN');
 
   form40.ListBox1.Clear;
   form40.ListBox1.Items.Add
@@ -4451,7 +4461,7 @@ begin
   form40.ListBox1.Items.Add
     ('22=Qual a Aliquota Padrão no Cadastro de Produto ?');
   form40.ListBox1.Items.Add('23=Habilitar Funcionamento em Rede?');
-  form40.ListBox1.Items.Add('24=Habilitar Saída de Estoque ?');
+  form40.ListBox1.Items.Add('24=Habilitar Saida de Estoque ?');
   form40.ListBox1.Items.Add
     ('25=Comparar Lucro com 1-Custo da Nota, 2-Custo Real, 3-Preço de Venda?');
   form40.ListBox1.Items.Add('26=Usar NCM na Nota Fiscal Eletrônica?');
@@ -4609,6 +4619,9 @@ begin
   form40.ListBox1.Items.Add('121=Desabilitar campos de formação de preço caso seja optante do Simples Nacional ?');
   form40.ListBox1.Items.Add('122=Usar Controle de Entrega (Mademato) ?');
   form40.ListBox1.Items.Add('123=Usar Quantas Casas Decimais na Quantidade da Venda ?');
+  form40.ListBox1.Items.Add('124=Qual o valor da taxa de Entrega ?');
+  form40.ListBox1.Items.Add('125=Qual a Mensagem no Pedido de Venda TICKET Fixo na Venda?');
+  form40.ListBox1.Items.Add('126=Considerar Limites de ativo, atraso e compra?');
 
 
   form40.ListBox1.Selected[0] := true;
@@ -9781,8 +9794,9 @@ begin
     form39.ListBox1.Items.Add
       ('11=Qual Cor Usar para nas Celulas Selecionadas da Tabela de Produtos ?');
     form39.ListBox1.Items.Add('12=Qual Cor da Fonte da Tabela de Produtos ?');
-    form39.ListBox1.Items.Add
-      ('13=Quantas Linhas para Completar a Impressao da ordem de Serviço M(Padrao 25) ?');
+    form39.ListBox1.Items.Add('13=Quantas Linhas para Completar a Impressao da ordem de Serviço M(Padrao 25) ?');
+    form39.ListBox1.Items.Add('14=Imprimir Reimpressao em quantas vias ?');
+
     form39.substitui := TStringList.Create;
     form39.substitui.Add('S'); // 0
     form39.substitui.Add('S');
@@ -9797,6 +9811,7 @@ begin
     form39.substitui.Add('M'); // 10
     form39.substitui.Add('M'); // 11
     form39.substitui.Add('M'); // 12
+    form39.substitui.Add(''); // 13
     form39.substitui.Add(''); // 13
 
     form39.teclas := TStringList.Create;
@@ -9813,6 +9828,7 @@ begin
     form39.teclas.Add('');
     form39.teclas.Add('');
     form39.teclas.Add('');
+    form39.teclas.Add('1234567890' + #8);
     form39.teclas.Add('1234567890' + #8);
     form39.showmodal;
   end

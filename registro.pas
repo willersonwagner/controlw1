@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, Mask, JsEditCNPJ1, StdCtrls, JsEdit1, Buttons, ExtCtrls, ImgList,
-  JsEditInteiro1, funcoesDAV;
+  JsEditInteiro1, funcoesDAV, JsEditCPF1;
 
 type
   TForm35 = class(TForm)
@@ -33,12 +33,15 @@ type
     Label6: TLabel;
     Label15: TLabel;
     Label16: TLabel;
+    tex: TBitBtn;
+    Label17: TLabel;
     cod: JsEditInteiro;
     nome: JsEdit;
     titular: JsEdit;
     suframa: JsEdit;
     cnpj: JsEditCNPJ;
     ies: JsEdit;
+    cpf: JsEditCPF;
     telres: JsEdit;
     telcom: JsEdit;
     ende: JsEdit;
@@ -48,7 +51,6 @@ type
     cid: JsEdit;
     obs: JsEdit;
     JsEdit1: JsEdit;
-    tex: TBitBtn;
     procedure texClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -94,7 +96,18 @@ uses Unit1, DB, Unit2, func, cadcliente, principal, nfe;
 procedure TForm35.texClick(Sender: TObject);
 var
   regime : String;
+  CONT : INTEGER;
 begin
+  CONT := 0;
+
+  if StrNum(cnpj.Text) <> '0' then CONT := CONT + 1;
+  if StrNum(CPF.Text)  <> '0' then CONT := CONT + 1;
+
+  if CONT = 0 then BEGIN
+    ShowMessage('O SISTEMA NAO PODE SER REGISTRADO SEM INFORMAÇÕES DE CNPJ OU CPF!');
+    EXIT;
+  END;
+
   if (not Ativado) or ((ativado) and (demo)) then
     begin
       dm.IBselect.Close;
@@ -116,8 +129,9 @@ begin
       empresa.Text := trim(empresa.Text);
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Clear;
-      dm.IBQuery1.SQL.Add('update registro set empresa = :emp,registro=:reg,nome=:nome,cnpj=:cnpj,ies=:ies,ende=:ende,cep=:cep,telres=:telres,telcom=:telcom, cid = :cid,est=:est,obs=:obs,titular=:titular,crip=:crip,cod_mun=:mun, suframa = :suframa');
+      dm.IBQuery1.SQL.Add('update registro set cpf = :cpf, empresa = :emp,registro=:reg,nome=:nome,cnpj=:cnpj,ies=:ies,ende=:ende,cep=:cep,telres=:telres,telcom=:telcom, cid = :cid,est=:est,obs=:obs,titular=:titular,crip=:crip,cod_mun=:mun, suframa = :suframa');
       //dm.IBQuery1.ParamByName('cod').AsString := funcoes.Criptografar(cod.Text);
+      dm.IBQuery1.ParamByName('cpf').AsString    :=  cpf.Text;
       dm.IBQuery1.ParamByName('emp').AsString := REMOVE_ACENTO(empresa.Text);
 
       if demo1 then dm.IBQuery1.ParamByName('reg').AsInteger := trunc(StringToInteger(empresa.Text) / 2)
@@ -164,8 +178,9 @@ begin
    begin
     dm.IBQuery1.Close;
     dm.IBQuery1.SQL.Clear;
-    dm.IBQuery1.SQL.Add('update registro set nome = :nome,cnpj = :cnpj,ies=:ies,ende=:ende,bairro = :bairro,cep=:cep,telres=:telres,telcom=:telcom,cid=:cid,est=:est,obs=:obs,titular=:titular,cod_mun=:mun, suframa = :suframa');
+    dm.IBQuery1.SQL.Add('update registro set cpf = :cpf, nome = :nome,cnpj = :cnpj,ies=:ies,ende=:ende,bairro = :bairro,cep=:cep,telres=:telres,telcom=:telcom,cid=:cid,est=:est,obs=:obs,titular=:titular,cod_mun=:mun, suframa = :suframa');
     //dm.IBQuery1.ParamByName('cod').AsString := funcoes.Criptografar(cod.Text);
+    dm.IBQuery1.ParamByName('cpf').AsString    :=  cpf.Text;
     dm.IBQuery1.ParamByName('nome').AsString    := nome.Text;
     dm.IBQuery1.ParamByName('cnpj').AsString    := cnpj.Text;
     dm.IBQuery1.ParamByName('ies').AsString     := ies.Text;
@@ -234,6 +249,7 @@ begin
       obs.Text := dm.IBQuery2.fieldbyname('obs').AsString;
       JsEdit1.Text := dm.IBQuery2.fieldbyname('cod_mun').AsString;
       suframa.Text := dm.IBQuery2.fieldbyname('suframa').AsString;
+      CPF.Text := dm.IBQuery2.fieldbyname('CPF').AsString;
     end
   else //if (Ativado) and (not demo) then
     begin
@@ -252,6 +268,7 @@ begin
       obs.Text := dm.IBQuery2.fieldbyname('obs').AsString;
       JsEdit1.Text := dm.IBQuery2.fieldbyname('cod_mun').AsString;
       suframa.Text := dm.IBQuery2.fieldbyname('suframa').AsString;
+      CPF.Text := dm.IBQuery2.fieldbyname('CPF').AsString;
       empresa.Enabled := false;
       JsEdit4.Enabled := false;
       ativadoOk := true;
@@ -423,6 +440,8 @@ end;
 procedure TForm35.iesKeyPress(Sender: TObject; var Key: Char);
 begin
   if (key = #27) then key := #0;
+  if key = #13 then cpf.SetFocus;
+
 end;
 
 procedure TForm35.cepKeyPress(Sender: TObject; var Key: Char);
