@@ -2808,6 +2808,26 @@ begin
   //if (ConfParamGerais.Strings[10] = '1') and (FIN_NFE1 <> '4') then
   if (funcoes.buscaParamGeral(10, '') = '1') then
     begin
+      if (((mat.Reducao <> 0) or (FIN_NFE1 = '4')) and (indIEDest <> '9')) then begin
+          Result := '<ICMS><ICMSSN900><orig>' + _ORIGE + '</orig><CSOSN>900</CSOSN><modBC>3</modBC>' +
+          '<vBC>' + FORMAT_NUM(arrendondaNFe(tot, 2)) + '</vBC>' +
+          '<pRedBC>' + FORMAT_NUM(item.Reducao) + '</pRedBC>' +
+          '<pICMS>' + FORMAT_NUM(item.PercICMS) + '</pICMS>' +
+          '<vICMS>' + FORMAT_NUM(arrendondaNFe(tot * item.PercICMS / 100, 2)) + '</vICMS>' +
+          '<modBCST>0.00</modBCST><vBCST>0.00</vBCST>' +
+          '<pICMSST>0.00</pICMSST><vICMSST>0.00</vICMSST>' +
+          '<pCredSN>0.00</pCredSN><vCredICMSSN>0.00</vCredICMSSN>' +
+          '</ICMSSN900></ICMS>' ;
+
+          BASE_ICM := tot;
+          TOT_BASEICM := TOT_BASEICM + arrendondaNFe(tot, 2);
+          VLR_ICM := arrendondaNFe(BASE_ICM * ITEM.PercICMS / 100, 2);
+          TOTICM := TOTICM + VLR_ICM;
+          exit;
+        end;
+
+
+
       if ((FIN_NFE1 = '4') and (indIEDest <> '9')) then begin
         icms := item.PercICMS;
         icms := menor(ALIQ_INTEREST(UF_DEST), icms);
@@ -2858,19 +2878,20 @@ begin
           exit;
         end;
 
-      if mat.Reducao <> 0 then
+      if ((mat.Reducao <> 0) or (FIN_NFE1 = '4')) then
         begin
           Result := '<ICMS><ICMSSN900><orig>' + _ORIGE + '</orig><CSOSN>900</CSOSN><modBC>3</modBC>' +
-          '<vBC>' + FORMAT_NUM(arrendondaNFe(tot * mat.Reducao / 100, 2)) + '</vBC>' +
+          '<vBC>' + FORMAT_NUM(arrendondaNFe(tot, 2)) + '</vBC>' +
           '<pRedBC>' + FORMAT_NUM(item.Reducao) + '</pRedBC>' +
-          '<pICMS>' + FORMAT_NUM(item.p_venda) + '</pICMS>' +
-          '<vICMS>' + FORMAT_NUM(0) + '</vICMS>' +
+          '<pICMS>' + FORMAT_NUM(item.PercICMS) + '</pICMS>' +
+          '<vICMS>' + FORMAT_NUM(arrendondaNFe(tot * item.PercICMS / 100, 2)) + '</vICMS>' +
           '<modBCST>0.00</modBCST><vBCST>0.00</vBCST>' +
           '<pICMSST>0.00</pICMSST><vICMSST>0.00</vICMSST>' +
           '<pCredSN>0.00</pCredSN><vCredICMSSN>0.00</vCredICMSSN>' +
           '</ICMSSN900></ICMS>' ;
 
-          TOT_BASEICM := TOT_BASEICM + arrendondaNFe(tot * mat.Reducao / 100, 2);
+          BASE_ICM := tot;
+          TOT_BASEICM := TOT_BASEICM + arrendondaNFe(tot, 2);
           VLR_ICM := arrendondaNFe(BASE_ICM * ITEM.PercICMS / 100, 2);
           TOTICM := TOTICM + VLR_ICM;
           exit;
@@ -3648,7 +3669,7 @@ begin
                  item.VlrICMS            := 0;
                  item.DescICMS           := 0;
                  item.Aliq               := query2.fieldbyname('aliquota').AsString;
-                 //item.Reducao            := query2.fieldbyname('reducao').AsCurrency;
+                 item.Reducao            := query2.fieldbyname('reducao').AsCurrency;
                  item.CodAliq            := StrToIntdef(StrNum(query1.fieldbyname('aliquota').AsString), 2);
                  item.Total_Preco_Compra := abs(arrendondaNFe(query1.fieldbyname('p_compra').AsCurrency * query1.fieldbyname('quant').AsCurrency,2));
                  item.Pis                := query2.fieldbyname('is_pis').AsString;

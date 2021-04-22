@@ -5193,7 +5193,7 @@ begin
 
         item1.numProd := item;
         item1.cod := StrToIntDef(StrNum(NfeVenda.Le_Nodo('cProd', txt1)), 0);
-        item1.codigoFornecedor := StrNum(NfeVenda.Le_Nodo('cProd', txt1));
+        item1.codigoFornecedor := (NfeVenda.Le_Nodo('cProd', txt1));
         item1.nome := NfeVenda.Le_Nodo('xProd', txt1);
         item1.nome := UpperCase(item1.nome);
         item1.quant := StrToFloatDef(StringReplace(NfeVenda.Le_Nodo('qCom',
@@ -5414,7 +5414,7 @@ begin
     //form48.ClientDataSet1.FieldByName('CRED_ICMS').AsCurrency := item1.p_icms;
     //form48.ClientDataSet1.FieldByName('CRED_ICMS').AsCurrency := 0;
     // form48.ClientDataSet1.FieldByName('REF_NFE').AsString       := IntToStr(item1.cod) + '|' + item1.codbar;
-    form48.ClientDataSet1.FieldByName('REF_NFE').AsString := item1.codigoFornecedor + '|' + form48.fornecedor;
+    form48.ClientDataSet1.FieldByName('REF_NFE').AsString := LeftStr(item1.codigoFornecedor + '|' + form48.fornecedor, 25);
 
     dm.IBselect.Close;
     dm.IBselect.SQL.Clear;
@@ -29218,13 +29218,16 @@ begin
 end;
 
 procedure Tfuncoes.imprimeVendaFortesA4(numVenda : String);
+var
+  cliente, preview : String;
+  arq : TStringList;
 begin
   dm.IBselect.Close;
   dm.IBselect.SQL.Text := 'select * from registro';
   dm.IBselect.Open;
 
   imprime1.imprime.RLLabel38.Caption := form22.Pgerais.Values['empresa'];
-  imprime1.imprime.RLLabel39.Caption := dm.IBselect.FieldByName('ende').AsString + ' - ' + dm.IBselect.FieldByName('bairro').AsString + '      ' + dm.IBselect.FieldByName('cid').AsString + ' / ' +dm.IBselect.FieldByName('est').AsString;
+  imprime1.imprime.RLLabel39.Caption := dm.IBselect.FieldByName('ende').AsString + ' - ' + dm.IBselect.FieldByName('bairro').AsString + ' ' + dm.IBselect.FieldByName('cid').AsString + ' / ' +dm.IBselect.FieldByName('est').AsString;
   imprime1.imprime.RLLabel43.Caption := 'Fone: ' + dm.IBselect.FieldByName('telres').AsString + ' Cel: ' + dm.IBselect.FieldByName('telcom').AsString ;
   imprime1.imprime.RLLabel44.Caption := 'Obs: ' + dm.IBselect.FieldByName('OBS').AsString;
   imprime1.imprime.RLLabel40.Caption := 'CNPJ: ' + dm.IBselect.FieldByName('CNPJ').AsString;
@@ -29233,11 +29236,55 @@ begin
   imprime1.imprime.RLLabel34.Caption := 'Pedido Nr: ' + numVenda;
 
   dm.IBselect.Close;
-  dm.IBselect.SQL.Text := 'select v.codhis, p.nome from venda v left join formpagto p on (p.cod = v.codhis) where nota = ' + numVenda;
+  dm.IBselect.SQL.Text := 'select v.codhis, p.nome, v.total, v.desconto, v.cliente from venda v left join formpagto p on (p.cod = v.codhis) where nota = ' + numVenda;
   dm.IBselect.Open;
+
+
+  cliente := StrNum(dm.IBselect.FieldByName('cliente').AsString);
+
+  imprime1.imprime.rlsubtotal.Caption := formataCurrency(dm.IBselect.FieldByName('total').AsCurrency - dm.IBselect.FieldByName('desconto').AsCurrency);
+  imprime1.imprime.rldesconto.Caption := formataCurrency(dm.IBselect.FieldByName('desconto').AsCurrency);
+  imprime1.imprime.rltotal.Caption    := formataCurrency(dm.IBselect.FieldByName('total').AsCurrency);
 
   imprime1.imprime.RLLabel42.Caption := 'Form. Pagto: ' + dm.IBselect.FieldByName('codhis').AsString + '-' + dm.IBselect.FieldByName('nome').AsString;
 
+
+  if cliente = '0' then begin
+    imprime1.imprime.RLBand18.Visible := false;
+  end
+  else begin
+    imprime1.imprime.RLBand18.Visible := true;
+    dm.IBselect.Close;
+    dm.IBselect.SQL.Text := 'select cod, nome, cnpj, ies, ende, bairro, tipo, cid, est from cliente where cod = ' + cliente;
+    dm.IBselect.Open;
+                                                           //Ende...:  RUA APOCALIPSE, 35, CINTURAO VERDE
+    imprime1.imprime.rlcliente.Caption := 'Cliente: ' + dm.IBselect.FieldByName('nome').AsString;
+    imprime1.imprime.rlende.Caption    := 'Ende...: ' + dm.IBselect.FieldByName('ende').AsString + ', ' + dm.IBselect.FieldByName('bairro').AsString + '  ' + dm.IBselect.FieldByName('cid').AsString + '-' + dm.IBselect.FieldByName('est').AsString;
+
+    imprime1.imprime.rlcpf.Caption     := 'CPF/CNPJ....: ' + dm.IBselect.FieldByName('cnpj').AsString;
+    imprime1.imprime.rlinsc.Caption    := 'RG/Insc. Est: ' + dm.IBselect.FieldByName('ies').AsString;
+  end;
+
+  if FileExists(caminhoEXE_com_barra_no_final + 'logoMed.bmp') then begin
+    imprime1.imprime.RLImage1.Picture.LoadFromFile(caminhoEXE_com_barra_no_final + 'logoMed.bmp');
+  end
+  else begin
+    imprime1.imprime.RLImage1.Visible := false;
+    //imprime1.imprime.RLImage1.Width   := 745;
+  end;
+
+  if FileExists(caminhoEXE_com_barra_no_final + 'configPed.dat') then begin
+    arq := TStringList.Create;
+    arq.LoadFromFile(caminhoEXE_com_barra_no_final + 'configPed.dat');
+    preview := arq.Values['p'];
+    if trim(preview) = '' then preview := 'S';
+
+    imprime1.imprime.pedidoVendaA4.Margins.LeftMargin := StrToIntDef(arq.Values['l'], 2);
+    imprime1.imprime.pedidoVendaA4.Margins.TopMargin  := StrToIntDef(arq.Values['t'], 10);
+  end
+  else begin
+    preview := 'S';
+  end;
 
   dm.ProdutoQY.Close;
   dm.ProdutoQY.SQL.Clear;
@@ -29261,7 +29308,11 @@ begin
   imprime1.imprime.RLLabel37.Caption := FormatDateTime('hh:mm:ss', dm.ProdutoQY.FieldByName('hora').AsDateTime);
   imprime1.imprime.DataSource1.DataSet := dm.ProdutoQY;
   // imprime1.imprime.RLReport2.PrintDialog := false;
-  imprime1.imprime.pedidoVendaA4.preview();
+  if preview = 'S' then begin
+    imprime1.imprime.pedidoVendaA4.PreviewModal;
+    //imprime1.imprime.pedidoVendaA4.Preview;
+  end
+  else imprime1.imprime.pedidoVendaA4.Print;
 end;
 
 function Tfuncoes.ver_limites(CodUsu: string;AserAdicionadoNaContaDoClitente: currency): currency;

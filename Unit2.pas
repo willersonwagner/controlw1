@@ -9617,7 +9617,18 @@ begin
     exit;
   end;
 
-  funcoes.GeraNota(nota, form22.Pgerais.Values['nota'], 'S', StrToInt(tab));
+  tipo := form22.Pgerais.Values['nota'];
+  if ((tipo = 'B') and (tab = '1')) then begin
+    funcoes.imprimeVendaFortesA4(nota);
+    exit;
+  end;
+  if ((tipo = 'B') and (tab <> '1')) then begin
+    tipo := 'M';
+    funcoes.GeraNota(nota, tipo, 'S', StrToInt(tab));
+    exit;
+  end;
+
+  funcoes.GeraNota(nota, tipo, 'S', StrToInt(tab));
   dm.IBQuery2.Close;
 end;
 
@@ -9774,7 +9785,7 @@ begin
     form39.ListBox1.Clear;
     form39.conf := 2;
     form39.ListBox1.Items.Add
-      ('0=Qual a Nota de Venda(T-Ticket,M-Média,G-Grande,L-Localiza,A-Atacado,R-Resumo,D-Dav,F-Ticket Gráfico, X-Media G., E-Ticket Maior)?');
+      ('0=Qual a Nota de Venda(T-Ticket,M-Média, B-Media Grafico, G-Grande,L-Localiza,A-Atacado,R-Resumo,D-Dav,F-Ticket Gráfico, X-Media G., E-Ticket Maior)?');
     form39.ListBox1.Items.Add
       ('1=Qual a Porta Serial da Impressora Fiscal (1/2)? ');
     form39.ListBox1.Items.Add
@@ -9815,7 +9826,7 @@ begin
     form39.substitui.Add(''); // 13
 
     form39.teclas := TStringList.Create;
-    form39.teclas.Add('TGMLADRFVXE');
+    form39.teclas.Add('TGMLADRFVXEB');
     form39.teclas.Add('12');
     form39.teclas.Add('1234');
     form39.teclas.Add('1234567890' + #8);
@@ -9853,8 +9864,13 @@ begin
   dm.IBQuery2.SQL.Clear;
   dm.IBQuery2.SQL.Add('select nota from venda where (nota=' + nota + ')');
   dm.IBQuery2.Open;
-  if not(dm.IBQuery2.IsEmpty) then
-    funcoes.GeraNota(nota, form22.Pgerais.Values['nota'], 'N', 1)
+  if not(dm.IBQuery2.IsEmpty) then begin
+    tipo := form22.Pgerais.Values['nota'];
+    if (tipo = 'B') then funcoes.imprimeVendaFortesA4(nota)
+    else begin
+      funcoes.GeraNota(nota, form22.Pgerais.Values['nota'], 'N', 1);
+    end;
+  end
   else
     ShowMessage('Nota Não Encontrada!');
   dm.IBQuery2.Close;
@@ -18789,7 +18805,7 @@ end;
 
 procedure TForm2.EntradasPorNota1Click(Sender: TObject);
 var
-  ini, fim, cons, cab: String;
+  ini, fim, cons, cab, h1: String;
   TOT, totNota: currency;
 begin
   ini := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,
@@ -18802,6 +18818,11 @@ begin
   if fim = '*' then
     exit;
 
+  fornec := funcoes.dialogo('generico', 50, '1234567890' + #8, 50, false, '',
+    'Control For Windows', 'Qual o Fornecedor ?', '');
+  if fornec = '*' then
+    exit;
+
   cons := funcoes.dialogo('generico', 0, 'EC', 0, false, 'S',
     'Control For Windows',
     'Considerar: E-Data de Emissão C-Data de Chegada?', 'C');
@@ -18812,6 +18833,10 @@ begin
     cons := 'chegada'
   else
     cons := 'data';
+
+  h1 := '';
+  if fornec <> '' then h1 := ' and (fornec = '+StrNum(fornec)+')';
+    
 
   cab := 'ENTRADAS POR NOTA => ' + IfThen(cons = 'chegada', 'CHEGADA ',
     'EMISSAO ') + ' DE ' + ini + ' A ' + fim;
@@ -18829,7 +18854,7 @@ begin
   dm.ibselect.Close;
   dm.ibselect.SQL.Text :=
     'select e.nota, (select nome from fornecedor f where f.cod = e.fornec) as nome, e.fornec, e.data, e.chegada, (select sum(total) from item_entrada i where i.nota = e.nota and i.fornec = e.fornec) as total_nota from entrada e where ( '
-    + cons + ' >= :ini) and (' + cons + ' <= :fim)';
+    + cons + ' >= :ini) and (' + cons + ' <= :fim) ' + h1;
   try
     dm.ibselect.ParamByName('ini').AsDate := StrToDate(ini);
     dm.ibselect.ParamByName('fim').AsDate := StrToDate(fim);

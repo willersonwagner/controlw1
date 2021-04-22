@@ -79,7 +79,7 @@ type matrizCurrency = array of currency;
      prod, prod1 : itemPROD;
      lista : TList;
      fim, i, ret, ini : integer;
-     TRIB_REGIME, CSTPIS_CFOP, prodRuins, codCTA : String;
+     TRIB_REGIME, CSTPIS_CFOP, prodRuins, codCTA, chavesDuplicidade : String;
      mat_uni, mat_uniok : TItensUnid;
      listaProdutos, Lista0200Importados : TItensProduto;
      prodtemp      : TregProd;
@@ -922,7 +922,8 @@ begin
 
   num1 := 0;
   num2 := 0;
-  ERRO_CHAVE := '';
+  ERRO_CHAVE        := '';
+  chavesDuplicidade := '';
 
 {  if FileExists(arqSPED) then
     begin
@@ -1216,6 +1217,12 @@ begin
       if ((tipo = '55') and (length(_CHNFE) <> 44)) then begin
         //ShowMessage(_CHNFE);
         ERRO_CHAVE := ERRO_CHAVE + inttostr(NOTA) + ' ';
+      end;
+
+      if (length(_CHNFE) = 44) then begin
+        if chavesDuplicidade = '' then chavesDuplicidade := '|';
+
+        chavesDuplicidade := chavesDuplicidade + _CHNFE + '|';
       end;
 
       dm.IBselect.Close;
@@ -2432,6 +2439,9 @@ begin
 
       zerarArrayProduto();
       CHAVENF := dm.IBselect.FieldByName('chave').AsString;
+
+      if Contido('|' + CHAVENF + '|', chavesDuplicidade) = false then begin
+    
       nota    := StrToIntDef(copy(chaveNF, 26, 9), 0);
 
       //if not Contido(IntToStr(nota), CODNOTA) then
@@ -2543,6 +2553,7 @@ begin
 
                   GRAVA_SPED(ARQ_TMP, LINHA);
                 end;
+            end;
 
             end;//if listaProdutos.Count > 0 then
         //end;

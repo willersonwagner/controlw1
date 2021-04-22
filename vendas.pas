@@ -130,6 +130,7 @@ type
     tipoTrocaDescontoUsuario : String;
     semCliente: boolean;
     produtosServico: TStringList;
+    procedure impNovo;
     // function baixa
     function verificaSePodeVenderNegativo_X_NaVendaConfig11DoUsuario() : boolean;
     procedure adicionaEntregaTabela;
@@ -4533,7 +4534,7 @@ end;
 
 procedure TForm20.gravaOrcamento;
 var
-  cod, codmov, nome1: string;
+  cod, codmov, nome1, tipo: string;
 begin
   if funcoes.buscaParamGeral(120, '') = 'S' then begin
     dm.IBQuery1.Close;
@@ -6047,7 +6048,7 @@ begin
 
   try
     if funcoes.buscaParamGeral(19, 'S') = 'S' then
-      ImprimeNota
+      impNovo
     else if contido(funcoes.buscaParamGeral(19, 'S'), 'PX') then
     begin
       padrao := 'S';
@@ -6056,7 +6057,7 @@ begin
       cod := funcoes.dialogo('generico', 0, 'SN' + #8, 0, true, 'S',
         'Control For Windows', 'Deseja Imprimir Esta Venda (S/N) ?:', padrao);
       if cod = 'S' then
-        ImprimeNota;
+        impNovo;
     end;
   except
     on e: exception do
@@ -7499,7 +7500,7 @@ begin
 
       total_A_Limitar := -1;
 
-      if jsedit1.getValor > 0 then begin
+      if (jsedit1.getValor > 0) and (Compra <> true) then begin
         total_A_Limitar := ver_limites(JsEdit3.Text, ClientDataSet1QUANT.AsCurrency * StrToCurrDef(subTot, 0));
 
         if total_A_Limitar = 0 then begin
@@ -7536,7 +7537,7 @@ begin
       sub := quant;
 
 
-      if jsedit1.getValor > 0 then begin
+      if (jsedit1.getValor > 0) and (Compra <> true) then begin
         total_A_Limitar := ver_limites(JsEdit3.Text, quant * ClientDataSet1PRECO.AsCurrency);
 
         if total_A_Limitar = 0 then begin
@@ -9279,6 +9280,17 @@ begin
   end;
 
   Result := true;
+end;
+
+procedure TForm20.impNovo;
+var
+  tipo : String;
+begin
+  tipo := form22.Pgerais.Values['nota'];
+  if tipo = 'B' then funcoes.imprimeVendaFortesA4(novocod)
+  else begin
+    ImprimeNota;
+  end;
 end;
 
 

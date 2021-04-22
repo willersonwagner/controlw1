@@ -56,9 +56,9 @@ object imprime: Timprime
     PrintDialog = False
     ShowProgress = False
     object rlbRodape: TRLBand
-      Left = 2
-      Top = 282
-      Width = 276
+      Left = 11
+      Top = 285
+      Width = 258
       Height = 71
       BandType = btFooter
       Font.Charset = DEFAULT_CHARSET
@@ -70,7 +70,7 @@ object imprime: Timprime
       object RLDraw2: TRLDraw
         Left = 0
         Top = 0
-        Width = 276
+        Width = 258
         Height = 8
         Align = faTop
         DrawKind = dkLine
@@ -79,7 +79,7 @@ object imprime: Timprime
       object pGap05: TRLPanel
         Left = 0
         Top = 54
-        Width = 276
+        Width = 258
         Height = 17
         Align = faBottom
         Font.Charset = DEFAULT_CHARSET
@@ -91,7 +91,7 @@ object imprime: Timprime
         object lSistema: TRLLabel
           Left = 0
           Top = 7
-          Width = 276
+          Width = 258
           Height = 10
           Align = faBottom
           Alignment = taRightJustify
@@ -108,7 +108,7 @@ object imprime: Timprime
       object RLPanel1: TRLPanel
         Left = 0
         Top = 8
-        Width = 276
+        Width = 258
         Height = 53
         Align = faClientTop
         Font.Charset = DEFAULT_CHARSET
@@ -131,7 +131,7 @@ object imprime: Timprime
         object nota: TRLLabel
           Left = 0
           Top = 30
-          Width = 276
+          Width = 258
           Height = 23
           Align = faBottom
           Alignment = taCenter
@@ -147,9 +147,9 @@ object imprime: Timprime
       end
     end
     object rlsbDetItem: TRLSubDetail
-      Left = 2
-      Top = 168
-      Width = 276
+      Left = 11
+      Top = 171
+      Width = 258
       Height = 29
       AllowedBands = [btDetail, btSummary]
       Font.Charset = DEFAULT_CHARSET
@@ -161,13 +161,13 @@ object imprime: Timprime
       object rlbDetItem: TRLBand
         Left = 0
         Top = 0
-        Width = 276
+        Width = 258
         Height = 24
         AutoSize = True
         object mLinhaItem: TRLMemo
           Left = 0
           Top = 0
-          Width = 276
+          Width = 258
           Height = 24
           Align = faTop
           Behavior = [beSiteExpander]
@@ -184,20 +184,20 @@ object imprime: Timprime
       object rlbGap: TRLBand
         Left = 0
         Top = 24
-        Width = 276
+        Width = 258
         Height = 2
         BandType = btSummary
       end
     end
     object rlsbPagamentos: TRLSubDetail
-      Left = 2
-      Top = 197
-      Width = 276
+      Left = 11
+      Top = 200
+      Width = 258
       Height = 65
       object rlbPagamento: TRLBand
         Left = 0
         Top = 56
-        Width = 276
+        Width = 258
         Height = 12
         AutoSize = True
         object lPagamento: TRLLabel
@@ -231,7 +231,7 @@ object imprime: Timprime
       object rlbTroco: TRLBand
         Left = 0
         Top = 80
-        Width = 276
+        Width = 258
         Height = 12
         AutoSize = True
         BandType = btSummary
@@ -272,7 +272,7 @@ object imprime: Timprime
       object rlbTotal: TRLBand
         Left = 0
         Top = 0
-        Width = 276
+        Width = 258
         Height = 56
         BandType = btHeader
         Font.Charset = DEFAULT_CHARSET
@@ -365,7 +365,7 @@ object imprime: Timprime
         object RLDraw7: TRLDraw
           Left = 0
           Top = 0
-          Width = 276
+          Width = 258
           Height = 8
           Align = faTop
           DrawKind = dkLine
@@ -402,7 +402,7 @@ object imprime: Timprime
       object Desconto: TRLBand
         Left = 0
         Top = 68
-        Width = 276
+        Width = 258
         Height = 12
         BandType = btSummary
         Font.Charset = DEFAULT_CHARSET
@@ -441,14 +441,14 @@ object imprime: Timprime
       end
     end
     object rlbsCabecalho: TRLSubDetail
-      Left = 2
-      Top = 8
-      Width = 276
+      Left = 11
+      Top = 11
+      Width = 258
       Height = 160
       object rlbDadosCliche: TRLBand
         Left = 0
         Top = 0
-        Width = 276
+        Width = 258
         Height = 59
         AutoSize = True
         BandType = btTitle
@@ -456,7 +456,7 @@ object imprime: Timprime
         object pLogoeCliche: TRLPanel
           Left = 0
           Top = 0
-          Width = 276
+          Width = 258
           Height = 59
           Align = faTop
           AutoExpand = True
@@ -464,7 +464,7 @@ object imprime: Timprime
           object lEndereco: TRLMemo
             Left = 0
             Top = 29
-            Width = 276
+            Width = 258
             Height = 30
             Align = faTop
             Alignment = taCenter
@@ -481,7 +481,7 @@ object imprime: Timprime
           object imgLogo: TRLImage
             Left = 0
             Top = 0
-            Width = 276
+            Width = 258
             Height = 1
             Align = faTop
             AutoSize = True
@@ -492,7 +492,7 @@ object imprime: Timprime
           object lNomeFantasia: TRLMemo
             Left = 0
             Top = 1
-            Width = 276
+            Width = 258
             Height = 16
             Align = faTop
             Alignment = taCenter
@@ -510,7 +510,7 @@ object imprime: Timprime
           object lRazaoSocial: TRLMemo
             Left = 0
             Top = 17
-            Width = 276
+            Width = 258
             Height = 12
             Align = faTop
             Alignment = taCenter
@@ -529,13 +529,13 @@ object imprime: Timprime
       object RLBand1: TRLBand
         Left = 0
         Top = 129
-        Width = 276
+        Width = 258
         Height = 25
         BandType = btColumnFooter
         object RLDraw4: TRLDraw
           Left = 0
           Top = 17
-          Width = 276
+          Width = 258
           Height = 8
           Align = faTop
           DrawKind = dkLine
@@ -544,7 +544,7 @@ object imprime: Timprime
         object lCPF_CNPJ1: TRLLabel
           Left = 0
           Top = 0
-          Width = 276
+          Width = 258
           Height = 17
           Align = faTop
           Caption = '#|COD|DESC|QTD|UN| VL UN R$|(VLTR R$)*| VL ITEM R$'
@@ -560,13 +560,13 @@ object imprime: Timprime
       object dadosCliente: TRLBand
         Left = 0
         Top = 99
-        Width = 276
+        Width = 258
         Height = 30
         BandType = btColumnFooter
         object lcliente: TRLLabel
           Left = 0
           Top = 0
-          Width = 276
+          Width = 258
           Height = 25
           Align = faTop
           Caption = 'Cliente'
@@ -581,7 +581,7 @@ object imprime: Timprime
         object RLDraw8: TRLDraw
           Left = 0
           Top = 22
-          Width = 276
+          Width = 258
           Height = 8
           Align = faBottom
           DrawKind = dkLine
@@ -591,13 +591,13 @@ object imprime: Timprime
       object dadosNota: TRLBand
         Left = 0
         Top = 59
-        Width = 276
+        Width = 258
         Height = 40
         AlignToBottom = True
         object ldadosNota: TRLLabel
           Left = 0
           Top = 8
-          Width = 276
+          Width = 258
           Height = 13
           Align = faTop
           Caption = 'Vendedor: 0-Vendedor'
@@ -612,7 +612,7 @@ object imprime: Timprime
         object RLDraw1: TRLDraw
           Left = 0
           Top = 0
-          Width = 276
+          Width = 258
           Height = 8
           Align = faTop
           DrawKind = dkLine
@@ -621,7 +621,7 @@ object imprime: Timprime
         object RLDraw5: TRLDraw
           Left = 0
           Top = 32
-          Width = 276
+          Width = 258
           Height = 8
           Align = faBottom
           DrawKind = dkLine
@@ -630,16 +630,16 @@ object imprime: Timprime
       end
     end
     object rlbMensagemContribuinte: TRLBand
-      Left = 2
-      Top = 262
-      Width = 276
+      Left = 11
+      Top = 265
+      Width = 258
       Height = 20
       AutoSize = True
       BandType = btSummary
       object RLDraw3: TRLDraw
         Left = 0
         Top = 0
-        Width = 276
+        Width = 258
         Height = 8
         Align = faTop
         DrawKind = dkLine
@@ -648,7 +648,7 @@ object imprime: Timprime
       object lObservacoes: TRLMemo
         Left = 0
         Top = 8
-        Width = 276
+        Width = 258
         Height = 12
         Align = faTop
         Alignment = taCenter
@@ -680,9 +680,9 @@ object imprime: Timprime
     PageSetup.PaperWidth = 74.000000000000000000
     PageSetup.PaperHeight = 200.000000000000000000
     object RLBand2: TRLBand
-      Left = 2
-      Top = 132
-      Width = 276
+      Left = 11
+      Top = 135
+      Width = 258
       Height = 341
       GreenBarColor = clBlack
       AutoSize = True
@@ -692,14 +692,14 @@ object imprime: Timprime
       object RLPanel5: TRLPanel
         Left = 0
         Top = 0
-        Width = 276
+        Width = 258
         Height = 341
         Align = faClient
         Transparent = False
         object RLMemo4: TRLMemo
           Left = 0
           Top = 0
-          Width = 276
+          Width = 258
           Height = 288
           Align = faTop
           Behavior = [beSiteExpander]
@@ -729,21 +729,21 @@ object imprime: Timprime
       end
     end
     object RLBand3: TRLBand
-      Left = 2
-      Top = 8
-      Width = 276
+      Left = 11
+      Top = 11
+      Width = 258
       Height = 124
       BandType = btHeader
       object RLPanel2: TRLPanel
         Left = 0
         Top = 0
-        Width = 276
+        Width = 258
         Height = 57
         Align = faTop
         object RLMemo1: TRLMemo
           Left = 0
           Top = 0
-          Width = 276
+          Width = 258
           Height = 18
           Align = faTop
           Alignment = taCenter
@@ -761,7 +761,7 @@ object imprime: Timprime
         object RLMemo2: TRLMemo
           Left = 0
           Top = 18
-          Width = 276
+          Width = 258
           Height = 12
           Align = faTop
           Alignment = taCenter
@@ -778,7 +778,7 @@ object imprime: Timprime
         object RLMemo3: TRLMemo
           Left = 0
           Top = 30
-          Width = 276
+          Width = 258
           Height = 12
           Align = faTop
           Alignment = taCenter
@@ -796,7 +796,7 @@ object imprime: Timprime
       object RLDraw6: TRLDraw
         Left = 0
         Top = 91
-        Width = 276
+        Width = 258
         Height = 8
         Align = faTop
         DrawKind = dkLine
@@ -805,7 +805,7 @@ object imprime: Timprime
       object RLLabel1: TRLLabel
         Left = 0
         Top = 78
-        Width = 276
+        Width = 258
         Height = 13
         Align = faTop
         Caption = 'Vendedor: 0-Vendedor'
@@ -820,7 +820,7 @@ object imprime: Timprime
       object RLLabel5: TRLLabel
         Left = 0
         Top = 65
-        Width = 276
+        Width = 258
         Height = 13
         Align = faTop
         Caption = 'Cliente'
@@ -835,7 +835,7 @@ object imprime: Timprime
       object RLDraw9: TRLDraw
         Left = 0
         Top = 57
-        Width = 276
+        Width = 258
         Height = 8
         Align = faTop
         DrawKind = dkLine
@@ -844,7 +844,7 @@ object imprime: Timprime
       object RLDraw10: TRLDraw
         Left = 0
         Top = 111
-        Width = 276
+        Width = 258
         Height = 8
         Align = faTop
         DrawKind = dkLine
@@ -853,7 +853,7 @@ object imprime: Timprime
       object RLLabel6: TRLLabel
         Left = 0
         Top = 99
-        Width = 276
+        Width = 258
         Height = 12
         Align = faTop
         Caption = '#|COD|DESC|QTD|UN| VL UN R$|(VLTR R$)*| VL ITEM R$'
@@ -867,9 +867,9 @@ object imprime: Timprime
       end
     end
     object RLBand4: TRLBand
-      Left = 2
-      Top = 473
-      Width = 276
+      Left = 11
+      Top = 476
+      Width = 258
       Height = 71
       BandType = btFooter
       Font.Charset = DEFAULT_CHARSET
@@ -881,7 +881,7 @@ object imprime: Timprime
       object RLDraw11: TRLDraw
         Left = 0
         Top = 0
-        Width = 276
+        Width = 258
         Height = 8
         Align = faTop
         DrawKind = dkLine
@@ -890,7 +890,7 @@ object imprime: Timprime
       object RLPanel3: TRLPanel
         Left = 0
         Top = 54
-        Width = 276
+        Width = 258
         Height = 17
         Align = faBottom
         Font.Charset = DEFAULT_CHARSET
@@ -902,7 +902,7 @@ object imprime: Timprime
         object RLLabel7: TRLLabel
           Left = 0
           Top = 7
-          Width = 276
+          Width = 258
           Height = 10
           Align = faBottom
           Alignment = taRightJustify
@@ -919,7 +919,7 @@ object imprime: Timprime
       object RLPanel4: TRLPanel
         Left = 0
         Top = 8
-        Width = 276
+        Width = 258
         Height = 53
         Align = faClientTop
         Font.Charset = DEFAULT_CHARSET
@@ -942,7 +942,7 @@ object imprime: Timprime
         object RLLabel8: TRLLabel
           Left = 0
           Top = 30
-          Width = 276
+          Width = 258
           Height = 23
           Align = faBottom
           Alignment = taCenter
@@ -1435,10 +1435,11 @@ object imprime: Timprime
     AdjustableMargins = True
     Borders.Sides = sdCustom
     Borders.DrawLeft = False
-    Borders.DrawTop = False
+    Borders.DrawTop = True
     Borders.DrawRight = False
-    Borders.DrawBottom = False
-    Borders.Style = bsVertical
+    Borders.DrawBottom = True
+    Borders.FixedTop = True
+    Borders.FixedBottom = True
     DataSource = DataSource1
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
@@ -1449,10 +1450,13 @@ object imprime: Timprime
     PageSetup.PaperSize = fpCustom
     PageSetup.PaperWidth = 210.000000000000000000
     PageSetup.PaperHeight = 297.000000000000000000
+    PreviewOptions.ShowModal = True
+    PreviewOptions.Caption = 'Pr'#233'-visualiza'#231#227'o - ControlW Sistemas'
+    ShowProgress = False
     object RLBand14: TRLBand
-      Left = 8
-      Top = 38
-      Width = 748
+      Left = 11
+      Top = 39
+      Width = 745
       Height = 40
       AutoSize = True
       BandType = btHeader
@@ -1475,7 +1479,7 @@ object imprime: Timprime
         Transparent = False
       end
       object RLLabel36: TRLLabel
-        Left = 620
+        Left = 605
         Top = 24
         Width = 68
         Height = 16
@@ -1483,7 +1487,7 @@ object imprime: Timprime
         Transparent = False
       end
       object RLLabel37: TRLLabel
-        Left = 691
+        Left = 675
         Top = 24
         Width = 54
         Height = 16
@@ -1501,7 +1505,7 @@ object imprime: Timprime
       object RLLabel35: TRLLabel
         Left = 0
         Top = 0
-        Width = 748
+        Width = 745
         Height = 22
         Align = faTop
         Alignment = taCenter
@@ -1512,11 +1516,11 @@ object imprime: Timprime
       end
     end
     object RLBand17: TRLBand
-      Left = 8
-      Top = 78
-      Width = 748
+      Left = 11
+      Top = 79
+      Width = 745
       Height = 64
-      AutoSize = True
+      AutoExpand = False
       BandType = btHeader
       Borders.Sides = sdCustom
       Borders.DrawLeft = False
@@ -1535,35 +1539,61 @@ object imprime: Timprime
       ParentFont = False
       Transparent = False
       object RLLabel38: TRLLabel
-        Left = 95
-        Top = 3
+        Left = 89
+        Top = 2
         Width = 136
-        Height = 16
+        Height = 15
+        Align = faClientLeft
         Caption = 'MOTO PECAS UNIAO'
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clBlack
+        Font.Height = -13
+        Font.Name = 'Courier New'
+        Font.Style = [fsBold]
+        ParentFont = False
         Transparent = False
       end
       object RLLabel39: TRLLabel
-        Left = 95
-        Top = 18
-        Width = 276
-        Height = 16
+        Left = 89
+        Top = 17
+        Width = 304
+        Height = 15
+        Align = faClientLeft
         Caption = 'RUA MANOEL FELIPE, 1754 - ASA BRANCA '
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clBlack
+        Font.Height = -13
+        Font.Name = 'Courier New'
+        Font.Style = [fsBold]
+        ParentFont = False
         Transparent = False
       end
       object RLLabel40: TRLLabel
-        Left = 585
+        Left = 530
         Top = 3
-        Width = 160
+        Width = 200
         Height = 16
         Caption = 'CNPJ: 03.910.026/0001-65'
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clBlack
+        Font.Height = -13
+        Font.Name = 'Courier New'
+        Font.Style = [fsBold]
+        ParentFont = False
         Transparent = False
       end
       object RLLabel41: TRLLabel
-        Left = 585
+        Left = 530
         Top = 33
-        Width = 91
+        Width = 120
         Height = 16
         Caption = 'IE: 240282070 '
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clBlack
+        Font.Height = -13
+        Font.Name = 'Courier New'
+        Font.Style = [fsBold]
+        ParentFont = False
         Transparent = False
       end
       object RLImage1: TRLImage
@@ -1852,27 +1882,41 @@ object imprime: Timprime
         Transparent = False
       end
       object RLLabel43: TRLLabel
-        Left = 95
-        Top = 33
-        Width = 312
-        Height = 16
+        Left = 89
+        Top = 32
+        Width = 368
+        Height = 15
+        Align = faClientLeft
         Caption = 'FONE: 3626-2588 CEL: 991323010 BOA VISTA - RR'
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clBlack
+        Font.Height = -13
+        Font.Name = 'Courier New'
+        Font.Style = [fsBold]
+        ParentFont = False
         Transparent = False
       end
       object RLLabel44: TRLLabel
-        Left = 95
-        Top = 48
-        Width = 103
-        Height = 16
+        Left = 89
+        Top = 47
+        Width = 128
+        Height = 17
+        Align = faClientLeft
         Caption = 'Obs: 991114141 '
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clBlack
+        Font.Height = -13
+        Font.Name = 'Courier New'
+        Font.Style = [fsBold]
+        ParentFont = False
         Transparent = False
       end
     end
     object RLBand18: TRLBand
-      Left = 8
-      Top = 142
-      Width = 748
-      Height = 54
+      Left = 11
+      Top = 143
+      Width = 745
+      Height = 37
       AutoSize = True
       BandType = btHeader
       Borders.Sides = sdCustom
@@ -1891,237 +1935,375 @@ object imprime: Timprime
       ParentColor = False
       ParentFont = False
       Transparent = False
-      object RLLabel45: TRLLabel
-        Left = 3
+      object rlcliente: TRLLabel
+        Left = 0
         Top = 5
-        Width = 304
+        Width = 336
         Height = 16
-        Caption = 'CLIENTE:  FRIOS RIO BRANCO IMP E EXP LTDA'
+        Caption = 'Cliente:  FRIOS RIO BRANCO IMP E EXP LTDA'
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clBlack
+        Font.Height = -13
+        Font.Name = 'Courier New'
+        Font.Style = [fsBold]
+        ParentFont = False
         Transparent = False
       end
-      object RLLabel47: TRLLabel
-        Left = 551
+      object rlcpf: TRLLabel
+        Left = 500
         Top = 5
-        Width = 194
+        Width = 240
         Height = 16
         Caption = 'CPF/CNPJ: 06.218.522/0001-40 '
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clBlack
+        Font.Height = -13
+        Font.Name = 'Courier New'
+        Font.Style = [fsBold]
+        ParentFont = False
         Transparent = False
       end
-      object RLLabel46: TRLLabel
-        Left = 3
+      object rlende: TRLLabel
+        Left = 0
         Top = 21
-        Width = 307
+        Width = 360
         Height = 16
-        Caption = 'Ende:  RUA APOCALIPSE, 35, CINTURAO VERDE'
+        Caption = 'Ende...:  RUA APOCALIPSE, 35, CINTURAO VERDE'
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clBlack
+        Font.Height = -13
+        Font.Name = 'Courier New'
+        Font.Style = [fsBold]
+        ParentFont = False
         Transparent = False
       end
-      object RLLabel48: TRLLabel
-        Left = 551
+      object rlinsc: TRLLabel
+        Left = 500
         Top = 21
-        Width = 130
+        Width = 192
         Height = 16
-        Caption = 'Insc. Est.: 240132232'
-        Transparent = False
-      end
-      object RLLabel49: TRLLabel
-        Left = 3
-        Top = 38
-        Width = 165
-        Height = 16
-        Caption = 'Bairro: CINTURAO VERDE'
-        Transparent = False
-      end
-      object RLLabel50: TRLLabel
-        Left = 551
-        Top = 38
-        Width = 85
-        Height = 16
-        Caption = 'C'#243'digo: 1541'
+        Caption = 'Insc. Est...: 240132232'
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clBlack
+        Font.Height = -13
+        Font.Name = 'Courier New'
+        Font.Style = [fsBold]
+        ParentFont = False
         Transparent = False
       end
     end
-    object RLSubDetail1: TRLSubDetail
-      Left = 8
-      Top = 196
-      Width = 748
-      Height = 64
-      object RLBand13: TRLBand
-        Left = 0
-        Top = 0
-        Width = 748
-        Height = 20
-        AutoSize = True
-        BandType = btTitle
-        Borders.Sides = sdCustom
-        Borders.DrawLeft = False
-        Borders.DrawTop = True
-        Borders.DrawRight = False
-        Borders.DrawBottom = True
-        Borders.Width = 2
-        Borders.Style = bsCross
-        Color = clWhite
-        Font.Charset = DEFAULT_CHARSET
+    object RLBand13: TRLBand
+      Left = 11
+      Top = 180
+      Width = 745
+      Height = 22
+      BandType = btHeader
+      Borders.Sides = sdCustom
+      Borders.DrawLeft = False
+      Borders.DrawTop = True
+      Borders.DrawRight = False
+      Borders.DrawBottom = True
+      Borders.Width = 2
+      Borders.Style = bsCross
+      Color = clWhite
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -13
+      Font.Name = 'Arial'
+      Font.Style = []
+      ParentColor = False
+      ParentFont = False
+      Transparent = False
+      object RLLabel30: TRLLabel
+        Left = 3
+        Top = 2
+        Width = 40
+        Height = 16
+        Caption = 'C'#243'd.'
+        Font.Charset = ANSI_CHARSET
         Font.Color = clBlack
         Font.Height = -13
-        Font.Name = 'Arial'
-        Font.Style = []
-        ParentColor = False
+        Font.Name = 'Courier New'
+        Font.Style = [fsBold]
         ParentFont = False
         Transparent = False
-        object RLLabel30: TRLLabel
-          Left = 3
-          Top = 2
-          Width = 31
-          Height = 16
-          Caption = 'C'#243'd.'
-          Transparent = False
-        end
-        object RLLabel31: TRLLabel
-          Left = 66
-          Top = 2
-          Width = 34
-          Height = 16
-          Caption = 'Unid.'
-          Transparent = False
-        end
-        object RLLabel32: TRLLabel
-          Left = 564
-          Top = 2
-          Width = 69
-          Height = 16
-          Caption = 'Pre'#231'o Unit.'
-          Transparent = False
-        end
-        object RLLabel33: TRLLabel
-          Left = 691
-          Top = 2
-          Width = 32
-          Height = 16
-          Caption = 'Total'
-          Transparent = False
-        end
-        object RLLabel51: TRLLabel
-          Left = 454
-          Top = 2
-          Width = 43
-          Height = 16
-          Caption = 'Quant.'
-          Transparent = False
-        end
-        object RLLabel52: TRLLabel
-          Left = 117
-          Top = 2
-          Width = 62
-          Height = 16
-          Caption = 'Descri'#231#227'o'
-          Transparent = False
-        end
       end
-      object RLBand15: TRLBand
-        Left = 0
-        Top = 20
-        Width = 748
-        Height = 19
-        AutoSize = True
-        Completion = ctFullPage
-        BeforePrint = RLBand7BeforePrint
-        object RLDBText12: TRLDBText
-          Left = 3
-          Top = 3
-          Width = 43
-          Height = 16
-          Alignment = taRightJustify
-          DataField = 'cod'
-          DataSource = DataSource1
-          Text = ''
-        end
-        object RLDBText13: TRLDBText
-          Left = 117
-          Top = 3
-          Width = 35
-          Height = 15
-          DataField = 'nome'
-          DataSource = DataSource1
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = clBlack
-          Font.Height = -12
-          Font.Name = 'Arial'
-          Font.Style = []
-          ParentFont = False
-          Text = ''
-        end
-        object RLDBText14: TRLDBText
-          Left = 461
-          Top = 3
-          Width = 36
-          Height = 16
-          Alignment = taRightJustify
-          DataField = 'quant'
-          DataSource = DataSource1
-          Text = ''
-        end
-        object RLDBText15: TRLDBText
-          Left = 559
-          Top = 3
-          Width = 74
-          Height = 16
-          Alignment = taRightJustify
-          DataField = 'p_venda'
-          DataSource = DataSource1
-          DisplayMask = '#,###,###0.00'
-          Text = ''
-        end
-        object RLDBText16: TRLDBText
-          Left = 66
-          Top = 3
-          Width = 28
-          Height = 16
-          DataField = 'unid'
-          DataSource = DataSource1
-          Text = ''
-        end
-        object RLDBText17: TRLDBText
-          Left = 700
-          Top = 3
-          Width = 29
-          Height = 16
-          Alignment = taRightJustify
-          DataField = 'total'
-          DataSource = DataSource1
-          DisplayMask = '#,###,###0.00'
-          Text = ''
-        end
+      object RLLabel31: TRLLabel
+        Left = 66
+        Top = 2
+        Width = 48
+        Height = 16
+        Caption = 'Unid.'
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clBlack
+        Font.Height = -13
+        Font.Name = 'Courier New'
+        Font.Style = [fsBold]
+        ParentFont = False
+        Transparent = False
       end
-      object RLBand16: TRLBand
+      object RLLabel32: TRLLabel
+        Left = 564
+        Top = 2
+        Width = 96
+        Height = 16
+        Caption = 'Pre'#231'o Unit.'
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clBlack
+        Font.Height = -13
+        Font.Name = 'Courier New'
+        Font.Style = [fsBold]
+        ParentFont = False
+        Transparent = False
+      end
+      object RLLabel33: TRLLabel
+        Left = 691
+        Top = 2
+        Width = 48
+        Height = 16
+        Caption = 'Total'
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clBlack
+        Font.Height = -13
+        Font.Name = 'Courier New'
+        Font.Style = [fsBold]
+        ParentFont = False
+        Transparent = False
+      end
+      object RLLabel51: TRLLabel
+        Left = 499
+        Top = 2
+        Width = 56
+        Height = 16
+        Caption = 'Quant.'
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clBlack
+        Font.Height = -13
+        Font.Name = 'Courier New'
+        Font.Style = [fsBold]
+        ParentFont = False
+        Transparent = False
+      end
+      object RLLabel52: TRLLabel
+        Left = 117
+        Top = 2
+        Width = 80
+        Height = 16
+        Caption = 'Descri'#231#227'o'
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clBlack
+        Font.Height = -13
+        Font.Name = 'Courier New'
+        Font.Style = [fsBold]
+        ParentFont = False
+        Transparent = False
+      end
+    end
+    object RLBand15: TRLBand
+      AlignWithMargins = True
+      Left = 11
+      Top = 202
+      Width = 745
+      Height = 19
+      AlignToBottom = True
+      AutoExpand = False
+      AutoSize = True
+      Borders.Style = bsClear
+      Computable = False
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clBlack
+      Font.Height = -13
+      Font.Name = 'Courier New'
+      Font.Style = [fsBold]
+      ParentFont = False
+      BeforePrint = RLBand7BeforePrint
+      object RLDBText12: TRLDBText
+        Left = 14
+        Top = 3
+        Width = 32
+        Height = 16
+        Alignment = taRightJustify
+        DataField = 'cod'
+        DataSource = DataSource1
+        Text = ''
+      end
+      object RLDBText13: TRLDBText
+        Left = 117
+        Top = 3
+        Width = 35
+        Height = 14
+        DataField = 'nome'
+        DataSource = DataSource1
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clBlack
+        Font.Height = -11
+        Font.Name = 'Courier New'
+        Font.Style = [fsBold]
+        ParentFont = False
+        Text = ''
+      end
+      object RLDBText14: TRLDBText
+        Left = 510
+        Top = 3
+        Width = 48
+        Height = 16
+        Alignment = taRightJustify
+        DataField = 'quant'
+        DataSource = DataSource1
+        Text = ''
+        Transparent = False
+      end
+      object RLDBText15: TRLDBText
+        Left = 596
+        Top = 3
+        Width = 64
+        Height = 16
+        Alignment = taRightJustify
+        DataField = 'p_venda'
+        DataSource = DataSource1
+        DisplayMask = '#,###,###0.00'
+        Text = ''
+      end
+      object RLDBText16: TRLDBText
+        Left = 66
+        Top = 3
+        Width = 40
+        Height = 16
+        DataField = 'unid'
+        DataSource = DataSource1
+        Text = ''
+      end
+      object RLDBText17: TRLDBText
+        Left = 694
+        Top = 3
+        Width = 48
+        Height = 16
+        Alignment = taRightJustify
+        DataField = 'total'
+        DataSource = DataSource1
+        DisplayMask = '#,###,###0.00'
+        Text = ''
+      end
+    end
+    object RLBand16: TRLBand
+      Left = 11
+      Top = 221
+      Width = 745
+      Height = 66
+      BandType = btSummary
+      Borders.Sides = sdCustom
+      Borders.DrawLeft = False
+      Borders.DrawTop = True
+      Borders.DrawRight = False
+      Borders.DrawBottom = True
+      Borders.FixedBottom = True
+      object RLLabel53: TRLLabel
         Left = 0
-        Top = 39
-        Width = 748
-        Height = 27
-        AutoSize = True
-        BandType = btSummary
+        Top = 12
+        Width = 177
+        Height = 15
         Borders.Sides = sdCustom
         Borders.DrawLeft = False
-        Borders.DrawTop = True
+        Borders.DrawTop = False
         Borders.DrawRight = False
         Borders.DrawBottom = False
-        object RLLabel53: TRLLabel
-          Left = 98
-          Top = 4
-          Width = 206
-          Height = 23
-          Borders.Sides = sdCustom
-          Borders.DrawLeft = False
-          Borders.DrawTop = False
-          Borders.DrawRight = False
-          Borders.DrawBottom = False
-          Caption = 'Total............3000,00: '
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = clBlack
-          Font.Height = -20
-          Font.Name = 'Arial'
-          Font.Style = []
-          ParentFont = False
-        end
+        Caption = 'Sub-Total...........................:'
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clBlack
+        Font.Height = -13
+        Font.Name = 'Arial Rounded MT Bold'
+        Font.Style = []
+        ParentFont = False
+      end
+      object RLLabel54: TRLLabel
+        Left = 0
+        Top = 26
+        Width = 180
+        Height = 15
+        Borders.Sides = sdCustom
+        Borders.DrawLeft = False
+        Borders.DrawTop = False
+        Borders.DrawRight = False
+        Borders.DrawBottom = False
+        Caption = 'Desconto...........................: '
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clBlack
+        Font.Height = -13
+        Font.Name = 'Arial Rounded MT Bold'
+        Font.Style = []
+        ParentFont = False
+      end
+      object RLLabel55: TRLLabel
+        Left = 0
+        Top = 40
+        Width = 176
+        Height = 15
+        Borders.Sides = sdCustom
+        Borders.DrawLeft = False
+        Borders.DrawTop = False
+        Borders.DrawRight = False
+        Borders.DrawBottom = False
+        Caption = 'Total..................................:'
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clBlack
+        Font.Height = -13
+        Font.Name = 'Arial Rounded MT Bold'
+        Font.Style = []
+        ParentFont = False
+      end
+      object rlsubtotal: TRLLabel
+        Left = 190
+        Top = 12
+        Width = 31
+        Height = 15
+        Borders.Sides = sdCustom
+        Borders.DrawLeft = False
+        Borders.DrawTop = False
+        Borders.DrawRight = False
+        Borders.DrawBottom = False
+        Caption = '0,00'
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clBlack
+        Font.Height = -13
+        Font.Name = 'Arial Rounded MT Bold'
+        Font.Style = []
+        ParentFont = False
+      end
+      object rldesconto: TRLLabel
+        Left = 190
+        Top = 26
+        Width = 31
+        Height = 15
+        Borders.Sides = sdCustom
+        Borders.DrawLeft = False
+        Borders.DrawTop = False
+        Borders.DrawRight = False
+        Borders.DrawBottom = False
+        Caption = '0,00'
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clBlack
+        Font.Height = -13
+        Font.Name = 'Arial Rounded MT Bold'
+        Font.Style = []
+        ParentFont = False
+      end
+      object rltotal: TRLLabel
+        Left = 190
+        Top = 40
+        Width = 31
+        Height = 15
+        Borders.Sides = sdCustom
+        Borders.DrawLeft = False
+        Borders.DrawTop = False
+        Borders.DrawRight = False
+        Borders.DrawBottom = False
+        Caption = '0,00'
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clBlack
+        Font.Height = -13
+        Font.Name = 'Arial Rounded MT Bold'
+        Font.Style = []
+        ParentFont = False
       end
     end
   end
