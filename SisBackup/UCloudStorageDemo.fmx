@@ -1,0 +1,553 @@
+object Form4: TForm4
+  Left = 0
+  Top = 0
+  Caption = 'Backup ControlW Sistemas'
+  ClientHeight = 586
+  ClientWidth = 658
+  Position = ScreenCenter
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop, iPhone, iPad]
+  OnCreate = FormCreate
+  OnShow = FormShow
+  DesignerMasterStyle = 0
+  object Panel2: TPanel
+    Align = Client
+    Size.Width = 658.000000000000000000
+    Size.Height = 586.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    object ProgressLabel: TLabel
+      Position.X = 400.000000000000000000
+      Position.Y = 218.000000000000000000
+      Size.Width = 177.000000000000000000
+      Size.Height = 13.000000000000000000
+      Size.PlatformDefault = False
+    end
+    object TreeView1: TTreeView
+      Anchors = [akLeft, akTop, akBottom]
+      Position.X = 14.000000000000000000
+      Position.Y = 16.000000000000000000
+      Size.Width = 251.000000000000000000
+      Size.Height = 271.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      Images = ImageList1
+      OnChange = TreeView1Change
+      Viewport.Width = 247.000000000000000000
+      Viewport.Height = 267.000000000000000000
+    end
+    object Memo1: TMemo
+      Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+      DataDetectorTypes = []
+      Position.X = 272.000000000000000000
+      Position.Y = 16.000000000000000000
+      Size.Width = 377.000000000000000000
+      Size.Height = 353.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 1
+      Viewport.Width = 373.000000000000000000
+      Viewport.Height = 349.000000000000000000
+    end
+    object ProgressBar1: TProgressBar
+      Orientation = Horizontal
+      Position.Y = 187.000000000000000000
+      Size.Width = 180.000000000000000000
+      Size.Height = 17.000000000000000000
+      Size.PlatformDefault = False
+      Visible = False
+    end
+    object Button1: TButton
+      Position.X = 184.000000000000000000
+      Position.Y = 328.000000000000000000
+      TabOrder = 2
+      Text = 'Backup'
+      Visible = False
+      OnClick = Button1Click
+    end
+    object ProgressBar2: TProgressBar
+      Orientation = Horizontal
+      Position.Y = 552.000000000000000000
+      Size.Width = 657.000000000000000000
+      Size.Height = 33.000000000000000000
+      Size.PlatformDefault = False
+    end
+    object progresslabel1: TLabel
+      Position.X = 8.000000000000000000
+      Position.Y = 536.000000000000000000
+    end
+    object horaatual: TLabel
+      StyledSettings = [FontColor]
+      Position.X = 16.000000000000000000
+      Position.Y = 328.000000000000000000
+      TextSettings.Font.Family = 'Verdana'
+      TextSettings.Font.Size = 22.000000000000000000
+      TextSettings.Font.StyleExt = {00070000000000000004000000}
+      Text = '00:00:00'
+    end
+    object horaProxBackup: TLabel
+      StyledSettings = [FontColor]
+      Position.X = 16.000000000000000000
+      Position.Y = 384.000000000000000000
+      TextSettings.Font.Family = 'Verdana'
+      TextSettings.Font.Size = 22.000000000000000000
+      TextSettings.Font.StyleExt = {00070000000000000004000000}
+      Text = '00:00:00'
+    end
+    object Label1: TLabel
+      Position.X = 16.000000000000000000
+      Position.Y = 310.000000000000000000
+      Text = 'Hora Atual'
+    end
+    object Label2: TLabel
+      Position.X = 16.000000000000000000
+      Position.Y = 366.000000000000000000
+      Text = 'Pr'#243'ximo Backup'
+    end
+    object Panel3: TPanel
+      Position.X = 272.000000000000000000
+      Position.Y = 376.000000000000000000
+      Size.Width = 377.000000000000000000
+      Size.Height = 105.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 9
+      object Label3: TLabel
+        StyledSettings = [Family, FontColor]
+        Position.X = 8.000000000000000000
+        Position.Y = 8.000000000000000000
+        TextSettings.Font.Size = 14.000000000000000000
+        TextSettings.Font.StyleExt = {00070000000000000004000000}
+        Text = 'Ativa'#231#227'o: '
+      end
+      object Edit1: TEdit
+        Touch.InteractiveGestures = [LongTap, DoubleTap]
+        TabOrder = 1
+        Position.X = 8.000000000000000000
+        Position.Y = 32.000000000000000000
+        Size.Width = 225.000000000000000000
+        Size.Height = 22.000000000000000000
+        Size.PlatformDefault = False
+      end
+      object Button2: TButton
+        Position.X = 8.000000000000000000
+        Position.Y = 72.000000000000000000
+        TabOrder = 2
+        Text = 'Ativar'
+      end
+    end
+  end
+  object Panel1: TPanel
+    Align = Left
+    Size.Width = 153.000000000000000000
+    Size.Height = 586.000000000000000000
+    Size.PlatformDefault = False
+    Visible = False
+    TabOrder = 0
+    object RadioGroup1: TPanel
+      Position.X = 16.000000000000000000
+      Position.Y = 16.000000000000000000
+      Size.Width = 121.000000000000000000
+      Size.Height = 201.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      object RadioButton1: TRadioButton
+        IsChecked = True
+        Position.X = 8.000000000000000000
+        Position.Y = 8.000000000000000000
+        Size.Width = 97.000000000000000000
+        Size.Height = 19.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+        Text = 'DropBox'
+        OnChange = RadioButton4Change
+      end
+      object RadioButton2: TRadioButton
+        Tag = 1
+        Position.X = 8.000000000000000000
+        Position.Y = 32.000000000000000000
+        Size.Width = 97.000000000000000000
+        Size.Height = 19.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 1
+        Text = 'GDrive'
+        OnChange = RadioButton4Change
+      end
+      object RadioButton3: TRadioButton
+        Tag = 2
+        Position.X = 8.000000000000000000
+        Position.Y = 56.000000000000000000
+        Size.Width = 97.000000000000000000
+        Size.Height = 19.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 2
+        Text = 'SkyDrive'
+        OnChange = RadioButton4Change
+      end
+      object RadioButton4: TRadioButton
+        Tag = 3
+        Position.X = 8.000000000000000000
+        Position.Y = 80.000000000000000000
+        Size.Width = 97.000000000000000000
+        Size.Height = 19.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 3
+        Text = 'BoxNet'
+        OnChange = RadioButton4Change
+      end
+      object RadioButton6: TRadioButton
+        Tag = 4
+        Position.X = 8.000000000000000000
+        Position.Y = 104.000000000000000000
+        Size.Width = 97.000000000000000000
+        Size.Height = 19.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 5
+        Text = 'Amazon'
+        OnChange = RadioButton4Change
+      end
+      object RadioButton7: TRadioButton
+        Tag = 5
+        Position.X = 8.000000000000000000
+        Position.Y = 128.000000000000000000
+        Size.Width = 97.000000000000000000
+        Size.Height = 19.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 4
+        Text = 'Hubic'
+        OnChange = RadioButton4Change
+      end
+      object RadioButton8: TRadioButton
+        Tag = 6
+        Position.X = 8.000000000000000000
+        Position.Y = 151.000000000000000000
+        Size.Width = 97.000000000000000000
+        Size.Height = 19.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 7
+        Text = 'HiDrive'
+        OnChange = RadioButton4Change
+      end
+      object RadioButton5: TRadioButton
+        Tag = 7
+        Position.X = 8.000000000000000000
+        Position.Y = 175.000000000000000000
+        Size.Width = 97.000000000000000000
+        Size.Height = 19.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 6
+        Text = 'Yandex Disk'
+        OnChange = RadioButton4Change
+      end
+    end
+    object ConnectBtn: TButton
+      Enabled = False
+      Position.X = 16.000000000000000000
+      Position.Y = 231.000000000000000000
+      Size.Width = 121.000000000000000000
+      Size.Height = 25.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 1
+      Text = 'Connect'
+      OnClick = ConnectBtnClick
+    end
+    object DisconnectBtn: TButton
+      Enabled = False
+      Position.X = 16.000000000000000000
+      Position.Y = 262.000000000000000000
+      Size.Width = 121.000000000000000000
+      Size.Height = 25.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 2
+      Text = 'Disconnect'
+      OnClick = DisconnectBtnClick
+    end
+    object clrAccess: TCheckBox
+      Enabled = False
+      Position.X = 16.000000000000000000
+      Position.Y = 290.000000000000000000
+      Size.Width = 121.000000000000000000
+      Size.Height = 17.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 3
+      Text = 'Clear access token'
+    end
+  end
+  object OpenDialog1: TOpenDialog
+    Left = 704
+    Top = 320
+  end
+  object TMSFMXCloudDropBox1: TTMSFMXCloudDropBox
+    Agent = 'Mozilla/5.001 (windows; U; NT4.0; en-US; rv:1.0) Gecko/25250101'
+    App.CallBackURL = 'https://127.0.01'
+    App.CallBackPort = 80
+    PersistTokens.Location = plIniFile
+    PersistTokens.Section = 'TOKENS'
+    PersistTokens.Key = '.\DTOKENS.INI'
+    Logging = True
+    LogLevel = llDetail
+    OnUploadProgress = TMSFMXCloudDropBox1UploadProgress
+    OnConnected = TMSFMXCloudDropBox1Connected
+    AuthFormSettings.CloseButtonCaption = 'Close'
+    AuthFormSettings.Caption = 'Authorize'
+    AuthFormSettings.Width = 900
+    AuthFormSettings.Height = 600
+    OnAuthFormClose = TMSFMXCloudDropBox1AuthFormClose
+    Left = 416
+    Top = 504
+  end
+  object TMSFMXCloudBoxNetDrive1: TTMSFMXCloudBoxNetDrive
+    Agent = 'Mozilla/5.001 (windows; U; NT4.0; en-US; rv:1.0) Gecko/25250101'
+    App.CallBackURL = 'http://127.0.0.1:8888'
+    App.CallBackPort = 8888
+    PersistTokens.Location = plIniFile
+    PersistTokens.Section = 'TOKENS'
+    PersistTokens.Key = '.\BTOKENS.INI'
+    Logging = True
+    OnUploadProgress = TMSFMXCloudDropBox1UploadProgress
+    OnConnected = TMSFMXCloudDropBox1Connected
+    AuthFormSettings.CloseButtonCaption = 'Close'
+    AuthFormSettings.Caption = 'Authorize'
+    AuthFormSettings.Width = 900
+    AuthFormSettings.Height = 600
+    OnAuthFormClose = TMSFMXCloudDropBox1AuthFormClose
+    Left = 240
+    Top = 264
+  end
+  object TMSFMXCloudGDrive1: TTMSFMXCloudGDrive
+    Agent = 'Mozilla/5.001 (windows; U; NT4.0; en-US; rv:1.0) Gecko/25250101'
+    App.CallBackURL = 'http://127.0.0.1:8889/'
+    App.CallBackPort = 8889
+    Scopes.Strings = (
+      'https://www.googleapis.com/auth/drive'
+      'https://www.googleapis.com/auth/drive.file')
+    PersistTokens.Location = plIniFile
+    PersistTokens.Section = 'TOKENS'
+    PersistTokens.Key = '.\GTOKENS.INI'
+    Logging = True
+    OnUploadProgress = TMSFMXCloudDropBox1UploadProgress
+    OnConnected = TMSFMXCloudDropBox1Connected
+    AuthFormSettings.CloseButtonCaption = 'Close'
+    AuthFormSettings.Caption = 'Authorize'
+    AuthFormSettings.Width = 900
+    AuthFormSettings.Height = 600
+    OnAuthFormClose = TMSFMXCloudDropBox1AuthFormClose
+    Left = 240
+    Top = 24
+  end
+  object TMSFMXCloudSkyDrive1: TTMSFMXCloudSkyDrive
+    Agent = 'Mozilla/5.001 (windows; U; NT4.0; en-US; rv:1.0) Gecko/25250101'
+    App.CallBackURL = 'https://login.live.com/oauth20_desktop.srf'
+    App.CallBackPort = 8888
+    Scopes.Strings = (
+      'wl.signin'
+      'wl.basic'
+      'wl.offline_access'
+      'wl.skydrive'
+      'wl.skydrive_update')
+    PersistTokens.Location = plIniFile
+    PersistTokens.Section = 'TOKENS'
+    PersistTokens.Key = '.\STOKENS.INI'
+    Logging = True
+    OnUploadProgress = TMSFMXCloudDropBox1UploadProgress
+    OnConnected = TMSFMXCloudDropBox1Connected
+    AuthFormSettings.CloseButtonCaption = 'Close'
+    AuthFormSettings.Caption = 'Authorize'
+    AuthFormSettings.Width = 900
+    AuthFormSettings.Height = 600
+    OnAuthFormClose = TMSFMXCloudDropBox1AuthFormClose
+    Left = 240
+    Top = 104
+  end
+  object TMSFMXCloudAmazonCloudDrive1: TTMSFMXCloudAmazonCloudDrive
+    Agent = 'Mozilla/5.001 (windows; U; NT4.0; en-US; rv:1.0) Gecko/25250101'
+    App.CallBackPort = 80
+    PersistTokens.Location = plIniFile
+    PersistTokens.Section = 'TOKENS'
+    PersistTokens.Key = '.\ATOKENS.INI'
+    Logging = False
+    OnUploadProgress = TMSFMXCloudDropBox1UploadProgress
+    OnConnected = TMSFMXCloudDropBox1Connected
+    AuthFormSettings.CloseButtonCaption = 'Close'
+    AuthFormSettings.Caption = 'Authorize'
+    AuthFormSettings.Width = 900
+    AuthFormSettings.Height = 600
+    OnAuthFormClose = TMSFMXCloudDropBox1AuthFormClose
+    Left = 240
+    Top = 224
+  end
+  object TMSFMXCloudHubic1: TTMSFMXCloudHubic
+    Agent = 'Mozilla/5.001 (windows; U; NT4.0; en-US; rv:1.0) Gecko/25250101'
+    App.CallBackURL = 'http://127.0.0.1:8888'
+    App.CallBackPort = 8888
+    PersistTokens.Location = plIniFile
+    PersistTokens.Section = 'TOKENS'
+    PersistTokens.Key = '.\HTOKENS.INI'
+    Logging = False
+    OnUploadProgress = TMSFMXCloudDropBox1UploadProgress
+    OnConnected = TMSFMXCloudDropBox1Connected
+    AuthFormSettings.CloseButtonCaption = 'Close'
+    AuthFormSettings.Caption = 'Authorize'
+    AuthFormSettings.Width = 900
+    AuthFormSettings.Height = 600
+    OnAuthFormClose = TMSFMXCloudDropBox1AuthFormClose
+    Left = 240
+    Top = 168
+  end
+  object TMSFMXCloudHiDrive1: TTMSFMXCloudHiDrive
+    Agent = 'Mozilla/5.001 (windows; U; NT4.0; en-US; rv:1.0) Gecko/25250101'
+    App.CallBackURL = 'http://localhost/'
+    App.CallBackPort = 80
+    PersistTokens.Location = plIniFile
+    PersistTokens.Section = 'TOKENS'
+    PersistTokens.Key = '.\HDTOKENS.INI'
+    Logging = False
+    OnUploadProgress = TMSFMXCloudDropBox1UploadProgress
+    OnConnected = TMSFMXCloudDropBox1Connected
+    AuthFormSettings.CloseButtonCaption = 'Close'
+    AuthFormSettings.Caption = 'Authorize'
+    AuthFormSettings.Width = 900
+    AuthFormSettings.Height = 600
+    OnAuthFormClose = TMSFMXCloudDropBox1AuthFormClose
+    Left = 40
+    Top = 400
+  end
+  object TMSFMXCloudTreeViewAdapter1: TTMSFMXCloudTreeViewAdapter
+    Left = 720
+    Top = 256
+  end
+  object ImageList1: TImageList
+    Source = <
+      item
+        MultiResBitmap.LoadSize = 2
+        MultiResBitmap.TransparentColor = 536870912
+        MultiResBitmap = <
+          item
+            Width = 16
+            Height = 16
+            PNG = {
+              89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
+              61000000017352474200AECE1CE90000000467414D410000B18F0BFC61050000
+              01C649444154384F9D535D2F034114BD33DBA2D416D9B4152989074FBCF24344
+              FC076F4210F1F986F0C378E5A5F1D056CBB6DA20521FD58F75EF99698B20E26C
+              EECEDC7BE69E7B6766576DED6C06E9749ABE627A7A8676B7F794757F444892B7
+              B796A9D5EAAE0D857B687FFFC07ABF23242F49BEBEC92020482646312E2CCE07
+              987C83B9D9395A5D595310F88846BD4AE1702F6DAC2F91E3F4D9A841B3F98A31
+              1219A4DDBD43CCB5BC9452A49546B22093B9A0DB72897C3FCB9623BF98A35CEE
+              9C0A854B18054803AC80A6B7B74704047D9121D25A93761C36E66A9F39A5BBE7
+              05817AFD098EA0BF7F84BB7178110BB0F0EBCB8365981B18415CF1D346B71746
+              34EA99AA5CC1E1E4E7E73BCB3037E8A153898B481B98C55C8F5C376EDAE66469
+              BB5AAD6081C08D2538EE90C3265CAD66CE4A60B6D068804075AEF0705FE2AB0D
+              6043C3498EB128C40D1704DDDB8500AA72A22C28576E90D864F3BC319C875417
+              9172E51A5CD0422E0001D99B74E0FB579DE4D1E484A92A9DF1E817F31DCE7587
+              912CB0028AF2F92C1688A55293A62B54D6942F643E7152B00DF325F287319E9A
+              C2341E4F6204F8B66E4BC50E97604E761F8DC6E00BD4F1C951707A766ADDBFA3
+              FD2F58F7BF207A075D42A3A743A555FC0000000049454E44AE426082}
+            FileName = '\\tmsdisk\tms\Bart\0.bmp'
+          end>
+        Name = '0'
+      end
+      item
+        MultiResBitmap.LoadSize = 2
+        MultiResBitmap.TransparentColor = 536870912
+        MultiResBitmap = <
+          item
+            Width = 16
+            Height = 16
+            PNG = {
+              89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
+              61000000017352474200AECE1CE90000000467414D410000B18F0BFC61050000
+              00FB49444154384F9591390E83301045C77429582F908E45E200DC80037022EE
+              44C505A8E8598EC022D1A680C48E3D611C4B094F7AF2227BE61B585DD747D334
+              7085A228204D53261665591E57E177C4E517961C61591698A64938CF33CAF7B9
+              EBBAC2B66DF2F4072CB0EF3B0CC300E338E2A8E64A135880134511846188A39A
+              2B4D6001C61849A0ECFB1E354112A8AEB4F31DD72648817377DE91A762ECF6F2
+              214F7C439E70EE1CC731EE5B162FF2FEED3A2481FE665D13A480EAAC9B2489D0
+              94823CC1D4B5EB3A79E27D46E72B814A714EC3F9F90D822010FABE0F9EE7095D
+              D7153A8E03B66D0B7558555547DBB672F91F5996419EE7E648D70078022552CA
+              EF0C34D2CF0000000049454E44AE426082}
+            FileName = '\\tmsdisk\tms\Bart\1.bmp'
+          end>
+        Name = '1'
+      end>
+    Destination = <
+      item
+        Layers = <
+          item
+            Name = '0'
+          end>
+      end
+      item
+        Layers = <
+          item
+            Name = '1'
+          end>
+      end>
+    Left = 544
+    Top = 240
+  end
+  object TMSFMXCloudYandexDisk1: TTMSFMXCloudYandexDisk
+    Agent = 'Mozilla/5.001 (windows; U; NT4.0; en-US; rv:1.0) Gecko/25250101'
+    App.CallBackURL = 'https://oauth.yandex.com/verification_code'
+    App.CallBackPort = 80
+    PersistTokens.Location = plIniFile
+    Logging = False
+    OnConnected = TMSFMXCloudDropBox1Connected
+    AuthFormSettings.CloseButtonCaption = 'Close'
+    AuthFormSettings.Caption = 'Authorize'
+    AuthFormSettings.Width = 900
+    AuthFormSettings.Height = 600
+    OnAuthFormClose = TMSFMXCloudDropBox1AuthFormClose
+    Left = 41
+    Top = 336
+  end
+  object FDIBBackup1: TFDIBBackup
+    DriverLink = FDPhysFBDriverLink1
+    OnProgress = FDIBBackup1Progress
+    Verbose = True
+    Left = 591
+    Top = 441
+  end
+  object FDGUIxWaitCursor1: TFDGUIxWaitCursor
+    Provider = 'FMX'
+    Left = 497
+    Top = 488
+  end
+  object FDPhysFBDriverLink1: TFDPhysFBDriverLink
+    Left = 593
+    Top = 384
+  end
+  object FDConnection1: TFDConnection
+    Params.Strings = (
+      'User_Name=sysdba'
+      'Password=SYSTEMA1'
+      'DriverID=FB'
+      'Database=F:\ControlW\BD.FDB')
+    Transaction = FDTransaction1
+    Left = 495
+    Top = 375
+  end
+  object FDQuery1: TFDQuery
+    Connection = FDConnection1
+    Transaction = FDTransaction1
+    Left = 497
+    Top = 432
+  end
+  object FDTransaction1: TFDTransaction
+    Connection = FDConnection1
+    Left = 593
+    Top = 496
+  end
+  object Timer1: TTimer
+    Enabled = False
+    OnTimer = Timer1Timer
+    Left = 193
+    Top = 376
+  end
+  object timerativaBackup: TTimer
+    Enabled = False
+    Interval = 5000
+    OnTimer = timerativaBackupTimer
+    Left = 193
+    Top = 320
+  end
+end

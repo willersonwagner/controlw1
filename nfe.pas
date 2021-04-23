@@ -3525,6 +3525,9 @@ begin
       TIPO_AMB := '1';
     end;
 
+  if IND_PRES(FIN_NFE) = '0' then nodo_indIntermed := '';
+
+
   dHAtual := getDataHoraAtualXML;
 
 
@@ -4778,6 +4781,8 @@ begin
   if (IND_FINAL <> '1') then exit;
   if UF_DEST = UF_EMI   then exit;
   if DEST_NFE = '2'     then exit;
+  if IND_FINAL = '1'    then exit;
+  
   if Contido('refNFP', TAG_DOCREF) then exit;
 
 
