@@ -28,7 +28,7 @@ unit UCloudStorageDemo;
 interface
 
 uses
-  FMX.Forms, SysUtils, DateUtils,FMX.TMSCloudDropBox, FMX.TMSCloudGDrive, UITypes, FMX.Dialogs, FMX.TMSCloudBoxNet,
+  FMX.Forms, SysUtils, DateUtils,System.StrUtils,FMX.TMSCloudDropBox, FMX.TMSCloudGDrive, UITypes, FMX.Dialogs, FMX.TMSCloudBoxNet,
   FMX.Header, FMX.TMSCloudWinLive, FMX.TMSCloudBase, FMX.StdCtrls,
   FMX.Layouts, FMX.TreeView, FMX.Controls, System.Classes, FMX.Types,
   FMX.TMSCloudCustomWinLive, FMX.TMSCloudCustomGDrive, FMX.TMSCloudBaseFMX, FMX.TMSCloudCustomDropBox,
@@ -43,7 +43,8 @@ uses
   FireDAC.Stan.Option, FireDAC.Stan.Error, FireDAC.Phys.Intf, FireDAC.Stan.Pool,
   FireDAC.Stan.Async, FireDAC.Stan.Param, FireDAC.DatS, FireDAC.DApt.Intf,
   FireDAC.DApt, FireDAC.Comp.Client, Data.DB, FireDAC.Comp.DataSet, sevenzip,
-  FireDAC.Phys.IB, FireDAC.Phys.IBDef;
+  FireDAC.Phys.IB, FireDAC.Phys.IBDef, IdBaseComponent, IdComponent,
+  IdTCPConnection, IdTCPClient, IdHTTP, IniFiles;
 
 type
   TForm4 = class(TForm)
@@ -94,6 +95,10 @@ type
     Label3: TLabel;
     Edit1: TEdit;
     Button2: TButton;
+    IdHTTP1: TIdHTTP;
+    msg: TLabel;
+    TimerValidaRegistro: TTimer;
+    FDIBSDump1: TFDIBSDump;
     procedure ConnectBtnClick(Sender: TObject);
     procedure DownloadBtnClick(Sender: TObject);
     procedure UploadBtnClick(Sender: TObject);
@@ -113,9 +118,14 @@ type
     procedure Timer1Timer(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure timerativaBackupTimer(Sender: TObject);
+    procedure TreeView1DblClick(Sender: TObject);
+    procedure TMSFMXCloudGDrive1DownloadProgress(Sender: TObject;
+      FileName: string; Position, Total: Int64);
   private
+    function Contido(substring: string; texto: string): boolean;
     function StrNum(const entra: string) :  string;
-    procedure comprime7zip(Origem : String);
+    procedure comprime7zip(Origem, destino : String);
+    procedure LE_CAMPOS(var mat: tstringList; LIN: String; const separador: String;criaMAT: boolean = true);
     { Private declarations }
   public
     { Public declarations }
@@ -124,15 +134,17 @@ type
     Authenticated: boolean;
     IsDownloading: boolean;
     IsUploading: boolean;
-    caminhoRaiz : String;
+    caminhoRaiz, cnpj : String;
     proximoBackup : TDateTime;
+    pastaInicial : TTMSFMXCloudItem;
+    function buscaRetornoSite(site, cnpj : String) : String;
     procedure abrirPainel();
     function buscaPastaGdrive(nome : string; cis : TTMSFMXCloudItems) : TTMSFMXCloudItem;
     function Storage: TTMSFMXCloudStorageFMX;
     procedure ShowItem;
     procedure DoConnect;
     procedure DoDisconnect;
-  end;
+end;
 
 var
   Form4: TForm4;
@@ -187,10 +199,9 @@ begin
   timerativaBackup.Enabled := false;
   Timer1.Enabled           := true;
 
-  proximoBackup := IncMinute(now, intervaloEntreBackupMinutos);
   horaProxBackup.Text := FormatDateTime('hh:mm:ss', proximoBackup);
   Button1Click(self);
-
+  proximoBackup := IncMinute(now, intervaloEntreBackupMinutos);
 end;
 
 procedure TForm4.TMSFMXCloudDropBox1AuthFormClose(Sender: TObject);
@@ -212,6 +223,7 @@ begin
   end;
 
   TMSFMXCloudTreeViewAdapter1.CloudStorage := Storage;
+  TreeView1.Visible := false;
   DoConnect;
 end;
 
@@ -220,8 +232,19 @@ procedure TForm4.TMSFMXCloudDropBox1UploadProgress(Sender: TObject; FileName: st
 begin
   progressbar2.Value := Position;
   ProgressBar2.Max   := Total;
-  Progresslabel1.Text  := InttoStr(Position) +' of ' + InttoStr(Total) +' uploaded';
+  Progresslabel1.Text  :='Upload:> '+ InttoStr(Position) +' of ' + InttoStr(Total) +' uploaded';
   Application.ProcessMessages;
+end;
+
+procedure TForm4.TMSFMXCloudGDrive1DownloadProgress(Sender: TObject;
+  FileName: string; Position, Total: Int64);
+begin
+  if IsUploading = false then begin
+    progressbar2.Value := Position;
+    ProgressBar2.Max   := Total;
+    Progresslabel1.Text  :='Download:> '+ InttoStr(Position) +' de ' + InttoStr(Total) +' Baixado';
+    Application.ProcessMessages;
+  end;
 end;
 
 procedure TForm4.CreateFolderBtnClick(Sender: TObject);
@@ -249,11 +272,12 @@ end;
 
 procedure TForm4.Button1Click(Sender: TObject);
 var
-  nome, cnpj, FolderName, arquivo : String;
+  nome, FolderName, arquivo, site : String;
   ci, ci_ant, nci: TTMSFMXCloudItem;
   cis : TTMSFMXCloudItems;
   i : integer;
   gdriveItem : TGDriveItem;
+  lista : TStringList;
 begin
   IsUploading := true;
   try
@@ -276,6 +300,25 @@ begin
   nome := trim(FDQuery1.FieldByName('empresa').AsString);
   cnpj := StrNum(trim(FDQuery1.FieldByName('cnpj').AsString));
 
+  site := buscaRetornoSite('',cnpj);
+  LE_CAMPOS(lista, site, '|', true);
+
+  if lista.Values['1'] = '0' then begin
+    Memo1.Lines.Add(FormatDateTime('hh:mm:ss', now) + ' Sistema Nao Registrado, entre em contato com o suporte!');
+    timerativaBackup.Interval := 10000;
+    timerativaBackup.Enabled := true;
+    exit;
+  end;
+
+
+  if StrToDate(lista.Values['3']) < now then begin
+    Memo1.Lines.Add('O Registro está Vencido! Entre em Contato com o Desenvolvedor.');
+    timerativaBackup.Interval := 10000;
+    timerativaBackup.Enabled := true;
+    exit;
+  end;
+
+
   FDConnection1.Connected := false;
 
   if DirectoryExists(caminhoRaiz + 'SisBackup/') = false then ForceDirectories(caminhoRaiz + 'SisBackup/');
@@ -290,17 +333,17 @@ begin
   Memo1.Lines.Add('');
   Memo1.Lines.Add('');
 
-  Memo1.Lines.Add('Backup Criado OK!');
+  Memo1.Lines.Add(FormatDateTime('hh:mm:ss', now) + ' Backup Criado OK!');
 
-  comprime7zip(caminhoRaiz + 'SisBackup/' + 'BD.fbk');
-  Memo1.Lines.Add('Compactação 7z OK');
+  comprime7zip(caminhoRaiz + 'SisBackup/' + 'BD.fbk', caminhoRaiz + 'SisBackup/' + 'BD.7z');
+  Memo1.Lines.Add(FormatDateTime('hh:mm:ss', now) + ' Compactação 7z OK');
 
-  RenameFile(caminhoRaiz + 'SisBackup/' + 'BD.7z', caminhoRaiz + 'SisBackup/' + 'BD'+FormatDateTime('hhmm', now)+'.7z');
+  //RenameFile(caminhoRaiz + 'SisBackup/' + 'BD.7z', caminhoRaiz + 'SisBackup/' + 'BD'+FormatDateTime('hhmm', now)+'.7z');
   arquivo := caminhoRaiz + 'SisBackup/' + 'BD'+FormatDateTime('hhmm', now)+'.7z';
 
 
-  Memo1.Lines.Add('Iniciando Transmissao...');
 
+  Memo1.Lines.Add(FormatDateTime('hh:mm:ss', now) + ' Iniciando Transmissao...');
 
   Memo1.SelStart := Length(Memo1.Text);
   Application.ProcessMessages;
@@ -308,7 +351,7 @@ begin
   rdg := 1;
   ConnectBtnClick(self);
 
-  Memo1.Lines.Add('Conectado com Sucesso!');
+  Memo1.Lines.Add(FormatDateTime('hh:mm:ss', now) + ' Conectado com Sucesso!');
 
   FolderName := nome + '-'+ cnpj;
 
@@ -332,20 +375,27 @@ begin
     ci := ci_ant;
   end;
 
-  Memo1.Lines.Add('Estrutura de Pastas Criada!');
+  pastaInicial := ci;
+
+  Memo1.Lines.Add(FormatDateTime('hh:mm:ss', now) + ' Estrutura de Pastas Criada!');
+
 
   ProgressBar2.Value := 0;
   ProgressBar2.Visible := true;
 
-  Memo1.Lines.Add('Upload Iniciado...');
+  Memo1.Lines.Add(FormatDateTime('hh:mm:ss', now) + ' Upload Iniciado...');
   nci := Storage.Upload(ci, arquivo);
-  Memo1.Lines.Add('Upload Concluido...');
+  Memo1.Lines.Add(FormatDateTime('hh:mm:ss', now) + ' Upload Concluido...');
+
+  //Storage.Download(Nci,'D:\NOVO.7Z');
 
   except
     on e:exception do begin
       Memo1.Lines.Add(e.Message);
     end;
   end;
+
+  abrirPainel;
   IsUploading := false;
 end;
 
@@ -443,38 +493,24 @@ begin
 procedure TForm4.DownloadBtnClick(Sender: TObject);
 var
   ci: TTMSFMXCloudItem;
-  {$IFNDEF MOBILE}
+  cis: TTMSFMXCloudItems;
   sv: TSaveDialog;
-  {$ENDIF}
 begin
   if Assigned(treeview1.Selected) then
   begin
     ci := TTMSFMXCloudItem(TTMSFMXCloudTreeViewItem(TreeView1.Selected).DataObject);
     if ci.ItemType = ciFile then
     begin
-      {$IFNDEF MOBILE}
       sv := TSaveDialog.Create(Self);
       sv.FileName := ci.FileName;
       if sv.Execute then
-      {$ENDIF}
       begin
-        ProgressBar2.Value := 0;
-        ProgressBar2.Visible := true;
         IsDownloading := true;
-        {$IFDEF MOBILE}
-        Storage.Download(ci, TPath.GetSharedDocumentsPath + PathDelim + ci.FileName);
-        {$ELSE}
         Storage.Download(ci,sv.FileName);
-        {$ENDIF}
-        ProgressBar1.Visible := false;
-        IsDownloading := false;
-        ProgressLabel.Text  := '';
-        ShowMessage('File ' +  ci.FileName + ' downloaded');
+        ShowMessage('Arquivo ' +  ci.FileName + ' Baixado');
       end;
 
-      {$IFNDEF MOBILE}
       sv.Free;
-      {$ENDIF}
     end;
   end;
 end;
@@ -584,6 +620,11 @@ begin
   ShowItem;
 end;
 
+procedure TForm4.TreeView1DblClick(Sender: TObject);
+begin
+  DownloadBtnClick(self);
+end;
+
 function TForm4.StrNum(const entra: string) :  string;
 var cont : integer;
 begin
@@ -595,7 +636,7 @@ begin
   if Result = '' then Result := '0';
 end;
 
-procedure TForm4.comprime7zip(Origem : String);
+procedure TForm4.comprime7zip(Origem, destino : String);
 var
   Arch: I7zOutArchive;
   Counter: Integer;
@@ -605,7 +646,7 @@ begin
   Arch.AddFile(Origem, ExtractFileName(Origem));
   SetCompressionLevel(Arch, 5);
   SevenZipSetCompressionMethod (Arch, T7zCompressionMethod.m7Deflate64);
-  Arch.SaveToFile(ExtractFileDir(Origem) + '/'+ ChangeFileExt(ExtractFileName(origem), '.7z'));
+  Arch.SaveToFile(destino);
 end;
 
 function TForm4.buscaPastaGdrive(nome : string; cis : TTMSFMXCloudItems) : TTMSFMXCloudItem;
@@ -630,9 +671,89 @@ end;
 
 procedure TForm4.abrirPainel();
 begin
-  
+  TMSFMXCloudTreeViewAdapter1.InitFolder(pastaInicial);
+  TreeView1.Visible := true;
 end;
 
+function TForm4.buscaRetornoSite(site, cnpj : String) : String;
+var
+  th: String;
+  tipo : integer;
+  fileDownload: TFileStream;
+begin
+  Result := '';
+  msg.Visible := true;
+  msg.Text := 'Buscando Registro...';
+  Application.ProcessMessages;
+
+  try
+      th := 'http://controlw.blog.br/si2/addsis.php?cnpj=' + cnpj;
+    try
+      th := IdHTTP1.Get(th);
+      Result := th;
+      IdHTTP1.Disconnect;
+    except
+      on e: exception do
+      begin
+         Memo1.Lines.Add('Indy Error: ' + e.Message);
+       end;
+    end;
+  finally
+   msg.Visible := false;
+  end;
+end;
+
+procedure TForm4.LE_CAMPOS(var mat: tstringList; LIN: String; const separador: String;criaMAT: boolean = true);
+var
+  posi, cont : integer;
+  valor : String;
+begin
+  if criaMAT then
+    mat := tstringList.Create;
+
+  LIN := trim(LIN);
+  if LeftStr(LIN, 1) <> separador  then LIN := separador + LIN;
+  if RightStr(LIN, 1) <> separador then LIN := LIN + separador;
+
+  if not Contido(separador, LIN) then
+  begin
+    mat.Add('0=' + LIN);
+    exit;
+  end;
+
+  posi := pos(separador, LIN) + 1;
+  LIN := copy(LIN, posi, length(LIN));
+  mat.Clear;
+  cont := -1;
+
+  if not Contido(separador, LIN) then
+    mat.Add('0=' + LIN);
+
+  while true do begin
+    posi := pos(separador, LIN) + 1;
+    if ((posi = 0) or (trim(LIN) = '')) then
+      break;
+
+    valor := LeftStr(LIN, posi - 2);
+    cont := cont + 1;
+    mat.Add(IntToStr(cont) + '=' + trim(valor));
+    if posi = length(LIN) then
+      break;
+    LIN := copy(LIN, posi, length(LIN));
+  end;
+
+  valor := '';
+  posi := 0;
+  cont := 0;
+end;
+
+function TForm4.Contido(substring: string; texto: string): boolean;
+begin
+  if pos(substring, texto) > 0 then
+    Result := true
+  else
+    Result := False;
+end;
 
 end.
 

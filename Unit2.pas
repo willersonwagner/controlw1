@@ -9807,6 +9807,7 @@ begin
     form39.ListBox1.Items.Add('12=Qual Cor da Fonte da Tabela de Produtos ?');
     form39.ListBox1.Items.Add('13=Quantas Linhas para Completar a Impressao da ordem de Serviço M(Padrao 25) ?');
     form39.ListBox1.Items.Add('14=Imprimir Reimpressao em quantas vias ?');
+    form39.ListBox1.Items.Add('15=Imprimir Entrega em quantas Vias ?');
 
     form39.substitui := TStringList.Create;
     form39.substitui.Add('S'); // 0
@@ -9823,7 +9824,8 @@ begin
     form39.substitui.Add('M'); // 11
     form39.substitui.Add('M'); // 12
     form39.substitui.Add(''); // 13
-    form39.substitui.Add(''); // 13
+    form39.substitui.Add(''); // 14
+    form39.substitui.Add(''); // 15
 
     form39.teclas := TStringList.Create;
     form39.teclas.Add('TGMLADRFVXEB');
@@ -9839,6 +9841,7 @@ begin
     form39.teclas.Add('');
     form39.teclas.Add('');
     form39.teclas.Add('');
+    form39.teclas.Add('1234567890' + #8);
     form39.teclas.Add('1234567890' + #8);
     form39.teclas.Add('1234567890' + #8);
     form39.showmodal;

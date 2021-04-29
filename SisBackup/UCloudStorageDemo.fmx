@@ -32,6 +32,7 @@ object Form4: TForm4
       Size.Height = 271.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 0
+      OnDblClick = TreeView1DblClick
       Images = ImageList1
       OnChange = TreeView1Change
       Viewport.Width = 247.000000000000000000
@@ -75,20 +76,31 @@ object Form4: TForm4
     object progresslabel1: TLabel
       Position.X = 8.000000000000000000
       Position.Y = 536.000000000000000000
+      Size.Width = 313.000000000000000000
+      Size.Height = 17.000000000000000000
+      Size.PlatformDefault = False
     end
     object horaatual: TLabel
+      AutoSize = True
       StyledSettings = [FontColor]
       Position.X = 16.000000000000000000
       Position.Y = 328.000000000000000000
+      Size.Width = 120.000000000000000000
+      Size.Height = 27.000000000000000000
+      Size.PlatformDefault = False
       TextSettings.Font.Family = 'Verdana'
       TextSettings.Font.Size = 22.000000000000000000
       TextSettings.Font.StyleExt = {00070000000000000004000000}
       Text = '00:00:00'
     end
     object horaProxBackup: TLabel
+      AutoSize = True
       StyledSettings = [FontColor]
       Position.X = 16.000000000000000000
       Position.Y = 384.000000000000000000
+      Size.Width = 120.000000000000000000
+      Size.Height = 27.000000000000000000
+      Size.PlatformDefault = False
       TextSettings.Font.Family = 'Verdana'
       TextSettings.Font.Size = 22.000000000000000000
       TextSettings.Font.StyleExt = {00070000000000000004000000}
@@ -110,6 +122,7 @@ object Form4: TForm4
       Size.Width = 377.000000000000000000
       Size.Height = 105.000000000000000000
       Size.PlatformDefault = False
+      Visible = False
       TabOrder = 9
       object Label3: TLabel
         StyledSettings = [Family, FontColor]
@@ -134,6 +147,20 @@ object Form4: TForm4
         TabOrder = 2
         Text = 'Ativar'
       end
+    end
+    object msg: TLabel
+      AutoSize = True
+      StyledSettings = [Family]
+      Position.X = 288.000000000000000000
+      Position.Y = 488.000000000000000000
+      Size.Width = 120.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.Font.Size = 16.000000000000000000
+      TextSettings.Font.StyleExt = {00070000000000000004000000}
+      TextSettings.FontColor = claCrimson
+      Text = 'msg'
+      Visible = False
     end
   end
   object Panel1: TPanel
@@ -325,6 +352,7 @@ object Form4: TForm4
     PersistTokens.Key = '.\GTOKENS.INI'
     Logging = True
     OnUploadProgress = TMSFMXCloudDropBox1UploadProgress
+    OnDownloadProgress = TMSFMXCloudGDrive1DownloadProgress
     OnConnected = TMSFMXCloudDropBox1Connected
     AuthFormSettings.CloseButtonCaption = 'Close'
     AuthFormSettings.Caption = 'Authorize'
@@ -549,5 +577,31 @@ object Form4: TForm4
     OnTimer = timerativaBackupTimer
     Left = 193
     Top = 320
+  end
+  object IdHTTP1: TIdHTTP
+    AllowCookies = True
+    ProtocolVersion = pv1_0
+    ProxyParams.BasicAuthentication = False
+    ProxyParams.ProxyPort = 0
+    Request.ContentLength = -1
+    Request.ContentRangeEnd = -1
+    Request.ContentRangeStart = -1
+    Request.ContentRangeInstanceLength = -1
+    Request.Accept = 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+    Request.BasicAuthentication = False
+    Request.UserAgent = 'Mozilla/3.0 (compatible; Indy Library)'
+    Request.Ranges.Units = 'bytes'
+    Request.Ranges = <>
+    HTTPOptions = [hoForceEncodeParams]
+    Left = 152
+    Top = 464
+  end
+  object TimerValidaRegistro: TTimer
+    Left = 200
+    Top = 432
+  end
+  object FDIBSDump1: TFDIBSDump
+    Left = 280
+    Top = 384
   end
 end

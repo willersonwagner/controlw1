@@ -4980,7 +4980,7 @@ begin
           dm.produto.FieldByName('cod').AsInteger;
         dm.IBQuery4.Open;
 
-        grupo := dm.IBQuery4.FieldByName('grupo').AsInteger;
+        grupo := StrToIntDef(dm.IBQuery4.FieldByName('grupo').AsString, 0);
         if nome = '' then
           nome := dm.IBQuery4.FieldByName('nome').AsString;
 
@@ -5000,7 +5000,7 @@ begin
 
         ClientDataSet1unid.AsString := dm.produto.FieldByName('unid').AsString;
         ClientDataSet1.FieldByName('grupo').AsInteger :=
-          dm.IBQuery4.FieldByName('grupo').AsInteger;
+          StrToIntDef(dm.IBQuery4.FieldByName('grupo').AsString, 0);
 
         if not saidaDeEstoque then
           totProd := Arredonda(qtd * v2, 2);
@@ -9045,12 +9045,13 @@ begin
           dm.produto.FieldByName('cod').AsInteger;
         dm.IBQuery4.Open;
 
-        grupo := dm.IBQuery4.FieldByName('grupo').AsInteger;
+        grupo := StrToIntDef(dm.IBQuery4.FieldByName('grupo').AsString, 0);
         if nome = '' then
           nome := dm.IBQuery4.FieldByName('nome').AsString;
 
         // ClientDataSet1.Open;
         tam := length(dm.produto.FieldByName('descricao').AsString);
+
         ClientDataSet1.Insert;
         ClientDataSet1m2.AsInteger := m2;
         ClientDataSet1minimo.AsCurrency :=
@@ -9062,14 +9063,16 @@ begin
         ClientDataSet1.FieldByName('preco').AsCurrency := v2;
         ClientDataSet1Refori.AsString :=
           dm.produto.FieldByName('codbar').AsString;
+
         ClientDataSet1.FieldByName('grupo').AsInteger :=
-          dm.IBQuery4.FieldByName('grupo').AsInteger;
+          StrToIntDef(dm.IBQuery4.FieldByName('grupo').AsString, 0);
 
         ClientDataSet1.FieldByName('unid').AsString :=
           dm.IBQuery4.FieldByName('unid').AsString;
 
         if not saidaDeEstoque then
           totProd := Arredonda(qtd * v2, 2);
+
 
         ClientDataSet1.FieldByName('total').AsCurrency := totProd;
         // ClientDataSet1PRECO_ORIGI.AsCurrency := StrToCurr(FormatCurr('0.00', dm.produto.fieldbyname('preco').AsCurrency));
@@ -9099,6 +9102,7 @@ begin
       [mbok], HexToTColor('FFD700'), true, false, HexToTColor('B22222'));
     exit;
   end;
+
 
   { if (StrToInt(JsEdit1.Text) = 0) then
     begin

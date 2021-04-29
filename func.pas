@@ -3240,7 +3240,8 @@ begin
 
 
   if qtdVias > 1 then  fim := qtdVias;
-  
+
+
   ini := 0;
   // for ini := 0 to fim -1 do begin
   while true do
@@ -29103,8 +29104,14 @@ begin
   //addRelatorioForm19('Quant Rota:____________________________' + CRLF);
   addRelatorioForm19('* * * * * * * * * * * * * * * * * * * *' + CRLF);
 
-  funcoes.ImprimirPedidoVias(1, false);
-  funcoes.ImprimirPedidoVias(1, false);
+
+  if StrToIntDef(funcoes.LerConfig(form22.Pgerais.Values['conf_ter'], 15), 2) = 2 then begin
+    imprime.textx('', true);
+    imprime.textx('', true);
+  end
+  else imprime.textx('', true);
+  //funcoes.ImprimirPedidoVias(1, false);
+  //funcoes.ImprimirPedidoVias(1, false);
 end;
 
 procedure Tfuncoes.sincronizacaoDeEstoqueOnline;
