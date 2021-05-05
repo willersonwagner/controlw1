@@ -52,6 +52,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure ApplicationEvents1Minimize(Sender: TObject);
     procedure Button1Click(Sender: TObject);
+    procedure Button2Click(Sender: TObject);
   private
     cont : integer;
     { Private declarations }
@@ -488,6 +489,14 @@ end;
 procedure Tform22.Button1Click(Sender: TObject);
 begin
   funcoes.acertaVendasDoDiaAVista;
+end;
+
+procedure Tform22.Button2Click(Sender: TObject);
+var
+  op : TOpenDialog;
+begin
+  op := TOpenDialog.Create(self);
+  funcoes.enviaArquivoGdrive(op.FileName);
 end;
 
 function Tform22.enviNFCe(const perg : String = ''; nnf : String = ''; recebido : currency = 0) : boolean;

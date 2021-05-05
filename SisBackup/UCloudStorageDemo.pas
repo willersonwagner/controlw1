@@ -44,7 +44,8 @@ uses
   FireDAC.Stan.Async, FireDAC.Stan.Param, FireDAC.DatS, FireDAC.DApt.Intf,
   FireDAC.DApt, FireDAC.Comp.Client, Data.DB, FireDAC.Comp.DataSet, sevenzip,
   FireDAC.Phys.IB, FireDAC.Phys.IBDef, IdBaseComponent, IdComponent,
-  IdTCPConnection, IdTCPClient, IdHTTP, IniFiles;
+  IdTCPConnection, IdTCPClient, IdHTTP, IniFiles, IWAutherBase, IWAutherINI,
+  RxShell;
 
 type
   TForm4 = class(TForm)
@@ -99,6 +100,8 @@ type
     msg: TLabel;
     TimerValidaRegistro: TTimer;
     FDIBSDump1: TFDIBSDump;
+    IWAutherINI1: TIWAutherINI;
+    RxTrayIcon1: TRxTrayIcon;
     procedure ConnectBtnClick(Sender: TObject);
     procedure DownloadBtnClick(Sender: TObject);
     procedure UploadBtnClick(Sender: TObject);
@@ -121,7 +124,9 @@ type
     procedure TreeView1DblClick(Sender: TObject);
     procedure TMSFMXCloudGDrive1DownloadProgress(Sender: TObject;
       FileName: string; Position, Total: Int64);
+    procedure RxTrayIcon1DblClick(Sender: TObject);
   private
+    procedure OnMinimize(Sender:TObject);
     function Contido(substring: string; texto: string): boolean;
     function StrNum(const entra: string) :  string;
     procedure comprime7zip(Origem, destino : String);
@@ -199,9 +204,14 @@ begin
   timerativaBackup.Enabled := false;
   Timer1.Enabled           := true;
 
+  Hide();
+  Self.WindowState := TWindowState.wsMinimized;
+  RxTrayIcon1.Active   := true;
+  RxTrayIcon1.Enabled  := true;
+
+  proximoBackup := IncMinute(now, intervaloEntreBackupMinutos);
   horaProxBackup.Text := FormatDateTime('hh:mm:ss', proximoBackup);
   Button1Click(self);
-  proximoBackup := IncMinute(now, intervaloEntreBackupMinutos);
 end;
 
 procedure TForm4.TMSFMXCloudDropBox1AuthFormClose(Sender: TObject);
@@ -319,7 +329,7 @@ begin
   end;
 
 
-  FDConnection1.Connected := false;
+  //FDConnection1.Connected := false;
 
   if DirectoryExists(caminhoRaiz + 'SisBackup/') = false then ForceDirectories(caminhoRaiz + 'SisBackup/');
 
@@ -339,9 +349,7 @@ begin
   Memo1.Lines.Add(FormatDateTime('hh:mm:ss', now) + ' Compactação 7z OK');
 
   //RenameFile(caminhoRaiz + 'SisBackup/' + 'BD.7z', caminhoRaiz + 'SisBackup/' + 'BD'+FormatDateTime('hhmm', now)+'.7z');
-  arquivo := caminhoRaiz + 'SisBackup/' + 'BD'+FormatDateTime('hhmm', now)+'.7z';
-
-
+  arquivo := caminhoRaiz + 'SisBackup/' + 'BD.7z';
 
   Memo1.Lines.Add(FormatDateTime('hh:mm:ss', now) + ' Iniciando Transmissao...');
 
@@ -416,8 +424,11 @@ begin
   TMSFMXCloudskydrive1.App.Secret := WinLiveClientSecret;
   TMSFMXCloudskydrive1.PersistTokens.Key := fn + 'skydrive.ini';
 
-  TMSFMXCloudgdrive1.App.Key := '494112256923-r3j76nefc21jnli6osumv5p8dro5qeg4.apps.googleusercontent.com';
-  TMSFMXCloudgdrive1.App.Secret := 'lxsTV-P-xR09EI6CERjG_yjk';
+  {TMSFMXCloudgdrive1.App.Key := '494112256923-r3j76nefc21jnli6osumv5p8dro5qeg4.apps.googleusercontent.com';
+  TMSFMXCloudgdrive1.App.Secret := 'lxsTV-P-xR09EI6CERjG_yjk';}
+
+  TMSFMXCloudgdrive1.App.Key := '972879408805-2nebleqb8ufv2pvsghc1pk1n0use86g2.apps.googleusercontent.com';
+  TMSFMXCloudgdrive1.App.Secret := 'Rrn2ZM1hS0CctvKV8GHJbAE3';
   TMSFMXCloudgdrive1.PersistTokens.Key := fn + 'gdrive.ini';
 
   TMSFMXCloudBoxNetDrive1.App.Key := BoxNetAppKey;
@@ -526,10 +537,12 @@ end;
 
 procedure TForm4.FormCreate(Sender: TObject);
 begin
+  Application.Title := 'SisBackup';
   rdg := 0;
   TMSFMXCloudTreeViewAdapter1.TreeView := TreeView1;
 
   caminhoRaiz := ExtractFileDir(ParamStr(0)) + '/';
+  //Application.OnMinimize := OnMinimize;
 end;
 
 procedure TForm4.FormShow(Sender: TObject);
@@ -542,6 +555,18 @@ end;
 procedure TForm4.RadioButton4Change(Sender: TObject);
 begin
   rdg := (Sender as TRadioButton).Tag;
+end;
+
+procedure TForm4.RxTrayIcon1DblClick(Sender: TObject);
+begin
+  RxTrayIcon1.Active := False;
+  Show();
+  WindowState := TWindowState.wsNormal;
+end;
+
+procedure TForm4.OnMinimize(Sender:TObject);
+begin // When application is minimized by user and/or by code
+     Hide; // This is to hide it from taskbar
 end;
 
 procedure TForm4.UploadBtnClick(Sender: TObject);

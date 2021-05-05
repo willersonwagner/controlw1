@@ -12019,6 +12019,7 @@ object form22: Tform22
       Caption = 'Button2'
       TabOrder = 5
       Visible = False
+      OnClick = Button2Click
     end
   end
   object Timer1: TTimer

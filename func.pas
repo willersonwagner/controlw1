@@ -16,7 +16,9 @@ uses
   IdExplicitTLSClientServerBase, ACBrETQ, Vcl.FileCtrl,
   TLHelp32, PsAPI, ACBrCargaBal, pcnConversaoNFe,
   pcnConversao, System.Zip, ACBrMail
-  , IdMultipartFormData, cadClicompleto, IBX.IBServices, mmsystem;
+  , IdMultipartFormData, cadClicompleto, IBX.IBServices, mmsystem,
+  FMX.TMSCloudBase, FMX.TMSCloudBaseFMX, FMX.TMSCloudCustomGDrive,
+  FMX.TMSCloudGDrive;
 
 const
   OffsetMemoryStream: Int64 = 0;
@@ -140,6 +142,7 @@ type
     enviandoCupom, enviandoBackup: boolean;
     fonteRelatorioForm19: integer;
     NegritoRelatorioForm19, saiComEnter: boolean;
+    procedure enviaArquivoGdrive(arq : string);
     function ver_limites(CodUsu: string;AserAdicionadoNaContaDoClitente: currency): currency;
     procedure imprimeVendaFortesA4(numVenda : String);
     procedure DownloadSincronizacaoDeEstoqueOnline;
@@ -2548,8 +2551,7 @@ end;
 
 procedure Tfuncoes.atualizaMensagemUsuario(const mens, nota: String);
 begin
-  if nota = '' then
-    exit;
+  if nota = '' then                 exit;
 
   if funcoes.buscaParamGeral(73, 'N') = 'S' then
   begin
@@ -11198,6 +11200,20 @@ begin
       dm.IBQuery1.ExecSQL;
     end;
 
+
+    if not VerificaCampoTabela('sinc', 'nfce') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add
+        ('ALTER TABLE nfce ADD sinc VARCHAR(1)');
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := ('update nfce set sinc = ''1'' where data <= dateadd(month,-3, current_date)');
+      dm.IBQuery1.ExecSQL;
+    end;
+
     //VerificaVersao_do_bd
 
   end;
@@ -19789,7 +19805,7 @@ begin
   else
   begin
     try
-      Int64Rec(Result).Lo := GetFileSize(fHandle, @Int64Rec(Result).Hi);
+      ///Int64Rec(Result).Lo := GetFileSize(string(fHandle), @Int64Rec(Result).Hi);
     finally
       CloseHandle(fHandle);
     end;
@@ -29226,8 +29242,9 @@ end;
 
 procedure Tfuncoes.imprimeVendaFortesA4(numVenda : String);
 var
-  cliente, preview : String;
+  cliente, preview, nomevol, vendedor : String;
   arq : TStringList;
+  fracao, sub : Double;
 begin
   dm.IBselect.Close;
   dm.IBselect.SQL.Text := 'select * from registro';
@@ -29243,10 +29260,11 @@ begin
   imprime1.imprime.RLLabel34.Caption := 'Pedido Nr: ' + numVenda;
 
   dm.IBselect.Close;
-  dm.IBselect.SQL.Text := 'select v.codhis, p.nome, v.total, v.desconto, v.cliente from venda v left join formpagto p on (p.cod = v.codhis) where nota = ' + numVenda;
+  dm.IBselect.SQL.Text := 'select v.codhis, p.nome, v.total, v.desconto, v.cliente, v.vendedor, ve.nome as vendedornome from venda v ' +
+  ' left join formpagto p on (p.cod = v.codhis) join vendedor ve on (v.vendedor = ve.cod) where nota = ' + numVenda;
   dm.IBselect.Open;
 
-
+  vendedor := 'Vendedor: '+ StrNum(dm.IBselect.FieldByName('vendedor').AsString) + '-' +dm.IBselect.FieldByName('vendedornome').AsString;
   cliente := StrNum(dm.IBselect.FieldByName('cliente').AsString);
 
   imprime1.imprime.rlsubtotal.Caption := formataCurrency(dm.IBselect.FieldByName('total').AsCurrency - dm.IBselect.FieldByName('desconto').AsCurrency);
@@ -29292,6 +29310,38 @@ begin
   else begin
     preview := 'S';
   end;
+
+  dm.IBQuery2.close;
+  dm.IBQuery2.sql.Text := 'select * from item_venda where nota = '+ numVenda;
+  dm.IBQuery2.Open;
+
+  while not dm.IBQuery2.Eof do begin
+    dm.IBQuery1.Close;
+    dm.IBQuery1.SQL.Text := ('select unid, P_VENDA, P_COMPRA,  codbar, nome, localiza, refori, fracao from produto where cod='+ dm.IBQuery2.FieldByName('cod').AsString);
+    dm.IBQuery1.Open;
+
+    if funcoes.buscaParamGeral(109, 'N') = 'S' then begin
+      nomevol := 'Total M3: ';
+      fracao := dm.IBQuery1.FieldByName('fracao').AsCurrency;
+      if fracao > 0 then begin
+        sub := sub + (dm.IBQuery2.FieldByName('quant').AsCurrency * fracao);
+      end;
+    end
+    else begin
+        nomevol := 'Volumes: ';
+        if contido('|' + dm.IBQuery1.FieldByName('unid').AsString + '|', form22.UnidInteiro) then
+          sub := sub + 1
+        else
+          sub := sub + dm.IBQuery2.FieldByName('quant').AsCurrency;
+      end;
+
+      dm.IBQuery2.Next;
+    end;
+
+  if funcoes.buscaParamGeral(109, 'N') = 'S' then imprime1.imprime.RLLabel45.Caption := nomevol + FormatFloat('###,##0.0000000', sub)
+    else imprime1.imprime.RLLabel45.Caption := nomevol + FormatFloat('###,##0.00', sub);
+
+  imprime1.imprime.RLLabel46.Caption := vendedor;
 
   dm.ProdutoQY.Close;
   dm.ProdutoQY.SQL.Clear;
@@ -29568,6 +29618,12 @@ begin
     end;
   end;
 
+end;
+
+procedure Tfuncoes.enviaArquivoGdrive(arq : string);
+var
+  ci : TTMSFMXCloudItem;
+begin
 end;
 
 

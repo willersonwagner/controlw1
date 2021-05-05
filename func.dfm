@@ -30,8 +30,8 @@ object funcoes: Tfuncoes
       00000000000000000100000000000000000000000000000000000000}
   end
   object DBGrid1: TDBGrid
-    Left = 8
-    Top = 40
+    Left = 36
+    Top = 32
     Width = 483
     Height = 249
     DataSource = DataSource1

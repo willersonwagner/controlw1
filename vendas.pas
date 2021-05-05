@@ -1740,6 +1740,8 @@ begin
     // imprRef := funcoes.buscaParamGeral(54, 'N');
     imprRef := funcoes.LerConfig(form22.Pgerais.Values['configu'], 10);
     // txt := '';
+
+
     if funcoes.LerConfig(form22.Pgerais.Values['configu'], 3) = 'S' then
     begin
       txt := funcoes.dialogo('not', 70, '', 200, false, '',
@@ -4417,6 +4419,7 @@ begin
     end
     else if Modo_Venda then
     begin
+
 
       if (funcoes.LerConfig(form22.Pgerais.Values['configu'], 3) = 'S') then
       begin

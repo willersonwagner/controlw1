@@ -180,6 +180,10 @@ type
     rlsubtotal: TRLLabel;
     rldesconto: TRLLabel;
     rltotal: TRLLabel;
+    RLLabel45: TRLLabel;
+    RLDraw14: TRLDraw;
+    RLLabel46: TRLLabel;
+    RLLabel47: TRLLabel;
     procedure Timer1Timer(Sender: TObject);
     procedure RLBand7BeforePrint(Sender: TObject; var PrintIt: Boolean);
     procedure RLReport2AfterPrint(Sender: TObject);

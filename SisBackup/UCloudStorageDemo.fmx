@@ -303,6 +303,23 @@ object Form4: TForm4
     Left = 704
     Top = 320
   end
+  object Timer1: TTimer
+    Enabled = False
+    OnTimer = Timer1Timer
+    Left = 193
+    Top = 376
+  end
+  object timerativaBackup: TTimer
+    Enabled = False
+    Interval = 5000
+    OnTimer = timerativaBackupTimer
+    Left = 193
+    Top = 320
+  end
+  object TimerValidaRegistro: TTimer
+    Left = 200
+    Top = 432
+  end
   object TMSFMXCloudDropBox1: TTMSFMXCloudDropBox
     Agent = 'Mozilla/5.001 (windows; U; NT4.0; en-US; rv:1.0) Gecko/25250101'
     App.CallBackURL = 'https://127.0.01'
@@ -565,19 +582,6 @@ object Form4: TForm4
     Left = 593
     Top = 496
   end
-  object Timer1: TTimer
-    Enabled = False
-    OnTimer = Timer1Timer
-    Left = 193
-    Top = 376
-  end
-  object timerativaBackup: TTimer
-    Enabled = False
-    Interval = 5000
-    OnTimer = timerativaBackupTimer
-    Left = 193
-    Top = 320
-  end
   object IdHTTP1: TIdHTTP
     AllowCookies = True
     ProtocolVersion = pv1_0
@@ -596,12 +600,19 @@ object Form4: TForm4
     Left = 152
     Top = 464
   end
-  object TimerValidaRegistro: TTimer
-    Left = 200
-    Top = 432
-  end
   object FDIBSDump1: TFDIBSDump
     Left = 280
     Top = 384
+  end
+  object IWAutherINI1: TIWAutherINI
+    AutherPolicy = apRestrictAll
+    Left = 376
+    Top = 48
+  end
+  object RxTrayIcon1: TRxTrayIcon
+    Active = False
+    OnDblClick = RxTrayIcon1DblClick
+    Left = 384
+    Top = 400
   end
 end
