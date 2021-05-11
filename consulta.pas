@@ -439,17 +439,17 @@ begin
 
   if sim = 'S' then
     begin
-      dm.produto.SQL.Add('select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '+ refori1 +',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao,igual as Equivalente, p_compra as custo from produto ' +  ordem);
-      sqlVenda := 'select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '+ refori1 +',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao,igual as Equivalente, p_compra as custo from produto';
+      dm.produto.SQL.Add('select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '+ refori1 +',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao,igual as Equivalente, p_compra as custo, iif(desativado > 0, ''SIM'', '''') as desativado from produto ' +  ordem);
+      sqlVenda := 'select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '+ refori1 +',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao,igual as Equivalente, p_compra as custo, iif(desativado > 0, ''SIM'', '''') as desativado from produto';
     end
    else
      begin
-       dm.produto.SQL.Add('select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '+ refori1 +',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao,igual as Equivalente from produto ' +  ordem);
-       sqlVenda := 'select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '+ refori1 +',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao,igual as Equivalente from produto';
+       dm.produto.SQL.Add('select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '+ refori1 +',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao,igual as Equivalente, iif(desativado > 0, ''SIM'', '''') as desativado from produto ' +  ordem);
+       sqlVenda := 'select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '+ refori1 +',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao,igual as Equivalente, iif(desativado > 0, ''SIM'', '''') as desativado from produto';
 
        if ((sim = 'C') and (RetornaAcessoUsuario = 0)) then begin
-         dm.produto.SQL.Text := ('select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '+ refori1 +',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao, p_compra as custo from produto ' +  ordem);
-         sqlVenda := 'select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '+ refori1 +',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao, p_compra as custo from produto';
+         dm.produto.SQL.Text := ('select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '+ refori1 +',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao, p_compra as custo, iif(desativado > 0, ''SIM'', '''') as desativado from produto ' +  ordem);
+         sqlVenda := 'select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '+ refori1 +',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao, p_compra as custo, iif(desativado > 0, ''SIM'', '''') as desativado from produto';
        end;
      end;
 
@@ -520,8 +520,14 @@ begin
     DBGrid1.Canvas.FillRect (Rect); // Pinta a célula
     DBGrid1.DefaultDrawColumnCell(Rect, DataCol, Column, State);
   End;
+
 if DBGrid1.DataSource.DataSet.RecNo mod 2 = 0 then
   begin
+    if DBGrid1.DataSource.DataSet.FieldByName('desativado').AsString = 'SIM' then begin
+      DBGrid1.Canvas.brush.Color := HexToTColor('F08080'); // Cor da célula
+      DBGrid1.DefaultDrawColumnCell(Rect, DataCol, Column, State);
+    end
+  else begin
       if not (gdSelected in State) then Begin // Se o estado da célula não é selecionado
         with DBGrid1 do Begin
             with Canvas do Begin
@@ -535,8 +541,16 @@ if DBGrid1.DataSource.DataSet.RecNo mod 2 = 0 then
                  FillRect (Rect); // Pinta a célula
             End; // with Canvas
              DefaultDrawDataCell (Rect, Column.Field, State) // Reescreve o valor que vem do banco
-        End // With DBGrid1
-    End // if not (gdSelected in State)
+        End; // With DBGrid1
+    End; // if not (gdSelected in State)
+  end;
+  end
+  else begin
+    if DBGrid1.DataSource.DataSet.FieldByName('desativado').AsString = 'SIM' then begin
+      DBGrid1.Canvas.brush.Color := HexToTColor('F08080'); // Cor da célula
+      DBGrid1.DefaultDrawColumnCell(Rect, DataCol, Column, State);
+
+    end
   end;
 end;
 

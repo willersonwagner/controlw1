@@ -17,6 +17,7 @@ object Form4: TForm4
     Size.Height = 586.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 1
+    OnDblClick = Panel2DblClick
     object ProgressLabel: TLabel
       Position.X = 400.000000000000000000
       Position.Y = 218.000000000000000000
@@ -160,6 +161,29 @@ object Form4: TForm4
       TextSettings.Font.StyleExt = {00070000000000000004000000}
       TextSettings.FontColor = claCrimson
       Text = 'msg'
+      Visible = False
+    end
+    object Button3: TButton
+      Position.X = 536.000000000000000000
+      Position.Y = 512.000000000000000000
+      Size.Width = 113.000000000000000000
+      Size.Height = 30.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 10
+      Text = 'Restaurar BD'
+      OnClick = Button3Click
+    end
+    object Label4: TLabel
+      AutoSize = True
+      StyledSettings = [Family, FontColor]
+      Position.X = 288.000000000000000000
+      Position.Y = 520.000000000000000000
+      Size.Width = 249.000000000000000000
+      Size.Height = 24.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.Font.Size = 18.000000000000000000
+      TextSettings.Font.StyleExt = {00070000000000000004000000}
+      Text = 'CNPJ: 28.933.754/0001-13'
       Visible = False
     end
   end
@@ -614,5 +638,11 @@ object Form4: TForm4
     OnDblClick = RxTrayIcon1DblClick
     Left = 384
     Top = 400
+  end
+  object FDIBRestore1: TFDIBRestore
+    DriverLink = FDPhysFBDriverLink1
+    OnProgress = FDIBRestore1Progress
+    Left = 384
+    Top = 448
   end
 end

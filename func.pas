@@ -114,7 +114,6 @@ type
     cdsEquiva: TClientDataSet;
     buscaTimer: String;
     listaProdutos: Tprodutos;
-    procedure salvaRicheditForm19comoPDF;
     procedure alteraDataHoraLocal(var data1 : TDateTime);
     procedure corrigeUnidades();
     procedure SOMA_EST(const cod: integer; const qtd, DEP: currency;
@@ -142,6 +141,7 @@ type
     enviandoCupom, enviandoBackup: boolean;
     fonteRelatorioForm19: integer;
     NegritoRelatorioForm19, saiComEnter: boolean;
+    procedure salvaRicheditForm19comoPDF;
     procedure enviaArquivoGdrive(arq : string);
     function ver_limites(CodUsu: string;AserAdicionadoNaContaDoClitente: currency): currency;
     procedure imprimeVendaFortesA4(numVenda : String);
@@ -15363,7 +15363,11 @@ begin
     begin
       if ((funcoes.buscaParamGeral(32, '') = 'S') and (opcao = 1)) then
       begin
-        rece := dm.IBselect.FieldByName('recebido').AsString;
+        try
+          rece := dm.IBselect.FieldByName('recebido').AsString;
+        except
+          rece := '0';
+        end;
         {rece := funcoes.dialogo('numero', 0, 'SN', 0, False, 'S',
           'Control for Windows:', 'Qual o valor recebido?',
           FormatCurr('#,###,###0.00', dm.IBselect.FieldByName('total')
@@ -15881,7 +15885,11 @@ begin
   // se tipo da nota for T(ticket)
   if (tipo = 'E') then
   begin
-    recebido := dm.IBselect.FieldByName('recebido').AsCurrency;
+    try
+      recebido := dm.IBselect.FieldByName('recebido').AsCurrency;
+    except
+      recebido := 0;
+    end;
 
     tam := 30;
     addRelatorioForm19('* * * SEM VALOR FISCAL * * *' + CRLF);
@@ -16165,6 +16173,8 @@ begin
         GeraNota(numNota, 'DX', 'N', opcao);
       end;
     end;
+
+    salvaRicheditForm19comoPDF;
 
     if EnviarImpressora = 'S' then
     begin

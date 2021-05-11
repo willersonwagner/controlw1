@@ -1505,7 +1505,7 @@ begin
   if UpperCase(LeftStr(natOp, 5))  = 'VENDA' then
     begin
       totImp := calculaVlrAproxImpostos(Lista_Itens);
-      OBS := OBS + 'Valor aprox. Impostos: '+ formataCurrency(totImp) +'('+ formataCurrency(totImp / (totalNota - totDesc) * 100) +'%) Fonte: IBPT ' + ';';
+      OBS := OBS + 'Valor aprox. Impostos: '+ formataCurrency(totImp) +'('+ formataCurrency(totImp / (totalNota - totDesc) * 100) +'%) Fonte: IBPT ';
     end;
 
 
@@ -1519,10 +1519,10 @@ begin
       formataCurrency(menor(ALIQ_INTEREST(UF_DEST), 17))+'%, NOS TERMOS DO ART.'+
       ' 23 DA LEI COMPLEMENTAR N º 123, DE 2006". (Lei Complementar n '+
       'º123, de 2006, art. 23, §§ 1 º , 2 º e 6 º ; art. 26, inciso I e §'+
-      ' 4 º )' + OBS;
+      ' 4 º ) ' + OBS;
     end
     else begin
-      OBS := 'EMPRESA OPTANTE DO SIMPLES NACIONAL E NÃO GERA DIREITO A CREDITO DE IPI/ICMS;' + OBS;
+      OBS := 'EMPRESA OPTANTE DO SIMPLES NACIONAL E NÃO GERA DIREITO A CREDITO DE IPI/ICMS   ' + OBS;
     end;
   end;
 
@@ -4781,7 +4781,9 @@ begin
   if (IND_FINAL <> '1') then exit;
   if UF_DEST = UF_EMI   then exit;
   if DEST_NFE = '2'     then exit;
-  if IND_FINAL = '1'    then exit;
+  if indIEDest <> '9'   then exit;
+  
+  //if IND_FINAL = '1'    then exit;
   
   if Contido('refNFP', TAG_DOCREF) then exit;
 

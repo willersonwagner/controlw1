@@ -1820,6 +1820,7 @@ var
   i: integer;
   arq00: TStringList;
 begin
+
   if NomeGeneratorSerie = '' then
     NomeGeneratorSerie := 'NFCE';
 
@@ -1892,6 +1893,7 @@ begin
   end;
 
   // dadosDest.Values['cod']    := '';
+
   if dadosDest.Values['cod'] = '*' then
   begin
     if (not query1.IsEmpty) then
@@ -6853,10 +6855,13 @@ begin
   end;
 
   // SE O CODIGO DO MUNICIPIO ESTA EM BRANCO, USA O CODIGO DO MUNICIPIO DO EMITENTE
-  COD_MUN := dadosEmitente.Values['cod_mun'];
-  UF      := dadosEmitente.Values['est'];
-  CEP     := dadosEmitente.Values['cep'];
-  NOM_MUN := dadosEmitente.Values['cid'];
+
+  if ((StrNum(COD_MUN) = '0') or (Length(StrNum(COD_MUN)) <> 7)) then begin
+    COD_MUN := dadosEmitente.Values['cod_mun'];
+    UF      := dadosEmitente.Values['est'];
+    CEP     := dadosEmitente.Values['cep'];
+    NOM_MUN := dadosEmitente.Values['cid'];
+  end;
 
   IF NOT ok then
   begin

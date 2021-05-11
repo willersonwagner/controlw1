@@ -1,20 +1,3 @@
-{***************************************************************************}
-{ TMS Cloud Storage access demo                                             }
-{ for Delphi & C++Builder                                                   }
-{                                                                           }
-{ written by TMS Software                                                   }
-{            copyright © 2012 - 2017                                        }
-{            Email : info@tmssoftware.com                                   }
-{            Web : http://www.tmssoftware.com                               }
-{                                                                           }
-{ The source code is given as is. The author is not responsible             }
-{ for any possible damage done due to the use of this code.                 }
-{ The component can be freely used in any application. The complete         }
-{ source code remains property of the author and may not be distributed,    }
-{ published, given or sold in any form as such. No parts of the source      }
-{ code can be included in any other component or application without        }
-{ written authorization of the author.                                      }
-{***************************************************************************}
 
 {$IFDEF ANDROID}
 {$DEFINE MOBILE}
@@ -28,7 +11,7 @@ unit UCloudStorageDemo;
 interface
 
 uses
-  FMX.Forms, SysUtils, DateUtils,System.StrUtils,FMX.TMSCloudDropBox, FMX.TMSCloudGDrive, UITypes, FMX.Dialogs, FMX.TMSCloudBoxNet,
+  FMX.Forms,Vcl.ExtCtrls, SysUtils, DateUtils,System.StrUtils,FMX.TMSCloudDropBox, FMX.TMSCloudGDrive, UITypes, FMX.Dialogs, FMX.TMSCloudBoxNet,
   FMX.Header, FMX.TMSCloudWinLive, FMX.TMSCloudBase, FMX.StdCtrls,
   FMX.Layouts, FMX.TreeView, FMX.Controls, System.Classes, FMX.Types,
   FMX.TMSCloudCustomWinLive, FMX.TMSCloudCustomGDrive, FMX.TMSCloudBaseFMX, FMX.TMSCloudCustomDropBox,
@@ -102,6 +85,10 @@ type
     FDIBSDump1: TFDIBSDump;
     IWAutherINI1: TIWAutherINI;
     RxTrayIcon1: TRxTrayIcon;
+    Button3: TButton;
+    FDIBRestore1: TFDIBRestore;
+    Label4: TLabel;
+    function buscaPastaNFCe(const chave : String; abrir : boolean = true; pastaservidor : String = '') : String;
     procedure ConnectBtnClick(Sender: TObject);
     procedure DownloadBtnClick(Sender: TObject);
     procedure UploadBtnClick(Sender: TObject);
@@ -125,25 +112,37 @@ type
     procedure TMSFMXCloudGDrive1DownloadProgress(Sender: TObject;
       FileName: string; Position, Total: Int64);
     procedure RxTrayIcon1DblClick(Sender: TObject);
+    procedure Button3Click(Sender: TObject);
+    procedure FDIBRestore1Progress(ASender: TFDPhysDriverService;
+      const AMessage: string);
+    procedure Panel2DblClick(Sender: TObject);
   private
+    procedure copiaNFCes;
+    function FormataCNPJ(CNPJ: string): string;
     procedure OnMinimize(Sender:TObject);
     function Contido(substring: string; texto: string): boolean;
     function StrNum(const entra: string) :  string;
     procedure comprime7zip(Origem, destino : String);
     procedure LE_CAMPOS(var mat: tstringList; LIN: String; const separador: String;criaMAT: boolean = true);
+    procedure TrayIcon1DblClick(Sender: TObject);
     { Private declarations }
   public
     { Public declarations }
     rdg: Integer;
-    intervaloEntreBackupMinutos : integer;
+    intervaloEntreBackupMinutos, iniciou : integer;
     Authenticated: boolean;
     IsDownloading: boolean;
     IsUploading: boolean;
-    caminhoRaiz, cnpj : String;
+    caminhoRaiz, cnpj, pastaControlWXML_NFCE : String;
     proximoBackup : TDateTime;
     pastaInicial : TTMSFMXCloudItem;
+    listaProxBackup, gdriveini : TStringList;
+    trayicon : TTrayIcon;
+    procedure trayiconEvento(opcao1ativa  : integer);
     function buscaRetornoSite(site, cnpj : String) : String;
     procedure abrirPainel();
+    procedure PreencheHoraBackup;
+    procedure buscaHoraProxBackup;
     function buscaPastaGdrive(nome : string; cis : TTMSFMXCloudItems) : TTMSFMXCloudItem;
     function Storage: TTMSFMXCloudStorageFMX;
     procedure ShowItem;
@@ -204,12 +203,8 @@ begin
   timerativaBackup.Enabled := false;
   Timer1.Enabled           := true;
 
-  Hide();
-  Self.WindowState := TWindowState.wsMinimized;
-  RxTrayIcon1.Active   := true;
-  RxTrayIcon1.Enabled  := true;
-
-  proximoBackup := IncMinute(now, intervaloEntreBackupMinutos);
+  //proximoBackup := IncMinute(now, intervaloEntreBackupMinutos);
+  buscaHoraProxBackup;
   horaProxBackup.Text := FormatDateTime('hh:mm:ss', proximoBackup);
   Button1Click(self);
 end;
@@ -303,12 +298,17 @@ begin
    FDConnection1.Connected := true;
   end;
 
+  copiaNFCes;
+  exit;
+
   FDQuery1.Close;
   FDQuery1.SQL.Text := 'select empresa, cnpj from registro';
   FDQuery1.Open;
 
   nome := trim(FDQuery1.FieldByName('empresa').AsString);
   cnpj := StrNum(trim(FDQuery1.FieldByName('cnpj').AsString));
+  Label4.Text := 'CNPJ: '+ FormataCNPJ(cnpj);
+  label4.Visible := true;
 
   site := buscaRetornoSite('',cnpj);
   LE_CAMPOS(lista, site, '|', true);
@@ -405,6 +405,36 @@ begin
 
   abrirPainel;
   IsUploading := false;
+end;
+
+procedure TForm4.Button3Click(Sender: TObject);
+var
+  op : TOpenDialog;
+  pastaRaiz : String;
+begin
+  op := tOpenDialog.Create(self);
+  op.Filter := 'ControlW BD|*.fbk';
+  if op.Execute = false then exit;
+
+  pastaRaiz := ExtractFileDir(op.FileName) + '\';
+
+  if FileExists(pastaRaiz + 'bd.fdb') then begin
+    try
+      RenameFile(pastaRaiz+ 'bd.fdb', pastaRaiz + 'bd1.fdb');
+    except
+      ShowMessage('O arquivo bd.fdb já existe, por isso nao será possivel restaurar o bd!');
+    end;
+  end;
+
+
+  FDIBRestore1.Database := pastaRaiz + 'bd.fdb';
+  FDIBRestore1.BackupFiles.Clear;
+  FDIBRestore1.BackupFiles.Add(op.FileName);
+  FDIBRestore1.UserName := 'sysdba';
+  FDIBRestore1.Password := 'SYSTEMA1';
+  FDIBRestore1.Restore;
+
+  ShowMessage('Backup Restaurado em: ' + pastaRaiz + 'bd.fdb');
 end;
 
 procedure TForm4.ConnectBtnClick(Sender: TObject);
@@ -535,14 +565,25 @@ begin
   //SendMessage(Memo1.Handle, WM_VSCROLL, SB_BOTTOM, 0);
 end;
 
+procedure TForm4.FDIBRestore1Progress(ASender: TFDPhysDriverService;
+  const AMessage: string);
+begin
+  Memo1.Lines.Add(AMessage);
+  Memo1.SelStart := Length(Memo1.Text);
+  Application.ProcessMessages;
+end;
+
 procedure TForm4.FormCreate(Sender: TObject);
 begin
+  iniciou := 0;
+  trayicon := TTrayIcon.Create(self);
+  trayicon.OnDblClick := TrayIcon1DblClick;
+
   Application.Title := 'SisBackup';
   rdg := 0;
   TMSFMXCloudTreeViewAdapter1.TreeView := TreeView1;
 
   caminhoRaiz := ExtractFileDir(ParamStr(0)) + '/';
-  //Application.OnMinimize := OnMinimize;
 end;
 
 procedure TForm4.FormShow(Sender: TObject);
@@ -550,6 +591,13 @@ begin
   timerativaBackup.Enabled    := true;
   intervaloEntreBackupMinutos := 180;
   IsUploading := false;
+
+  if iniciou = 0 then begin
+    PreencheHoraBackup;
+    iniciou := 1;
+  end;
+
+  Memo1.Lines.Clear;
 end;
 
 procedure TForm4.RadioButton4Change(Sender: TObject);
@@ -566,7 +614,14 @@ end;
 
 procedure TForm4.OnMinimize(Sender:TObject);
 begin // When application is minimized by user and/or by code
-     Hide; // This is to hide it from taskbar
+    { Hide the window and set its state variable to wsMinimized. }
+  Hide();
+  WindowState := TWindowState.wsMinimized;
+
+  { Show the animated tray icon and also a hint balloon. }
+  TrayIcon.Visible := True;
+  TrayIcon.Animate := True;
+  TrayIcon.ShowBalloonHint;
 end;
 
 procedure TForm4.UploadBtnClick(Sender: TObject);
@@ -779,6 +834,122 @@ begin
   else
     Result := False;
 end;
+
+
+procedure TForm4.Panel2DblClick(Sender: TObject);
+begin
+  trayiconEvento(1);
+end;
+
+procedure TForm4.PreencheHoraBackup;
+begin
+  listaProxBackup := TStringList.Create;
+  gdriveini       := TStringList.Create;
+
+  gdriveini.LoadFromFile(ExtractFileDir(ParamStr(0)) + '\gdrive.ini');
+  LE_CAMPOS(listaProxBackup, gdriveini.Values['BKP'], '|', false);
+end;
+
+procedure TForm4.buscaHoraProxBackup;
+var
+  i, ok : integer;
+begin
+  ok := 0;
+  for I := 0 to listaProxBackup.Count -1 do begin
+    if now < dateof(now) + timeof(StrToTime(listaProxBackup.ValueFromIndex[i])) then begin
+      proximoBackup := dateof(now) + timeof(StrToTime(listaProxBackup.ValueFromIndex[i]));
+      ok := 1;
+      break;
+    end;
+  end;
+
+  if ok = 0 then begin
+    proximoBackup := IncDay(dateof(now) + timeof(StrToTime(listaProxBackup.ValueFromIndex[0])));
+  end;
+end;
+
+procedure TForm4.trayiconEvento(opcao1ativa  : integer);
+begin
+  if opcao1ativa = 1 then begin
+    trayicon.Visible := true;
+    //WindowState := TWindowState.wsMinimized;
+    Self.Hide;
+  end
+  else begin
+    trayicon.Visible := false;
+    self.Show;
+    WindowState := TWindowState.wsNormal;
+    BringToFront();
+  end;
+end;
+
+procedure TForm4.TrayIcon1DblClick(Sender: TObject);
+begin
+
+  { Hide the tray icon and show the window,
+  setting its state property to wsNormal. }
+  trayiconEvento(0);
+end;
+
+function TForm4.FormataCNPJ(CNPJ: string): string;
+begin
+  Result :=Copy(CNPJ,1,2)+'.'+Copy(CNPJ,3,3)+'.'+Copy(CNPJ,6,3)+'/'+ Copy(CNPJ,9,4)+'-'+Copy(CNPJ,13,2);
+end;
+
+procedure TForm4.copiaNFCes;
+var
+  chave : String;
+  arquivos : TStringList;
+begin
+  if DirectoryExists(gdriveini.Values['PASTA_CONTROLW_NFCE']) = false then begin
+    Memo1.Lines.Add('Diretório ' + gdriveini.Values['PASTA_CONTROLW_NFCE'] + ' Não Existe!');
+    exit;
+  end;
+
+
+  FDQuery1.Close;
+  FDQuery1.SQL.Text := 'select * from nfce where ((sinc is null) or (sinc = ''0''))';
+  try
+    FDQuery1.Open;
+  except
+    on e:exception do begin
+      Memo1.Lines.Add('Erro906: '+ e.Message);
+      exit;
+    end;
+  end;
+
+  arquivos := TStringList.Create;
+
+  while not FDQuery1.Eof do begin
+    chave := FDQuery1.FieldByName('chave').AsString;
+    if FileExists(buscaPastaNFCe(chave) + chave +'-nfe.xml') then begin
+      arquivos.Add(buscaPastaNFCe(chave) + chave +'-nfe.xml');
+      Memo1.Lines.Add('Arquivo ' + buscaPastaNFCe(chave) + chave +'-nfe.xml Adicionado!' );
+    end
+    else Memo1.Lines.Add('Arquivo ' + buscaPastaNFCe(chave) + chave +'-nfe.xml Não Encontrado!' );
+
+    FDQuery1.Next;
+  end;
+
+end;
+
+function TForm4.buscaPastaNFCe(const chave : String; abrir : boolean = true; pastaservidor : String = '') : String;
+begin
+  if pastaservidor = '' then pastaservidor := ExtractFileDir(ParamStr(0));
+  if RightStr(pastaservidor, 1) <> '\' then pastaservidor := pastaservidor + '\';
+
+  Result := pastaservidor + 'NFCe\EMIT\';
+  if abrir = false then begin
+    Result := Result + copy(chave, 3, 4) + '\';
+  end;
+
+  if chave <> '' then begin
+    if FileExists(Result + copy(chave, 3, 4) + '\' + chave + '-nfe.xml') then begin
+       Result := Result + copy(chave, 3, 4) + '\';
+    end;
+  end;
+end;
+
 
 end.
 

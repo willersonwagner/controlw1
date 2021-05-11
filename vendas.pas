@@ -183,7 +183,7 @@ type
     { Private declarations }
   public
     ordenaCampos: boolean;
-    tamanho_nota, finalizouServico: integer;
+    tamanho_nota, finalizouServico, fimVenda: integer;
     origem: integer;
     tipoV, CLIENTE_ENTREGA, CLIENTE_VENDA, condicaoSQL, numvenda: string;
     separaPecas, finaliza: boolean;
@@ -4524,6 +4524,8 @@ begin
   dm.IBQuery2.Close;
   dm.IBQuery1.Close;
 
+  funcoes.salvaRicheditForm19comoPDF;
+
   funcoes.ImprimirPedidoVias(1, Modo_Orcamento);
 
   if ((funcoes.buscaParamGeral(118, 'N') = 'S') and (Modo_Venda) and (tipo = 'T')) then begin
@@ -5440,7 +5442,11 @@ begin
       qery.FieldByName('cod').AsString;
     ClientDataSet1.FieldByName('descricao').AsString := nome1;
     ClientDataSet1m2.AsInteger := m2;
-    ClientDataSet1unid.AsString := qery.FieldByName('unid').AsString;
+    try
+      ClientDataSet1unid.AsString := qery.FieldByName('unid').AsString;
+    except
+      ClientDataSet1unid.AsString := 'UN';
+    end;
     ClientDataSet1.FieldByName('quant').AsCurrency := qtd;
     ClientDataSet1.FieldByName('preco').AsCurrency := Preco;
     ClientDataSet1Refori.AsString := qery.FieldByName('codbar').AsString;
@@ -5482,11 +5488,16 @@ function TForm20.limitar_QTD_Estoque(quant: currency; cod: integer;
 var
   campo: string;
 begin
+
+
   if origem = 1 then
     campo := 'quant'
   else
     campo := 'deposito';
   Result := true;
+
+  if Compra then exit;
+  
 
   dm.IBQuery4.Close;
   dm.IBQuery4.SQL.Text := 'select ' + campo + ' from produto where cod = :cod';
@@ -6133,6 +6144,7 @@ begin
 
   if Key = #13 then
   begin
+
     if Compra then
     begin
       busca := funcoes.dialogo('numero', CasasDecimaisQuantidade, 'SN', CasasDecimaisQuantidade, false, 'S',
@@ -6232,6 +6244,8 @@ begin
         form83.Free;
       end;
 
+
+
       if ((funcoes.buscaParamGeral(122, 'N') = 'S') and (Modo_Venda)) then begin
         if MessageDlg('Deseja Adicionar Venda para Entrega ?',mtConfirmation, [mbYes, mbNo], 0, mbNo) = idyes then begin
           adicionarEntrega := 'S';
@@ -6278,9 +6292,9 @@ begin
       end
       else
       begin
-        codhis := funcoes.LerFormPato(0, 'F8 - Volta à Venda', false,
-          IfThen(codhis = '2', '1', codhis));
+        codhis := funcoes.LerFormPato(0, 'F8 - Volta à Venda', false, IfThen(codhis = '2', '1', codhis));
       end;
+
 
       if ((formaAlterada <> '') and (Modo_Venda) and (formaAlterada <> codhis) and (codhis <> '*')) then begin
         ShowMessage('A Venda Não Pode Ser Finalizada por Divergência entre Formas de Pagamento!' + #13 +
@@ -6297,6 +6311,10 @@ begin
         mostraDesconto(0, 0, false);
         exit;
       end;
+
+
+
+      fimVenda := 1;
 
       if ((codhis = '2') and (Parcelamento.Count = 0)) then
       begin
@@ -6433,6 +6451,7 @@ begin
       tipoTrocaDescontoUsuario         := '';
       form22.Pgerais.Values['configu'] := configUsuario;
 
+
       if Modo_Venda then
       begin
         if funcoes.buscaParamGeral(70, 'N') = 'S' then
@@ -6476,6 +6495,12 @@ begin
       end;
 
       mostraDesconto(0, 0, false);
+      fimVenda := 0;
+
+      if funcoes.buscaParamGeral(77, '') = 'S' then begin// busca por código de barras
+        JsEdit1.SetFocus;
+      end;
+
 
       if funcoes.buscaParamGeral(23, '') = 'S' then
       begin
@@ -6575,6 +6600,7 @@ end;
 
 procedure TForm20.FormCreate(Sender: TObject);
 begin
+  fimVenda := 0;
   tipoTrocaDescontoUsuario := '';
   adicionarEntrega := 'N';
   formaAlterada := '';
@@ -6604,6 +6630,7 @@ var
   cont, i: integer;
   sim: String;
 begin
+  CasasDecimaisQuantidade := StrToIntDef(funcoes.buscaParamGeral(123, '3') , 3);
 
   JsEdit1.SetTabelaDoBd(self, 'tf', query1);
   // if trim(funcoes.LerConfig(form22.Pgerais.Values['configu'], 2) = '' then begin
@@ -6620,6 +6647,7 @@ begin
   ClientDataSet1minimo.DisplayFormat := '#,###,##0.00 %';
   ClientDataSet1TOT_ORIGI2.DisplayLabel := 'TOT. ORIGINAL';
   ClientDataSet1TOT_ORIGI2.DisplayFormat := '#,###,##0.00';
+  ClientDataSet1QUANT.DisplayFormat := '#,###,###0.'+ CompletaOuRepete('','','0', CasasDecimaisQuantidade);
 
   // ClientDataSet1TOT_ORIGI2.Visible := true;
   if form22.superUsu = 1 then
@@ -6693,11 +6721,7 @@ begin
   if funcoes.buscaParamGeral(114, '1') = '2' then begin
     ordem := 'order by cod';
   end;
-
-
-
-  CasasDecimaisQuantidade := StrToIntDef(funcoes.buscaParamGeral(123, '3') , 3);
-
+ 
   ordenaCampos := true;
 
   DBGrid1.Enabled := false;
@@ -7202,6 +7226,17 @@ begin
       te := DBGrid1.DataSource.DataSet.FieldByName('cod').AsString;
       funcoes.fichaDoProduto(Sender, te, false);
     end;
+
+    if Key = 117 then begin // f6
+      if funcoes.buscaParamGeral(13, '') = 'S' then begin
+        buscaCodigoBarras(1);
+        exit;
+      end;
+
+      BuscaCodBar_F6_AutoPecas('', '3');
+      exit;
+    end;
+
     exit;
   end;
 
@@ -7760,7 +7795,9 @@ begin
 
   if funcoes.buscaParamGeral(77, '') = 'S' then // busca por código de barras
   begin // para loja de roupas
-    buscaCodigoBarras();
+    if fimVenda = 0 then begin
+       buscaCodigoBarras();
+    end;
   end;
 
   if ((form22.Pgerais.Values['codvendedor'] = '0') and (VerificaAcesso_Se_Nao_tiver_Nenhum_bloqueio_true_senao_false = false)) then begin

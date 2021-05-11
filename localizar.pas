@@ -613,24 +613,25 @@ end;
 procedure TForm7.DBGrid1DrawColumnCell(Sender: TObject; const Rect: TRect;
   DataCol: Integer; Column: TColumn; State: TGridDrawState);
 begin
-  if DBGrid1.DataSource.DataSet.RecNo mod 2 = 0 then
-  begin
-    if not(Odd(DBGrid1.DataSource.DataSet.RecNo)) then // Se não for par
-      if not (gdSelected in State) then Begin // Se o estado da célula não é selecionado
-        with DBGrid1 do Begin
-            with Canvas do Begin
-                try
-                  Brush.Color := StringToColor(funcoes.buscaCorBDGRID_Produto); // Cor da célula
-                except
-                  Brush.Color := HexToTColor('F5F5F5');
-                end;
-                //Brush.Color := HexToTColor('7093DB'); // Cor da célula
-                //Brush.Color := HexToTColor('81DAF5');
-                 FillRect (Rect); // Pinta a célula
-            End; // with Canvas
-             DefaultDrawDataCell (Rect, Column.Field, State) // Reescreve o valor que vem do banco
-        End // With DBGrid1
-    End // if not (gdSelected in State)
+  if Contido('SIM', campos) then begin
+    if DBGrid1.DataSource.DataSet.FieldByName('desativado').AsString = 'SIM' then begin
+      DBGrid1.Canvas.brush.Color := HexToTColor('F08080'); // Cor da célula
+      DBGrid1.DefaultDrawColumnCell(Rect, DataCol, Column, State);
+    end;
+  end
+  else begin
+    if DBGrid1.DataSource.DataSet.RecNo mod 2 = 0 then begin
+        if not (gdSelected in State) then Begin // Se o estado da célula não é selecionado
+          try
+            DBGrid1.Canvas.brush.Color := StringToColor(funcoes.buscaCorBDGRID_Produto); // Cor da célula
+          except
+            DBGrid1.Canvas.Brush.Color := HexToTColor('F5F5F5');
+          end;
+
+          DBGrid1.Canvas.FillRect (Rect); // Pinta a célula
+          DBGrid1.DefaultDrawDataCell (Rect, Column.Field, State); // Reescreve o valor que vem do banco
+        end;
+    end;
   end;
 end;
 
