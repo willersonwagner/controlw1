@@ -11,6 +11,12 @@ type
   public
   end;
 
+  TTWThreadOcioso = class(TThread)
+  protected
+    procedure Execute; override;
+  public
+  end;
+
   TTWtheadEnviaCupons = class(TThread)
   private
   protected
@@ -28,6 +34,19 @@ begin
   dm.ProdutoQY.FetchAll;
 end;
 
+procedure TTWThreadOcioso.Execute;
+var
+  query : TIBQuery;
+begin
+  query := TIBQuery.Create(nil);
+  query.Database := dm.bd;
+
+  query.SQL.Text := 'SELECT CAST (''NOW'' AS TIMESTAMP) as DATA FROM RDB$DATABASE';
+  query.Open;
+  query.Close;
+end;
+
+
 
 procedure TTWtheadEnviaCupons.Execute;
 var
@@ -39,7 +58,6 @@ begin
 
   query.SQL.Text := 'select nota, chave from NFCE where adic = ''OFF''';
   query.Open;
-
 
 
   while not query.Eof do

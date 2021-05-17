@@ -406,6 +406,7 @@ type
     ControledeEntregaMademato: TMenuItem;
     ProdutosExcluidosdeServios1: TMenuItem;
     ResumodeContas1: TMenuItem;
+    Timer3: TTimer;
     procedure LimparBloqueios1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure CadastrarUsurio1Click(Sender: TObject);
@@ -698,6 +699,7 @@ type
     procedure ProdComissoDif1Click(Sender: TObject);
     procedure ProdutosExcluidosdeServios1Click(Sender: TObject);
     procedure ResumodeContas1Click(Sender: TObject);
+    procedure Timer3Timer(Sender: TObject);
   private
     b, cont: integer;
     ini: Smallint;
@@ -1156,6 +1158,8 @@ begin
 
   if ini = 1 then
   begin
+    Timer3.Enabled := true;
+
     try
       funcoes.descompactaIBPT;
     except
@@ -20447,6 +20451,15 @@ begin
   tread1 := TTWtheadEnviaCupons.Create(true);
   tread1.FreeOnTerminate := true;
   tread1.Resume;
+end;
+
+procedure TForm2.Timer3Timer(Sender: TObject);
+var
+  tread : TTWThreadOcioso;
+begin
+  tread := TTWThreadOcioso.Create(true);
+  tread.FreeOnTerminate := true;
+  tread.Start;
 end;
 
 procedure TForm2.PorProd1Click(Sender: TObject);

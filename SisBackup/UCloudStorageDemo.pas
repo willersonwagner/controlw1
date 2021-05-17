@@ -123,8 +123,10 @@ type
     function Contido(substring: string; texto: string): boolean;
     function StrNum(const entra: string) :  string;
     procedure comprime7zip(Origem, destino : String);
+    procedure comprime7zipTstringList(Origem : tstringlist; destino : String);
     procedure LE_CAMPOS(var mat: tstringList; LIN: String; const separador: String;criaMAT: boolean = true);
     procedure TrayIcon1DblClick(Sender: TObject);
+    procedure marcarXMLsNFCe(lista : TStringList);
     { Private declarations }
   public
     { Public declarations }
@@ -298,9 +300,6 @@ begin
    FDConnection1.Connected := true;
   end;
 
-  copiaNFCes;
-  exit;
-
   FDQuery1.Close;
   FDQuery1.SQL.Text := 'select empresa, cnpj from registro';
   FDQuery1.Open;
@@ -387,13 +386,17 @@ begin
 
   Memo1.Lines.Add(FormatDateTime('hh:mm:ss', now) + ' Estrutura de Pastas Criada!');
 
-
   ProgressBar2.Value := 0;
   ProgressBar2.Visible := true;
 
   Memo1.Lines.Add(FormatDateTime('hh:mm:ss', now) + ' Upload Iniciado...');
   nci := Storage.Upload(ci, arquivo);
   Memo1.Lines.Add(FormatDateTime('hh:mm:ss', now) + ' Upload Concluido...');
+  Memo1.SelStart := Length(Memo1.Text);
+
+  copiaNFCes;
+
+  Memo1.SelStart := Length(Memo1.Text);
 
   //Storage.Download(Nci,'D:\NOVO.7Z');
 
@@ -729,6 +732,24 @@ begin
   Arch.SaveToFile(destino);
 end;
 
+procedure TForm4.comprime7zipTstringList(Origem : tstringlist; destino : String);
+var
+  Arch: I7zOutArchive;
+  Counter, i: Integer;
+
+begin
+  Arch := CreateOutArchive (CLSID_CFormat7z);
+  //Arch.SetProgressCallback (nil, ProgressCallback);
+
+  for I := 0 to origem.Count -1 do begin
+    Arch.AddFile(Origem[i], ExtractFileName(Origem[i]));
+  end;
+
+  SetCompressionLevel(Arch, 5);
+  SevenZipSetCompressionMethod (Arch, T7zCompressionMethod.m7Deflate64);
+  Arch.SaveToFile(destino);
+end;
+
 function TForm4.buscaPastaGdrive(nome : string; cis : TTMSFMXCloudItems) : TTMSFMXCloudItem;
 var
   i : integer;
@@ -848,6 +869,8 @@ begin
 
   gdriveini.LoadFromFile(ExtractFileDir(ParamStr(0)) + '\gdrive.ini');
   LE_CAMPOS(listaProxBackup, gdriveini.Values['BKP'], '|', false);
+
+  pastaControlWXML_NFCE := gdriveini.Values['PASTA_CONTROLW_NFCE'];
 end;
 
 procedure TForm4.buscaHoraProxBackup;
@@ -898,8 +921,9 @@ end;
 
 procedure TForm4.copiaNFCes;
 var
-  chave : String;
-  arquivos : TStringList;
+  chave, arquivo : String;
+  arquivos   : TStringList;
+  ci, ci_ant, nci : TTMSFMXCloudItem;
 begin
   if DirectoryExists(gdriveini.Values['PASTA_CONTROLW_NFCE']) = false then begin
     Memo1.Lines.Add('Diretório ' + gdriveini.Values['PASTA_CONTROLW_NFCE'] + ' Não Existe!');
@@ -918,19 +942,62 @@ begin
     end;
   end;
 
+  if FDQuery1.IsEmpty then begin
+    Memo1.Lines.Add('1-Nenhum XML para enviar...') ;
+    exit;
+  end;
+
   arquivos := TStringList.Create;
 
   while not FDQuery1.Eof do begin
     chave := FDQuery1.FieldByName('chave').AsString;
-    if FileExists(buscaPastaNFCe(chave) + chave +'-nfe.xml') then begin
-      arquivos.Add(buscaPastaNFCe(chave) + chave +'-nfe.xml');
-      Memo1.Lines.Add('Arquivo ' + buscaPastaNFCe(chave) + chave +'-nfe.xml Adicionado!' );
-    end
-    else Memo1.Lines.Add('Arquivo ' + buscaPastaNFCe(chave) + chave +'-nfe.xml Não Encontrado!' );
+    if FileExists(buscaPastaNFCe(chave, true, pastaControlWXML_NFCE) + chave +'-nfe.xml') then begin
+      arquivos.Add(buscaPastaNFCe(chave, true, pastaControlWXML_NFCE) + chave +'-nfe.xml');
+      //Memo1.Lines.Add('Arquivo ' + buscaPastaNFCe(chave, true, pastaControlWXML_NFCE) + chave +'-nfe.xml Adicionado!' );
+    end;
+    //else Memo1.Lines.Add('Arquivo ' + buscaPastaNFCe(chave, true, pastaControlWXML_NFCE) + chave +'-nfe.xml Não Encontrado!' );
 
     FDQuery1.Next;
   end;
 
+  Memo1.Lines.Add(IntToStr(arquivos.Count) +' XML lidos...');
+  try
+    comprime7zipTstringList(arquivos, caminhoRaiz + 'SisBackup/' + 'NFCe'+FormatDateTime('ddmmyyyy-hhmm', now)+'.7z');
+    arquivo := caminhoRaiz + 'SisBackup/' + 'NFCe'+FormatDateTime('ddmmyyyy-hhmm', now)+'.7z';
+  except
+  end;
+
+  ci := nil;
+  ci := buscaPastaGdrive('Backups', Storage.GetFolderListHierarchical(nil));
+
+  ci_ant := buscaPastaGdrive(cnpj, Storage.GetFolderListHierarchical(ci));
+  if ci_ant = nil then begin
+    ci := Storage.CreateFolder(ci, cnpj);
+  end
+  else begin
+    ci := ci_ant;
+  end;
+
+  ci_ant := buscaPastaGdrive('NFCe', Storage.GetFolderListHierarchical(ci));
+  if ci_ant = nil then begin
+    ci := Storage.CreateFolder(ci, 'NFCe');
+  end
+  else begin
+    ci := ci_ant;
+  end;
+
+  pastaInicial := ci;
+
+  ProgressBar2.Value := 0;
+  ProgressBar2.Visible := true;
+
+  if arquivos.Count > 0 then begin
+    Memo1.Lines.Add(FormatDateTime('hh:mm:ss', now) + ' Upload Iniciado...');
+    nci := Storage.Upload(ci, arquivo);
+    Memo1.Lines.Add(FormatDateTime('hh:mm:ss', now) + ' Upload Concluido...');
+    marcarXMLsNFCe(arquivos);
+  end
+  else Memo1.Lines.Add('Nenhum XML para enviar...') ;
 end;
 
 function TForm4.buscaPastaNFCe(const chave : String; abrir : boolean = true; pastaservidor : String = '') : String;
@@ -950,6 +1017,23 @@ begin
   end;
 end;
 
+procedure TForm4.marcarXMLsNFCe(lista : TStringList);
+var
+  i : integer;
+begin
+  for I := 0 to lista.Count -1 do begin
+    FDQuery1.Close;
+    FDQuery1.SQL.Text := 'update nfce set sinc = 1 where chave = :chave';
+    FDQuery1.ParamByName('chave').AsString := LeftStr(ExtractFileName(lista[i]), 44);
+    FDQuery1.ExecSQL;
+  end;
+
+  try
+    FDQuery1.Transaction.Commit;
+  finally
+
+  end;
+end;
 
 end.
 

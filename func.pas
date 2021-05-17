@@ -29241,13 +29241,19 @@ procedure Tfuncoes.salvaRicheditForm19comoPDF;
 var
   ini : integer;
 begin
-  imprime.RLMemo5.Lines.Clear;
-  imprime.RLMemo5.Font := form19.RichEdit1.Font;
-  for ini := 0 to form19.RichEdit1.Lines.Count - 1 do begin
-    imprime.RLMemo5.Lines.Add(form19.RichEdit1.Lines[ini]);
-  end;
+  try
+    imprime.RLMemo5.Lines.Clear;
+    imprime.RLMemo5.Font := form19.RichEdit1.Font;
+    for ini := 0 to form19.RichEdit1.Lines.Count - 1 do begin
+      imprime.RLMemo5.Lines.Add(form19.RichEdit1.Lines[ini]);
+    end;
 
-  imprime.RLReport3.SaveToFile(caminhoEXE_com_barra_no_final + 'IMP\REL.PDF');
+    if FileExists(caminhoEXE_com_barra_no_final + 'IMP\REL.PDF') then DeleteFile(caminhoEXE_com_barra_no_final + 'IMP\REL.PDF');
+
+    imprime.RLReport3.SaveToFile(caminhoEXE_com_barra_no_final + 'IMP\REL.PDF');
+  except
+
+  end;
 end;
 
 procedure Tfuncoes.imprimeVendaFortesA4(numVenda : String);

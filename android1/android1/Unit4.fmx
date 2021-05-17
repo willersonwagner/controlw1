@@ -1,0 +1,539 @@
+object Form4: TForm4
+  Left = 0
+  Top = 0
+  Caption = 'Form4'
+  ClientHeight = 567
+  ClientWidth = 384
+  StyleBook = Form1.StyleBook1
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  OnShow = FormShow
+  DesignerMasterStyle = 3
+  object ToolBar1: TToolBar
+    Size.Width = 384.000000000000000000
+    Size.Height = 48.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    object Label1: TLabel
+      Align = Client
+      StyledSettings = [Size, Style, FontColor]
+      Size.Width = 384.000000000000000000
+      Size.Height = 48.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.Font.Family = 'Showcard Gothic'
+      TextSettings.HorzAlign = Center
+      Text = 'ControlM'
+    end
+    object SpeedButton1: TSpeedButton
+      Size.Width = 48.000000000000000000
+      Size.Height = 48.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = 'arrowlefttoolbuttonbordered'
+      Text = 'Voltar'
+      OnMouseUp = SpeedButton1MouseUp
+    end
+    object SpeedButton3: TSpeedButton
+      Anchors = [akTop, akRight]
+      Position.X = 336.000000000000000000
+      Size.Width = 48.000000000000000000
+      Size.Height = 48.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = 'addtoolbuttonbordered'
+      Visible = False
+      OnMouseUp = SpeedButton3MouseUp
+    end
+  end
+  object ToolBar2: TToolBar
+    Align = Bottom
+    Position.Y = 519.000000000000000000
+    Size.Width = 384.000000000000000000
+    Size.Height = 48.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 8
+    object Button3: TButton
+      Size.Width = 48.000000000000000000
+      Size.Height = 48.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = 'donetoolbutton'
+      TabOrder = 2
+      Text = 'Salvar'
+      Visible = False
+    end
+    object Button4: TButton
+      Size.Width = 48.000000000000000000
+      Size.Height = 48.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = 'donetoolbutton'
+      TabOrder = 1
+      Text = 'Pr'#243'ximo'
+      OnMouseUp = Button4MouseUp
+    end
+    object Button5: TButton
+      Anchors = [akTop, akRight]
+      Position.X = 264.000000000000000000
+      Size.Width = 48.000000000000000000
+      Size.Height = 48.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = 'deletetoolbutton'
+      TabOrder = 0
+      Text = 'Limpar Venda'
+      Visible = False
+      OnClick = Button5Click
+    end
+  end
+  object TabControl1: TTabControl
+    Align = Client
+    FullSize = True
+    Size.Width = 384.000000000000000000
+    Size.Height = 471.000000000000000000
+    Size.PlatformDefault = False
+    TabHeight = 49.000000000000000000
+    TabIndex = 0
+    TabOrder = 9
+    TabPosition = None
+    OnChange = TabControl1Change
+    Sizes = (
+      384s
+      471s
+      384s
+      471s
+      384s
+      471s
+      384s
+      471s)
+    object TabItem1: TTabItem
+      CustomIcon = <
+        item
+        end>
+      IsSelected = True
+      Size.Width = 8.000000000000000000
+      Size.Height = 8.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = 'tabitemcustom'
+      TabOrder = 0
+      ExplicitSize.cx = 50.000000000000000000
+      ExplicitSize.cy = 50.000000000000000000
+      object Panel3: TPanel
+        Align = Client
+        Size.Width = 384.000000000000000000
+        Size.Height = 471.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+        object gridVenda: TStringGrid
+          Touch.InteractiveGestures = [Pan, LongTap]
+          OnGesture = gridVendaGesture
+          Align = Client
+          CanFocus = True
+          ClipChildren = True
+          Size.Width = 384.000000000000000000
+          Size.Height = 431.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 0
+          RowHeight = 21.000000000000000000
+          OnResize = gridVendaResize
+          Viewport.Width = 379.000000000000000000
+          Viewport.Height = 399.000000000000000000
+        end
+        object TOTCAP: TLabel
+          Align = Top
+          StyledSettings = [FontColor]
+          Size.Width = 384.000000000000000000
+          Size.Height = 40.000000000000000000
+          Size.PlatformDefault = False
+          TextSettings.Font.Family = 'Arial Black'
+          TextSettings.Font.Size = 28.000000000000000000
+          TextSettings.Font.StyleExt = {00070000000000000004000000}
+          TextSettings.VertAlign = Leading
+          TextSettings.WordWrap = False
+          TextSettings.Trimming = None
+          Text = 'TOTAL R$ 0,00'
+        end
+      end
+    end
+    object TabItem2: TTabItem
+      CustomIcon = <
+        item
+        end>
+      IsSelected = False
+      Size.Width = 8.000000000000000000
+      Size.Height = 8.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = ''
+      TabOrder = 0
+      Text = 'TabItem2'
+      ExplicitSize.cx = 50.000000000000000000
+      ExplicitSize.cy = 50.000000000000000000
+      object Label2: TLabel
+        Align = Horizontal
+        StyledSettings = [Family, FontColor]
+        Position.Y = 8.000000000000000000
+        Size.Width = 384.000000000000000000
+        Size.Height = 23.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Size = 18.000000000000000000
+        TextSettings.Font.StyleExt = {00070000000000000004000000}
+        TextSettings.HorzAlign = Center
+        Text = 'Dados da Venda'
+      end
+      object Panel1: TPanel
+        Align = Horizontal
+        Position.Y = 32.000000000000000000
+        Size.Width = 384.000000000000000000
+        Size.Height = 121.000000000000000000
+        Size.PlatformDefault = False
+        StyleLookup = 'calloutpanelstyle'
+        TabOrder = 1
+        object Label3: TLabel
+          Align = Horizontal
+          StyledSettings = [Family, FontColor]
+          Position.Y = 16.000000000000000000
+          Size.Width = 384.000000000000000000
+          Size.Height = 25.000000000000000000
+          Size.PlatformDefault = False
+          TextSettings.Font.Size = 16.000000000000000000
+          TextSettings.Font.StyleExt = {00070000000000000004000000}
+          TextSettings.HorzAlign = Center
+          Text = 'Cliente'
+        end
+        object SpeedButton2: TSpeedButton
+          Anchors = [akLeft, akTop, akRight, akBottom]
+          Position.X = 232.000000000000000000
+          Position.Y = 16.000000000000000000
+          Size.Width = 32.000000000000000000
+          Size.Height = 32.000000000000000000
+          Size.PlatformDefault = False
+          StyleLookup = 'searcheditbutton'
+          Text = 'SpeedButton2'
+          OnClick = SpeedButton2Click
+          OnDblClick = SpeedButton2DblClick
+        end
+        object ListBox1: TListBox
+          Anchors = [akLeft, akTop, akRight]
+          Position.Y = 48.000000000000000000
+          Size.Width = 384.000000000000000000
+          Size.Height = 57.000000000000000000
+          Size.PlatformDefault = False
+          StyleLookup = 'transparentlistboxstyle'
+          TabOrder = 3
+          ShowScrollBars = False
+          DisableFocusEffect = True
+          DefaultItemStyles.ItemStyle = 'listboxitemleftdetail'
+          DefaultItemStyles.GroupHeaderStyle = ''
+          DefaultItemStyles.GroupFooterStyle = ''
+          Viewport.Width = 384.000000000000000000
+          Viewport.Height = 57.000000000000000000
+          object ListBoxItem1: TListBoxItem
+            TextSettings.HorzAlign = Center
+            StyledSettings = [Family, Size, Style, FontColor]
+            Size.Width = 384.000000000000000000
+            Size.Height = 25.000000000000000000
+            Size.PlatformDefault = False
+            StyleLookup = 'listboxitemnodetail'
+            TabOrder = 0
+          end
+          object ListBoxItem2: TListBoxItem
+            TextSettings.HorzAlign = Center
+            StyledSettings = [Family, Size, Style, FontColor]
+            Position.Y = 25.000000000000000000
+            Size.Width = 384.000000000000000000
+            Size.Height = 25.000000000000000000
+            Size.PlatformDefault = False
+            StyleLookup = 'listboxitemnodetail'
+            TabOrder = 1
+          end
+        end
+      end
+    end
+    object TabItem3: TTabItem
+      CustomIcon = <
+        item
+        end>
+      IsSelected = False
+      Size.Width = 8.000000000000000000
+      Size.Height = 8.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = ''
+      TabOrder = 0
+      Text = 'TabItem3'
+      ExplicitSize.cx = 50.000000000000000000
+      ExplicitSize.cy = 50.000000000000000000
+      object ListBoxFormPagtos: TListBox
+        Align = Client
+        Size.Width = 384.000000000000000000
+        Size.Height = 471.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+        DisableFocusEffect = True
+        ItemHeight = 34.000000000000000000
+        DefaultItemStyles.ItemStyle = 'listboxitemnodetail'
+        DefaultItemStyles.GroupHeaderStyle = ''
+        DefaultItemStyles.GroupFooterStyle = ''
+        Viewport.Width = 384.000000000000000000
+        Viewport.Height = 471.000000000000000000
+      end
+    end
+    object TabItem4: TTabItem
+      CustomIcon = <
+        item
+        end>
+      IsSelected = False
+      Size.Width = 8.000000000000000000
+      Size.Height = 8.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = ''
+      TabOrder = 0
+      Text = 'TabItem4'
+      ExplicitSize.cx = 50.000000000000000000
+      ExplicitSize.cy = 50.000000000000000000
+      object VertScrollBox1: TVertScrollBox
+        Align = Client
+        Size.Width = 384.000000000000000000
+        Size.Height = 471.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+        Viewport.Width = 384.000000000000000000
+        Viewport.Height = 471.000000000000000000
+        object ListBox2: TListBox
+          Align = Client
+          Size.Width = 384.000000000000000000
+          Size.Height = 471.000000000000000000
+          Size.PlatformDefault = False
+          StyleLookup = 'transparentlistboxstyle'
+          TabOrder = 0
+          DisableFocusEffect = True
+          DefaultItemStyles.ItemStyle = 'listboxitemnodetail'
+          DefaultItemStyles.GroupHeaderStyle = ''
+          DefaultItemStyles.GroupFooterStyle = ''
+          Viewport.Width = 384.000000000000000000
+          Viewport.Height = 471.000000000000000000
+          object ListBoxItem3: TListBoxItem
+            Size.Width = 384.000000000000000000
+            Size.Height = 44.000000000000000000
+            Size.PlatformDefault = False
+            StyleLookup = 'listboxitemnodetail'
+            TabOrder = 0
+            Text = 'Entrada:'
+            object entrada: TClearingEdit
+              Touch.InteractiveGestures = [LongTap, DoubleTap]
+              Align = Right
+              Anchors = [akLeft, akTop, akRight, akBottom]
+              TabOrder = 0
+              KeyboardType = NumbersAndPunctuation
+              Text = '0,00'
+              Position.X = 104.000000000000000000
+              Position.Y = 6.000000000000000000
+              Size.Width = 280.000000000000000000
+              Size.Height = 32.000000000000000000
+              Size.PlatformDefault = False
+              OnExit = entradaExit
+            end
+          end
+          object ListBoxItem4: TListBoxItem
+            Position.Y = 44.000000000000000000
+            Size.Width = 384.000000000000000000
+            Size.Height = 44.000000000000000000
+            Size.PlatformDefault = False
+            StyleLookup = 'listboxitemnodetail'
+            TabOrder = 1
+            Text = '1'#186' Vencto:'
+            object vencto: TDateEdit
+              Date = 41838.000000000000000000
+              Anchors = [akLeft, akTop, akRight, akBottom]
+              Position.X = 104.000000000000000000
+              Position.Y = 8.000000000000000000
+              Size.Width = 281.000000000000000000
+              Size.Height = 32.000000000000000000
+              Size.PlatformDefault = False
+              TabOrder = 0
+            end
+          end
+          object ListBoxItem5: TListBoxItem
+            Position.Y = 88.000000000000000000
+            Size.Width = 384.000000000000000000
+            Size.Height = 44.000000000000000000
+            Size.PlatformDefault = False
+            StyleLookup = 'listboxitemnodetail'
+            TabOrder = 2
+            Text = 'Periodo:'
+            object periodo: TClearingEdit
+              Touch.InteractiveGestures = [LongTap, DoubleTap]
+              Align = Right
+              Anchors = [akLeft, akTop, akRight, akBottom]
+              TabOrder = 0
+              KeyboardType = NumberPad
+              Text = '30'
+              Position.X = 104.000000000000000000
+              Position.Y = 6.000000000000000000
+              Size.Width = 280.000000000000000000
+              Size.Height = 32.000000000000000000
+              Size.PlatformDefault = False
+            end
+          end
+          object ListBoxItem6: TListBoxItem
+            Position.Y = 132.000000000000000000
+            Size.Width = 384.000000000000000000
+            Size.Height = 44.000000000000000000
+            Size.PlatformDefault = False
+            StyleLookup = 'listboxitemnodetail'
+            TabOrder = 3
+            Text = 'Qtd. Pest.:'
+            object qtdprest: TClearingEdit
+              Touch.InteractiveGestures = [LongTap, DoubleTap]
+              Align = Right
+              Anchors = [akLeft, akTop, akRight, akBottom]
+              TabOrder = 0
+              KeyboardType = NumberPad
+              Text = '1'
+              Position.X = 104.000000000000000000
+              Position.Y = 6.000000000000000000
+              Size.Width = 280.000000000000000000
+              Size.Height = 32.000000000000000000
+              Size.PlatformDefault = False
+              OnChange = qtdprestChange
+              OnKeyUp = qtdprestKeyUp
+              OnExit = qtdprestExit
+            end
+          end
+          object ListBoxItem7: TListBoxItem
+            Position.Y = 176.000000000000000000
+            Size.Width = 384.000000000000000000
+            Size.Height = 44.000000000000000000
+            Size.PlatformDefault = False
+            StyleLookup = 'listboxitemnodetail'
+            TabOrder = 4
+            Text = 'Taxa M'#234's:'
+            object taxa: TClearingEdit
+              Touch.InteractiveGestures = [LongTap, DoubleTap]
+              Align = Right
+              Anchors = [akLeft, akTop, akRight, akBottom]
+              TabOrder = 0
+              Text = '0,00'
+              Position.X = 104.000000000000000000
+              Position.Y = 6.000000000000000000
+              Size.Width = 280.000000000000000000
+              Size.Height = 32.000000000000000000
+              Size.PlatformDefault = False
+            end
+          end
+          object ListBoxItem8: TListBoxItem
+            Position.Y = 220.000000000000000000
+            Size.Width = 384.000000000000000000
+            Size.Height = 44.000000000000000000
+            Size.PlatformDefault = False
+            StyleLookup = 'listboxitemnodetail'
+            TabOrder = 5
+            Text = 'Vlr. Prest.:'
+            object vlrPrest: TClearingEdit
+              Touch.InteractiveGestures = [LongTap, DoubleTap]
+              Align = Right
+              Anchors = [akLeft, akTop, akRight, akBottom]
+              TabOrder = 0
+              ReadOnly = True
+              Text = '0,00'
+              TextSettings.Font.Size = 16.000000000000000000
+              TextSettings.Font.StyleExt = {00070000000000000004000000}
+              Position.X = 104.000000000000000000
+              Position.Y = 6.000000000000000000
+              Size.Width = 280.000000000000000000
+              Size.Height = 32.000000000000000000
+              Size.PlatformDefault = False
+              StyledSettings = [Family, FontColor]
+            end
+          end
+          object ListBoxItem9: TListBoxItem
+            Position.Y = 264.000000000000000000
+            Size.Width = 384.000000000000000000
+            Size.Height = 44.000000000000000000
+            Size.PlatformDefault = False
+            StyleLookup = 'listboxitemnodetail'
+            TabOrder = 6
+            object Label4: TLabel
+              Align = VertCenter
+              StyledSettings = [Family, FontColor]
+              Position.Y = 10.000000000000000000
+              Size.Width = 384.000000000000000000
+              Size.Height = 23.000000000000000000
+              Size.PlatformDefault = False
+              TextSettings.Font.Size = 18.000000000000000000
+              TextSettings.Font.StyleExt = {00070000000000000004000000}
+              TextSettings.HorzAlign = Center
+            end
+          end
+        end
+      end
+    end
+  end
+  object ClientDataSet1: TClientDataSet
+    Aggregates = <>
+    AggregatesActive = True
+    Params = <>
+    Left = 200
+    object ClientDataSet1cod: TIntegerField
+      DisplayLabel = 'COD'
+      FieldName = 'cod'
+    end
+    object ClientDataSet1Nome: TStringField
+      DisplayLabel = 'NOME'
+      FieldName = 'Nome'
+      Size = 60
+    end
+    object ClientDataSet1quant: TCurrencyField
+      DisplayLabel = 'QUANT'
+      FieldName = 'quant'
+    end
+    object ClientDataSet1preco: TCurrencyField
+      DisplayLabel = 'PRE'#199'O'
+      FieldName = 'preco'
+    end
+    object ClientDataSet1total: TCurrencyField
+      DisplayLabel = 'TOTAL'
+      FieldName = 'total'
+      Precision = 10
+    end
+    object ClientDataSet1tot_geral: TAggregateField
+      FieldName = 'tot_geral'
+      Active = True
+      currency = True
+      DisplayName = ''
+      DisplayFormat = '#,###,##0.00'
+      Expression = 'sum(total)'
+    end
+  end
+  object DataSource1: TDataSource
+    Left = 72
+  end
+  object BindingsList1: TBindingsList
+    Methods = <>
+    OutputConverters = <>
+    Left = 116
+    Top = 65533
+    object LinkGridToDataSourceBindSourceDB1: TLinkGridToDataSource
+      Category = 'Quick Bindings'
+      DataSource = BindSourceDB1
+      GridControl = gridVenda
+      Columns = <
+        item
+          MemberName = 'cod'
+        end
+        item
+          MemberName = 'Nome'
+        end
+        item
+          MemberName = 'quant'
+        end
+        item
+          MemberName = 'total'
+        end
+        item
+          MemberName = 'preco'
+        end>
+    end
+  end
+  object BindSourceDB1: TBindSourceDB
+    DataSet = ClientDataSet1
+    ScopeMappings = <>
+    Left = 160
+  end
+end

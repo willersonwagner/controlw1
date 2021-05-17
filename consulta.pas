@@ -439,17 +439,17 @@ begin
 
   if sim = 'S' then
     begin
-      dm.produto.SQL.Add('select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '+ refori1 +',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao,igual as Equivalente, p_compra as custo, iif(desativado > 0, ''SIM'', '''') as desativado from produto ' +  ordem);
-      sqlVenda := 'select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '+ refori1 +',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao,igual as Equivalente, p_compra as custo, iif(desativado > 0, ''SIM'', '''') as desativado from produto';
+      dm.produto.SQL.Add('select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '+ refori1 +',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao,igual as Equivalente, p_compra as custo, iif(iif((desativado is null) or (desativado = '''') , 0, desativado) > 0, ''SIM'', '''') as desativado from produto ' +  ordem);
+      sqlVenda := 'select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '+ refori1 +',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao,igual as Equivalente, p_compra as custo, iif(iif((desativado is null) or (desativado = '''') , 0, desativado) > 0, ''SIM'', '''') as desativado from produto';
     end
    else
      begin
-       dm.produto.SQL.Add('select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '+ refori1 +',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao,igual as Equivalente, iif(desativado > 0, ''SIM'', '''') as desativado from produto ' +  ordem);
-       sqlVenda := 'select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '+ refori1 +',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao,igual as Equivalente, iif(desativado > 0, ''SIM'', '''') as desativado from produto';
+       dm.produto.SQL.Add('select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '+ refori1 +',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao,igual as Equivalente, iif(iif((desativado is null) or (desativado = '''') , 0, desativado) > 0, ''SIM'', '''') as desativado from produto ' +  ordem);
+       sqlVenda := 'select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '+ refori1 +',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao,igual as Equivalente, iif(iif((desativado is null) or (desativado = '''') , 0, desativado) > 0, ''SIM'', '''') as desativado from produto';
 
        if ((sim = 'C') and (RetornaAcessoUsuario = 0)) then begin
-         dm.produto.SQL.Text := ('select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '+ refori1 +',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao, p_compra as custo, iif(desativado > 0, ''SIM'', '''') as desativado from produto ' +  ordem);
-         sqlVenda := 'select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '+ refori1 +',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao, p_compra as custo, iif(desativado > 0, ''SIM'', '''') as desativado from produto';
+         dm.produto.SQL.Text := ('select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '+ refori1 +',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao, p_compra as custo, iif(iif((desativado is null) or (desativado = '''') , 0, desativado) > 0, ''SIM'', '''') as desativado from produto ' +  ordem);
+         sqlVenda := 'select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '+ refori1 +',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao, p_compra as custo, iif(iif((desativado is null) or (desativado = '''') , 0, desativado) > 0, ''SIM'', '''') as desativado from produto';
        end;
      end;
 

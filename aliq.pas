@@ -4,17 +4,20 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, Grids, DBGrids, DB,ibquery, IBCustomDataSet, IBTable;
+  Dialogs, Grids, DBGrids, DB,ibquery, IBCustomDataSet, IBTable, Vcl.ExtCtrls;
 
 type
   Taliq1 = class(TForm)
     DBGrid1: TDBGrid;
     IBTable1: TIBTable;
     DataSource1: TDataSource;
+    Panel1: TPanel;
     procedure FormShow(Sender: TObject);
     procedure DBGrid1KeyPress(Sender: TObject; var Key: Char);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure IBTable1BeforeInsert(DataSet: TDataSet);
+    procedure DBGrid1KeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
   private
     { Private declarations }
   public
@@ -36,6 +39,24 @@ begin
   IBTable1.TableName := 'ALIQ';
   IBTable1.Open;
   funcoes.FormataCampos(tibquery(ibtable1),2,'',2);
+end;
+
+procedure Taliq1.DBGrid1KeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if key = 113 then begin
+    IBTable1.Append;
+  end;
+
+  if key = 114 then begin
+    IBTable1.Post;
+  end;
+
+  if key = 46 then begin
+    if MessageDlg('Deseja Excluir esse Registro ?', mtConfirmation, [mbYes, mbNo], 1, mbNo) = IDYES then begin
+      IBTable1.Delete;
+    end;
+  end;
 end;
 
 procedure Taliq1.DBGrid1KeyPress(Sender: TObject; var Key: Char);

@@ -1,9 +1,9 @@
 object aliq1: Taliq1
   Left = 300
   Top = 217
-  Width = 206
-  Height = 230
   Caption = 'Sit. Tributaria Nota Fiscal - ControlW'
+  ClientHeight = 233
+  ClientWidth = 265
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -19,7 +19,7 @@ object aliq1: Taliq1
   object DBGrid1: TDBGrid
     Left = 0
     Top = 0
-    Width = 190
+    Width = 265
     Height = 192
     Align = alClient
     BorderStyle = bsNone
@@ -36,12 +36,26 @@ object aliq1: Taliq1
     TitleFont.Height = -11
     TitleFont.Name = 'Courier New'
     TitleFont.Style = []
+    OnKeyDown = DBGrid1KeyDown
     OnKeyPress = DBGrid1KeyPress
+  end
+  object Panel1: TPanel
+    Left = 0
+    Top = 192
+    Width = 265
+    Height = 41
+    Align = alBottom
+    Caption = 'F2-Adicionar F3-Aplicar Altera'#231#245'es'
+    TabOrder = 1
+    ExplicitLeft = 88
+    ExplicitTop = 136
+    ExplicitWidth = 185
   end
   object IBTable1: TIBTable
     BeforeInsert = IBTable1BeforeInsert
     BufferChunks = 1000
     CachedUpdates = False
+    UniDirectional = True
     Left = 104
     Top = 80
   end

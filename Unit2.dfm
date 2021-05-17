@@ -12671,4 +12671,11 @@ object Form2: TForm2
     Left = 472
     Top = 168
   end
+  object Timer3: TTimer
+    Enabled = False
+    Interval = 180000
+    OnTimer = Timer3Timer
+    Left = 232
+    Top = 416
+  end
 end

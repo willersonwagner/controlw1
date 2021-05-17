@@ -1728,7 +1728,7 @@ begin
       exit;
     end;
 
-    cod.Text := funcoes.localizar1('Localizar Produto', 'produto', 'cod, nome,quant, p_venda as preco, iif(desativado > 0, ''SIM'', '''') as desativado ', 'cod', '', 'nome', 'nome, desativado', false,
+    cod.Text := funcoes.localizar1('Localizar Produto', 'produto', 'cod, nome,quant, p_venda as preco, iif(iif((desativado is null) or (desativado = '''') , 0, desativado) > 0, ''SIM'', '''') as desativado', 'cod', '', 'nome', 'nome, desativado', false,
       false, false, 'cod', codUlt, 600, nil);
     if StrNum(Trim(cod.Text)) = '0' then
       exit;
