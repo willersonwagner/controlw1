@@ -14,7 +14,7 @@ uses
   System.Bindings.Outputs, FMX.Bind.Editors, Data.Bind.EngExt,
   FMX.Bind.DBEngExt, Data.Bind.Components, Data.Bind.DBScope, FMX.Bind.Grid,
   FMX.Grid, Data.Bind.Grid, FMX.Grid.Style, FMX.ScrollBox,
-  FMX.Controls.Presentation, FMX.Gestures, fmx.consts;
+  FMX.Controls.Presentation, FMX.Gestures, fmx.consts, FMX.DialogService;
 
 type
   TForm5 = class(TForm6)

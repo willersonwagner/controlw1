@@ -4158,6 +4158,7 @@ begin
   form40.tipo.Add('124=numero');
   form40.tipo.Add('125=normal');
   form40.tipo.Add('126=generico');
+  form40.tipo.Add('127=generico');
 
   form40.troca := TStringList.Create;
   form40.troca.Add('0=S');
@@ -4290,6 +4291,7 @@ begin
   form40.troca.Add('124=');
   form40.troca.Add('125=');
   form40.troca.Add('126=S');
+  form40.troca.Add('127=S');
 
   form40.teclas := TStringList.Create;
   form40.teclas.Add('0=FT');
@@ -4421,6 +4423,7 @@ begin
   form40.teclas.Add('124=1234567890');
   form40.teclas.Add('125=1234567890ABCDEFGHIJLMNOPKXYZWQRSTUVXZ|' + #46);
   form40.teclas.Add('126=SN');
+  form40.teclas.Add('127=SN');
 
   form40.ListBox1.Clear;
   form40.ListBox1.Items.Add
@@ -4626,6 +4629,7 @@ begin
   form40.ListBox1.Items.Add('124=Qual o valor da taxa de Entrega ?');
   form40.ListBox1.Items.Add('125=Qual a Mensagem no Pedido de Venda TICKET Fixo na Venda?');
   form40.ListBox1.Items.Add('126=Considerar Limites de ativo, atraso e compra?');
+  form40.ListBox1.Items.Add('127=Somar Entradas em Caixa no Resumo de Form Pagto no Relatorio de Vendas por Nota (S/N/E-Somente Entradas)?');
 
 
   form40.ListBox1.Selected[0] := true;
@@ -9622,8 +9626,8 @@ begin
   end;
 
   tipo := form22.Pgerais.Values['nota'];
-  if ((tipo = 'B') and (tab = '1')) then begin
-    funcoes.imprimeVendaFortesA4(nota);
+  if ((tipo = 'B') and ((tab = '1')or (tab = '2'))) then begin
+    funcoes.imprimeVendaFortesA4(nota, strtoint(tab));
     exit;
   end;
   if ((tipo = 'B') and (tab <> '1')) then begin
@@ -10485,29 +10489,28 @@ begin
     else begin
       if dm.ibselect.FieldByName('entrada').AsCurrency = 0 then begin
         b := 1;
-        {
-        if (dm.ibselect.FieldByName('formpagto').AsInteger > 1) then begin
-          totais.Values[dm.ibselect.FieldByName('formpagto').AsString] :=
-          CurrToStr(StrToCurr(totais.Values[dm.ibselect.FieldByName('formpagto').AsString]) - dm.ibselect.FieldByName('saida').AsCurrency);
+
+        if funcoes.buscaParamGeral(127, '') = 'S' then begin
+          totais.Values[dm.ibselect.FieldByName('formpagto').AsString] := CurrToStr(StrToCurr(totais.Values[dm.ibselect.FieldByName('formpagto').AsString]) - dm.ibselect.FieldByName('saida').AsCurrency);
         end
-        else begin             }
+        else begin
           totais.Values['out'] := CurrToStr(StrToCurr(totais.Values['out']) - dm.ibselect.FieldByName('saida').AsCurrency);
           sai := sai + dm.ibselect.FieldByName('saida').AsCurrency;
-        //end;
+        end;
 
         VLR_ICM := dm.ibselect.FieldByName('saida').AsCurrency;
       end
       else begin
         b := 0;
 
-        {if (dm.ibselect.FieldByName('formpagto').AsInteger > 1) then begin
+        if funcoes.buscaParamGeral(127, '') = 'S' then begin
           totais.Values[dm.ibselect.FieldByName('formpagto').AsString] :=
           CurrToStr(StrToCurrDef(totais.Values[dm.ibselect.FieldByName('formpagto').AsString], 0) + dm.ibselect.FieldByName('entrada').AsCurrency);
         end
-        else begin}
+        else begin
           totais.Values['out'] := CurrToStr(StrToCurrDef(totais.Values['out'], 0) + dm.ibselect.FieldByName('entrada').AsCurrency);
           ent := ent + dm.ibselect.FieldByName('entrada').AsCurrency;
-        //end;
+        end;
 
         VLR_ICM := dm.ibselect.FieldByName('entrada').AsCurrency;
       end;

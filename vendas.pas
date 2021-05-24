@@ -130,7 +130,7 @@ type
     tipoTrocaDescontoUsuario : String;
     semCliente: boolean;
     produtosServico: TStringList;
-    procedure impNovo;
+    procedure impNovo(TIPO1 : SMALLINT = 1);
     // function baixa
     function verificaSePodeVenderNegativo_X_NaVendaConfig11DoUsuario() : boolean;
     procedure adicionaEntregaTabela;
@@ -4616,7 +4616,7 @@ begin
   funcoes.FormataCampos(dm.produto, 2, 'ESTOQUE', 3);
   ClientDataSet1.EnableControls;
 
-  ImprimeNota;
+  impNovo(2);
 
   limpatela;
   JsEditInteiro1.Text := IntToStr(StrToIntDef(novocod, 0) + 1);
@@ -4926,7 +4926,7 @@ begin
 
   // if valor = 0 then valor := dm.produto.FieldByName('PRECO').AsCurrency;
 
-  if qtd > 50000 then
+  if qtd > 200000 then
   begin
     ShowMessage('Quantidade não suportada. Máx. 50.000');
     exit;
@@ -9034,7 +9034,7 @@ begin
     v2 := valor;
   end;
 
-  if qtd > 50000 then
+  if qtd > 200000 then
   begin
     ShowMessage('Quantidade não suportada. Máx. 50.000');
     exit;
@@ -9326,12 +9326,13 @@ begin
   Result := true;
 end;
 
-procedure TForm20.impNovo;
+procedure TForm20.impNovo(TIPO1 : SMALLINT = 1);
 var
   tipo : String;
 begin
+
   tipo := form22.Pgerais.Values['nota'];
-  if tipo = 'B' then funcoes.imprimeVendaFortesA4(novocod)
+  if tipo = 'B' then funcoes.imprimeVendaFortesA4(novocod, TIPO1)
   else begin
     ImprimeNota;
   end;

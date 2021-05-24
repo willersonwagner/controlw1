@@ -588,9 +588,9 @@ object Form4: TForm4
   object FDConnection1: TFDConnection
     Params.Strings = (
       'User_Name=sysdba'
-      'Password=SYSTEMA1'
-      'DriverID=FB'
-      'Database=F:\ControlW\BD.FDB')
+      'Password=masterkey'
+      'Database=F:\ControlW\BD.FDB'
+      'DriverID=FB')
     Transaction = FDTransaction1
     Left = 495
     Top = 375
@@ -603,8 +603,8 @@ object Form4: TForm4
   end
   object FDTransaction1: TFDTransaction
     Connection = FDConnection1
-    Left = 593
-    Top = 496
+    Left = 289
+    Top = 480
   end
   object IdHTTP1: TIdHTTP
     AllowCookies = True

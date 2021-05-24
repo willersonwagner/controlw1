@@ -88,6 +88,7 @@ type
     Button3: TButton;
     FDIBRestore1: TFDIBRestore;
     Label4: TLabel;
+    function conectar() : boolean;
     function buscaPastaNFCe(const chave : String; abrir : boolean = true; pastaservidor : String = '') : String;
     procedure ConnectBtnClick(Sender: TObject);
     procedure DownloadBtnClick(Sender: TObject);
@@ -135,7 +136,7 @@ type
     Authenticated: boolean;
     IsDownloading: boolean;
     IsUploading: boolean;
-    caminhoRaiz, cnpj, pastaControlWXML_NFCE : String;
+    caminhoRaiz, cnpj, pastaControlWXML_NFCE, SenhaFB : String;
     proximoBackup : TDateTime;
     pastaInicial : TTMSFMXCloudItem;
     listaProxBackup, gdriveini : TStringList;
@@ -293,11 +294,15 @@ begin
    FDConnection1.ConnectionName := caminhoRaiz + 'bd.fdb';
    FDConnection1.Params.Clear;
    FDConnection1.Params.Add('DriverID=FB');
-   FDConnection1.Params.Add('password=SYSTEMA1');
+   FDConnection1.Params.Add('password=masterkey');
    FDConnection1.Params.Add('user_name=sysdba');
    FDConnection1.Params.Add('Database='+caminhoRaiz+'BD.FDB');
 
-   FDConnection1.Connected := true;
+   if conectar = false then begin
+     timerativaBackup.Interval := 10000;
+     timerativaBackup.Enabled  := true;
+     exit;
+   end;
   end;
 
   FDQuery1.Close;
@@ -319,7 +324,6 @@ begin
     exit;
   end;
 
-
   if StrToDate(lista.Values['3']) < now then begin
     Memo1.Lines.Add('O Registro está Vencido! Entre em Contato com o Desenvolvedor.');
     timerativaBackup.Interval := 10000;
@@ -334,7 +338,7 @@ begin
 
   FDIBBackup1.Database := caminhoRaiz + 'bd.fdb';
   FDIBBackup1.UserName := 'sysdba';
-  FDIBBackup1.Password := 'SYSTEMA1';
+  FDIBBackup1.Password := SenhaFB;
   FDIBBackup1.BackupFiles.Clear;
   FDIBBackup1.BackupFiles.Add(caminhoRaiz + 'SisBackup/' + 'BD.fbk');
   FDIBBackup1.Backup;
@@ -434,7 +438,7 @@ begin
   FDIBRestore1.BackupFiles.Clear;
   FDIBRestore1.BackupFiles.Add(op.FileName);
   FDIBRestore1.UserName := 'sysdba';
-  FDIBRestore1.Password := 'SYSTEMA1';
+  FDIBRestore1.Password := SenhaFB;
   FDIBRestore1.Restore;
 
   ShowMessage('Backup Restaurado em: ' + pastaRaiz + 'bd.fdb');
@@ -1034,6 +1038,46 @@ begin
 
   end;
 end;
+
+function TForm4.conectar() : boolean;
+var
+  i : integer;
+begin
+  Result := false;
+  SenhaFB := 'masterkey';
+  FDConnection1.Params.Values['Password'] := SenhaFB;
+
+  try
+
+    i := 0;
+    while true do begin
+      i := i + 1;
+      try
+        FDConnection1.Connected  := true;
+        Result := FDConnection1.Connected;
+        Memo1.Lines.Add('BD Conectado com Sucesso!');
+        break;
+      except
+        on e:exception do begin
+          Memo1.Lines.Add(e.Message + #13 + 'Servidor Reconfigurado!');
+          SenhaFB := 'SYSTEMA1';
+          FDConnection1.Params.Values['Password'] := SenhaFB;
+        end;
+      end;
+
+      if i > 2 then break;
+      
+    end;
+
+    //Memo1.Lines.Add('Servidor Firebird Conectado!');
+  except
+    on e:exception do
+      begin
+        Memo1.Lines.Add(e.Message);
+      end;
+  end;
+end;
+
 
 end.
 

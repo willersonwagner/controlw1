@@ -131,7 +131,7 @@ object Form4: TForm4
           Size.Height = 431.000000000000000000
           Size.PlatformDefault = False
           TabOrder = 0
-          RowHeight = 21.000000000000000000
+          RowHeight = 38.000000000000000000
           OnResize = gridVendaResize
           Viewport.Width = 379.000000000000000000
           Viewport.Height = 399.000000000000000000

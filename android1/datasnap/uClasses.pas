@@ -41,7 +41,7 @@ type
 
   Tvenda   = class
     nota     : integer;
-    data     : TDate;
+    data     : TDateTime;
     total    : currency;
     vendedor : integer;
     usuario  : integer;

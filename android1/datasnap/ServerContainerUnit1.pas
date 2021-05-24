@@ -14,6 +14,8 @@ type
     DSServerClass1: TDSServerClass;
     procedure DSServerClass1GetClass(DSServerClass: TDSServerClass;
       var PersistentClass: TPersistentClass);
+    procedure DSServer1Connect(DSConnectEventObject: TDSConnectEventObject);
+    procedure DSServer1Error(DSErrorEventObject: TDSErrorEventObject);
   private
     { Private declarations }
   public
@@ -27,7 +29,19 @@ implementation
 
 {$R *.dfm}
 
-uses Winapi.Windows, ServerMethodsUnit1;
+uses Winapi.Windows, ServerMethodsUnit1, Unit1;
+
+procedure TServerContainer1.DSServer1Connect(
+  DSConnectEventObject: TDSConnectEventObject);
+begin
+  form1.Memo1.Lines.Add('DSServer.conectado();');
+end;
+
+procedure TServerContainer1.DSServer1Error(
+  DSErrorEventObject: TDSErrorEventObject);
+begin
+  form1.Memo1.Lines.Add('DSServer.error() ' + DSErrorEventObject.Error.ToString);
+end;
 
 procedure TServerContainer1.DSServerClass1GetClass(
   DSServerClass: TDSServerClass; var PersistentClass: TPersistentClass);

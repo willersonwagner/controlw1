@@ -141,10 +141,11 @@ type
     enviandoCupom, enviandoBackup: boolean;
     fonteRelatorioForm19: integer;
     NegritoRelatorioForm19, saiComEnter: boolean;
+    function VerificaDadosBasicosCliente(var cod : String) : boolean;
     procedure salvaRicheditForm19comoPDF;
     procedure enviaArquivoGdrive(arq : string);
     function ver_limites(CodUsu: string;AserAdicionadoNaContaDoClitente: currency): currency;
-    procedure imprimeVendaFortesA4(numVenda : String);
+    procedure imprimeVendaFortesA4(numVenda : String;venda : SmallInt = 1);
     procedure DownloadSincronizacaoDeEstoqueOnline;
     procedure sincronizacaoDeEstoqueOnline;
     procedure imprimeEnderecoEntregaCodEndereco(nota : String; codEndeEntrega : String);
@@ -19616,8 +19617,9 @@ begin
           exit;
         end;
       end;
-      if StrNum(Result) <> '0' then
-        exit;
+      if StrNum(Result) <> '0' then begin
+        if VerificaDadosBasicosCliente(Result) then exit;
+      end;
       if StrNum(Result) = '0' then
       begin
         cadCliNFCe := tcadCliNFCe.Create(self);
@@ -26506,8 +26508,7 @@ begin
   arqTXT := tstringList.Create;
 
   _CB := copy(_CB, 1, 12);
-  _PV := FormatCurr('#,###,###0.00', dm.IBselect.FieldByName('p_venda')
-    .AsCurrency);
+  _PV := FormatCurr('#,###,###0.00', dm.IBselect.FieldByName('p_venda').AsCurrency);
   _COD := dm.IBselect.FieldByName('cod').AsString;
   _REF := allTrim(dm.IBselect.FieldByName(refori1).AsString);
   _localiza := dm.IBselect.FieldByName('localiza').AsString;
@@ -26591,6 +26592,8 @@ begin
     linha := troca_str(linha, 'LOCALIZA', _localiza);
 
     linha := troca_str(linha, 'PRECO', _PV);
+
+    linha := troca_str(linha, 'PREC1', FormatCurr('#,###,###0.00', arredondaTRUNCA(dm.IBselect.FieldByName('p_venda').AsCurrency - (dm.IBselect.FieldByName('p_venda').AsCurrency * (StrToCurr(buscaParamGeral(28, '1')) /100)), 2)));
     linha := troca_str(linha, 'REFORI', _REF);
     linha := troca_str(linha, 'XQTD', STRZERO(qtd, 4));
     linha := troca_str(linha, 'xqtd', qtd);
@@ -29256,7 +29259,7 @@ begin
   end;
 end;
 
-procedure Tfuncoes.imprimeVendaFortesA4(numVenda : String);
+procedure Tfuncoes.imprimeVendaFortesA4(numVenda : String;venda : SmallInt = 1);
 var
   cliente, preview, nomevol, vendedor : String;
   arq : TStringList;
@@ -29273,12 +29276,28 @@ begin
   imprime1.imprime.RLLabel40.Caption := 'CNPJ: ' + dm.IBselect.FieldByName('CNPJ').AsString;
   imprime1.imprime.RLLabel41.Caption := 'IE: ' + dm.IBselect.FieldByName('ies').AsString;
 
-  imprime1.imprime.RLLabel34.Caption := 'Pedido Nr: ' + numVenda;
+  if venda = 1 then begin
+    imprime1.imprime.RLLabel34.Caption := 'Pedido Nr: ' + numVenda;
+    imprime1.imprime.RLLabel35.Caption := 'PEDIDO DE VENDA';
+  end
+  else if venda = 2 then begin
+    imprime1.imprime.RLLabel34.Caption := 'Orçamento Nr: ' + numVenda;
+    imprime1.imprime.RLLabel35.Caption := 'PEDIDO DE ORÇAMENTO';
+  end;
 
-  dm.IBselect.Close;
-  dm.IBselect.SQL.Text := 'select v.codhis, p.nome, v.total, v.desconto, v.cliente, v.vendedor, ve.nome as vendedornome from venda v ' +
-  ' left join formpagto p on (p.cod = v.codhis) join vendedor ve on (v.vendedor = ve.cod) where nota = ' + numVenda;
-  dm.IBselect.Open;
+  if venda = 1 then begin
+    dm.IBselect.Close;
+    dm.IBselect.SQL.Text := 'select v.codhis, p.nome, v.total, v.desconto, v.cliente, v.vendedor, ve.nome as vendedornome from venda v ' +
+    ' left join formpagto p on (p.cod = v.codhis) join vendedor ve on (v.vendedor = ve.cod) where nota = ' + numVenda;
+    dm.IBselect.Open;
+  end
+  else if venda = 2 then begin
+    dm.IBselect.Close;
+    dm.IBselect.SQL.Text := 'select v.codhis, p.nome, v.total, v.desconto, v.cliente, v.vendedor, ve.nome as vendedornome from orcamento v ' +
+    ' left join formpagto p on (p.cod = v.codhis) join vendedor ve on (v.vendedor = ve.cod) where v.nota = ' + numVenda;
+    dm.IBselect.Open;
+  end;
+
 
   vendedor := 'Vendedor: '+ StrNum(dm.IBselect.FieldByName('vendedor').AsString) + '-' +dm.IBselect.FieldByName('vendedornome').AsString;
   cliente := StrNum(dm.IBselect.FieldByName('cliente').AsString);
@@ -29327,9 +29346,16 @@ begin
     preview := 'S';
   end;
 
-  dm.IBQuery2.close;
-  dm.IBQuery2.sql.Text := 'select * from item_venda where nota = '+ numVenda;
-  dm.IBQuery2.Open;
+  if venda = 1 then begin
+    dm.IBQuery2.close;
+    dm.IBQuery2.sql.Text := 'select * from item_venda where nota = '+ numVenda;
+    dm.IBQuery2.Open;
+  end
+  else if venda = 2 then begin
+    dm.IBQuery2.close;
+    dm.IBQuery2.sql.Text := 'select * from item_orcamento where nota = '+ numVenda;
+    dm.IBQuery2.Open;
+  end;
 
   while not dm.IBQuery2.Eof do begin
     dm.IBQuery1.Close;
@@ -29359,13 +29385,24 @@ begin
 
   imprime1.imprime.RLLabel46.Caption := vendedor;
 
-  dm.ProdutoQY.Close;
-  dm.ProdutoQY.SQL.Clear;
-  dm.ProdutoQY.SQL.Add('select i.cod, v.codhis, v.hora, i.data, i.quant, i.total, p.nome, p.unid, i.p_venda, v.total, v.desconto from item_venda i ' +
-  ' left join produto p on (p.cod = i.cod) left join venda v on (i.nota = v.nota) where i.nota = :nota' );
-  dm.ProdutoQY.ParamByName('nota').AsString := numVenda;
-  dm.ProdutoQY.Open;
-  dm.ProdutoQY.FetchAll;
+  if venda = 1 then begin
+    dm.ProdutoQY.Close;
+    dm.ProdutoQY.SQL.Clear;
+    dm.ProdutoQY.SQL.Add('select i.cod, v.codhis, v.hora, i.data, i.quant, i.total, p.nome, p.unid, i.p_venda, v.total, v.desconto from item_venda i ' +
+    ' left join produto p on (p.cod = i.cod) left join venda v on (i.nota = v.nota) where i.nota = :nota' );
+    dm.ProdutoQY.ParamByName('nota').AsString := numVenda;
+    dm.ProdutoQY.Open;
+  end
+  else if venda = 2 then begin
+    dm.ProdutoQY.Close;
+    dm.ProdutoQY.SQL.Clear;
+    dm.ProdutoQY.SQL.Add('select i.cod, v.codhis, current_time as hora, v.data, i.quant, i.total, p.nome, p.unid, i.p_venda, v.total, v.desconto from item_orcamento i ' +
+    ' left join produto p on (p.cod = i.cod) left join orcamento v on (i.nota = v.nota) where i.nota = :nota' );
+    dm.ProdutoQY.ParamByName('nota').AsString := numVenda;
+    dm.ProdutoQY.Open;
+  end;
+
+    dm.ProdutoQY.FetchAll;
 
     TcurrencyField(dm.ProdutoQY.FieldByName('quant')).DisplayFormat :=
       '###,##0.000';
@@ -29378,7 +29415,11 @@ begin
 
   imprime1.imprime.RLLabel38.Caption := form22.Pgerais.Values['empresa'];
   imprime1.imprime.RLLabel36.Caption := FormatDateTime('dd/mm/yy',dm.ProdutoQY.FieldByName('data').AsDateTime);
+
   imprime1.imprime.RLLabel37.Caption := FormatDateTime('hh:mm:ss', dm.ProdutoQY.FieldByName('hora').AsDateTime);
+  //if venda = 1 then imprime1.imprime.RLLabel37.Caption := FormatDateTime('hh:mm:ss', dm.ProdutoQY.FieldByName('hora').AsDateTime)
+  //else if venda = 2 then imprime1.imprime.RLLabel37.Caption := FormatDateTime('hh:mm:ss', now);
+
   imprime1.imprime.DataSource1.DataSet := dm.ProdutoQY;
   // imprime1.imprime.RLReport2.PrintDialog := false;
   if preview = 'S' then begin
@@ -29642,6 +29683,46 @@ var
 begin
 end;
 
+
+function Tfuncoes.VerificaDadosBasicosCliente(var cod : String) : boolean;
+var
+  cnpj : String;
+begin
+  Result := false;
+
+  cod := StrNum(cod);
+
+  query1.Close;
+  query1.SQL.Text := 'select cnpj, ende, bairro from cliente where cod = ' + cod;
+  query1.Open;
+
+  cnpj := StrNum(query1.FieldByName('cnpj').AsString);
+  if Length(cnpj) = 11 then begin
+    if ValidaCPF(cnpj) = false then begin
+      cod := '';
+      exit;
+    end;
+  end
+  else begin
+    if ValidaCNPJ(cnpj) = false then begin
+      cod := '';
+      exit;
+    end;
+  end;
+
+  if Length(query1.FieldByName('ende').AsString) < 5 then begin
+    cod := '';
+    exit;
+  end;
+
+  if Length(query1.FieldByName('bairro').AsString) < 4 then begin
+    cod := '';
+    exit;
+  end;
+
+  Result := true;
+  query1.Close;
+end;
 
 
 

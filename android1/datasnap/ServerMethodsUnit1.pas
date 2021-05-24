@@ -37,7 +37,7 @@ var
   totPrest, totItemV, totItemC, entrada, total : currency;
   clienteNome : String;
   const sqlVenda : String = 'insert into venda(nota, entrada, desconto, data, cliente, total, vendedor' +
-  ', codhis, usuario) values(:nota, :entrada, :desconto, :data, :cliente, :total, :vendedor, :codhis, :usuario)';
+  ', codhis, usuario, hora) values(:nota, :entrada, :desconto, :data, :cliente, :total, :vendedor, :codhis, :usuario, :hora)';
 begin
   Result := '';
   form1.adicionaMemo('Serviço: Sincronização de Vendas');
@@ -117,6 +117,7 @@ begin
       form1.IBQuery1.ParamByName('vendedor').AsInteger  := lista.listaVenda[ini].vendedor;
       form1.IBQuery1.ParamByName('codhis').AsInteger    := lista.listaVenda[ini].codhis;
       form1.IBQuery1.ParamByName('usuario').AsInteger   := lista.listaVenda[ini].usuario;
+      form1.IBQuery1.ParamByName('hora').AsTime         := lista.listaVenda[ini].data;
       try
         form1.IBQuery1.ExecSQL;
       except
@@ -144,6 +145,7 @@ begin
           form1.IBQuery3.ParamByName('cod').AsInteger       := lista.listaVenda[ini].itensV[i].cod;
           form1.IBQuery3.ParamByName('quant').AsCurrency    := lista.listaVenda[ini].itensV[i].quant;
           form1.IBQuery3.ParamByName('p_venda').AsCurrency  := lista.listaVenda[ini].itensV[i].p_venda;
+
           form1.IBQuery3.ParamByName('total').AsCurrency    := totItemV;
           form1.IBQuery3.ParamByName('origem').AsString    := '1';
           form1.IBQuery3.ParamByName('p_compra').AsCurrency := totItemC;

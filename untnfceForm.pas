@@ -60,6 +60,7 @@ type
   end;
 
 function conectaBD2(var bd: TIBDatabase; silencioso: boolean = false): boolean;
+function conectaBD2BuscaArquivo(var bd: TIBDatabase; silencioso: boolean = false): boolean;
 function FileAgeCreate(const fileName: string): String;
 function GetBuildInfo(Prog: string): string;
 // function substitui_Nodo(nome:string; conteudo : string; const texto :string) : String;
@@ -8961,6 +8962,12 @@ var
   i: integer;
 begin
   Result := false;
+
+  if FileExists(ExtractFileDir(ParamStr(0)) + '\ConfigBD.dat') then begin
+    Result := conectaBD2BuscaArquivo(bd);
+    exit;
+  end;
+
   erro := '';
   senhas := TStringList.Create;
   senhas.Add('masterkey');
@@ -8991,5 +8998,43 @@ begin
 
   raise Exception.Create(erro);
 end;
+
+
+function conectaBD2BuscaArquivo(var bd: TIBDatabase; silencioso: boolean = false): boolean;
+var
+  erro: String;
+  senhas: TStringList;
+  i: integer;
+  arquivo : TStringList;
+begin
+  arquivo := TStringList.Create;
+  arquivo.LoadFromFile(ExtractFileDir(ParamStr(0)) + '\ConfigBD.dat');
+
+  bd.Params.Values['password']  := arquivo.Values['password'];
+  bd.Params.Values['user_name'] := arquivo.Values['user_name'];
+  bd.DatabaseName := arquivo.Values['DatabaseName'];
+  
+  //MessageBox(Application.Handle, pchar(bd.DatabaseName), '', 1, 1);
+  try
+      bd.Connected := true;
+      Result := true;
+      exit;
+    except
+      erro := ('Não foi Possivel a Conexão com o Banco de Dados.' + #10 + #13 +
+        'Verifique:' + #10 + #13 + #10 + #13 +
+        '1. Se o Banco de Dados existe na pasta do EXECUTÁVEL; ' + #10 + #13 +
+        #10 + #13 +
+        '2. Verifique se o Servidor Firebird está instalado adquadamente neste computador.'
+        + #10 + #13 + #10 + #13 +
+        '3.Se este Computador estiver sendo configurado em rede, verifique se o caminho do banco de dados foi posto corretamente, altere a Propriedade do Atalho no campo DESTINO para "c:\controlw\controlw.exe'
+        + '<NOME_DO_SERVIDOR> <PASTA_NO_SERVIDOR_QUE_CONTEM_O_BD>" Exemplo: "c:\controlw\controlw.exe \\Servidor c:\controlw\bd.fdb'
+        + #10 + #13 + #10 + #13 +
+        '4. Se o problema persistir entre em contato com o SUPORTE.');
+      // exit;
+    end;
+
+  raise Exception.Create(erro);
+end;
+
 
 end.

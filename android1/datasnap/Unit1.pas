@@ -202,14 +202,34 @@ begin
 end;
 
 function TForm1.conectar() : boolean;
+var
+  i : integer;
 begin
   Result := false;
+
+
   try
     ServerContainerUnit1.ServerContainer1.DSServer1.Start;   //inicia o servidor DataSnap
     IBDatabase1.ConnectionName := edit1.Text;
-    if edit1.Text <> '' then IBDatabase1.Connected  := true;
-    Result := IBDatabase1.Connected;
+    IBDatabase1.Params.Values['Database'] := edit1.Text;
+    //if edit1.Text <> '' then IBDatabase1.Connected  := true;
 
+    i := 0;
+    while true do begin
+      i := i + 1;
+      try
+        IBDatabase1.Connected  := true;
+        Result := IBDatabase1.Connected;
+        Memo1.Lines.Add('BD Conectado com Sucesso: '+IBDatabase1.ConnectionName);
+        break;
+      except
+        on e:exception do begin
+          //Memo1.Lines.Add(e.Message);
+          IBDatabase1.Params.Values['Password'] := 'SYSTEMA1';
+        end;
+      end;
+    end;
+    //Memo1.Lines.Add('Servidor Firebird Conectado!');
   except
     on e:exception do
       begin
@@ -265,6 +285,10 @@ begin
 
   if Edit1.Text <> '' then IBDatabase1.ConnectionName := edit1.Text
     else edit1.Text := IBDatabase1.ConnectionName;
+
+  conectar;
+
+
 
   Label1.Caption := 'Servidor Conectado';
 end;

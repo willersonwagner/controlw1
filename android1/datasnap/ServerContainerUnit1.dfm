@@ -3,6 +3,9 @@ object ServerContainer1: TServerContainer1
   Height = 271
   Width = 415
   object DSServer1: TDSServer
+    OnConnect = DSServer1Connect
+    OnError = DSServer1Error
+    AutoStart = False
     Left = 96
     Top = 11
   end

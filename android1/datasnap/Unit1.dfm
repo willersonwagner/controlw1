@@ -94,7 +94,7 @@ object Form1: TForm1
   object IBDatabase1: TFDConnection
     Params.Strings = (
       'User_Name=sysdba'
-      'Password=SYSTEMA1'
+      'Password=masterkey'
       'Database=F:\ControlW\bd.FDB'
       'DriverID=FB')
     LoginPrompt = False

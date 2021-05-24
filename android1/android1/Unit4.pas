@@ -369,7 +369,7 @@ begin
       form1.SQLQuery1.ParamByName('nota').AsInteger   := nota;
       form1.SQLQuery1.ParamByName('cod').AsInteger    := ClientDataSet1cod.AsInteger;
       form1.SQLQuery1.ParamByName('quant').AsCurrency := ClientDataSet1quant.AsCurrency;
-      form1.SQLQuery1.ParamByName('p_venda').AsCurrency := 0;
+      form1.SQLQuery1.ParamByName('p_venda').AsCurrency := ClientDataSet1preco.AsCurrency;;
       form1.SQLQuery1.ParamByName('total').AsCurrency := ClientDataSet1total.AsCurrency;
       form1.SQLQuery1.ParamByName('codbar').AsString  := '';
       form1.SQLQuery1.ExecSQL;
