@@ -1155,7 +1155,7 @@ begin
 
     while not ClientDataSet1.Eof do begin
       //se colocou desconto por forma de pagamento F1
-      if tipoTrocaDescontoUsuario = 'F' then begin
+      if ((tipoTrocaDescontoUsuario = 'F')) then begin
         descDado := descDado + (ClientDataSet1TOT_ORIGI2.AsCurrency - ClientDataSet1TOTAL.AsCurrency);
         //somou os descontos que ja foram dados
 
@@ -7994,7 +7994,7 @@ begin
   if (ssShift in Shift) and (Key = 122) then
   begin
     try
-      funcoes.trocaDeUsuario();
+      funcoes.trocaDeUsuario(tipoTrocaDescontoUsuario);
       // troca somente o desconto do usuario
       // e pode colocar o desconto permitido para o usuario
     except
@@ -9214,7 +9214,6 @@ begin
   if dinheiro = 'D' then begin
     avista := dm.IBselect.FieldByName('desc_pag').AsCurrency;
   end;
-
 
   tipoTrocaDescontoUsuario := 'F';
 

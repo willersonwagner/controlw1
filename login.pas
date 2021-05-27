@@ -23,7 +23,7 @@ type
     { Private declarations }
   public
     logado : boolean;
-    function login_muda_as_variaveis_de_usuario(var logou : boolean) : boolean;
+    function login_muda_as_variaveis_de_usuario(var logou : boolean; var codhis : String) : boolean;
     { Public declarations }
   end;
 
@@ -35,7 +35,7 @@ implementation
 uses principal, func, Unit1;
 
 {$R *.dfm}
-function TForm53.login_muda_as_variaveis_de_usuario(var logou : boolean) : boolean;
+function TForm53.login_muda_as_variaveis_de_usuario(var logou : boolean; var codhis : String) : boolean;
 var
   desc : String;
   vl, descUsu   : currency;
@@ -77,7 +77,10 @@ begin
             end;
 
           form22.Pgerais.Values['configu'] := dm.IBQuery1.fieldbyname('configu').AsString;
-          if desc <> '*' then  form22.Pgerais.Values['configu'] := GravarConfig(form22.Pgerais.Values['configu'], desc, 0);
+          if desc <> '*' then begin
+            form22.Pgerais.Values['configu'] := GravarConfig(form22.Pgerais.Values['configu'], desc, 0);
+            codhis := '';
+          end;
 
 
           try

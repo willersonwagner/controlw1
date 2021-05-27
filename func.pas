@@ -376,7 +376,7 @@ type
     procedure desmarcaVendaPaf(const numVenda: String);
     function trocaChar(texto, velho, novo: string): string;
     procedure limpaMemoria();
-    function trocaDeUsuario(): boolean;
+    function trocaDeUsuario(var codhis : string): boolean;
     function ImprimirPedidoVias(qtdVias: Smallint;
       orcamento: boolean = False): boolean;
     function formataChaveNFE(const chave: String): String;
@@ -3314,11 +3314,11 @@ begin
   dm.IBQuery1.Close;
 end;
 
-function Tfuncoes.trocaDeUsuario(): boolean;
+function Tfuncoes.trocaDeUsuario(var codhis : string): boolean;
 begin
   Result := False;
   form53 := tform53.Create(self);
-  form53.login_muda_as_variaveis_de_usuario(Result);
+  form53.login_muda_as_variaveis_de_usuario(Result,codhis);
   form33.Free;
 end;
 
