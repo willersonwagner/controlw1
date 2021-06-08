@@ -9,7 +9,7 @@ uses
   Data.Bind.EngExt, Fmx.Bind.DBEngExt, Fmx.Bind.Grid, System.Bindings.Outputs,
   Fmx.Bind.Editors, Data.Bind.Components, Data.Bind.Grid, Data.Bind.DBScope,
   FMX.TabControl, FMX.ListBox, FMX.DateTimeCtrls, FMX.Edit, FMX.Grid.Style,
-  FMX.ScrollBox, FMX.Controls.Presentation;
+  FMX.ScrollBox, FMX.Controls.Presentation, FMX.Objects;
 
 type
   TForm4 = class(TForm)
@@ -64,6 +64,7 @@ type
     ListBoxItem9: TListBoxItem;
     Label4: TLabel;
     VertScrollBox1: TVertScrollBox;
+    Image1: TImage;
     procedure SpeedButton3MouseUp(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Single);
     procedure Button5Click(Sender: TObject);
@@ -84,6 +85,7 @@ type
       Shift: TShiftState);
     procedure qtdprestExit(Sender: TObject);
     procedure SpeedButton2DblClick(Sender: TObject);
+    procedure ClientDataSet1AfterOpen(DataSet: TDataSet);
   private
     total, desconto : currency;
     codhis : String;
@@ -159,6 +161,11 @@ begin
   end;
 
   vlrPrest.Text := FormatCurr('#,###,###0.00', (total - entrada1) / qtd);
+end;
+
+procedure TForm4.ClientDataSet1AfterOpen(DataSet: TDataSet);
+begin
+  form1.redimensionaColunasStringGrid(gridVenda);
 end;
 
 procedure TForm4.entradaExit(Sender: TObject);
@@ -309,7 +316,7 @@ end;
 
 procedure TForm4.FormShow(Sender: TObject);
 begin
-  form1.redimensionaColunasStringGrid(gridVenda);
+  //form1.redimensionaColunasStringGrid(gridVenda);
 end;
 
 function TForm4.gravaVenda() : boolean;
@@ -379,6 +386,8 @@ begin
  finally
    ClientDataSet1.EnableControls;
  end;
+
+ form1.sincVendas(true);
 end;
 
 procedure TForm4.gridVendaGesture(Sender: TObject;
@@ -400,7 +409,7 @@ end;
 
 procedure TForm4.gridVendaResize(Sender: TObject);
 begin
-  form1.redimensionaColunasStringGrid(gridVenda);
+  //form1.redimensionaColunasStringGrid(gridVenda);
 end;
 
 function tform4.SomaProdutosVenda() : currency;
@@ -451,7 +460,11 @@ end;
 procedure TForm4.SpeedButton2Click(Sender: TObject);
 begin
   if not assigned(form5) then form5 := tform5.Create(self);
-  form1.redimensionaColunasStringGrid(form5.gridCliente);
+  try
+    //form1.redimensionaColunasStringGrid(form5.gridCliente);
+  finally
+
+  end;
   form5.visibleFalseBotoes(false);
   form5.TabControl1.ActiveTab := form5.TabItem2;
   form5.Show;

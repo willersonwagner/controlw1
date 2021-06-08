@@ -28,7 +28,7 @@ uses
   FireDAC.DApt, FireDAC.Comp.Client, Data.DB, FireDAC.Comp.DataSet, sevenzip,
   FireDAC.Phys.IB, FireDAC.Phys.IBDef, IdBaseComponent, IdComponent,
   IdTCPConnection, IdTCPClient, IdHTTP, IniFiles, IWAutherBase, IWAutherINI,
-  RxShell;
+  RxShell, FMX.Platform.Win, Winapi.Windows;
 
 type
   TForm4 = class(TForm)
@@ -141,6 +141,7 @@ type
     pastaInicial : TTMSFMXCloudItem;
     listaProxBackup, gdriveini : TStringList;
     trayicon : TTrayIcon;
+    procedure MostrarEsconderTaskBar(Mostrar: Boolean);
     procedure trayiconEvento(opcao1ativa  : integer);
     function buscaRetornoSite(site, cnpj : String) : String;
     procedure abrirPainel();
@@ -595,16 +596,19 @@ end;
 
 procedure TForm4.FormShow(Sender: TObject);
 begin
-  timerativaBackup.Enabled    := true;
-  intervaloEntreBackupMinutos := 180;
-  IsUploading := false;
 
   if iniciou = 0 then begin
+    timerativaBackup.Enabled    := true;
+    intervaloEntreBackupMinutos := 180;
+    IsUploading := false;
+
+    Memo1.Lines.Clear;
+
     PreencheHoraBackup;
     iniciou := 1;
-  end;
 
-  Memo1.Lines.Clear;
+    trayiconEvento(1);
+  end;
 end;
 
 procedure TForm4.RadioButton4Change(Sender: TObject);
@@ -614,9 +618,10 @@ end;
 
 procedure TForm4.RxTrayIcon1DblClick(Sender: TObject);
 begin
-  RxTrayIcon1.Active := False;
+  trayiconEvento(0);
+  {RxTrayIcon1.Active := False;
   Show();
-  WindowState := TWindowState.wsNormal;
+  WindowState := TWindowState.wsNormal;}
 end;
 
 procedure TForm4.OnMinimize(Sender:TObject);
@@ -899,14 +904,15 @@ procedure TForm4.trayiconEvento(opcao1ativa  : integer);
 begin
   if opcao1ativa = 1 then begin
     trayicon.Visible := true;
-    //WindowState := TWindowState.wsMinimized;
     Self.Hide;
+    MostrarEsconderTaskBar(false);
   end
   else begin
     trayicon.Visible := false;
     self.Show;
     WindowState := TWindowState.wsNormal;
     BringToFront();
+    MostrarEsconderTaskBar(true);
   end;
 end;
 
@@ -1077,6 +1083,25 @@ begin
       end;
   end;
 end;
+
+procedure TForm4.MostrarEsconderTaskBar(Mostrar: Boolean);
+var
+  appHandle: HWND;
+  name: String;
+begin
+  name := ChangeFileExt(ExtractFileName(ParamStr(0)), '');
+
+  appHandle := FindWindowA('TFMAppClass', PAnsiChar(AnsiString(name)));
+
+  if appHandle <> 0 then
+    if Mostrar then
+      ShowWindow(appHandle, SW_NORMAL)
+    else
+      ShowWindow(appHandle, SW_HIDE)
+  else
+    ShowMessage('Handle da aplicação não encontrado.');
+end;
+
 
 
 end.

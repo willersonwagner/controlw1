@@ -1,6 +1,6 @@
 object imprime: Timprime
-  Left = 482
-  Top = 147
+  Left = 0
+  Top = -55
   Caption = 'imprime'
   ClientHeight = 741
   ClientWidth = 858
@@ -11,6 +11,7 @@ object imprime: Timprime
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = True
+  Position = poDesigned
   PixelsPerInch = 96
   TextHeight = 13
   object Image1a: TImage
@@ -2187,7 +2188,7 @@ object imprime: Timprime
     end
     object RLBand16: TRLBand
       Left = 8
-      Top = 221
+      Top = 271
       Width = 748
       Height = 85
       BandType = btSummary
@@ -2367,6 +2368,56 @@ object imprime: Timprime
         Font.Height = -13
         Font.Name = 'Arial Rounded MT Bold'
         Font.Style = []
+        ParentFont = False
+      end
+    end
+    object RLBand19: TRLBand
+      Left = 8
+      Top = 221
+      Width = 748
+      Height = 50
+      AutoExpand = False
+      Background.Align = faNone
+      Background.Arrange = baCenter
+      Background.AutoSize = False
+      BandType = btSummary
+      Borders.Sides = sdCustom
+      Borders.DrawLeft = False
+      Borders.DrawTop = True
+      Borders.DrawRight = False
+      Borders.DrawBottom = True
+      Borders.FixedBottom = True
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -13
+      Font.Name = 'Arial'
+      Font.Style = []
+      IntegralHeight = False
+      ParentFont = False
+      BeforePrint = RLBand19BeforePrint
+      object RLMemo6: TRLMemo
+        AlignWithMargins = True
+        Left = 0
+        Top = 1
+        Width = 748
+        Height = 48
+        Align = faClient
+        Behavior = [beSiteExpander]
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clBlack
+        Font.Height = -13
+        Font.Name = 'Courier'
+        Font.Style = []
+        Lines.Strings = (
+          'teste'
+          'teste1'
+          'teste2'
+          'teste3'
+          'teste4'
+          'teste5'
+          'teste6'
+          'teste7'
+          'teste8')
         ParentFont = False
       end
     end

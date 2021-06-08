@@ -825,6 +825,7 @@ begin
            lista[item].BASE_ICM  := StrToCurrDef(StringReplace(Le_Nodo('vBC', ICMS), '.', ',', [rfReplaceAll, rfIgnoreCase]), 0);
            lista[item].PERC_ICM  := StrToCurrDef(StringReplace(Le_Nodo('pICMS', ICMS), '.', ',', [rfReplaceAll, rfIgnoreCase]), 0);
            lista[item].TOT_ICM   := StrToCurrDef(StringReplace(Le_Nodo('vICMS', ICMS), '.', ',', [rfReplaceAll, rfIgnoreCase]), 0);
+           lista[item].TOT_RED_ICM   := StrToCurrDef(StringReplace(Le_Nodo('pRedBC', ICMS), '.', ',', [rfReplaceAll, rfIgnoreCase]), 0);
            lista[item].CFOP      := Le_Nodo('CFOP', txt1);
            if Le_Nodo('CSOSN', txt1) <> '' then begin
              lista[item].TOT_ICM  := 0;
@@ -1070,7 +1071,7 @@ begin
 
   for ini := 1 to length(texto) do
     begin
-      if texto[ini] in['0'..'9','a'..'z','A'..'Z', ' ', '.', ',', '-', '/', '(', ')' , '%', '&', '$', ';'] then Result := Result + texto[ini];
+      if texto[ini] in['0'..'9','a'..'z','A'..'Z', ' ', '.', ',', '-', '/', '(', ')' , '%', '&', '$', ';', ':'] then Result := Result + texto[ini];
     end;
 
   Result := trim(Result);

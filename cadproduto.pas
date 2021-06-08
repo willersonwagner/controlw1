@@ -159,7 +159,7 @@ type
   public
     entrada: integer;
     RecuperarCadastro: boolean;
-    produto_preco,desativado : string;
+    produto_preco, desativado: string;
 
     function CALCPRE(var _LUCRO, _PVENDA, _DEBICM, _BASEDEB, _CREDICM, _PCOMPRA,
       _FRETE, _ENCARGO, _BASECRED, AGREG: JsEditNumero;
@@ -215,10 +215,15 @@ end;
 
 procedure TForm9.agregadoKeyPress(Sender: TObject; var Key: Char);
 begin
-  if key = #13 then begin
-    if ((agregado.getValor > 0) and (funcoes.buscaParamGeral(10, '') = '3') and ((basecred.getValor = 0) and (basedeb.getValor = 0))) then begin
-      MessageDlg('Para Efetuar a formação de Preço com AGREGADO, é necessário informar Crédito de icms ou Débito de ICMS!', mtError, [mbOK], 1);
-      key := #0;
+  if Key = #13 then
+  begin
+    if ((agregado.getValor > 0) and (funcoes.buscaParamGeral(10, '') = '3') and
+      ((basecred.getValor = 0) and (basedeb.getValor = 0))) then
+    begin
+      MessageDlg
+        ('Para Efetuar a formação de Preço com AGREGADO, é necessário informar Crédito de icms ou Débito de ICMS!',
+        mtError, [mbOK], 1);
+      Key := #0;
       exit;
     end;
   end;
@@ -501,8 +506,9 @@ function TForm9.CALCLUCRO1(var _LUCRO, _PVENDA, _DEBICM, _BASEDEB, _CREDICM,
   _PCOMPRA, _FRETE, _ENCARGO, _BASECRED, AGREG: JsEditNumero;
   icmsSubsti, descComp: currency; Key: Char): currency;
 var
-  _FRE, _ENC, _LUC, _CREDICM1, _PVENDA1, _BASEDEB1, _DEBICM1, _PCOMPRA1,
-    _FRETE1, _ENCARGO1, AGREG1, _LUCRO1, icmsSubsti1, descComp1, TMP: currency;
+  _FRE, _ENC, _LUC, _CREDICM1, _PVENDA1, _PVENDA12, _BASEDEB1, _DEBICM1,
+    _PCOMPRA1, _FRETE1, _ENCARGO1, AGREG1, _LUCRO1, icmsSubsti1, descComp1,
+    TMP: currency;
   _COM: integer;
   MAT1: array [1 .. 3] of currency;
   arq: TStringList;
@@ -511,6 +517,10 @@ begin
     exit;
 
   arq := TStringList.Create;
+
+  _PVENDA12 := _PVENDA.getValor;
+  if _PVENDA12 = 0 then
+    _PVENDA12 := 1;
 
   Result := 0;
   _CREDICM.setValor(ARREDONDA((_PCOMPRA.getValor * _BASECRED.getValor)
@@ -530,11 +540,15 @@ begin
   end;
 
   _FRE := ((AGREG.getValor * _PCOMPRA.getValor) / 100);
-  _FRE := ((_FRE / _PVENDA.getValor) * 100);
+  _FRE := ((_FRE / _PVENDA12) * 100);
+
   _ENC := ((_FRETE.getValor * _PCOMPRA.getValor) / 100);
-  _ENC := ((_ENC / _PVENDA.getValor) * 100);
-  _ENC := _ENC - ((_CREDICM.getValor / _PVENDA.getValor) * 100) +
+
+  _ENC := ((_ENC / _PVENDA12) * 100);
+
+  _ENC := _ENC - ((_CREDICM.getValor / _PVENDA12) * 100) +
     (_ENCARGO.getValor * 1.1) + _BASEDEB.getValor;
+
   _FRE := ARREDONDA(100 - _FRE - _ENC, 2);
   IF (_LUCRO.getValor > 70) AND (_COM = 3) then
   begin
@@ -546,24 +560,27 @@ begin
     exit;
   end;
 
+  //ShowMessage(_PVENDA.Text);
+
   MAT1[1] := _PCOMPRA.getValor;
   MAT1[2] := _PCOMPRA.getValor - _CREDICM.getValor;
   MAT1[3] := _PVENDA.getValor;
 
-  IF (_LUCRO.getValor <> 0) then begin
+  IF (_LUCRO.getValor <> 0) then
+  begin
     _PVENDA.Text := formataCurrency(_PCOMPRA.getValor +
       ((_PCOMPRA.getValor * _LUCRO.getValor) / 100));
   end;
 
-  _BASEDEB1  := _BASEDEB.getValor;
-  _PVENDA1   := _PVENDA.getValor;
-  _PCOMPRA1  := _PCOMPRA.getValor;
-  AGREG1     := AGREG.getValor;
-  _FRETE1    := _FRETE.getValor;
-  _ENCARGO1  := _ENCARGO.getValor;
-  _CREDICM1  := _CREDICM.getValor;
-  _DEBICM1   := _DEBICM.getValor;
-  descComp1   := ARREDONDA((_PCOMPRA1 * descComp) / 100, 2);
+  _BASEDEB1 := _BASEDEB.getValor;
+  _PVENDA1 := _PVENDA.getValor;
+  _PCOMPRA1 := _PCOMPRA.getValor;
+  AGREG1 := AGREG.getValor;
+  _FRETE1 := _FRETE.getValor;
+  _ENCARGO1 := _ENCARGO.getValor;
+  _CREDICM1 := _CREDICM.getValor;
+  _DEBICM1 := _DEBICM.getValor;
+  descComp1 := ARREDONDA((_PCOMPRA1 * descComp) / 100, 2);
   icmsSubsti1 := ARREDONDA((_PCOMPRA1 * icmsSubsti) / 100, 2);
   _FRE := ARREDONDA((_PCOMPRA1 * _FRETE1) / 100, 2);
 
@@ -575,7 +592,8 @@ begin
       begin
         _DEBICM1 := (ARREDONDA(((_PVENDA1 * _BASEDEB1) / 100), 2));
       end
-      else begin
+      else
+      begin
         _DEBICM1 :=
           (ARREDONDA(((_PCOMPRA1 + (_PCOMPRA1 * AGREG1 / 100)) * _BASEDEB1 /
           100), 2));
@@ -584,29 +602,27 @@ begin
 
     _ENC := ARREDONDA((_PVENDA1 * _ENCARGO1) / 100, 2);
     MAT1[3] := _PVENDA1;
-    _LUCRO1 := _PVENDA1 - (_PCOMPRA1 - _CREDICM1 - descComp1) - _DEBICM1 - _FRE
-      - _ENC - icmsSubsti1;
+    _LUCRO1 := _PVENDA1 - (_PCOMPRA1 - _CREDICM1 - descComp1) - _DEBICM1 - _FRE - _ENC - icmsSubsti1;
 
     TMP := _LUCRO1;
     _LUCRO1 := (ARREDONDA(_LUCRO1 / MAT1[_COM] * 100, 2));
 
-    // ARQ.Add(CurrToStr(_LUCRO1) + '=' + CurrToStr(_LUC));
+    //arq.Add('>>>' +CurrToStr(_LUCRO1) + ' / ' + CurrToStr(tmp) + ' = ' + CurrToStr(MAT1[_COM]));
+
     IF _LUCRO1 >= _LUC then
       Break;
     _PVENDA1 := (_PVENDA1 + 0.01);
   END;
 
-  { ARQ.SaveToFile('ARQ.TXT');
-    ShowMessage('--------------------'+#13+ CurrToStr(TMP) + #13 + CurrToStr(MAT1[_COM])+ #13 +
-    '_PVENDA1='  + CurrToStr(_PVENDA1) + #13 +
-    '_PCOMPRA1=' + CurrToStr(_PCOMPRA1) + #13 +
-    '_CREDICM1=' + CurrToStr(_CREDICM1) + #13 +
-    'descComp1=' + CurrToStr(descComp1) + #13 +
-    '_DEBICM1=' + CurrToStr(_DEBICM1) + #13 +
-    '_FRE=' + CurrToStr(_FRE) + #13 +
-    '_ENC=' + CurrToStr(_ENC) + #13 +
-    'icmsSubsti1=' + CurrToStr(icmsSubsti1)); }
+  {arq.SaveToFile('ARQ.TXT');
+  ShowMessage('--------------------' + #13 + CurrToStr(TMP) + #13 +
+    CurrToStr(MAT1[_COM]) + #13 + '_PVENDA1=' + CurrToStr(_PVENDA1) + #13 +
+    '_PCOMPRA1=' + CurrToStr(_PCOMPRA1) + #13 + '_CREDICM1=' +
+    CurrToStr(_CREDICM1) + #13 + 'descComp1=' + CurrToStr(descComp1) + #13 +
+    '_DEBICM1=' + CurrToStr(_DEBICM1) + #13 + '_FRE=' + CurrToStr(_FRE) + #13 +
+    '_ENC=' + CurrToStr(_ENC) + #13 + 'icmsSubsti1=' + CurrToStr(icmsSubsti1));
 
+   }
   // _PVENDA.setValor(_PVENDA1);
   _PVENDA.Text := formataCurrency(_PVENDA1);
   _LUCRO.setValor(_LUCRO1);
@@ -919,7 +935,7 @@ begin
   frete.ShowHint := true;
   encargos.ShowHint := true;
 
-  label41.Font.Color := HexToTColor('FF0000');
+  Label41.Font.Color := HexToTColor('FF0000');
 
   { if funcoes.buscaParamGeral(63, 'N') = 'S' then JsBotao2.Visible := false
     else JsBotao2.Visible := true; }
@@ -969,7 +985,8 @@ begin
   if RecuperarCadastro = false then
   begin
     if Trim(aliquota.Text) = '' then
-      aliquota.Text := IntToStr(StrToIntDef(funcoes.buscaParamGeral(22, ''), 2));
+      aliquota.Text := IntToStr(StrToIntDef(funcoes.buscaParamGeral(22,
+        ''), 2));
   end;
   consultaCompleta := false;
 
@@ -990,19 +1007,23 @@ begin
   except
   end;
 
-  if funcoes.buscaParamGeral(90, 'N') = 'S' then begin
+  if funcoes.buscaParamGeral(90, 'N') = 'S' then
+  begin
     Label28.Caption := 'Equivalência:';
   end;
 
-  if funcoes.buscaParamGeral(109, 'N') = 'S' then begin
+  if funcoes.buscaParamGeral(109, 'N') = 'S' then
+  begin
     Label26.Caption := 'M3:';
   end;
 
-  if ((funcoes.buscaParamGeral(10, '3') = '1') and (funcoes.buscaParamGeral(121, 'S') = 'S')) then begin
+  if ((funcoes.buscaParamGeral(10, '3') = '1') and (funcoes.buscaParamGeral(121,
+    'S') = 'S')) then
+  begin
     basecred.Enabled := false;
-    credicm.Enabled  := false;
-    basedeb.Enabled  := false;
-    debicm.Enabled   := false;
+    credicm.Enabled := false;
+    basedeb.Enabled := false;
+    debicm.Enabled := false;
     agregado.Enabled := false;
   end;
 
@@ -1109,10 +1130,10 @@ begin
     else
       descr := 'ALTERADO POR: ' + form22.codusario + '-' + form22.usuario;
 
+    produto_preco := '|' + cod.Text + '|' + CurrToStr(p_venda.getValor) + '|' +
+      aliquota.Text + '|';
 
-    produto_preco := '|' + cod.Text + '|' + CurrToStr(p_venda.getValor) + '|' + aliquota.Text +'|';
-
-    codUlt       := cod.Text;
+    codUlt := cod.Text;
     valorRetorno := JsEdit.GravaNoBD(self);
     atualizaCodBarAdicionais(valorRetorno);
     insereIgualProduto(valorRetorno, descr);
@@ -1704,7 +1725,8 @@ procedure TForm9.FormKeyDown(Sender: TObject; var Key: Word;
 var
   te: string;
 begin
-  if (Key = 114) then begin//f3
+  if (Key = 114) then
+  begin // f3
     ativaDesativaProduto;
   end;
 
@@ -1728,8 +1750,10 @@ begin
       exit;
     end;
 
-    cod.Text := funcoes.localizar1('Localizar Produto', 'produto', 'cod, nome,quant, p_venda as preco, iif(iif((desativado is null) or (desativado = '''') , 0, desativado) > 0, ''SIM'', '''') as desativado', 'cod', '', 'nome', 'nome, desativado', false,
-      false, false, 'cod', codUlt, 600, nil);
+    cod.Text := funcoes.localizar1('Localizar Produto', 'produto',
+      'cod, nome,quant, p_venda as preco, iif(iif((desativado is null) or (desativado = '''') , 0, desativado) > 0, ''SIM'', '''') as desativado',
+      'cod', '', 'nome', 'nome, desativado', false, false, false, 'cod', codUlt,
+      600, nil);
     if StrNum(Trim(cod.Text)) = '0' then
       exit;
     JsEdit.SelecionaDoBD(self.Name);
@@ -1915,14 +1939,15 @@ end;
 procedure TForm9.FormCreate(Sender: TObject);
 begin
   RecuperarCadastro := false;
-  if funcoes.buscaParamGeral(17, 'N') = 'S' then begin
+  if funcoes.buscaParamGeral(17, 'N') = 'S' then
+  begin
     Label35.Caption := Label35.Caption + '/F2-Atacado';
   end;
 
   p_venda.setDecimais(StrToIntDef(funcoes.buscaParamGeral(111, '3'), 3));
-  
-  //if p_venda.decimal > 9 then p_venda.setDecimais(3);
-  
+
+  // if p_venda.decimal > 9 then p_venda.setDecimais(3);
+
 end;
 
 procedure TForm9.insereIgualProduto(const cod2, igual: String);
@@ -2213,22 +2238,27 @@ end;
 
 procedure TForm9.ativaDesativaProduto;
 begin
-  if StrToIntDef(cod.Text, 0) = 0 then exit;
+  if StrToIntDef(cod.Text, 0) = 0 then
+    exit;
 
   dm.IBselect.Close;
-  dm.IBselect.SQL.Text := 'select cod, desativado from produto where cod = :cod';
+  dm.IBselect.SQL.Text :=
+    'select cod, desativado from produto where cod = :cod';
   dm.IBselect.ParamByName('cod').AsInteger := StrToIntDef(cod.Text, 0);
   dm.IBselect.Open;
 
-  if dm.IBselect.IsEmpty then begin
+  if dm.IBselect.IsEmpty then
+  begin
     ShowMessage('Nenhum Produto Encontrado!');
     dm.IBselect.Close;
     exit;
   end;
 
-  if dm.IBselect.FieldByName('desativado').AsString = '1' then begin
+  if dm.IBselect.fieldbyname('desativado').AsString = '1' then
+  begin
     dm.IBQuery1.Close;
-    dm.IBQuery1.SQL.Text := 'update produto set desativado = 0 where cod = :cod';
+    dm.IBQuery1.SQL.Text :=
+      'update produto set desativado = 0 where cod = :cod';
     dm.IBQuery1.ParamByName('cod').AsInteger := StrToIntDef(cod.Text, 0);
     dm.IBQuery1.ExecSQL;
     dm.IBQuery1.Transaction.Commit;
@@ -2254,28 +2284,32 @@ end;
 
 procedure TForm9.ativaDestivaProdutoVisual;
 begin
-  if desativado = '' then begin
+  if desativado = '' then
+  begin
     dm.IBselect.Close;
-    dm.IBselect.SQL.Text := 'select cod, desativado from produto where cod = :cod';
+    dm.IBselect.SQL.Text :=
+      'select cod, desativado from produto where cod = :cod';
     dm.IBselect.ParamByName('cod').AsInteger := StrToIntDef(cod.Text, 0);
     dm.IBselect.Open;
 
-    if dm.IBselect.IsEmpty then begin
+    if dm.IBselect.IsEmpty then
+    begin
       dm.IBselect.Close;
       exit;
     end;
 
-    desativado := dm.IBselect.FieldByName('desativado').AsString;
+    desativado := dm.IBselect.fieldbyname('desativado').AsString;
   end;
 
-  if desativado = '1' then begin
-    self.Caption    := 'Cadastro de Produtos - Produto Desativado';
-    label41.Caption := 'F3-Destiva/Ativa Produto    -    Produto Desativado!';
+  if desativado = '1' then
+  begin
+    self.Caption := 'Cadastro de Produtos - Produto Desativado';
+    Label41.Caption := 'F3-Destiva/Ativa Produto    -    Produto Desativado!';
     exit;
   end;
 
-  self.Caption    := 'Cadastro de Produtos';
-  label41.Caption := 'F3-Destiva/Ativa Produto';
+  self.Caption := 'Cadastro de Produtos';
+  Label41.Caption := 'F3-Destiva/Ativa Produto';
 end;
 
 end.

@@ -29261,9 +29261,10 @@ end;
 
 procedure Tfuncoes.imprimeVendaFortesA4(numVenda : String;venda : SmallInt = 1);
 var
-  cliente, preview, nomevol, vendedor : String;
+  cliente, preview, nomevol, vendedor, entrada : String;
   arq : TStringList;
   fracao, sub : Double;
+  fontHeight : integer;
 begin
   dm.IBselect.Close;
   dm.IBselect.SQL.Text := 'select * from registro';
@@ -29287,9 +29288,11 @@ begin
 
   if venda = 1 then begin
     dm.IBselect.Close;
-    dm.IBselect.SQL.Text := 'select v.codhis, p.nome, v.total, v.desconto, v.cliente, v.vendedor, ve.nome as vendedornome from venda v ' +
+    dm.IBselect.SQL.Text := 'select v.codhis, v.entrada, p.nome, v.total, v.desconto, v.cliente, v.vendedor, ve.nome as vendedornome from venda v ' +
     ' left join formpagto p on (p.cod = v.codhis) join vendedor ve on (v.vendedor = ve.cod) where nota = ' + numVenda;
     dm.IBselect.Open;
+
+    entrada := formataCurrency(dm.IBselect.FieldByName('entrada').AsCurrency);
   end
   else if venda = 2 then begin
     dm.IBselect.Close;
@@ -29419,6 +29422,21 @@ begin
   imprime1.imprime.RLLabel37.Caption := FormatDateTime('hh:mm:ss', dm.ProdutoQY.FieldByName('hora').AsDateTime);
   //if venda = 1 then imprime1.imprime.RLLabel37.Caption := FormatDateTime('hh:mm:ss', dm.ProdutoQY.FieldByName('hora').AsDateTime)
   //else if venda = 2 then imprime1.imprime.RLLabel37.Caption := FormatDateTime('hh:mm:ss', now);
+
+  form19.RichEdit1.Clear;
+  if ExisteParcelamento(numVenda) then begin
+    funcoes.ImprimeParcelamento('','',entrada, numVenda);
+    imprime1.imprime.RLMemo6.Lines := form19.RichEdit1.Lines;
+
+    fontHeight := Abs(imprime1.imprime.RLMemo6.Font.Height);
+
+    imprime1.imprime.RLBand19.Height :=  (fontHeight * imprime1.imprime.RLMemo6.Lines.Count) + (fontHeight * 1);
+
+    //ShowMessage(IntToStr(imprime1.imprime.RLBand19.Height));
+  end
+  else begin
+    imprime1.imprime.rlband19.Visible := false;
+  end;
 
   imprime1.imprime.DataSource1.DataSet := dm.ProdutoQY;
   // imprime1.imprime.RLReport2.PrintDialog := false;

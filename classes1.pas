@@ -132,6 +132,7 @@ type
     BASE_ICM : Extended;
     PERC_ICM : currency;
     TOT_ICM  : currency;
+    TOT_RED_ICM  : currency;
     vPIS     : currency;
     vCOFINS  : currency;
     unid     : String[6];

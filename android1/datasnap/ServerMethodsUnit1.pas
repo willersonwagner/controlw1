@@ -17,6 +17,7 @@ type
     function getProdutos()  : TJSONValue;
     function getProdutos1() : TlistaProdutos;
     function getFormas() : TlistaFormas;
+    function getcliente(cnpj: string) : Tcliente;
     function getUsuarios() : TlistaUsuario;
     function EchoString(Value: string): string;
     function ReverseString(Value: string): string;
@@ -75,7 +76,8 @@ begin
       if lista.listaVenda[ini].parcelamento <> nil then
         begin
           entrada := lista.listaVenda[ini].parcelamento.entrada;
-          total   := lista.listaVenda[ini].total - entrada;
+          //total   := lista.listaVenda[ini].total - entrada;
+          total   := lista.listaVenda[ini].total;
           totPrest := ((total) / lista.listaVenda[ini].parcelamento.qtdprest);
           for I := 1 to lista.listaVenda[ini].parcelamento.qtdprest do
             begin
@@ -173,6 +175,56 @@ begin
     end;
     form1.IBTransaction1.Commit;
 end;
+
+function TServerMethods1.getcliente(cnpj: string) : Tcliente;
+var
+  recNo : integer;
+  cliente : Tcliente;
+begin
+  form1.adicionaMemo('Requisição de sincronização de Cliente ' + cnpj);
+  if Length(trim(cnpj)) = 11 then cnpj := form1.formataCPF(cnpj)
+    else cnpj := form1.formataCNPJ(cnpj);
+
+  cliente := Tcliente.create();
+  form1.IBQuery1.close;
+  form1.IBQuery1.SQL.Clear;
+  form1.IBQuery1.SQL.Add('select cod, nome, tipo, ende, bairro, cep, est, ies, cid, telres, telcom, titular from cliente where cnpj = :cnpj');
+  form1.IBQuery1.ParamByName('cnpj').AsString := (cnpj);
+  form1.IBQuery1.Open;
+  form1.IBQuery1.FetchAll;
+
+  form1.IBQuery1.First;
+  recNo := -1;
+
+  cliente.cod := -1;
+
+  if (form1.IBQuery1.IsEmpty = false) then begin
+    recNo := recNo + 1;
+    cliente.cod  := form1.IBQuery1.FieldByName('cod').AsInteger;
+    cliente.nome := form1.IBQuery1.FieldByName('nome').AsString;
+    cliente.titular := form1.IBQuery1.FieldByName('titular').AsString;
+    cliente.cnpj    := cnpj;
+    cliente.tipo    := form1.IBQuery1.FieldByName('tipo').AsString;
+    cliente.ende    := form1.IBQuery1.FieldByName('ende').AsString;
+    cliente.bairro    := form1.IBQuery1.FieldByName('bairro').AsString;
+    cliente.ies       := form1.IBQuery1.FieldByName('ies').AsString;
+    cliente.est       := form1.IBQuery1.FieldByName('est').AsString;
+    cliente.cid       := form1.IBQuery1.FieldByName('cid').AsString;
+    cliente.telres    := form1.IBQuery1.FieldByName('telres').AsString;
+    cliente.telcom    := form1.IBQuery1.FieldByName('telcom').AsString;
+    cliente.cep       := form1.IBQuery1.FieldByName('cep').AsString;
+
+    form1.adicionaMemo('Cliente Encontrado Cód:: ' + IntToStr(cliente.cod));
+  end
+  else begin
+    form1.adicionaMemo('Nenhum Cliente Encontrado : ' + cnpj);
+  end;
+
+  form1.IBQuery1.Close;
+  Result := cliente;
+end;
+
+
 
 function TServerMethods1.getUsuarios() : TlistaUsuario;
 var
@@ -356,5 +408,8 @@ function TServerMethods1.ReverseString(Value: string): string;
 begin
   Result := System.StrUtils.ReverseString(Value);
 end;
+
+
+
 end.
 

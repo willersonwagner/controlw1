@@ -26,20 +26,24 @@ type
     IBQuery2: TFDQuery;
     IBQuery3: TFDQuery;
     IBTransaction1: TFDTransaction;
+    Timer1: TTimer;
     procedure BitBtn2Click(Sender: TObject);
     procedure BitBtn1Click(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure ApplicationEvents1Minimize(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure TrayIcon1DblClick(Sender: TObject);
+    procedure Timer1Timer(Sender: TObject);
   private
     lista : TlistaProdutos;
     PastaExecCaminhoComBarraNoFinal : String;
     Simbolos : array [0..4] of String;
+    inicio : Char;
     function conectar() : boolean;
-    function formataCNPJ(Const cnpj : String) : String;
     { Private declarations }
   public
+    function formataCPF(const cpf: String): String;
+    function formataCNPJ(Const cnpj: String): String;
     function DesCriptografar(wStri: String): String;
     function insereClienteRetornaCodigo(const cliente : Tcliente; var nome : String; var errro : integer) : integer;
     function Incrementa_Generator(Gen_name : string; valor_incremento : integer) : string;
@@ -134,6 +138,12 @@ begin
   Result := Copy(cnpj,1,2) + '.' + Copy(cnpj,3,3) + '.' + Copy(cnpj,6,3) + '/' + Copy(cnpj, 9, 4) + '-' + Copy(cnpj, 13, 2);
 end;
 
+function tform1.formataCPF(const cpf: String): String;
+begin
+  Result := '';
+  Result := copy(cpf, 1, 3) + '.' + copy(cpf, 4, 3) + '.' + copy(cpf, 7, 3) + '-' + copy(cpf, 10, 2);
+end;
+
 function tform1.insereClienteRetornaCodigo(const cliente : Tcliente; var nome : String; var errro : integer) : integer;
 var
   cnpj : String;
@@ -143,7 +153,8 @@ begin
   if (Pos('-', cnpj) = 0) or (Pos('\', cnpj) = 0) then
     begin
       cnpj := formataCNPJ(cnpj);
-    end;
+    end
+  else
 
   IBQuery1.Close;
   IBQuery1.SQL.Text := 'select cod, cnpj, nome from cliente where cnpj = :cnpj';
@@ -167,12 +178,15 @@ begin
   ', :telcom, :telres)';
   IBQuery1.ParamByName('cod').AsInteger   := Result;
   IBQuery1.ParamByName('nome').AsString   := copy(cliente.nome, 1, 40);
-  IBQuery1.ParamByName('cnpj').AsString   := copy(cliente.cnpj, 1, 22);
+  if Length(Trim(cliente.cnpj)) = 11  then cliente.cnpj := formataCNPJ(cliente.cnpj)
+  else cliente.cnpj := formataCPF(cliente.cnpj);
+
+  IBQuery1.ParamByName('cnpj').AsString   := cliente.cnpj;
   IBQuery1.ParamByName('ende').AsString   := copy(cliente.ende, 1, 34);
   IBQuery1.ParamByName('bairro').AsString := copy(cliente.bairro, 1, 18);
   IBQuery1.ParamByName('cid').AsString    := copy(cliente.cid, 1, 18);
   IBQuery1.ParamByName('est').AsString    := copy(cliente.est, 1, 2);
-  IBQuery1.ParamByName('tipo').AsInteger  := cliente.tipo;
+  IBQuery1.ParamByName('tipo').AsString  := cliente.tipo;
   IBQuery1.ParamByName('ies').AsString    := copy(cliente.ies, 1, 14);
   IBQuery1.ParamByName('telcom').AsString := copy(cliente.telcom, 1, 13);
   IBQuery1.ParamByName('telres').AsString := copy(cliente.telres, 1, 13);
@@ -206,7 +220,6 @@ var
   i : integer;
 begin
   Result := false;
-
 
   try
     ServerContainerUnit1.ServerContainer1.DSServer1.Start;   //inicia o servidor DataSnap
@@ -266,31 +279,38 @@ procedure TForm1.FormCreate(Sender: TObject);
 begin
   Simbolos[1] := 'ABCDEFGHIJLMNOPQRSTUVXZYWK abcdefghijlmnopqrstuvxzywk1234567890-+=_?/.,<>;:)(*&^%$#@!~áäà';
   Simbolos[2] := 'ÂÀ©Øû×ƒçêùÿ5Üø£úñÑªº¿®¬¼ëèïÙýÄÅÉæÆôÁáâäàåíóÇüé¾¶§÷ÎÏ-+ÌÓß¸°¨·¹³²Õµþîì¡«½WDX2U3BHJKMSZDTQ4';
+  inicio := '0';
 end;
 
 procedure TForm1.FormShow(Sender: TObject);
 begin
-  PastaExecCaminhoComBarraNoFinal := ExtractFileDir(ParamStr(0)) + '\';
-  Edit1.Text := '';
+  Timer1.Enabled := TRUE;
+end;
 
-  if FileExists(PastaExecCaminhoComBarraNoFinal + 'BD.FDB') then
-    begin
+procedure TForm1.Timer1Timer(Sender: TObject);
+begin
+  Timer1.Enabled := false;
+  if inicio = '0' then begin
+    PastaExecCaminhoComBarraNoFinal := ExtractFileDir(ParamStr(0)) + '\';
+    Edit1.Text := '';
+
+    if FileExists(PastaExecCaminhoComBarraNoFinal + 'BD.FDB') then begin
       edit1.Text := PastaExecCaminhoComBarraNoFinal + 'BD.FDB';
     end;
 
-  if ParamStr(1) <> '' then
-    begin
+    if ParamStr(1) <> '' then begin
       edit1.Text := ParamStr(1);
     end;
 
-  if Edit1.Text <> '' then IBDatabase1.ConnectionName := edit1.Text
-    else edit1.Text := IBDatabase1.ConnectionName;
+    if Edit1.Text <> '' then IBDatabase1.ConnectionName := edit1.Text
+      else edit1.Text := IBDatabase1.ConnectionName;
 
-  conectar;
+    conectar;
+    Label1.Caption := 'Servidor Conectado';
+    inicio := '1';
 
-
-
-  Label1.Caption := 'Servidor Conectado';
+    Application.Minimize;
+  end;
 end;
 
 procedure TForm1.TrayIcon1DblClick(Sender: TObject);
@@ -299,6 +319,7 @@ begin
   TrayIcon1.Visible := false;
   Application.BringToFront;
 end;
+
 
 end.
 

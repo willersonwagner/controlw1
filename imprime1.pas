@@ -184,9 +184,12 @@ type
     RLDraw14: TRLDraw;
     RLLabel46: TRLLabel;
     RLLabel47: TRLLabel;
+    RLBand19: TRLBand;
+    RLMemo6: TRLMemo;
     procedure Timer1Timer(Sender: TObject);
     procedure RLBand7BeforePrint(Sender: TObject; var PrintIt: Boolean);
     procedure RLReport2AfterPrint(Sender: TObject);
+    procedure RLBand19BeforePrint(Sender: TObject; var PrintIt: Boolean);
   private
     tipo : integer;
     procedure MudaTamPapel(PaperSize, Comp, Alt: integer);
@@ -408,6 +411,11 @@ begin
   end;
 end;
 
+
+procedure Timprime.RLBand19BeforePrint(Sender: TObject; var PrintIt: Boolean);
+begin
+  RLBand19.Height := RLMemo6.Height;
+end;
 
 procedure Timprime.RLBand7BeforePrint(Sender: TObject; var PrintIt: Boolean);
 begin

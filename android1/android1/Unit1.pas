@@ -172,6 +172,8 @@ type
     procedure ListBoxItem2Click(Sender: TObject);
     procedure SincronizaçãoClick(Sender: TObject);
     procedure ListBoxItem3Click(Sender: TObject);
+    procedure edit2KeyUp(Sender: TObject; var Key: Word; var KeyChar: Char;
+      Shift: TShiftState);
   private
     FKBBounds: TRectF;
     FNeedOffset, configurar : Boolean;
@@ -179,7 +181,7 @@ type
     ret : smallint;
     campoBusca : String;
     tamCol : array[0..3] of currency;
-    tamColVenda : array[0..4] of currency;
+    tamColVenda : array[0..6] of currency;
     tamColCliente : array[0..3] of currency;
     procedure CalcContentBoundsProc(Sender: TObject;
                              var ContentBounds: TRectF);
@@ -197,7 +199,6 @@ type
     procedure sincFormas();
     procedure sincUsuarios();
     procedure sincEstoque();
-    procedure sincVendas();
     procedure limparTela();
     procedure marcaVendaExportada(const notas : string);
     function getSenhaAdmin() : String;
@@ -208,6 +209,7 @@ type
     venda, logado : boolean;
     codUsuario, codVendedor : integer;
     NomeUsuario : String;
+    procedure sincVendas(fimVenda : boolean = false);
     function selecionaCliente(const codigo : integer) : Tcliente;
     function valor_sequencia(const seq_name : String) : integer;
     procedure redimensionaColunasStringGrid(var grid : TStringGrid);
@@ -287,7 +289,7 @@ begin
   Result.nome    := FDQuery1.FieldByName('nome').AsString;
   Result.titular := FDQuery1.FieldByName('titular').AsString;
   Result.cnpj    := FDQuery1.FieldByName('cnpj').AsString;
-  Result.tipo    := FDQuery1.FieldByName('tipo').AsInteger;
+  Result.tipo    := FDQuery1.FieldByName('tipo').AsString;
   Result.ende    := FDQuery1.FieldByName('ende').AsString;
   Result.bairro  := FDQuery1.FieldByName('bairro').AsString;
   Result.ies     := FDQuery1.FieldByName('ies').AsString;
@@ -314,7 +316,7 @@ begin
     end;
 end;
 
-procedure TForm1.sincVendas();
+procedure TForm1.sincVendas(fimVenda : boolean = false);
 var
   lista    : TlistaVendas;
   proxy  : TServerMethods1Client;
@@ -322,7 +324,7 @@ var
   notas : string;
 begin
 
-  visualizaAguarda('Aguarde, Transmitindo Vendas');
+  if fimVenda = false then visualizaAguarda('Aguarde, Transmitindo Vendas');
   Application.ProcessMessages;
   try
     SQLConnection1.Connected := true;
@@ -401,12 +403,15 @@ begin
      notas := proxy.insereVendas(lista, IntToStr(codUsuario) + ' - ' + NomeUsuario);
      //marcaVendaExportada(notas);
   finally
-    ShowMessage('Sincronização efetuada com sucesso');
-    Rectangle1.Visible := false;
-    Rectangle3.Visible := false;
+    if fimVenda = false then begin
+      ShowMessage('Sincronização efetuada com sucesso');
+      Rectangle1.Visible := false;
+      Rectangle3.Visible := false;
+      Rectangle1.Visible := false;
+      Rectangle2.Visible := false;
+    end;
+
     res := true;
-    Rectangle1.Visible := false;
-    Rectangle2.Visible := false;
     SQLConnection1.Connected := false;
  end;
 end;
@@ -632,6 +637,8 @@ begin
   tamColVenda[2] := 15;
   tamColVenda[3] := 15;
   tamColVenda[4] := 15;
+  tamColVenda[5] := 15;
+  tamColVenda[6] := 15;
 
   tamColCliente[0] := 15;
   tamColCliente[1] := 45;
@@ -658,7 +665,7 @@ begin
      fim := 4;
       for i := 0 to fim do
         begin
-          //grid.ColumnByIndex(i).Width := (grid.Width * tamColVenda[i]) / 100;
+          grid.Columns[i].Width := (grid.Width * tamColVenda[i]) / 100;
         end;
       exit;
     end;
@@ -802,12 +809,23 @@ begin
   end;
 end;
 
+procedure TForm1.edit2KeyUp(Sender: TObject; var Key: Word; var KeyChar: Char;
+  Shift: TShiftState);
+begin
+  if key = 13 then edit3.SetFocus;
+end;
+
 procedure TForm1.Edit3KeyUp(Sender: TObject; var Key: Word; var KeyChar: Char;
   Shift: TShiftState);
 begin
   if key = 13 then
     begin
       Button4Click(sender);
+    end;
+
+  if key = 27 then
+    begin
+      edit2.SetFocus;
     end;
 end;
 
@@ -1287,6 +1305,8 @@ begin
   finally
 
   end;
+
+  edit2.SetFocus;
 end;
 
 procedure TForm1.FormVirtualKeyboardHidden(Sender: TObject;

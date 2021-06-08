@@ -29,7 +29,7 @@ type
     nome    : String;
     titular : String;
     cnpj    : string;
-    tipo    : integer;
+    tipo    : string;
     ende    : string;
     bairro  : string;
     ies     : string;
@@ -37,6 +37,7 @@ type
     cid     : string;
     telres  : string;
     telcom  : string;
+    cep  : string;
   end;
 
   Tvenda   = class

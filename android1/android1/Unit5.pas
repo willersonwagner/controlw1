@@ -14,7 +14,7 @@ uses
   System.Bindings.Outputs, FMX.Bind.Editors, Data.Bind.EngExt,
   FMX.Bind.DBEngExt, Data.Bind.Components, Data.Bind.DBScope, FMX.Bind.Grid,
   FMX.Grid, Data.Bind.Grid, FMX.Grid.Style, FMX.ScrollBox,
-  FMX.Controls.Presentation, FMX.Gestures, fmx.consts, FMX.DialogService;
+  FMX.Controls.Presentation, FMX.Gestures, fmx.consts, FMX.DialogService, Unit2, uClasses;
 
 type
   TForm5 = class(TForm6)
@@ -100,6 +100,7 @@ type
     procedure procurarCliente(const nom: String);
     procedure digitaCPF(const textoComp : String; const Tchar : char);
     function MsgBox(const AMessage: string; const ADialogType: TMsgDlgType; const AButtons: TMsgDlgButtons;const ADefaultButton: TMsgDlgBtn ): Integer;
+    procedure buscaCliente;
     { Private declarations }
   public
     cod : integer;
@@ -257,6 +258,9 @@ procedure TForm5.cpfKeyDown(Sender: TObject; var Key: Word; var KeyChar: Char;
   Shift: TShiftState);
 begin
   inherited;
+  if key = 13 then begin
+    buscaCliente;
+  end;
 {    if Contido(KeyChar, '1234567890' + #8) then
       begin
         digitaCPF(cpf.Text, KeyChar);
@@ -458,6 +462,35 @@ End;
 
 Result := myAns;
 
+end;
+
+procedure TForm5.buscaCliente;
+var
+  proxy  : TServerMethods1Client;
+  cliente : tcliente;
+begin
+  if rg.Text <> '' then exit;
+  if ende.Text <> '' then exit;
+  if bairro.Text <> '' then exit;
+  if cid.Text <> '' then exit;
+  if uf.Text <> '' then exit;
+  if telres.Text <> '' then exit;
+  if telcom.Text <> '' then exit;
+
+  form1.SQLConnection1.Connected := true;
+  proxy := TServerMethods1Client.Create(form1.SQLConnection1.DBXConnection);
+  cliente := proxy.getcliente(cpf.text);
+
+  if cliente.cod > 0 then begin
+    nome.Text := cliente.nome;
+    rg.Text   := cliente.ies;
+    ende.Text := cliente.ende;
+    bairro.Text := cliente.bairro;
+    cid.Text    := cliente.cid;
+    uf.Text     := cliente.est;
+    telres.Text := cliente.telres;
+    telcom.Text := cliente.telcom;
+  end;
 end;
 
 end.

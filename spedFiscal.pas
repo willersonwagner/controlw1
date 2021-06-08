@@ -2389,7 +2389,7 @@ end;
 
 function leSaidas_SF() : Smallint;
 var
-  total1 : currency;
+  total1, totRED : currency;
   mat, arq      : TStringList;
   listaProdCST_pis_cod : TItensProduto;
   CODNOTA, LIN, desti, crc, UF, nodo_dest1  : String;
@@ -2429,7 +2429,8 @@ begin
     begin
       BASE_ICM := 0;
       TOT_ICM  := 0;
-      acc := acc + 1;
+      acc      := acc + 1;
+      totRED   := 0;
       informacao(acc, fim, 'Verificando Vendas...', false, false, 2);
       //linha := dm.IBselect.fieldbyname('item').AsString;
       //DECOMP_MOV(linha, mat);
@@ -2517,6 +2518,7 @@ begin
 
                   TOT_ICM  := TOT_ICM  + listaProdutos[ini].TOT_ICM;
                   ACUM_IcmsCstCFOP(listaProdutos.Items[ini], listaPIS, BASE_ICM);
+                  totRED := totRED + listaProdutos[ini].TOT_RED_ICM;
 
                   //ACUMULA VALORES DE PIS/COFINS DA NF-e
                   CALC_PISCOF(TOT_ITEM, ISPIS, listaProdutos[ini].vPIS, listaProdutos[ini].vCOFINS, '');
@@ -2549,7 +2551,7 @@ begin
                   if StrToIntDef(LeftStr(listaPIS[ini].CFOP, 1), 5) >= 5 then TOTDEBICM := TOTDEBICM + listaPIS[ini].icms
                    else TOTCREDICM := TOTCREDICM + (listaPIS[ini].icms);
                   LINHA := '|C190|0' + listaPIS[ini].CST + '|' + listaPIS[ini].CFOP + '|' + FORM_NUM1(listaPIS[ini].aliquota) + '|'  +
-                  FORM_NUM1(listaPIS[ini].total) + '|'  + FORM_NUM1(listaPIS[ini].Base) + '|'  + FORM_NUM1(listaPIS[ini].icms) + '|0|0|0|0||';
+                  FORM_NUM1(listaPIS[ini].total) + '|'  + FORM_NUM1(listaPIS[ini].Base) + '|'  + FORM_NUM1(listaPIS[ini].icms) + '|0|0|'+FORM_NUM1(totRED)+'|0||';
 
                   GRAVA_SPED(ARQ_TMP, LINHA);
                 end;
@@ -5353,8 +5355,8 @@ begin
       listPis[fi].icms    := listPis[fi].icms  + produto.TOT_ICM;
       listPis[fi].total   := listPis[fi].total + produto.total;
       if produto.TOT_ICM > 0 then begin
-        listPis[fi].base  := listPis[fi].base  + produto.total;
-        base_calcICMS     := base_calcICMS     + produto.total;
+        listPis[fi].base  := listPis[fi].base  + produto.BASE_ICM;
+        base_calcICMS     := base_calcICMS     + produto.BASE_ICM;
       end;  
     end
   else
@@ -5367,8 +5369,8 @@ begin
       listPis[fi].CFOP     := produto.CFOP;
       listPis[fi].icms     := produto.TOT_ICM;
       if produto.TOT_ICM > 0 then begin
-        listPis[fi].base     := produto.total;
-        base_calcICMS        := base_calcICMS + produto.total;
+        listPis[fi].base     := produto.BASE_ICM;
+        base_calcICMS        := base_calcICMS + produto.BASE_ICM;
       end;
     end;
 end;

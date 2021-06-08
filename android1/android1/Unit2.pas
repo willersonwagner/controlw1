@@ -22,10 +22,12 @@ type
     FexecSqlCommand: TDBXCommand;
     FsomaCommand: TDBXCommand;
     FRecordCountProdutosIntegerCommand: TDBXCommand;
+    FgetClienteCommand: TDBXCommand;
   public
     constructor Create(ADBXConnection: TDBXConnection); overload;
     constructor Create(ADBXConnection: TDBXConnection; AInstanceOwner: Boolean); overload;
     destructor Destroy; override;
+    function getCliente(cnpj : String): Tcliente;
     function insereVendas(lista: TlistaVendas; usuario: string): string;
     function getProdutos: TJSONValue;
     function getProdutos1: TlistaProdutos;
@@ -155,6 +157,34 @@ begin
     Result := nil;
 end;
 
+function TServerMethods1Client.getCliente(cnpj : String): Tcliente;
+begin
+  if FgetClienteCommand = nil then
+  begin
+    FgetClienteCommand := FDBXConnection.CreateCommand;
+    FgetClienteCommand.CommandType := TDBXCommandTypes.DSServerMethod;
+    FgetClienteCommand.Text := 'TServerMethods1.getCliente';
+    FgetClienteCommand.Prepare;
+  end;
+
+  FgetClienteCommand.Parameters[0].Value.AsString := cnpj;
+  FgetClienteCommand.ExecuteUpdate;
+
+  if not FgetClienteCommand.Parameters[1].Value.IsNull then
+  begin
+    FUnMarshal := TDBXClientCommand(FgetClienteCommand.Parameters[1].ConnectionHandler).GetJSONUnMarshaler;
+    try
+      Result := Tcliente(FUnMarshal.UnMarshal(FgetClienteCommand.Parameters[1].Value.GetJSONValue(True)));
+      if FInstanceOwner then
+        FgetClienteCommand.FreeOnExecute(Result);
+    finally
+      FreeAndNil(FUnMarshal)
+    end
+  end
+  else
+    Result := nil;
+end;
+
 function TServerMethods1Client.EchoString(Value: string): string;
 begin
   if FEchoStringCommand = nil then
@@ -248,6 +278,7 @@ begin
   FReverseStringCommand.DisposeOf;
   FexecSqlCommand.DisposeOf;
   FsomaCommand.DisposeOf;
+  FgetClienteCommand.DisposeOf;
   FRecordCountProdutosIntegerCommand.DisposeOf;
   inherited;
 end;

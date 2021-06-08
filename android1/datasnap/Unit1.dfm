@@ -82,6 +82,9 @@ object Form1: TForm1
     TabOrder = 3
   end
   object TrayIcon1: TTrayIcon
+    Hint = 'Servidor ControlW'
+    BalloonHint = 'Servidor De Informa'#231#245'es'
+    BalloonTitle = 'Servidor ControlW'
     OnDblClick = TrayIcon1DblClick
     Left = 192
     Top = 88
@@ -123,5 +126,12 @@ object Form1: TForm1
     Connection = IBDatabase1
     Left = 152
     Top = 248
+  end
+  object Timer1: TTimer
+    Enabled = False
+    Interval = 3000
+    OnTimer = Timer1Timer
+    Left = 424
+    Top = 72
   end
 end
