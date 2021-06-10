@@ -132,6 +132,20 @@ begin
   IBQuery1.Close;
 end;
 
+function StrNum(const entra: string): string;
+var
+  cont : Integer;
+begin
+  Result := '';
+  for cont := 1 to length(entra) do
+  begin
+    if pos(entra[cont], '1234567890') > 0 then
+      Result := Result + entra[cont];
+  end;
+  if Result = '' then
+    Result := '0';
+end;
+
 function tform1.formataCNPJ(Const cnpj : String) : String;
 begin
   Result := '';
@@ -149,12 +163,13 @@ var
   cnpj : String;
 begin
   Result := 0;
-  cnpj := cliente.cnpj;
-  if (Pos('-', cnpj) = 0) or (Pos('\', cnpj) = 0) then
-    begin
-      cnpj := formataCNPJ(cnpj);
+  cnpj := StrNum(cliente.cnpj);
+  if Length(cnpj) = 11 then begin
+      cnpj := formataCPF(cnpj);
     end
-  else
+  else begin
+    cnpj := formataCNPJ(cnpj);
+  end;
 
   IBQuery1.Close;
   IBQuery1.SQL.Text := 'select cod, cnpj, nome from cliente where cnpj = :cnpj';
@@ -284,7 +299,7 @@ end;
 
 procedure TForm1.FormShow(Sender: TObject);
 begin
-  Timer1.Enabled := TRUE;
+    Timer1.Enabled := TRUE;
 end;
 
 procedure TForm1.Timer1Timer(Sender: TObject);

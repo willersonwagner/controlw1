@@ -111,6 +111,8 @@ type
     FDQuery2: TFDQuery;
     ImageViewer1: TImageViewer;
     GradientAnimation1: TGradientAnimation;
+    ListBoxItem15: TListBoxItem;
+    CheckBox1: TCheckBox;
     procedure FormShow(Sender: TObject);
     procedure ListBoxItem1Click(Sender: TObject);
     procedure SpeedButton1Click(Sender: TObject);
@@ -173,6 +175,8 @@ type
     procedure SincronizaçãoClick(Sender: TObject);
     procedure ListBoxItem3Click(Sender: TObject);
     procedure edit2KeyUp(Sender: TObject; var Key: Word; var KeyChar: Char;
+      Shift: TShiftState);
+    procedure Edit1KeyDown(Sender: TObject; var Key: Word; var KeyChar: Char;
       Shift: TShiftState);
   private
     FKBBounds: TRectF;
@@ -353,6 +357,9 @@ begin
        lista.listaVenda[i].codhis   := SQLQuery1.FieldByName('codhis').AsInteger;
        lista.listaVenda[i].cliente  := selecionaCliente(SQLQuery1.FieldByName('cliente').AsInteger);
 
+       if form1.CheckBox1.IsChecked then lista.listaVenda[i].imprime := 'S'
+       else lista.listaVenda[i].imprime := 'N';
+
        FDQuery2.Close;
        FDQuery2.SQL.Text := 'select nota, qtd, periodo, entrada, taxa, vencimento from parcelamento where nota = :nota ';
        FDQuery2.ParamByName('nota').AsInteger := lista.listaVenda[i].nota;
@@ -401,7 +408,7 @@ begin
       end;
 
      notas := proxy.insereVendas(lista, IntToStr(codUsuario) + ' - ' + NomeUsuario);
-     //marcaVendaExportada(notas);
+     marcaVendaExportada(notas);
   finally
     if fimVenda = false then begin
       ShowMessage('Sincronização efetuada com sucesso');
@@ -637,8 +644,6 @@ begin
   tamColVenda[2] := 15;
   tamColVenda[3] := 15;
   tamColVenda[4] := 15;
-  tamColVenda[5] := 15;
-  tamColVenda[6] := 15;
 
   tamColCliente[0] := 15;
   tamColCliente[1] := 45;
@@ -809,6 +814,19 @@ begin
   end;
 end;
 
+procedure TForm1.Edit1KeyDown(Sender: TObject; var Key: Word; var KeyChar: Char;
+  Shift: TShiftState);
+begin
+  if key = 13 then begin
+    Rectangle4.Visible := false;
+    Rectangle5.Visible := false;
+
+    form4.vendeItem(StrToCurrDef(edit1.Text, 1));
+    form4.Show;
+  end;
+
+end;
+
 procedure TForm1.edit2KeyUp(Sender: TObject; var Key: Word; var KeyChar: Char;
   Shift: TShiftState);
 begin
@@ -838,17 +856,23 @@ begin
   SQLQuery1.SQL.Add('select * from config order by cod');
   SQLQuery1.Open;
 
-  if not SQLQuery1.IsEmpty then
-    begin
+  while not SQLQuery1.Eof do begin
+    if SQLQuery1.FieldByName('cod').AsString = '0' then begin
       ClearingEdit1.Text := SQLQuery1.FieldByName('valor').AsString;
-      SQLQuery1.Next;
-
+    end
+    else if SQLQuery1.FieldByName('cod').AsString = '1' then begin
       ClearingEdit2.Text := SQLQuery1.FieldByName('valor').AsString;
-
-      SQLConnection1.Params.Values['HostName'] := ClearingEdit2.Text;
-      SQLConnection1.Params.Values['Port']     := ClearingEdit1.Text;
+    end
+    else if SQLQuery1.FieldByName('cod').AsString = '2' then begin
+      if SQLQuery1.FieldByName('valor').AsString = 'S' then CheckBox1.IsChecked := true
+      else CheckBox1.IsChecked := false;
     end;
 
+    SQLQuery1.Next;
+  end;
+
+ SQLConnection1.Params.Values['HostName'] := ClearingEdit2.Text;
+ SQLConnection1.Params.Values['Port']     := ClearingEdit1.Text;
 
  SQLQuery1.Close;
 end;
@@ -1181,6 +1205,12 @@ begin
 
       SQLQuery1.ParamByName('cod').AsInteger  := 1;
       SQLQuery1.ParamByName('valor').AsString := ClearingEdit2.Text;
+      SQLQuery1.ExecSQL();
+
+
+      SQLQuery1.ParamByName('cod').AsInteger  := 2;
+      if CheckBox1.IsChecked then SQLQuery1.ParamByName('valor').AsString := 'S'
+        else SQLQuery1.ParamByName('valor').AsString := 'N';
       SQLQuery1.ExecSQL();
 
       SQLConnection1.Params.Values['Port'] := ClearingEdit1.Text;

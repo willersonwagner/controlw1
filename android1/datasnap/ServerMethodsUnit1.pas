@@ -3,7 +3,7 @@ unit ServerMethodsUnit1;
 interface
 
 uses System.SysUtils, System.Classes, Datasnap.DSServer, Datasnap.DSAuth, unit1, DBXJSON,
- Data.DB, system.JSON, uclasses, dialogs;
+ Data.DB, system.JSON, uclasses, dialogs, shellapi, forms;
 
 type
 {$METHODINFO ON}
@@ -37,6 +37,7 @@ var
   ini, i, fimI, fimV, nota, cliente : integer;
   totPrest, totItemV, totItemC, entrada, total : currency;
   clienteNome : String;
+  notasImp : TStringList;
   const sqlVenda : String = 'insert into venda(nota, entrada, desconto, data, cliente, total, vendedor' +
   ', codhis, usuario, hora) values(:nota, :entrada, :desconto, :data, :cliente, :total, :vendedor, :codhis, :usuario, :hora)';
 begin
@@ -63,6 +64,8 @@ begin
   form1.IBTransaction1.StartTransaction;
 
   //ShowMessage('recCount = ' + IntToStr(fimV));
+
+  notasImp := TStringList.Create;
 
   for ini := 0 to fimV do
     begin
@@ -107,6 +110,11 @@ begin
               end;
             end;
         end;
+
+
+      if lista.listaVenda[ini].imprime = 'S' then notasImp.Add(IntToStr(nota));
+      //notasImp.Add(IntToStr(nota) + '=' + CurrToStr(lista.listaVenda[ini].total));
+
 
       form1.IBQuery1.SQL.Text := sqlVenda;
       form1.IBQuery1.Close;
@@ -174,6 +182,17 @@ begin
       end;
     end;
     form1.IBTransaction1.Commit;
+
+    if notasImp.Count > 0 then begin
+      notasimp.SaveToFile(ExtractFileDir(ParamStr(0)) + '\notas.imp');
+      notasimp.Free;
+
+      ShellExecute(Application.Handle,'open',pchar(ExtractFileDir(ParamStr(0)) + '\controlw.exe'),nil,nil,1);
+    end
+    else begin
+      notasimp.Free;
+    end;
+
 end;
 
 function TServerMethods1.getcliente(cnpj: string) : Tcliente;

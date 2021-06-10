@@ -50,6 +50,7 @@ type
     codhis   : integer;
     cliente  : Tcliente;
     parcelamento : tParcelamento;
+    imprime : char;
     itensV   : array of TItem_venda;
   end;
 

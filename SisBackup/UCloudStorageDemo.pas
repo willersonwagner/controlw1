@@ -360,7 +360,8 @@ begin
   Memo1.SelStart := Length(Memo1.Text);
   Application.ProcessMessages;
 
-  rdg := 1;
+  rdg := 1;//gdrive
+  rdg := 0;//dropbox
   ConnectBtnClick(self);
 
   Memo1.Lines.Add(FormatDateTime('hh:mm:ss', now) + ' Conectado com Sucesso!');
@@ -370,7 +371,6 @@ begin
   ci := nil;
   ci := buscaPastaGdrive('Backups', Storage.GetFolderListHierarchical(nil));
 
-
   ci_ant := buscaPastaGdrive(cnpj, Storage.GetFolderListHierarchical(ci));
   if ci_ant = nil then begin
     ci := Storage.CreateFolder(ci, cnpj);
@@ -379,6 +379,8 @@ begin
     ci := ci_ant;
   end;
 
+  pastaInicial := ci;
+
   ci_ant := buscaPastaGdrive(FormatDateTime('dddd', now), Storage.GetFolderListHierarchical(ci));
   if ci_ant = nil then begin
     ci := Storage.CreateFolder(ci, FormatDateTime('dddd', now));
@@ -386,8 +388,6 @@ begin
   else begin
     ci := ci_ant;
   end;
-
-  pastaInicial := ci;
 
   Memo1.Lines.Add(FormatDateTime('hh:mm:ss', now) + ' Estrutura de Pastas Criada!');
 
@@ -780,9 +780,25 @@ begin
 end;
 
 procedure TForm4.abrirPainel();
+var
+  i, b : integer;
+  ci : TTMSFMXCloudItem;
 begin
-  TMSFMXCloudTreeViewAdapter1.InitFolder(pastaInicial);
+  TMSFMXCloudTreeViewAdapter1.CloudStorage := Storage;
   TreeView1.Visible := true;
+
+  try
+    TMSFMXCloudTreeViewAdapter1.CloudStorage := Storage;
+
+
+    TMSFMXCloudTreeViewAdapter1.InitFolder(TMSFMXCloudDropBox1.Search('Backups', cnpj).Items[0]);
+    //TMSFMXCloudTreeViewAdapter1.InitFolder(Storage.SearchList(nil)));
+    TreeView1.Visible := true;
+  except
+    on e:exception do begin
+      Memo1.Lines.Add('ERRO 790 abrirPainel: '+e.Message);
+    end;
+  end;
 end;
 
 function TForm4.buscaRetornoSite(site, cnpj : String) : String;
@@ -995,8 +1011,6 @@ begin
   else begin
     ci := ci_ant;
   end;
-
-  pastaInicial := ci;
 
   ProgressBar2.Value := 0;
   ProgressBar2.Visible := true;

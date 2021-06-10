@@ -16,6 +16,7 @@ uses
   function dataInglesToBrasil(const data: String): string;
   function buscaPastaNFCe(const chave : String; abrir : boolean = true; pastaservidor : String = '') : String;
   function setPrinter(const indx : integer; ImpressoraNome : String = '') : String;
+  function setPrinterNOME(const indx : integer; ImpressoraNome : String = '') : String;
   function entraXMLeRetornaChave(ent: String): string;
   procedure LE_CAMPOS(var mat : TStringList;LIN : String;const separador : String; criaMAT : boolean = true);
   Function REMOVE_ACENTO(sENTRADA: String): String;
@@ -1145,6 +1146,35 @@ begin
 end;
 
 function setPrinter(const indx : integer; ImpressoraNome : String = '') : String;
+var
+  ini : integer;
+begin
+  try
+    Printers.SetPrinter(TPrinter.Create).Free;
+  except
+  end;
+
+  if printer.Printers.Count = 0 then exit;
+
+  if ImpressoraNome <> '' then begin
+    for ini := 0 to printer.Printers.Count -1 do begin
+      if ImpressoraNome = printer.Printers.Strings[ini] then begin
+        if printer.PrinterIndex <> ini then begin
+          printer.PrinterIndex := ini;
+        end;
+        exit;
+      end;
+    end;
+  end;
+
+  if printer.PrinterIndex <> indx then begin
+   printer.PrinterIndex := indx;
+  end;
+
+  Result := printer.Printers.Strings[indx];
+end;
+
+function setPrinterNOME(const indx : integer; ImpressoraNome : String = '') : String;
 var
   ini : integer;
 begin

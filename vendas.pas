@@ -9331,6 +9331,7 @@ var
 begin
 
   tipo := form22.Pgerais.Values['nota'];
+
   if tipo = 'B' then funcoes.imprimeVendaFortesA4(novocod, TIPO1)
   else begin
     ImprimeNota;

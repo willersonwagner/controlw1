@@ -128,9 +128,12 @@ begin
   Application.Initialize;
 
   form26:=tform26.Create(Application);
-  form26.Show;
-  form26.Label1.Caption := 'Carregando Formulário...';
-  form26.Update;
+
+  if funcoes.ImpVendaExec(true) = false then begin
+    form26.Show;
+    form26.Label1.Caption := 'Carregando Formulário...';
+    form26.Update;
+  end;
 
   Application.CreateForm(Tform22, form22);
   Application.CreateForm(Tfuncoes, funcoes);
@@ -153,6 +156,8 @@ begin
   //Application.CreateForm(TForm71, Form71);
   //Application.CreateForm(TForm69, Form69);
   //Application.CreateForm(TForm68, Form68);
+
+
   if ParamCount = 2 then
      begin
       dm.bd.DatabaseName := ParamStr(1) + ':' + ParamStr(2);
@@ -227,6 +232,12 @@ begin
 
   Form26.Update;
   form26.Close;
+
+  if funcoes.ImpVendaExec(false) then begin
+    Application.Terminate;
+    exit;
+  end;
+
 
    Try
      funcoes.VerificaVersao_do_bd; //atualizaBD

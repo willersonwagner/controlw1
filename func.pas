@@ -141,11 +141,13 @@ type
     enviandoCupom, enviandoBackup: boolean;
     fonteRelatorioForm19: integer;
     NegritoRelatorioForm19, saiComEnter: boolean;
+    function ImpVendaExec(verifica: boolean) : boolean;
+    function execSqlMostraErro(var qry : TIBQuery) : boolean;
     function VerificaDadosBasicosCliente(var cod : String) : boolean;
     procedure salvaRicheditForm19comoPDF;
     procedure enviaArquivoGdrive(arq : string);
     function ver_limites(CodUsu: string;AserAdicionadoNaContaDoClitente: currency): currency;
-    procedure imprimeVendaFortesA4(numVenda : String;venda : SmallInt = 1);
+    procedure imprimeVendaFortesA4(numVenda1 : String;venda : SmallInt = 1);
     procedure DownloadSincronizacaoDeEstoqueOnline;
     procedure sincronizacaoDeEstoqueOnline;
     procedure imprimeEnderecoEntregaCodEndereco(nota : String; codEndeEntrega : String);
@@ -8062,8 +8064,9 @@ begin
       dm.IBQuery1.SQL.text :=
         'update speddadosadic s set s.totdescnt = s.totdescnt + s.totdesc,' +
         's.totdesc = 0 where s.toticms_deson > 0 and s.totdesc > 0';
-      dm.IBQuery1.ExecSQL;
-    end;
+
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+  end;
   except
   end;
 
@@ -8072,13 +8075,13 @@ begin
     dm.IBQuery1.Close;
     dm.IBQuery1.SQL.text :=
       ('ALTER TABLE REGISTRO ' + 'ADD VERSAO1 NUMERIC(3, 2) DEFAULT 0 ');
-    dm.IBQuery1.ExecSQL;
+    if execSqlMostraErro(dm.IBQuery1) = false then exit;
     dm.IBQuery1.Close;
     dm.IBQuery1.Transaction.Commit;
 
     dm.IBQuery1.Close;
     dm.IBQuery1.SQL.text := 'update REGISTRO set VERSAO1 = 0';
-    dm.IBQuery1.ExecSQL;
+    if execSqlMostraErro(dm.IBQuery1) = false then exit;
     dm.IBQuery1.Transaction.Commit;
   end;
 
@@ -10932,7 +10935,7 @@ begin
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Clear;
       dm.IBQuery1.SQL.Add('ALTER TABLE venda alter RECEBIDO type NUMERIC(12, 2)');
-      dm.IBQuery1.ExecSQL;
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
       dm.IBQuery1.Transaction.Commit;
     end;
 
@@ -10940,7 +10943,7 @@ begin
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Clear;
       dm.IBQuery1.SQL.Add('ALTER TABLE venda ADD cliente_entrega smallint DEFAULT 0 ');
-      dm.IBQuery1.ExecSQL;
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
       dm.IBQuery1.Transaction.Commit;
     end;
 
@@ -10949,7 +10952,7 @@ begin
       dm.IBQuery1.SQL.Clear;
       dm.IBQuery1.SQL.Add
         ('alter table SERVICO alter TECNICO type VARCHAR(60)');
-      dm.IBQuery1.ExecSQL;
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
       dm.IBQuery1.Transaction.Commit;
     end;
 
@@ -10957,21 +10960,21 @@ begin
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Text := 'CREATE TABLE PAGAMENTOVENDA (COD INTEGER NOT NULL,NOTA INTEGER,' +
       'DATA DATE, FORMAPAGTO SMALLINT, VALOR NUMERIC(10,2))';
-      dm.IBQuery1.ExecSQL;
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
       dm.IBQuery1.Transaction.Commit;
 
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Text := 'alter table PAGAMENTOVENDA add constraint PK_PAGAMENTOVENDA primary key (COD)';
-      dm.IBQuery1.ExecSQL;
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
       dm.IBQuery1.Transaction.Commit;
 
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Text := 'CREATE SEQUENCE PAGAMENTOVENDA';
-      dm.IBQuery1.ExecSQL;
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
 
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Text := 'insert into FORMPAGTO(cod, nome, codgru) values(99, ''PAGAMENTO MISTO'', ''99'')';
-      dm.IBQuery1.ExecSQL;
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
       dm.IBQuery1.Transaction.Commit;
     end;
 
@@ -10980,7 +10983,7 @@ begin
       try
         dm.IBQuery1.Close;
         dm.IBQuery1.SQL.text := 'ALTER TABLE ACERTO DROP CONSTRAINT PK_ACERTO';
-        dm.IBQuery1.ExecSQL;
+        if execSqlMostraErro(dm.IBQuery1) = false then exit;
         dm.IBQuery1.Transaction.Commit;
       except
       end;
@@ -10989,7 +10992,7 @@ begin
         dm.IBQuery1.Close;
         dm.IBQuery1.SQL.text := 'alter table ACERTO add ACERTO_SEQ integer NOT NULL';
         //ALTER TABLE venda ADD cliente_entrega smallint DEFAULT 0 ');
-        dm.IBQuery1.ExecSQL;
+        if execSqlMostraErro(dm.IBQuery1) = false then exit;
         dm.IBQuery1.Transaction.Commit;
       except
       end;
@@ -10997,13 +11000,13 @@ begin
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.text := 'alter table ACERTO ' +
         'add constraint PK_ACERTO1 ' + 'primary key (ACERTO_SEQ)';
-      dm.IBQuery1.ExecSQL;
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
 
       try
         dm.IBQuery1.Close;
         dm.IBQuery1.SQL.Clear;
         dm.IBQuery1.SQL.Add('CREATE SEQUENCE ACERTO');
-        dm.IBQuery1.ExecSQL;
+        if execSqlMostraErro(dm.IBQuery1) = false then exit;
       except
       end;
 
@@ -11011,7 +11014,7 @@ begin
         dm.IBQuery1.Close;
         dm.IBQuery1.SQL.Clear;
         dm.IBQuery1.SQL.Add('CREATE SEQUENCE ACERTO_SEQ');
-        dm.IBQuery1.ExecSQL;
+        if execSqlMostraErro(dm.IBQuery1) = false then exit;
         dm.IBQuery1.Transaction.Commit;
       except
       end;
@@ -11020,24 +11023,24 @@ begin
     if NOT verSeExisteTabela('ENTREGA') then begin
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Text := 'CREATE TABLE ENTREGA ( COD INTEGER NOT NULL,CLIENTE VARCHAR(40),TELEFONE VARCHAR(25),ENDERECO VARCHAR(40),OBS VARCHAR(40)) ';
-      dm.IBQuery1.ExecSQL;
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
       dm.IBQuery1.Transaction.Commit;
 
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Text := 'alter table ENTREGA add constraint PK_ENTREGA primary key (COD)';
-      dm.IBQuery1.ExecSQL;
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
       dm.IBQuery1.Transaction.Commit;
 
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Text := 'CREATE SEQUENCE ENTREGA';
-      dm.IBQuery1.ExecSQL;
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
     end;
 
     if not VerificaCampoTabela('ENDE_ENTREGA', 'venda') then begin
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Clear;
       dm.IBQuery1.SQL.Add('ALTER TABLE venda ADD ENDE_ENTREGA INTEGER DEFAULT 0 ');
-      dm.IBQuery1.ExecSQL;
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
       dm.IBQuery1.Transaction.Commit;
     end;
 
@@ -11046,7 +11049,7 @@ begin
       dm.IBQuery1.SQL.Clear;
       dm.IBQuery1.SQL.Add
         ('alter table CLIENTE alter EMAIL type VARCHAR(60)');
-      dm.IBQuery1.ExecSQL;
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
       dm.IBQuery1.Transaction.Commit;
     end;
 
@@ -11054,9 +11057,10 @@ begin
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Clear;
       dm.IBQuery1.SQL.Add('ALTER TABLE registro ADD cnpj_sinc varchar(20)');
-      dm.IBQuery1.ExecSQL;
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
       dm.IBQuery1.Transaction.Commit;
     end;
+
 
     {if retornaEscalaDoCampo('p_compra', 'ITEM_entrada') <> 10 then
     begin
@@ -11071,7 +11075,7 @@ begin
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Clear;
       dm.IBQuery1.SQL.Add('ALTER TABLE produto ADD desativado varchar(1)');
-      dm.IBQuery1.ExecSQL;
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
       dm.IBQuery1.Transaction.Commit;
     end;
 
@@ -11079,7 +11083,7 @@ begin
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Clear;
       dm.IBQuery1.SQL.Add('ALTER TABLE venda ADD data_canc timestamp');
-      dm.IBQuery1.ExecSQL;
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
       dm.IBQuery1.Transaction.Commit;
     end;
 
@@ -11087,7 +11091,7 @@ begin
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Clear;
       dm.IBQuery1.SQL.Add('ALTER TABLE orcamento ADD nome varchar(30)');
-      dm.IBQuery1.ExecSQL;
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
       dm.IBQuery1.Transaction.Commit;
     end;
 
@@ -11097,7 +11101,7 @@ begin
       dm.IBQuery1.SQL.Clear;
       dm.IBQuery1.SQL.Add
         ('update RDB$FIELDS set RDB$FIELD_SCALE = -10 where RDB$FIELD_NAME = ''RDB$491'' ');
-      dm.IBQuery1.ExecSQL;
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
     end;
 
     if retornaEscalaDoCampo('quant', 'ITEM_entrada') <> 10 then begin
@@ -11105,25 +11109,26 @@ begin
       dm.IBQuery1.SQL.Clear;
       dm.IBQuery1.SQL.Add
         ('update RDB$FIELDS set RDB$FIELD_SCALE = -10 where RDB$FIELD_NAME = ''RDB$492'' ');
-      dm.IBQuery1.ExecSQL;
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
     end;
 
     if NOT verSeExisteTabela('ENTREGA_NOVO') then begin
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Text := 'CREATE TABLE ENTREGA_NOVO (COD INTEGER NOT NULL, NUMVENDA INTEGER, DATAVENDA DATE,USUARIO_INCLUIU SMALLINT,USUARIO_BAIXA SMALLINT,'+
       'DATA_ENTREGA TIMESTAMP)';
-      dm.IBQuery1.ExecSQL;
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
       dm.IBQuery1.Transaction.Commit;
 
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Text := 'alter table ENTREGA_NOVO add constraint PK_ENTREGA_NOVO primary key (COD)';
-      dm.IBQuery1.ExecSQL;
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
       dm.IBQuery1.Transaction.Commit;
 
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Text := 'CREATE SEQUENCE ENTREGA_NOVO';
-      dm.IBQuery1.ExecSQL;
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
     end;
+
 
     if not VerSeExisteTRIGGERPeloNome('ALTERA_CAIXA_VENDA_AVISTA') then begin
       //dm.IBScript1.Close;
@@ -11138,7 +11143,13 @@ begin
       ' update caixa set entrada = entrada + :valor where codmov = :codmov; end else begin ' +
       ' insert into caixa(formpagto,codgru,codmov,codhis,data,datamov,historico,entrada) values(new.codhis ,1, gen_id(movcaixa, 1) ,1,cast(new.data as date) + cast(current_time as time),new.data,''VENDAS DO DIA A VISTA'',:valor); '+
       ' END end end;');
-      dm.IBScript1.ExecuteScript;
+      try
+        dm.IBScript1.ExecuteScript;
+      except
+        on e:exception do begin
+          ShowMessage('Erro 11146: ' + e.Message);
+        end;
+      end;
       //dm.IBQuery1.Transaction.Commit;
     end;
 
@@ -11148,7 +11159,7 @@ begin
       dm.IBQuery1.SQL.Clear;
       dm.IBQuery1.SQL.Add
         ('ALTER TABLE CONTASRECEBER ADD ult_usu_alterado smallint');
-      dm.IBQuery1.ExecSQL;
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
     end;
 
     if not VerificaCampoTabela('HORA', 'CONT_ENTREGA') then begin
@@ -11156,7 +11167,7 @@ begin
       dm.IBQuery1.SQL.Clear;
       dm.IBQuery1.SQL.Add
         ('ALTER TABLE CONT_ENTREGA ADD HORA TIME');
-      dm.IBQuery1.ExecSQL;
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
     end;
 
     if retornaEscalaDoCampo('quant', 'ITEM_venda') <> 6 then begin
@@ -11164,7 +11175,7 @@ begin
       dm.IBQuery1.SQL.Clear;
       dm.IBQuery1.SQL.Add
         ('update RDB$FIELDS set RDB$FIELD_SCALE = -6 where RDB$FIELD_NAME = ''RDB$440''');
-      dm.IBQuery1.ExecSQL;
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
     end;
 
     if not VerificaCampoTabela('TAXA', 'ENTREGA') then begin
@@ -11172,7 +11183,7 @@ begin
       dm.IBQuery1.SQL.Clear;
       dm.IBQuery1.SQL.Add
         ('ALTER TABLE ENTREGA ADD TAXA NUMERIC(10,2)');
-      dm.IBQuery1.ExecSQL;
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
     end;
 
     if not VerificaCampoTabela('CPF', 'REGISTRO') then begin
@@ -11180,7 +11191,7 @@ begin
       dm.IBQuery1.SQL.Clear;
       dm.IBQuery1.SQL.Add
         ('ALTER TABLE REGISTRO ADD CPF VARCHAR(14)');
-      dm.IBQuery1.ExecSQL;
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
     end;
 
     if NOT verSeExisteTabela('PARCELAMENTO') then
@@ -11189,17 +11200,18 @@ begin
       dm.IBQuery1.SQL.text := 'CREATE TABLE PARCELAMENTO (' +
         'COD INTEGER NOT NULL, NOTA INTEGER, TOTAL NUMERIC(12,2), VALOR_PARC NUMERIC(10,2),'+
         ' QTD_PARC NUMERIC(10,2), JUROS NUMERIC(10,2), PERIODO SMALLINT,PRIMEIRO_VENC DATE, ENTRADA NUMERIC(10,2))';
-      dm.IBQuery1.ExecSQL;
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
       dm.IBQuery1.Transaction.Commit;
 
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.text := 'alter table PARCELAMENTO add constraint PK_PARCELAMENTO primary key (COD)';
-      dm.IBQuery1.ExecSQL;
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
 
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.text := 'create sequence PARCELAMENTO ';
-      dm.IBQuery1.ExecSQL;
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
     end;
+
 
 
     if not VerificaCampoTabela('sinc', 'nfce') then begin
@@ -11208,12 +11220,13 @@ begin
       dm.IBQuery1.SQL.Add
         ('ALTER TABLE nfce ADD sinc VARCHAR(1)');
       dm.IBQuery1.ExecSQL;
-      dm.IBQuery1.Transaction.Commit;
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
 
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Text := ('update nfce set sinc = ''1'' where data <= dateadd(month,-3, current_date)');
-      dm.IBQuery1.ExecSQL;
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
     end;
+
 
     //VerificaVersao_do_bd
 
@@ -11225,7 +11238,9 @@ begin
   pger.Free;
 
   atualizaMSGsObsVenda;
+
   funcoes.verificaProdutosDuplicados;
+
 
   DeleteFile(caminhoEXE_com_barra_no_final + 'bd0.fdb');
   DeleteFile(caminhoEXE_com_barra_no_final + 'exec.bat');
@@ -27734,6 +27749,7 @@ begin
   end;
 
   for ini := 0 to lista.Count -1 do begin
+    if contido('firebird', lista[ini]) = false then begin
     arq := TStringList.Create;
     arq.LoadFromFile(caminhoEXE_com_barra_no_final + lista[ini]);
 
@@ -27748,6 +27764,7 @@ begin
     arq.Free;
 
     DeleteFile(caminhoEXE_com_barra_no_final + lista[ini]);
+    end;
   end;
 end;
 
@@ -29259,12 +29276,13 @@ begin
   end;
 end;
 
-procedure Tfuncoes.imprimeVendaFortesA4(numVenda : String;venda : SmallInt = 1);
+procedure Tfuncoes.imprimeVendaFortesA4(numVenda1 : String;venda : SmallInt = 1);
 var
-  cliente, preview, nomevol, vendedor, entrada : String;
+  cliente, preview, nomevol, vendedor, entrada, nomeImp : String;
   arq : TStringList;
   fracao, sub : Double;
   fontHeight : integer;
+  printDialog : boolean;
 begin
   dm.IBselect.Close;
   dm.IBselect.SQL.Text := 'select * from registro';
@@ -29278,18 +29296,18 @@ begin
   imprime1.imprime.RLLabel41.Caption := 'IE: ' + dm.IBselect.FieldByName('ies').AsString;
 
   if venda = 1 then begin
-    imprime1.imprime.RLLabel34.Caption := 'Pedido Nr: ' + numVenda;
+    imprime1.imprime.RLLabel34.Caption := 'Pedido Nr: ' + numVenda1;
     imprime1.imprime.RLLabel35.Caption := 'PEDIDO DE VENDA';
   end
   else if venda = 2 then begin
-    imprime1.imprime.RLLabel34.Caption := 'Orçamento Nr: ' + numVenda;
+    imprime1.imprime.RLLabel34.Caption := 'Orçamento Nr: ' + numVenda1;
     imprime1.imprime.RLLabel35.Caption := 'PEDIDO DE ORÇAMENTO';
   end;
 
   if venda = 1 then begin
     dm.IBselect.Close;
     dm.IBselect.SQL.Text := 'select v.codhis, v.entrada, p.nome, v.total, v.desconto, v.cliente, v.vendedor, ve.nome as vendedornome from venda v ' +
-    ' left join formpagto p on (p.cod = v.codhis) join vendedor ve on (v.vendedor = ve.cod) where nota = ' + numVenda;
+    ' left join formpagto p on (p.cod = v.codhis)left join vendedor ve on (v.vendedor = ve.cod) where nota = ' + numVenda1;
     dm.IBselect.Open;
 
     entrada := formataCurrency(dm.IBselect.FieldByName('entrada').AsCurrency);
@@ -29297,7 +29315,7 @@ begin
   else if venda = 2 then begin
     dm.IBselect.Close;
     dm.IBselect.SQL.Text := 'select v.codhis, p.nome, v.total, v.desconto, v.cliente, v.vendedor, ve.nome as vendedornome from orcamento v ' +
-    ' left join formpagto p on (p.cod = v.codhis) join vendedor ve on (v.vendedor = ve.cod) where v.nota = ' + numVenda;
+    ' left join formpagto p on (p.cod = v.codhis)left join vendedor ve on (v.vendedor = ve.cod) where v.nota = ' + numVenda1;
     dm.IBselect.Open;
   end;
 
@@ -29310,7 +29328,6 @@ begin
   imprime1.imprime.rltotal.Caption    := formataCurrency(dm.IBselect.FieldByName('total').AsCurrency);
 
   imprime1.imprime.RLLabel42.Caption := 'Form. Pagto: ' + dm.IBselect.FieldByName('codhis').AsString + '-' + dm.IBselect.FieldByName('nome').AsString;
-
 
   if cliente = '0' then begin
     imprime1.imprime.RLBand18.Visible := false;
@@ -29336,10 +29353,13 @@ begin
     //imprime1.imprime.RLImage1.Width   := 745;
   end;
 
+  printDialog := true;
+
   if FileExists(caminhoEXE_com_barra_no_final + 'configPed.dat') then begin
     arq := TStringList.Create;
     arq.LoadFromFile(caminhoEXE_com_barra_no_final + 'configPed.dat');
     preview := arq.Values['p'];
+    if arq.Values['pd'] = 'N' then printDialog := false;
     if trim(preview) = '' then preview := 'S';
 
     imprime1.imprime.pedidoVendaA4.Margins.LeftMargin := StrToIntDef(arq.Values['l'], 2);
@@ -29349,14 +29369,16 @@ begin
     preview := 'S';
   end;
 
+  imprime1.imprime.pedidoVendaA4.PrintDialog := printDialog;
+
   if venda = 1 then begin
     dm.IBQuery2.close;
-    dm.IBQuery2.sql.Text := 'select * from item_venda where nota = '+ numVenda;
+    dm.IBQuery2.sql.Text := 'select * from item_venda where nota = '+ numVenda1;
     dm.IBQuery2.Open;
   end
   else if venda = 2 then begin
     dm.IBQuery2.close;
-    dm.IBQuery2.sql.Text := 'select * from item_orcamento where nota = '+ numVenda;
+    dm.IBQuery2.sql.Text := 'select * from item_orcamento where nota = '+ numVenda1;
     dm.IBQuery2.Open;
   end;
 
@@ -29393,7 +29415,7 @@ begin
     dm.ProdutoQY.SQL.Clear;
     dm.ProdutoQY.SQL.Add('select i.cod, v.codhis, v.hora, i.data, i.quant, i.total, p.nome, p.unid, i.p_venda, v.total, v.desconto from item_venda i ' +
     ' left join produto p on (p.cod = i.cod) left join venda v on (i.nota = v.nota) where i.nota = :nota' );
-    dm.ProdutoQY.ParamByName('nota').AsString := numVenda;
+    dm.ProdutoQY.ParamByName('nota').AsString := numVenda1;
     dm.ProdutoQY.Open;
   end
   else if venda = 2 then begin
@@ -29401,7 +29423,7 @@ begin
     dm.ProdutoQY.SQL.Clear;
     dm.ProdutoQY.SQL.Add('select i.cod, v.codhis, current_time as hora, v.data, i.quant, i.total, p.nome, p.unid, i.p_venda, v.total, v.desconto from item_orcamento i ' +
     ' left join produto p on (p.cod = i.cod) left join orcamento v on (i.nota = v.nota) where i.nota = :nota' );
-    dm.ProdutoQY.ParamByName('nota').AsString := numVenda;
+    dm.ProdutoQY.ParamByName('nota').AsString := numVenda1;
     dm.ProdutoQY.Open;
   end;
 
@@ -29424,8 +29446,8 @@ begin
   //else if venda = 2 then imprime1.imprime.RLLabel37.Caption := FormatDateTime('hh:mm:ss', now);
 
   form19.RichEdit1.Clear;
-  if ExisteParcelamento(numVenda) then begin
-    funcoes.ImprimeParcelamento('','',entrada, numVenda);
+  if ExisteParcelamento(numVenda1) then begin
+    funcoes.ImprimeParcelamento('','',entrada, numVenda1);
     imprime1.imprime.RLMemo6.Lines := form19.RichEdit1.Lines;
 
     fontHeight := Abs(imprime1.imprime.RLMemo6.Font.Height);
@@ -29439,6 +29461,16 @@ begin
   end;
 
   imprime1.imprime.DataSource1.DataSet := dm.ProdutoQY;
+
+  try
+    nomeImp := funcoes.LerConfig(form22.Pgerais.Values['imp'], 15);
+    //printer.PrinterIndex := StrToIntDef(funcoes.LerConfig(form22.Pgerais.Values['imp'], 0), 0);
+    setPrinterNOME(StrToIntDef(funcoes.LerConfig(form22.Pgerais.Values['imp'], 0), 0), nomeImp);
+    //setPrinter(StrToIntDef(funcoes.LerConfig(form22.Pgerais.Values['imp'], 0), 0), nomeImp);
+  except
+
+  end;
+
   // imprime1.imprime.RLReport2.PrintDialog := false;
   if preview = 'S' then begin
     imprime1.imprime.pedidoVendaA4.PreviewModal;
@@ -29740,6 +29772,69 @@ begin
 
   Result := true;
   query1.Close;
+end;
+
+function Tfuncoes.execSqlMostraErro(var qry : TIBQuery) : boolean;
+begin
+  Result := false;
+  try
+    qry.ExecSQL;
+    Result := true;
+  except
+    on e:exception do begin
+      ShowMessage('Ocorreu Um Erro de SQL: ' + e.Message + #13 +#13 + qry.SQL.Text);
+    end;
+  end;
+end;
+
+function Tfuncoes.ImpVendaExec(verifica: boolean) : boolean;
+var
+  arq : TStringList;
+  i : integer;
+  tipo, tab, nota, arquivo : string;
+begin
+  Result := false;
+
+  arquivo := ExtractFileDir(ParamStr(0)) + '/notas.imp';
+  if FileExists(arquivo) = false then begin
+   exit;
+  end
+  else begin
+    Result := true;
+    if verifica then exit;
+    arq := TStringList.Create;
+    arq.LoadFromFile(arquivo);
+  end;
+
+  try
+    form22.Pgerais := funcoes.GerarPgeraisList('0'); // gera os parametros gerais referente ao usuario
+    geraPgerais;
+  except
+    on e:exception do begin
+      //ShowMessage('1='+e.Message);
+    end;
+  end;
+
+  try
+  tab := '1';
+  for I := 0 to arq.Count -1 do begin
+    nota := arq[i];
+    tipo := form22.Pgerais.Values['nota'];
+    if ((tipo = 'B') and ((tab = '1')or (tab = '2'))) then begin
+      funcoes.imprimeVendaFortesA4(nota, 1);
+    end
+    else begin
+      funcoes.GeraNota(nota, tipo, 'S', StrToInt(tab));
+    end;
+  end;
+  except
+    on e:exception do begin
+      //ShowMessage('2='+e.Message);
+    end;
+  end;
+
+  arq.Free;
+  DeleteFile(arquivo);
 end;
 
 

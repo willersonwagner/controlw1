@@ -9,7 +9,7 @@ uses
   Data.Bind.EngExt, Fmx.Bind.DBEngExt, Fmx.Bind.Grid, System.Bindings.Outputs,
   Fmx.Bind.Editors, Data.Bind.Components, Data.Bind.Grid, Data.Bind.DBScope,
   FMX.TabControl, FMX.ListBox, FMX.DateTimeCtrls, FMX.Edit, FMX.Grid.Style,
-  FMX.ScrollBox, FMX.Controls.Presentation, FMX.Objects;
+  FMX.ScrollBox, FMX.Controls.Presentation, FMX.Objects, fmx.consts;
 
 type
   TForm4 = class(TForm)
@@ -87,12 +87,13 @@ type
     procedure SpeedButton2DblClick(Sender: TObject);
     procedure ClientDataSet1AfterOpen(DataSet: TDataSet);
   private
-    total, desconto : currency;
+    total, desconto : Extended;
     codhis : String;
     temParcelamento : boolean;
     nota, qtd : integer;
     entrada1, taxa1 : currency;
     vencimento : TDateTime;
+    procedure gridVendaDblClick(Sender: TObject);
     function  SomaProdutosVenda() : currency;
     function  gravaVenda() : boolean;
     function gravaParcelamento : boolean;
@@ -312,6 +313,8 @@ procedure TForm4.FormCreate(Sender: TObject);
 begin
   if not ClientDataSet1.Active then ClientDataSet1.CreateDataSet;
   codCliente := -1;
+
+  gridVenda.OnDblClick := gridVendaDblClick;
 end;
 
 procedure TForm4.FormShow(Sender: TObject);
@@ -343,7 +346,6 @@ begin
   nota := form1.valor_sequencia('venda') + 1;
 
   form1.SQLQuery1.Transaction.StartTransaction;
-  total    := StrToCurrDef(ClientDataSet1tot_geral.AsString, 0);
   desconto := 0;
   codhis   := copy(ListBoxFormPagtos.Selected.Text, 1, pos(' ', ListBoxFormPagtos.Selected.Text) -1);
 
@@ -409,8 +411,28 @@ end;
 
 procedure TForm4.gridVendaResize(Sender: TObject);
 begin
-  //form1.redimensionaColunasStringGrid(gridVenda);
+  if ClientDataSet1.Active then begin
+
+    form1.redimensionaColunasStringGrid(gridVenda);
+  end;
 end;
+
+procedure TForm4.gridVendaDblClick(Sender: TObject);
+begin
+  inherited;
+  {$IFDEF WIN32}
+    if MessageDlg('Deseja Excluir '+ ClientDataSet1Nome.AsString +'?',TMsgDlgType.mtConfirmation, fmx.Dialogs.mbYesNo, 0) = mrYes then
+        begin
+          ClientDataSet1.Delete;
+          ClientDataSet1.Close;
+          ClientDataSet1.Open;
+
+          SomaProdutosVenda();
+          form1.redimensionaColunasStringGrid(gridVenda);
+        end;
+  {$ENDIF}
+end;
+
 
 function tform4.SomaProdutosVenda() : currency;
 begin

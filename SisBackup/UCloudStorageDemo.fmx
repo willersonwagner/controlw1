@@ -346,8 +346,8 @@ object Form4: TForm4
   end
   object TMSFMXCloudDropBox1: TTMSFMXCloudDropBox
     Agent = 'Mozilla/5.001 (windows; U; NT4.0; en-US; rv:1.0) Gecko/25250101'
-    App.CallBackURL = 'https://127.0.01'
-    App.CallBackPort = 80
+    App.CallBackURL = 'http://127.0.0.1:8888'
+    App.CallBackPort = 8888
     PersistTokens.Location = plIniFile
     PersistTokens.Section = 'TOKENS'
     PersistTokens.Key = '.\DTOKENS.INI'
@@ -360,8 +360,9 @@ object Form4: TForm4
     AuthFormSettings.Width = 900
     AuthFormSettings.Height = 600
     OnAuthFormClose = TMSFMXCloudDropBox1AuthFormClose
-    Left = 416
-    Top = 504
+    UploadMode = umOverwrite
+    Left = 96
+    Top = 240
   end
   object TMSFMXCloudBoxNetDrive1: TTMSFMXCloudBoxNetDrive
     Agent = 'Mozilla/5.001 (windows; U; NT4.0; en-US; rv:1.0) Gecko/25250101'

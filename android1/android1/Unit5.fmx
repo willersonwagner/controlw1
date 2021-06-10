@@ -413,6 +413,7 @@ inherited Form5: TForm5
         Size.PlatformDefault = False
         TabOrder = 2
         object Button4: TButton
+          Align = Left
           Size.Width = 48.000000000000000000
           Size.Height = 48.000000000000000000
           Size.PlatformDefault = False

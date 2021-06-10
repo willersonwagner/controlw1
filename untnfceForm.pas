@@ -1915,6 +1915,9 @@ begin
         strnum(query1.fieldbyname('telres').AsString);
       dadosDest.Values['cid'] := trim(query1.fieldbyname('cid').AsString);
       dadosDest.Values['ies'] := trim(query1.fieldbyname('ies').AsString);
+
+      if dadosDest.Values['est'] = '' then dadosDest.Values['est'] := dadosEmitente.Values['est'];
+      if dadosDest.Values['cid'] = '' then dadosDest.Values['cid'] := dadosEmitente.Values['cid'];
     end;
   end
   else

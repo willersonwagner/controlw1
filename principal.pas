@@ -119,6 +119,10 @@ Try
   temp := temp + 'usuario: ' + form22.usuario + #13 + #10;
   temp := temp + 'Erro: ' + s + #13 + #10;
   temp := temp + 'Método: '+ Screen.ActiveControl.MethodName(nil) + #13 + #10;
+
+  if Screen.ActiveControl.MethodName(nil) = '' then
+
+
   temp := temp + '---------------------------------------------------------------'+ #13+#10;
   Writeln(F,temp);
   CloseFile(F);
