@@ -193,7 +193,6 @@ type
     procedure RestorePosition;
     procedure UpdateKBBounds;
     procedure Alinhamento_dos_Cabecalhos;
-    function sincronizaEstoque() : boolean;
     procedure lerInformacoesServidor();
     function pergunta(const capt : string) : boolean;
     procedure visualizaAguarda(const capt : string);
@@ -1027,10 +1026,6 @@ begin
   // o formulario de confgurações
 end;
 
-function TForm1.sincronizaEstoque() : boolean;
-begin
-
-end;
 
 procedure TForm1.SincronizaçãoClick(Sender: TObject);
 begin

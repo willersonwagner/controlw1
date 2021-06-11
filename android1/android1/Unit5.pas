@@ -99,11 +99,11 @@ type
     procedure selecionaCliente(const cod1: integer);
     procedure procurarCliente(const nom: String);
     procedure digitaCPF(const textoComp : String; const Tchar : char);
-    function MsgBox(const AMessage: string; const ADialogType: TMsgDlgType; const AButtons: TMsgDlgButtons;const ADefaultButton: TMsgDlgBtn ): Integer;
     procedure buscaCliente;
     { Private declarations }
   public
     cod : integer;
+    function MsgBox(const AMessage: string; const ADialogType: TMsgDlgType; const AButtons: TMsgDlgButtons;const ADefaultButton: TMsgDlgBtn ): Integer;
     const sql : String = 'select cod, nome, cnpj, telres, ende from cliente';
     procedure visibleFalseBotoes(const visi : boolean);
     { Public declarations }

@@ -39,7 +39,7 @@ var
   clienteNome : String;
   notasImp : TStringList;
   const sqlVenda : String = 'insert into venda(nota, entrada, desconto, data, cliente, total, vendedor' +
-  ', codhis, usuario, hora) values(:nota, :entrada, :desconto, :data, :cliente, :total, :vendedor, :codhis, :usuario, :hora)';
+  ', codhis, usuario, hora, datamov, tipo) values(:nota, :entrada, :desconto, :data, :cliente, :total, :vendedor, :codhis, :usuario, :hora, :datamov, ''V'')';
 begin
   Result := '';
   form1.adicionaMemo('Serviço: Sincronização de Vendas');
@@ -119,7 +119,7 @@ begin
       form1.IBQuery1.SQL.Text := sqlVenda;
       form1.IBQuery1.Close;
       form1.IBQuery1.ParamByName('nota').AsInteger      := nota;
-      form1.IBQuery1.ParamByName('entrada').AsCurrency    := entrada;
+      form1.IBQuery1.ParamByName('entrada').AsCurrency  := entrada;
       form1.IBQuery1.ParamByName('desconto').AsCurrency := lista.listaVenda[ini].desconto;
       form1.IBQuery1.ParamByName('data').AsDate         := lista.listaVenda[ini].data;
       form1.IBQuery1.ParamByName('cliente').AsInteger   := cliente;
@@ -128,6 +128,7 @@ begin
       form1.IBQuery1.ParamByName('codhis').AsInteger    := lista.listaVenda[ini].codhis;
       form1.IBQuery1.ParamByName('usuario').AsInteger   := lista.listaVenda[ini].usuario;
       form1.IBQuery1.ParamByName('hora').AsTime         := lista.listaVenda[ini].data;
+      form1.IBQuery1.ParamByName('datamov').AsTime      := lista.listaVenda[ini].data;
       try
         form1.IBQuery1.ExecSQL;
       except

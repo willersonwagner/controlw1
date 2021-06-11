@@ -90,7 +90,6 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
     Height = 582
     Align = alClient
     TabOrder = 2
-    ExplicitHeight = 559
   end
   object PageControl3: TPageControl
     Left = 0
@@ -101,11 +100,9 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
     Align = alClient
     MultiLine = True
     TabOrder = 0
-    ExplicitHeight = 577
     object TabSheet4: TTabSheet
       Caption = 'Geral'
       ImageIndex = 1
-      ExplicitHeight = 531
       object GroupBox6: TGroupBox
         Left = 0
         Top = 0
@@ -114,7 +111,6 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
         Align = alClient
         Caption = 'Geral'
         TabOrder = 0
-        ExplicitHeight = 531
         object Label15: TLabel
           Left = 8
           Top = 217
@@ -320,7 +316,6 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
     end
     object TabSheet3: TTabSheet
       Caption = 'Certificado'
-      ExplicitHeight = 531
       object GroupBox3: TGroupBox
         Left = 0
         Top = 0
@@ -329,7 +324,6 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
         Align = alClient
         Caption = 'Certificado'
         TabOrder = 0
-        ExplicitHeight = 531
         object Label13: TLabel
           Left = 8
           Top = 16
@@ -448,7 +442,6 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
     object TabSheet5: TTabSheet
       Caption = 'WebService'
       ImageIndex = 2
-      ExplicitHeight = 531
       object GroupBox7: TGroupBox
         Left = 0
         Top = 0
@@ -565,7 +558,6 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
         Align = alClient
         Caption = 'Proxy'
         TabOrder = 1
-        ExplicitHeight = 390
         object Label17: TLabel
           Left = 8
           Top = 16
@@ -628,7 +620,6 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
     object TabSheet7: TTabSheet
       Caption = 'Email'
       ImageIndex = 4
-      ExplicitHeight = 531
       object GroupBox9: TGroupBox
         Left = 0
         Top = 0
@@ -637,7 +628,6 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
         Align = alClient
         Caption = 'Email'
         TabOrder = 0
-        ExplicitHeight = 531
         object Label38: TLabel
           Left = 8
           Top = 16
@@ -743,7 +733,6 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
     object TabSheet1: TTabSheet
       Caption = 'Par'#226'metros'
       ImageIndex = 4
-      ExplicitHeight = 531
       object GroupBox1: TGroupBox
         Left = 0
         Top = 0
@@ -752,7 +741,6 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
         Align = alClient
         Caption = 'Valores Padr'#227'o'
         TabOrder = 0
-        ExplicitHeight = 531
         object Label4: TLabel
           Left = 25
           Top = 35
@@ -800,7 +788,6 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
     object TabSheet2: TTabSheet
       Caption = 'Impress'#227'o'
       ImageIndex = 5
-      ExplicitHeight = 531
       object Label6: TLabel
         Left = 16
         Top = 8
@@ -849,6 +836,13 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
         Width = 101
         Height = 13
         Caption = 'Espaco Entre Linhas:'
+      end
+      object Label45: TLabel
+        Left = 303
+        Top = 102
+        Width = 64
+        Height = 13
+        Caption = 'Espaco Final:'
       end
       object IndxImpCupom: TComboBox
         Left = 16
@@ -1186,11 +1180,17 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
           TabOrder = 3
         end
       end
+      object espacoFinal: TEdit
+        Left = 303
+        Top = 118
+        Width = 58
+        Height = 21
+        TabOrder = 14
+      end
     end
     object TabSheet6: TTabSheet
       Caption = 'Conex'#227'o'
       ImageIndex = 6
-      ExplicitHeight = 531
       object Label11: TLabel
         Left = 8
         Top = 72

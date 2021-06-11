@@ -2636,8 +2636,8 @@ begin
       DANFEEscPos.PosPrinter.modelo := TACBrPosPrinterModelo(tipoImp);
       DANFEEscPos.PosPrinter.Device.Baud :=
         StrToIntDef(ini.ReadString('SERVER', 'velocidade', '9600'), 9600);
-      DANFEEscPos.PosPrinter.EspacoEntreLinhas :=
-        StrToIntDef(ini.ReadString('SERVER', 'espacoEntreLinhas', '50'), 50);
+      DANFEEscPos.PosPrinter.EspacoEntreLinhas := StrToIntDef(ini.ReadString('SERVER', 'espacoEntreLinhas', '50'), 50);
+      DANFEEscPos.EspacoFinal := StrToIntDef(ini.ReadString('SERVER', 'espacoFinal', '38'), 38);
 
       if DANFEEscPos.PosPrinter.modelo = ppEscPosEpson then
       begin

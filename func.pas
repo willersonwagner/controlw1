@@ -22555,10 +22555,18 @@ begin
     funcoes.Mensagem(Application.Title, '', 15, '',False, 0, clBlack, true);
   end;
 
+  //ShowMessage(retorno);
+
   if Contido('|BLOQUEADO|', retorno) then begin
     cont := 15;
-    if form58.Showing = false then
-    funcoes.adicionaRegistroDataBloqueio(false, true, cont,query1, true);
+    //if form58.Showing = false then begin
+      //ShowMessage('1');
+      try
+        funcoes.adicionaRegistroDataBloqueio(false, true, cont,query1, true);
+      except
+
+      end;
+    //end;
   end;
 
   if Contido('|DESBLOQUEADO|', retorno) then begin

@@ -164,12 +164,14 @@ var
 begin
   Result := 0;
   cnpj := StrNum(cliente.cnpj);
+
   if Length(cnpj) = 11 then begin
       cnpj := formataCPF(cnpj);
     end
   else begin
     cnpj := formataCNPJ(cnpj);
   end;
+
 
   IBQuery1.Close;
   IBQuery1.SQL.Text := 'select cod, cnpj, nome from cliente where cnpj = :cnpj';
@@ -180,6 +182,7 @@ begin
     begin
       nome   := IBQuery1.FieldByName('nome').AsString;
       Result := IBQuery1.FieldByName('cod').AsInteger;
+
       IBQuery1.Close;
       exit;
     end;

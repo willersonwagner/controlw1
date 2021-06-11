@@ -784,15 +784,17 @@ var
   i, b : integer;
   ci : TTMSFMXCloudItem;
 begin
-  TMSFMXCloudTreeViewAdapter1.CloudStorage := Storage;
-  TreeView1.Visible := true;
+
 
   try
+    if rdg = 1 then begin
+      TMSFMXCloudTreeViewAdapter1.InitFolder(pastaInicial);
+    end
+    else begin
+      TMSFMXCloudTreeViewAdapter1.InitFolder(TMSFMXCloudDropBox1.Search('Backups', cnpj).Items[0]);
+    end;
+
     TMSFMXCloudTreeViewAdapter1.CloudStorage := Storage;
-
-
-    TMSFMXCloudTreeViewAdapter1.InitFolder(TMSFMXCloudDropBox1.Search('Backups', cnpj).Items[0]);
-    //TMSFMXCloudTreeViewAdapter1.InitFolder(Storage.SearchList(nil)));
     TreeView1.Visible := true;
   except
     on e:exception do begin
@@ -1020,6 +1022,7 @@ begin
     nci := Storage.Upload(ci, arquivo);
     Memo1.Lines.Add(FormatDateTime('hh:mm:ss', now) + ' Upload Concluido...');
     marcarXMLsNFCe(arquivos);
+    //arquivos.SaveToFile(caminhoRaiz+ 'nfces1.txt');
   end
   else Memo1.Lines.Add('Nenhum XML para enviar...') ;
 end;
@@ -1053,9 +1056,11 @@ begin
   end;
 
   try
-    FDQuery1.Transaction.Commit;
-  finally
-
+    //FDQuery1.Transaction.Commit;
+  except
+    on e:exception do begin
+      //Memo1.Lines.Add('Erro 1060: '+ e.Message);
+    end;
   end;
 end;
 

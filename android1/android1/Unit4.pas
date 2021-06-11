@@ -397,7 +397,7 @@ procedure TForm4.gridVendaGesture(Sender: TObject;
 begin
   if EventInfo.GestureID = 264 then
     begin
-      if MessageDlg('Deseja Excluir '+ ClientDataSet1Nome.AsString +'?',TMsgDlgType.mtConfirmation, fmx.Dialogs.mbYesNo, 0) = mrYes then
+      if form5.MsgBox('Deseja Excluir '+ ClientDataSet1Nome.AsString +'?',TMsgDlgType.mtConfirmation, fmx.Dialogs.mbYesNo, TMsgDlgBtn.mbNo) = mrYes then
         begin
           ClientDataSet1.Delete;
           ClientDataSet1.Close;
@@ -421,7 +421,7 @@ procedure TForm4.gridVendaDblClick(Sender: TObject);
 begin
   inherited;
   {$IFDEF WIN32}
-    if MessageDlg('Deseja Excluir '+ ClientDataSet1Nome.AsString +'?',TMsgDlgType.mtConfirmation, fmx.Dialogs.mbYesNo, 0) = mrYes then
+    if form5.msgbox('Deseja Excluir '+ ClientDataSet1Nome.AsString +'?',TMsgDlgType.mtConfirmation, fmx.Dialogs.mbYesNo, TMsgDlgBtn.mbNo) = mrYes then
         begin
           ClientDataSet1.Delete;
           ClientDataSet1.Close;

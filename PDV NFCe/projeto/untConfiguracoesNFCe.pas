@@ -147,6 +147,8 @@ type
     Label37: TLabel;
     Label44: TLabel;
     KC2: TEdit;
+    Label45: TLabel;
+    espacoFinal: TEdit;
     procedure sbtnCaminhoCertClick(Sender: TObject);
     procedure sbtnGetCertClick(Sender: TObject);
     procedure BtnOKClick(Sender: TObject);
@@ -446,6 +448,8 @@ begin
    LOGOWIDTH.Text      := Ini.ReadString('SERVER','LOGOWIDTH', '1');
    fonteRazao.Text     := Ini.ReadString('SERVER','fonteRazao', '8');
    espacoEntreLinhas.Text := Ini.ReadString('SERVER','espacoEntreLinhas', '50');
+   espacoFinal.Text := Ini.ReadString('SERVER','espacoFinal', '38');
+
    casasDecimais.Text  := Ini.ReadString('SERVER','casasDecimais', '2');
 
 
@@ -584,6 +588,7 @@ begin
 
   if espacoEntreLinhas.Text = '' then espacoEntreLinhas.Text := '50';
   Ini.WriteString('SERVER', 'espacoEntreLinhas'    , espacoEntreLinhas.Text);
+  Ini.WriteString('SERVER', 'espacoFinal'    , espacoFinal.Text);
 
   ini.Free;
 
