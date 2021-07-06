@@ -78,11 +78,12 @@ type
     procedure buscaReferencia1();
     procedure BuscaCodBar_F6_AutoPecas1 ;
     procedure abreDataSetOrdenando();
+    procedure abreDataSetOrdenandoPorDataEntrada;
        { Private declarations }
   public
     sqlVenda, ordem : String;
     retorno, BuscaCOd  : string;
-    cosultaRetorna : boolean;
+    cosultaRetorna, ordenaDataEntrada : boolean;
     { Public declarations }
   end;
 
@@ -439,17 +440,17 @@ begin
 
   if sim = 'S' then
     begin
-      dm.produto.SQL.Add('select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '+ refori1 +',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao,igual as Equivalente, p_compra as custo, iif(iif((desativado is null) or (desativado = '''') , 0, desativado) > 0, ''SIM'', '''') as desativado from produto ' +  ordem);
-      sqlVenda := 'select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '+ refori1 +',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao,igual as Equivalente, p_compra as custo, iif(iif((desativado is null) or (desativado = '''') , 0, desativado) > 0, ''SIM'', '''') as desativado from produto';
+      dm.produto.SQL.Add('select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '+ refori1 +',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao,igual as Equivalente, p_compra as custo, iif(iif((desativado is null) or (desativado = '''') , 0, desativado) > 0, ''SIM'', '''') as desativado, data_entrada1 from produto ' +  ordem);
+      sqlVenda := 'select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '+ refori1 +',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao,igual as Equivalente, p_compra as custo, iif(iif((desativado is null) or (desativado = '''') , 0, desativado) > 0, ''SIM'', '''') as desativado, data_entrada1 from produto';
     end
    else
      begin
-       dm.produto.SQL.Add('select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '+ refori1 +',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao,igual as Equivalente, iif(iif((desativado is null) or (desativado = '''') , 0, desativado) > 0, ''SIM'', '''') as desativado from produto ' +  ordem);
-       sqlVenda := 'select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '+ refori1 +',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao,igual as Equivalente, iif(iif((desativado is null) or (desativado = '''') , 0, desativado) > 0, ''SIM'', '''') as desativado from produto';
+       dm.produto.SQL.Add('select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '+ refori1 +',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao,igual as Equivalente, iif(iif((desativado is null) or (desativado = '''') , 0, desativado) > 0, ''SIM'', '''') as desativado, data_entrada1 from produto ' +  ordem);
+       sqlVenda := 'select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '+ refori1 +',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao,igual as Equivalente, iif(iif((desativado is null) or (desativado = '''') , 0, desativado) > 0, ''SIM'', '''') as desativado, data_entrada1 from produto';
 
        if ((sim = 'C') and (RetornaAcessoUsuario = 0)) then begin
-         dm.produto.SQL.Text := ('select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '+ refori1 +',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao, p_compra as custo, iif(iif((desativado is null) or (desativado = '''') , 0, desativado) > 0, ''SIM'', '''') as desativado from produto ' +  ordem);
-         sqlVenda := 'select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '+ refori1 +',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao, p_compra as custo, iif(iif((desativado is null) or (desativado = '''') , 0, desativado) > 0, ''SIM'', '''') as desativado from produto';
+         dm.produto.SQL.Text := ('select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '+ refori1 +',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao, p_compra as custo, iif(iif((desativado is null) or (desativado = '''') , 0, desativado) > 0, ''SIM'', '''') as desativado, data_entrada1 from produto ' +  ordem);
+         sqlVenda := 'select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '+ refori1 +',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao, p_compra as custo, iif(iif((desativado is null) or (desativado = '''') , 0, desativado) > 0, ''SIM'', '''') as desativado, data_entrada1 from produto';
        end;
      end;
 
@@ -478,6 +479,11 @@ begin
       funcoes.IMP_CODBAR(DBGrid1.DataSource.DataSet.fieldbyname('cod').AsString);
     end;
 
+  if (ssCtrl in Shift) and (chr(Key) in ['A', 'a']) then
+    begin
+      funcoes.atualizaDataEntradaProduto;
+    end;
+
   if key = 120 then //120 = F9 abre tela de equivalência
    begin
      if funcoes.buscaParamGeral(5, '') = 'S' then
@@ -490,6 +496,11 @@ begin
   if key = 123 then //120 = F9 abre tela de equivalência
    begin
      abreDataSetOrdenando;
+   end;
+
+ if key = 122 then //122 = F11 abre tela de equivalência
+   begin
+     abreDataSetOrdenandoPorDataEntrada;
    end;
 
 if key = 117 then
@@ -559,6 +570,7 @@ procedure TForm24.FormCreate(Sender: TObject);
 begin
   cosultaRetorna := false;
   BuscaCOd       := '';
+  ordenaDataEntrada := false;
 end;
 
 procedure TForm24.DBGrid1CellClick1(Column: TColumn);
@@ -623,6 +635,31 @@ begin
   funcoes.FormataCampos(dm.produto,2,'ESTOQUE',3);
 
   DBGrid1.SelectedIndex := funcoes.buscaFieldDBgrid1(campo, DBGrid1);
+end;
+
+procedure TForm24.abreDataSetOrdenandoPorDataEntrada();
+var
+  cod, campo : String;
+begin
+  if dm.produto.Active then begin
+    cod   := dm.produto.FieldByName('cod').AsString;
+  end;
+
+  campo := 'data_entrada1';
+
+  dm.produto.Close;
+  dm.produto.SQL.Text := sqlVenda+ ' where (quant + deposito > 0) ORDER BY ' + campo ;
+  dm.produto.Open;
+
+  //dm.produto.Locate('cod', cod, []);
+  funcoes.OrdenaCamposVenda(funcoes.buscaParamGeral(1, ''));
+  funcoes.FormataCampos(dm.produto,2,'ESTOQUE',3);
+
+  dm.produto.FieldByName('data_entrada1').index := 0;
+  dm.produto.FieldByName('data_entrada1').DisplayLabel := 'DATA ENTRADA';
+  //DBGrid1.SelectedIndex := funcoes.buscaFieldDBgrid1(campo, DBGrid1);
+  DBGrid1.SetFocus;
+
 end;
 
 end.

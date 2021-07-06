@@ -255,7 +255,7 @@ begin
   lista := TlistaUsuario.create();
   form1.IBQuery1.close;
   form1.IBQuery1.SQL.Clear;
-  form1.IBQuery1.SQL.Add('select cod, nome, usu, senha, vendedor from USUARIO');
+  form1.IBQuery1.SQL.Add('select cod, nome, usu, senha, vendedor, configu, acesso from USUARIO where excluido = 0');
   form1.IBQuery1.Open;
   form1.IBQuery1.FetchAll;
 
@@ -272,6 +272,8 @@ begin
       lista.listaUsuario[recNo].nome        := form1.IBQuery1.FieldByName('nome').AsString;
       lista.listaUsuario[recNo].senha       := form1.DesCriptografar(form1.IBQuery1.FieldByName('senha').AsString);
       lista.listaUsuario[recNo].usu         := form1.DesCriptografar(form1.IBQuery1.FieldByName('usu').AsString);
+      lista.listaUsuario[recNo].acesso      := form1.IBQuery1.FieldByName('acesso').AsString;
+      lista.listaUsuario[recNo].configu     := form1.IBQuery1.FieldByName('configu').AsString;
       form1.IBQuery1.Next;
     end;
 

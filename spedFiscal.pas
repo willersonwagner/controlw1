@@ -2507,6 +2507,9 @@ begin
                     listaProdutos[ini].TOT_ICM := 0;
                   end;
 
+                  if True then
+
+
                   TOT      := TOT + listaProdutos[ini].total;
                   TOTDESC  := TOTDESC + listaProdutos[ini].descCom;
 
@@ -2515,6 +2518,14 @@ begin
 
                   if ((TRIB = '60') and (listaProdutos[ini].CFOP = '5102')) then listaProdutos[ini].CFOP := '5405';
                   if ((TRIB = '60') and (listaProdutos[ini].CFOP = '6102')) then listaProdutos[ini].CFOP := '6404';
+
+                  if Contido('-'+listaProdutos[ini].CFOP+'-', '-5929-6929-') then begin
+                    listaProdutos[ini].TOT_ICM  := 0;
+                    listaProdutos[ini].BASE_ICM := 0;
+                    listaProdutos[ini].PERC_ICM := 0;
+                    BASE_ICM  := 0;
+                  end;
+
 
                   TOT_ICM  := TOT_ICM  + listaProdutos[ini].TOT_ICM;
                   ACUM_IcmsCstCFOP(listaProdutos.Items[ini], listaPIS, BASE_ICM);

@@ -808,6 +808,11 @@ begin
   dm.IBQuery4.ParamByName('total').AsCurrency    := funcoes.ArredondaFinanceiro(quant.getValor * p_compra.getValor, 2);
   dm.IBQuery4.ParamByName('qtd_ent').AsCurrency  := quant.getValor;
   dm.IBQuery4.ExecSQL;
+
+  dm.IBQuery4.Close;
+  dm.IBQuery4.SQL.Text := 'update produto set data_entrada1 = current_date where cod = ' + StrNum(codigoProd);
+  dm.IBQuery4.ExecSQL;
+
   dm.IBQuery4.Transaction.Commit;
 
   cod := codbar.Text;

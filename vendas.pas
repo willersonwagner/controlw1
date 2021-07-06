@@ -6007,9 +6007,10 @@ begin
 
   dm.IBQuery1.Close;
   dm.IBQuery1.SQL.Text :=
-    ('insert into venda(ENDE_ENTREGA, CLIENTE_ENTREGA, datamov,hora,vendedor,cliente,nota,data,total,codhis,desconto,prazo,entrada, EXPORTADO, USUARIO, tipo)'
-    + ' values(:ENDE_ENTREGA,:CLIENTE_ENTREGA, :datamov, :hora,:vend,:cliente,:nota,:data,:total,:pagto,:desc,:prazo,:entrada, :exportado, :USUARIO, :tipo)');
-  dm.IBQuery1.ParamByName('ENDE_ENTREGA').AsInteger := StrToIntDef(strnum(ENDE_ENTREGA), 0);
+    ('insert into venda(USULIB,ENDE_ENTREGA, CLIENTE_ENTREGA, datamov,hora,vendedor,cliente,nota,data,total,codhis,desconto,prazo,entrada, EXPORTADO, USUARIO, tipo)'
+    + ' values(:USULIB,:ENDE_ENTREGA,:CLIENTE_ENTREGA, :datamov, :hora,:vend,:cliente,:nota,:data,:total,:pagto,:desc,:prazo,:entrada, :exportado, :USUARIO, :tipo)');
+  dm.IBQuery1.ParamByName('USULIB').AsString           := LeftStr(form22.Pgerais.Values['codUsuNovo'], 3);
+  dm.IBQuery1.ParamByName('ENDE_ENTREGA').AsInteger    := StrToIntDef(strnum(ENDE_ENTREGA), 0);
   dm.IBQuery1.ParamByName('CLIENTE_ENTREGA').AsInteger := StrToIntDef(strnum(CLIENTE_ENTREGA), 0);
   dm.IBQuery1.ParamByName('datamov').AsDateTime := NOW;
   dm.IBQuery1.ParamByName('hora').AsTime        := NOW;
@@ -6406,7 +6407,11 @@ begin
           if (CLIENTE_ENTREGA = '') then CLIENTE_ENTREGA := funcoes.localizar('Localizar Cliente', 'cliente', 'cod,nome,telres,telcom,cnpj,bairro', 'cod,nome', '', 'nome', 'nome', true, false, false, '', 0, nil);
         end;
 
-        if gravaVenda = false then exit;
+        if gravaVenda = false then begin
+           exit;
+        end;
+
+        form22.Pgerais.Values['codUsuNovo'] := '';
 
         if adicionarEntrega = 'S' then begin
           //adiciona o registro na tabela ENTREGA_NOVO
@@ -9284,7 +9289,10 @@ begin
 
   if rel <> '' then begin
     Result := false;
-
+    if VerificaAcesso_Se_Nao_tiver_Nenhum_bloqueio_true_senao_false then begin
+      Result := true;
+      exit;
+    end;
     funcoes.Mensagem(Application.Title, 'A Venda Não Pode ser Finalizada, O estoque dos Produtos estão Negativos:' + CRLF+ CRLF + 'CODIGO,NOME,QUANT_ESTOQUE,QUANT_VENDA' + CRLF + rel, 12, 'Courier New',true, 0, clBlack);
   end;
 

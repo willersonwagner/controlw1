@@ -211,7 +211,7 @@ type
   public
     venda, logado : boolean;
     codUsuario, codVendedor : integer;
-    NomeUsuario : String;
+    NomeUsuario, CONFIGU, acesso : String;
     procedure sincVendas(fimVenda : boolean = false);
     function selecionaCliente(const codigo : integer) : Tcliente;
     function valor_sequencia(const seq_name : String) : integer;
@@ -221,6 +221,8 @@ type
     function formataCPF(const cpf1 : String; tchar : char) : String;
     function StrNum(const entra: string; const zero : boolean) :  string;
     function verificaEspacoSelectSel(const texto : string; const num : integer) : integer;
+    function LerConfig(valor: string; posi: integer; comtrim : boolean = true): string;
+    function retornaPos(valor: string; sub: string; posi: integer): integer;
     { Public declarations }
   end;
 
@@ -525,8 +527,8 @@ begin
     fim   := Length(lista.listaUsuario) -1;
     SQLQuery1.Close;
     SQLQuery1.SQL.Clear;
-    SQLQuery1.SQL.Add('insert into usuario(cod, nome, user, senha, vendedor) ' +
-    'values(:cod, :nome, :usu, :senha, :vendedor)');
+    SQLQuery1.SQL.Add('insert into usuario(cod, nome, user, senha, vendedor, acesso, configu) ' +
+    'values(:cod, :nome, :usu, :senha, :vendedor, :acesso, :configu)');
 
     for i := 0 to fim do
       begin
@@ -536,6 +538,8 @@ begin
         SQLQuery1.ParamByName('usu').AsString        := lista.listaUsuario[i].usu;
         SQLQuery1.ParamByName('senha').AsString      := lista.listaUsuario[i].senha;
         SQLQuery1.ParamByName('vendedor').AsInteger  := lista.listaUsuario[i].codVendedor;
+        SQLQuery1.ParamByName('acesso').AsString     := lista.listaUsuario[i].acesso;
+        SQLQuery1.ParamByName('configu').AsString    := lista.listaUsuario[i].configu;
         SQLQuery1.ExecSQL;
       end;
 
@@ -614,7 +618,7 @@ begin
 
   Result := true;
   SQLQuery1.Close;
-  SQLQuery1.SQL.Text := 'select cod, vendedor, nome from usuario where (user = :user) and (senha = :senha)';
+  SQLQuery1.SQL.Text := 'select cod, vendedor, nome, configu, acesso from usuario where (user = :user) and (senha = :senha)';
   SQLQuery1.ParamByName('user').AsString  := UpperCase(usu);
   SQLQuery1.ParamByName('senha').AsString := UpperCase(senha);
   SQLQuery1.Open;
@@ -625,6 +629,8 @@ begin
         NomeUsuario := SQLQuery1.FieldByName('nome').AsString;
         codUsuario  := SQLQuery1.FieldByName('cod').AsInteger;
         codVendedor := SQLQuery1.FieldByName('vendedor').AsInteger;
+        CONFIGU     := SQLQuery1.FieldByName('configu').AsString;
+        acesso      := SQLQuery1.FieldByName('acesso').AsString;
       end;
   SQLQuery1.Close;
 end;
@@ -1416,6 +1422,43 @@ begin
     ret := replicate('0', quant) + inttostr(num);
     result := copy(ret, length(ret) - quant + 1, quant) ;
 end;
+
+function TForm1.LerConfig(valor: string; posi: integer; comtrim : boolean = true): string;
+var
+  fim : integer;
+  temp : String;
+begin
+  if comtrim then
+    Result := trim(copy(valor, pos(IntToStr(posi) + '-', valor) + 3,
+    retornaPos(valor, '-' + IntToStr(posi + 1), pos(IntToStr(posi) + '-',
+    valor) + 3)))
+  else Result := (copy(valor, pos(IntToStr(posi) + '-', valor) + 3,
+    retornaPos(valor, '-' + IntToStr(posi + 1), pos(IntToStr(posi) + '-',
+    valor) + 3)));
+
+
+  {fim := pos(IntToStr(posi + 1) + '-', valor);
+  if fim <= 0 then begin
+    temp := copy(valor, pos(IntToStr(posi) + '-', valor) + 3, length(valor));
+
+    fim := PosFinal('-', valor) -2;
+  end;
+
+
+  Result := trim(copy(valor, pos(IntToStr(posi) + '-', valor) + 3, fim));}
+
+  //Result := trim(Result);
+  // ShowMessage(Result);
+end;
+
+
+function TForm1.retornaPos(valor: string; sub: string; posi: integer): integer;
+begin
+  valor := copy(valor, posi, length(valor));
+  if Contido(sub, valor) = false then Result := pos('-', valor) - 1
+  else Result := pos(sub, valor) - 1;
+end;
+
 
 
 end.

@@ -296,6 +296,10 @@ begin
         erro := 'erro';
       end;
 
+      dm.IBQuery4.Close;
+      dm.IBQuery4.SQL.Text := 'update produto set data_entrada1 = current_date where cod = ' + StrNum(ClientDataSet1.fieldbyname('codigo').AsString);
+      dm.IBQuery4.ExecSQL;
+
      ClientDataSet1.Next; 
    end;
 

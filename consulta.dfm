@@ -1,7 +1,7 @@
 object Form24: TForm24
   Left = 269
   Top = 0
-  Caption = 'Consulta de Produtos'
+  Caption = 'Consulta de Produtos - F11 Ordena Por Data Entrada'
   ClientHeight = 465
   ClientWidth = 957
   Color = clBtnFace

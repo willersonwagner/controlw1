@@ -18,7 +18,7 @@ uses
   pcnConversao, System.Zip, ACBrMail
   , IdMultipartFormData, cadClicompleto, IBX.IBServices, mmsystem,
   FMX.TMSCloudBase, FMX.TMSCloudBaseFMX, FMX.TMSCloudCustomGDrive,
-  FMX.TMSCloudGDrive;
+  FMX.TMSCloudGDrive, ACBrUtil;
 
 const
   OffsetMemoryStream: Int64 = 0;
@@ -141,6 +141,7 @@ type
     enviandoCupom, enviandoBackup: boolean;
     fonteRelatorioForm19: integer;
     NegritoRelatorioForm19, saiComEnter: boolean;
+    procedure atualizaDataEntradaProduto;
     function ImpVendaExec(verifica: boolean) : boolean;
     function execSqlMostraErro(var qry : TIBQuery) : boolean;
     function VerificaDadosBasicosCliente(var cod : String) : boolean;
@@ -6532,12 +6533,19 @@ begin
 end;
 
 function checaCodbar(vx_cod: String): boolean;
-var
+{var
   ut: string;
   vx_ta, vx_soma, vx_ret, vx_i: integer;
-  vx_cal: variant;
+  vx_cal: variant;}
 begin
-  Result := False;
+  Result := false;
+  try
+    if EAN13Valido(vx_cod) then Result := true;
+  except
+  end;
+
+
+ { Result := False;
   vx_cod := trim(vx_cod);
   ut := vx_cod;
   vx_cod := copy(vx_cod, 1, 12);
@@ -6572,7 +6580,7 @@ begin
   vx_cod := (trim(vx_cod) + trim(IntToStr(vx_ret)));
 
   if vx_cod = ut then
-    Result := true;
+    Result := true;  }
 
 end;
 
@@ -11212,8 +11220,6 @@ begin
       if execSqlMostraErro(dm.IBQuery1) = false then exit;
     end;
 
-
-
     if not VerificaCampoTabela('sinc', 'nfce') then begin
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Clear;
@@ -11224,6 +11230,24 @@ begin
 
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Text := ('update nfce set sinc = ''1'' where data <= dateadd(month,-3, current_date)');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+    end;
+
+    if not VerificaCampoTabela('DATA_ENTRADA1', 'PRODUTO') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add
+        ('ALTER TABLE PRODUTO ADD DATA_ENTRADA1 date');
+      dm.IBQuery1.ExecSQL;
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+    end;
+
+    if not VerificaCampoTabela('USULIB', 'VENDA') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add
+        ('ALTER TABLE VENDA ADD USULIB VARCHAR(3) DEFAULT '''' ');
+      dm.IBQuery1.ExecSQL;
       if execSqlMostraErro(dm.IBQuery1) = false then exit;
     end;
 
@@ -25140,6 +25164,9 @@ begin
     i := Produtos.count - 1;
     val[1] := 0;
     val[3] := 0;
+
+    if ordem = '2' then Produtos.OrdenarPorNome;
+    
     for tmp := 0 to i do
     begin
       if tam = 80 then
@@ -29843,6 +29870,34 @@ begin
 
   arq.Free;
   DeleteFile(arquivo);
+end;
+
+
+procedure Tfuncoes.atualizaDataEntradaProduto;
+var
+  fim : integer;
+begin
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select cod, max(data) as data from item_entrada group by cod';
+  dm.IBselect.Open;
+  dm.IBselect.FetchAll;
+
+  fim := dm.IBselect.RecordCount;
+
+  funcoes.informacao(1, 2, 'AGUARDE... ', true, False, 2);
+  while not dm.IBselect.Eof do begin
+
+    funcoes.informacao(dm.IBselect.RecNo, fim, 'AGUARDE... ', False, False, 2);
+    dm.IBQuery1.Close;
+    dm.IBQuery1.SQL.Text := 'update produto set data_entrada1 = :data where cod = :cod';
+    dm.IBQuery1.ParamByName('data').AsDate   := dm.IBselect.FieldByName('data').AsDateTime;
+    dm.IBQuery1.ParamByName('cod').AsInteger := dm.IBselect.FieldByName('cod').AsInteger;
+    dm.IBQuery1.ExecSQL;
+    dm.IBselect.Next;
+  end;
+
+  funcoes.informacao(dm.IBselect.RecNo, fim, 'AGUARDE... ', False, true, 2);
+  if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
 end;
 
 

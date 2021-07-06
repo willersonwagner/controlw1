@@ -828,6 +828,7 @@ begin
            lista[item].TOT_ICM   := StrToCurrDef(StringReplace(Le_Nodo('vICMS', ICMS), '.', ',', [rfReplaceAll, rfIgnoreCase]), 0);
            lista[item].TOT_RED_ICM   := StrToCurrDef(StringReplace(Le_Nodo('pRedBC', ICMS), '.', ',', [rfReplaceAll, rfIgnoreCase]), 0);
            lista[item].CFOP      := Le_Nodo('CFOP', txt1);
+
            if Le_Nodo('CSOSN', txt1) <> '' then begin
              lista[item].TOT_ICM  := 0;
              lista[item].PERC_ICM := 0;
@@ -837,6 +838,14 @@ begin
                lista[item].CST := '60';
              end;
            end;
+
+            if Contido('-'+lista[item].CFOP+'-', '-5929-6929-') then begin
+              lista[item].TOT_ICM  := 0;
+              lista[item].BASE_ICM := 0;
+              lista[item].PERC_ICM := 0;
+            end;
+
+
            lista[item].vPIS      := StrToCurrDef(StringReplace(Le_Nodo('vPIS', Le_Nodo('PISAliq', txt1)), '.', ',', [rfReplaceAll, rfIgnoreCase]), 0);
            lista[item].vCOFINS   := StrToCurrDef(StringReplace(Le_Nodo('vCOFINS', Le_Nodo('COFINSAliq', txt1)), '.', ',', [rfReplaceAll, rfIgnoreCase]), 0);
 

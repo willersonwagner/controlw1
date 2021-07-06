@@ -75,6 +75,8 @@ type
     nome          : string;
     usu           : string;
     senha         : string;
+    configu       : string;
+    acesso        : string;
   end;
 
   TlistaVendas = class

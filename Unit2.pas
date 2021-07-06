@@ -6589,18 +6589,22 @@ begin
     begin
       totaldia := totaldia + dm.ibselect.FieldByName('valor').AsCurrency;
     end;
-    if imprimirtotaldia = 'S' then
+    if imprimirtotaldia = 'S' then begin
       if (dm.ibselect.RecNo = dm.ibselect.RecordCount) and (totaldia <> 0) then
         form19.RichEdit1.Perform(EM_REPLACESEL, 1,
           Longint(PChar((funcoes.CompletaOuRepete('|' + 'TOTAL DIA => ' +
           FormatCurr('#,###,###0.00', totaldia), '|', ' ', 79) + #13 + #10))));
+    end;
     dm.ibselect.Next;
     if dia <> dm.ibselect.FieldByName('vencimento').AsDateTime then
     begin
       dia := dm.ibselect.FieldByName('vencimento').AsDateTime;
+
+      if imprimirtotaldia = 'S' then begin
       form19.RichEdit1.Perform(EM_REPLACESEL, 1,
         Longint(PChar((funcoes.CompletaOuRepete('|' + 'TOTAL DIA => ' +
         FormatCurr('#,###,###0.00', totaldia), '|', ' ', 79) + #13 + #10))));
+      end;
       totaldia := 0;
     end;
 
@@ -6608,8 +6612,7 @@ begin
   form19.RichEdit1.Perform(EM_REPLACESEL, 1,
     Longint(PChar((funcoes.CompletaOuRepete('+', '+' + #13 + #10, '-', 81)))));
   form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-    Longint(PChar((funcoes.CompletaOuRepete('|' + 'TOTAL A PAGAR => ' +
-    FormatCurr('#,###,###0.00', totalgeral), '|', ' ', 79) + #13 + #10))));
+    Longint(PChar((funcoes.CompletaOuRepete('|' + 'TOTAL A PAGAR => ' ,FormatCurr('#,###,###0.00', totalgeral) + '|', ' ', 79) + #13 + #10))));
   form19.RichEdit1.Perform(EM_REPLACESEL, 1,
     Longint(PChar((funcoes.CompletaOuRepete('+', '+' + #13 + #10, '-', 81)))));
   form19.RichEdit1.SelStart := 0;
@@ -10139,7 +10142,7 @@ begin
   dm.ibselect.Close;
   dm.ibselect.SQL.Clear;
   dm.ibselect.SQL.Add
-    ('select nota, vendedor, entrada, codhis, total, cancelado, ok, data, cliente, prazo from VENDA where '
+    ('select usulib,nota, vendedor, entrada, codhis, total, cancelado, ok, data, cliente, prazo from VENDA where '
     + ' ((data >= :v1) and (data<=:v2)) ' + h1 + h3 + h4 + ' order by nota');
   dm.ibselect.ParamByName('v1').AsDateTime := StrToDate(ini);
   dm.ibselect.ParamByName('v2').AsDateTime := StrToDate(fim);
@@ -10252,7 +10255,7 @@ begin
           addRelatorioForm19(FormatDateTime('dd/mm/yy',
             dm.ibselect.FieldByName('data').AsDateTime) + ' ' +
             funcoes.CompletaOuRepete('', dm.ibselect.FieldByName('nota')
-            .AsString, '0', 6) + ' ' + funcoes.CompletaOuRepete('',
+            .AsString, '0', 7) + ' ' + funcoes.CompletaOuRepete('',
             dm.ibselect.FieldByName('vendedor').AsString, '0', 3) + ' ' +
             funcoes.CompletaOuRepete('', dm.ibselect.FieldByName('codhis')
             .AsString, '0', 3) + ' ' + funcoes.CompletaOuRepete('',
@@ -10260,9 +10263,13 @@ begin
             dm.ibselect.FieldByName('entrada').AsCurrency), ' ', 10) +
             funcoes.CompletaOuRepete(IfThen(dm.ibselect.FieldByName('entrada').AsCurrency > 0, ' +' + FormatCurr('0.00',dm.ibselect.FieldByName('entrada').AsCurrency), ''), '', ' ', 11) +
 
-            funcoes.CompletaOuRepete('',
-            iif(trim(dm.ibselect.FieldByName('ok').AsString) = '', '*',
-            LeftStr(dm.ibselect.FieldByName('ok').AsString, 1)), ' ', 2) +
+            funcoes.CompletaOuRepete(IfThen(trim(dm.ibselect.FieldByName('ok').AsString) = '', '*',LeftStr(dm.ibselect.FieldByName('ok').AsString, 1)), '', ' ', 2) +
+
+            IfThen(trim(dm.ibselect.FieldByName('usulib').AsString) = '', '',
+
+            funcoes.CompletaOuRepete('AUT.:' + copy(funcoes.BuscaNomeBD(dm.IBQuery1, 'nome', 'usuario',
+            'where cod=' + strnum(dm.ibselect.FieldByName('usulib').AsString)), 1, 9),'', ' ', 14)) +
+
             #13 + #10);
         end
         else
@@ -10287,9 +10294,16 @@ begin
             iif(trim(dm.ibselect.FieldByName('ok').AsString) = '', '*',
             dm.ibselect.FieldByName('ok').AsString), ' ',
             5) + funcoes.CompletaOuRepete(' ' + dm.ibselect.FieldByName('prazo')
-            .AsString, '', ' ', 4) + funcoes.CompletaOuRepete(' ' +
-            copy(dm.IBQuery3.FieldByName('nome').AsString, 1, 25), '', ' ',
-            27) + #13 + #10))));
+            .AsString, '', ' ', 4)  +
+
+            IfThen(trim(dm.ibselect.FieldByName('usulib').AsString) = '', funcoes.CompletaOuRepete(' ' +copy(dm.IBQuery3.FieldByName('nome').AsString, 1, 25), '', ' ',27)
+
+            ,
+
+            funcoes.CompletaOuRepete('AUT.:' + copy(funcoes.BuscaNomeBD(dm.IBQuery1, 'nome', 'usuario',
+            'where cod=' + strnum(dm.ibselect.FieldByName('usulib').AsString)), 1, 9),'', ' ', 14)) +
+
+            #13 + #10))));
         end;
       end;
       // end;
@@ -10361,7 +10375,7 @@ begin
             Longint(PChar((FormatDateTime('dd/mm/yy',
             dm.ibselect.FieldByName('data').AsDateTime) + ' ' +
             funcoes.CompletaOuRepete('', dm.ibselect.FieldByName('nota')
-            .AsString, '0', 6) + ' ' + funcoes.CompletaOuRepete('',
+            .AsString, '0', 7) + ' ' + funcoes.CompletaOuRepete('',
             dm.ibselect.FieldByName('vendedor').AsString, '0', 3) + ' ' +
             funcoes.CompletaOuRepete('', dm.ibselect.FieldByName('codhis')
             .AsString, '0', 3) + ' ' + funcoes.CompletaOuRepete('',
@@ -10390,8 +10404,7 @@ begin
             funcoes.CompletaOuRepete(' + ', FormatCurr('0.00',
             dm.ibselect.FieldByName('entrada').AsCurrency), ' ', 13),
             funcoes.CompletaOuRepete('', '', ' ', 13)) +
-            funcoes.CompletaOuRepete('',
-            'canc.:' + copy(funcoes.BuscaNomeBD(dm.IBQuery1, 'nome', 'usuario',
+            funcoes.CompletaOuRepete('', 'canc.:' + copy(funcoes.BuscaNomeBD(dm.IBQuery1, 'nome', 'usuario',
             'where cod=' + dm.ibselect.FieldByName('cancelado').AsString), 1,
             9), ' ', 15) + #13 + #10))));
 
@@ -11236,7 +11249,7 @@ end;
 
 procedure TForm2.PorFornecedor1Click(Sender: TObject);
 var
-  ini, fim, minim, notas: string;
+  ini, fim, minim, notas, ordem: string;
   totalgeral, totalCompra, totalVenda, totVendas, totcomp, somaDesc, descMedio,
     minima: currency;
   i, linhas: integer;
@@ -11252,6 +11265,10 @@ begin
   if not funcoes.Contido('*', ini) then
     fim := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,
       'Qual a Data Final?', '');
+
+  ordem := funcoes.dialogo('generico', 0, '1234567890' + #8 + #27 + #13, 50,true, '', application.Title, 'Qual a Ordem(1-Quant 2-Alfabetica)?', '1');
+  if ordem = '*' then exit;
+
 
   {minim := funcoes.dialogo('generico', 0, '1234567890' + #8 + #27 + #13, 50,
     true, '', application.Title, 'Qual a Quantidade Mínima Vendida?', '1');
@@ -11295,7 +11312,7 @@ begin
 
   dm.ibselect.Close;
   dm.ibselect.SQL.Text :=
-    'select i.cod, i.quant, i.p_compra, i.nota, v.desconto, i.total as p_venda, v.total, p.fornec from' +
+    'select i.cod, i.quant, i.p_compra, i.nota, v.desconto, i.total as p_venda, v.total, p.fornec, p.nome from' +
     ' item_venda i left join produto p on (i.cod = p.cod),venda v where (v.cancelado = 0) and ((v.data >= :v1) and (v.data <= :v2)) and (i.nota = v.nota) '
     + iif(fornec <> '', 'and (p.fornec = ' + fornec + ')', '');
 
@@ -11316,6 +11333,7 @@ begin
       lista[i].quant := 0;
       lista[i].dep   := 0;
       lista[i].val1  := 0;
+      lista[i].unid  := dm.ibselect.FieldByName('nome').AsString;
     end;
 
     lista[i].quant :=  lista[i].quant + dm.ibselect.FieldByName('quant').AsCurrency;
@@ -11388,7 +11406,12 @@ begin
     totVendas := somaDesc;
   end;
 
-  lista.OrdenarLista('QUANTDESC');
+  if ordem = '2' then begin
+    lista.OrdenarListaAlfa('QUANTDESC');
+  end
+  else begin
+    lista.OrdenarLista('QUANTDESC');
+  end;
 
   for i := 0 to lista.Count - 1 do begin
     if form19.RichEdit1.Lines.Count >= linhas then begin
@@ -11436,8 +11459,7 @@ begin
         ' ', 12) + funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00',
         totalCompra), ' ', 13) + funcoes.CompletaOuRepete('',
         FormatCurr('#,###,###0.00', totalVenda), ' ',
-        13) + funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00',
-        100 - ((totalCompra * 100) / totalVenda)), ' ', 9) + '%' + #13
+        13) + funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00', IfThen(totalVenda = 0, 0, 100 - ((totalCompra * 100) / totalVenda))), ' ', 9) + '%' + #13
         + #10))));
     //end;
   end;
@@ -16274,17 +16296,15 @@ begin
     end;
 
     dm.IBQuery4.Close;
-    dm.IBQuery4.SQL.Clear;
-    dm.IBQuery4.SQL.Add
-      ('update produto set nome = :nome, p_compra = :p_compra, p_venda = :p_venda, QUANT = QUANT + :quant where cod = :cod');
+    //dm.IBQuery4.SQL.Text := ('update produto set nome = :nome, p_compra = :p_compra, p_venda = :p_venda, QUANT = QUANT + :quant where cod = :cod');
+    dm.IBQuery4.SQL.Text := ('update produto set nome = :nome, p_compra = :p_compra, p_venda = :p_venda, data_entrada1 = current_date where cod = :cod');
     dm.IBQuery4.ParamByName('nome').AsString :=
       form33.ClientDataSet1.FieldByName('descricao').AsString;
     dm.IBQuery4.ParamByName('p_compra').AsCurrency :=
       form33.ClientDataSet1.FieldByName('p_compra').AsCurrency;
     dm.IBQuery4.ParamByName('p_venda').AsCurrency :=
       form33.ClientDataSet1.FieldByName('p_venda').AsCurrency;
-    dm.IBQuery4.ParamByName('quant').AsCurrency :=
-      form33.ClientDataSet1.FieldByName('quant').AsCurrency;
+    //dm.IBQuery4.ParamByName('quant').AsCurrency := form33.ClientDataSet1.FieldByName('quant').AsCurrency;
     dm.IBQuery4.ParamByName('cod').AsString := form33.ClientDataSet1.FieldByName
       ('codigo').AsString;
     try

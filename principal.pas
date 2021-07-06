@@ -11,7 +11,7 @@ uses
   JsEditData1, ComCtrls, Buttons, JsBotao1, sEdit, acPNG, AppEvnts,RLConsts,
   IdBaseComponent, IdComponent, IdTCPConnection, IdTCPClient, IdTime, funcoesdav, imprNovo,
   untnfceForm, pcnConversao, classes1,Unit63, DBClient, Data.DB, midaslib, DateUtils,
-  Vcl.Imaging.jpeg, shellapi, acbrmail, ACBrValidador, Vcl.Imaging.pngimage;
+  Vcl.Imaging.jpeg, shellapi, acbrmail, ACBrValidador, Vcl.Imaging.pngimage, ACBrUtil;
 
 type
   Tform22 = class(TForm)
@@ -497,10 +497,14 @@ end;
 
 procedure Tform22.Button2Click(Sender: TObject);
 var
-  op : TOpenDialog;
+  //op : TOpenDialog;
+  codbar : string;
 begin
-  op := TOpenDialog.Create(self);
-  funcoes.enviaArquivoGdrive(op.FileName);
+  //op := TOpenDialog.Create(self);
+  //funcoes.enviaArquivoGdrive(op.FileName);
+  codbar := InputBox('','','');
+  if EAN13Valido(codbar) then ShowMessage('valido')
+  else ShowMessage('invalido');
 end;
 
 function Tform22.enviNFCe(const perg : String = ''; nnf : String = ''; recebido : currency = 0) : boolean;

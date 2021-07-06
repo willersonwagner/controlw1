@@ -77,6 +77,7 @@ begin
             end;
 
           form22.Pgerais.Values['configu'] := dm.IBQuery1.fieldbyname('configu').AsString;
+          form22.Pgerais.Values['codUsuNovo'] := dm.IBQuery1.fieldbyname('cod').AsString;
           if desc <> '*' then begin
             form22.Pgerais.Values['configu'] := GravarConfig(form22.Pgerais.Values['configu'], desc, 0);
             codhis := '';

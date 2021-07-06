@@ -65,6 +65,15 @@ type
     Label4: TLabel;
     VertScrollBox1: TVertScrollBox;
     Image1: TImage;
+    TabItem5: TTabItem;
+    ListBox3: TListBox;
+    Rectangle1: TRectangle;
+    Edit1: TEdit;
+    Rectangle2: TRectangle;
+    label5: TLabel;
+    subtotal: TLabel;
+    Label7: TLabel;
+    subtotal_TOTAL: TLabel;
     procedure SpeedButton3MouseUp(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Single);
     procedure Button5Click(Sender: TObject);
@@ -84,8 +93,11 @@ type
     procedure qtdprestKeyUp(Sender: TObject; var Key: Word; var KeyChar: Char;
       Shift: TShiftState);
     procedure qtdprestExit(Sender: TObject);
-    procedure SpeedButton2DblClick(Sender: TObject);
     procedure ClientDataSet1AfterOpen(DataSet: TDataSet);
+    procedure Edit1Typing(Sender: TObject);
+    procedure Edit1KeyDown(Sender: TObject; var Key: Word; var KeyChar: Char;
+      Shift: TShiftState);
+    procedure Edit1Enter(Sender: TObject);
   private
     total, desconto : Extended;
     codhis : String;
@@ -102,8 +114,10 @@ type
     { Private declarations }
   public
     codCliente : integer;
+    descPorc, minimo, totDesconto : currency;
     procedure lerFormas();
     procedure vendeItem(const quant : currency);
+    function validaDesconto() : boolean;
     { Public declarations }
   end;
 
@@ -167,6 +181,53 @@ end;
 procedure TForm4.ClientDataSet1AfterOpen(DataSet: TDataSet);
 begin
   form1.redimensionaColunasStringGrid(gridVenda);
+end;
+
+procedure TForm4.Edit1Enter(Sender: TObject);
+begin
+  Edit1.GoToTextEnd;
+end;
+
+procedure TForm4.Edit1KeyDown(Sender: TObject; var Key: Word; var KeyChar: Char;
+  Shift: TShiftState);
+begin
+  if key = 13 then begin
+    if validaDesconto  then begin
+      subtotal.Text := 'Sub-Total: ' + FormatCurr('#,###,###0.00', SomaProdutosVenda) + #13 +
+                     'Desconto.: ' + FormatCurr('#,###,###0.00', SomaProdutosVenda - StrToCurrDef(edit1.Text, 0)) + #13 +
+                     'Total....: ' + FormatCurr('#,###,###0.00', StrToCurrDef(edit1.Text, 0));
+
+      if form5.MsgBox('Deseja Avançar para Etapa de Forma de Pagamento?',TMsgDlgType.mtConfirmation, fmx.Dialogs.mbYesNo, TMsgDlgBtn.mbNo) = mrYes then begin
+        TabControl1.ActiveTab := TabItem3;
+
+        validaDesconto;
+
+        ListBoxFormPagtos.ItemIndex := 0;
+
+        subtotal.Text := '';
+        exit;
+      end;
+    end
+    else begin
+      subtotal.Text := '';
+    end;
+
+  end;
+
+end;
+
+procedure TForm4.Edit1Typing(Sender: TObject);
+begin
+   TThread.Queue(nil,
+    procedure
+      var
+        txt, txt2: string;
+        x: integer;
+    begin
+      txt := form1.StrNum(tedit(sender).Text, true);
+      Edit1.Text := FormatFloat('#,##0.00', StrToFloatDef(txt, 0) / 100);
+      Edit1.GoToTextEnd;
+    end);
 end;
 
 procedure TForm4.entradaExit(Sender: TObject);
@@ -266,7 +327,15 @@ begin
 
   if TabControl1.ActiveTab = TabItem1 then //venda
     begin
-      TabControl1.ActiveTab := TabItem3;
+      TabControl1.ActiveTab := TabItem5;
+      descPorc := StrToCurrDef(form1.LerConfig(form1.CONFIGU, 0), 0);
+      minimo   := SomaProdutosVenda - (SomaProdutosVenda * descPorc / 100);
+
+      edit1.Text  := FormatCurr('#,###,###0.00', total);
+      Label7.Text := 'Mínimo R$: '+ FormatCurr('#,###,###0.00', minimo);
+      subtotal_TOTAL.Text := 'TOTAL R$: '+ FormatCurr('#,###,###0.00', total);
+
+      edit1.SelectAll;
       exit;
     end;
 
@@ -280,6 +349,21 @@ begin
           TabControl1.ActiveTab := TabItem4;
           exit;
         end;
+    end;
+
+  if TabControl1.ActiveTab = TabItem5 then //tela de desconto
+    begin
+      if validaDesconto = false then begin
+        ShowMessage('Desconto Inválido!');
+        edit1.SetFocus;
+
+        exit;
+      end
+      else begin
+        TabControl1.ActiveTab := TabItem3;
+        ListBoxFormPagtos.ItemIndex := 0;
+        exit;
+      end;
     end;
 
   if TabControl1.ActiveTab = TabItem4 then //tela de parcelamento
@@ -336,6 +420,7 @@ begin
     begin
       ShowMessage('Escolha uma Forma de Pagamento');
       TabControl1.ActiveTab := TabItem3;
+      ListBoxFormPagtos.ItemIndex := 0;
       exit(False);
     end;
 
@@ -346,7 +431,6 @@ begin
   nota := form1.valor_sequencia('venda') + 1;
 
   form1.SQLQuery1.Transaction.StartTransaction;
-  desconto := 0;
   codhis   := copy(ListBoxFormPagtos.Selected.Text, 1, pos(' ', ListBoxFormPagtos.Selected.Text) -1);
 
   if temParcelamento then
@@ -389,6 +473,9 @@ begin
    ClientDataSet1.EnableControls;
  end;
 
+ form1.SQLQuery1.Transaction.Commit;
+
+ desconto := 0;
  form1.sincVendas(true);
 end;
 
@@ -492,11 +579,6 @@ begin
   form5.Show;
 end;
 
-procedure TForm4.SpeedButton2DblClick(Sender: TObject);
-begin
-  ShowMessage('1');
-end;
-
 procedure TForm4.SpeedButton3MouseUp(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Single);
 begin
@@ -534,7 +616,27 @@ begin
       Button4.Text := 'Finalizar';
       Button5.Visible := false;
       SpeedButton3.Visible := false;
+    end
+  else if TabControl1.ActiveTab = TabItem5 then
+    begin
+      Label1.Text := 'SUB-TOTAL';
+      Button4.Text := 'Finalizar';
+      Button5.Visible := false;
+      SpeedButton3.Visible := false;
+      edit1.SetFocus;
     end;
+end;
+
+function TForm4.validaDesconto() : boolean;
+begin
+  Result := false;
+  if (StrToCurrDef(Edit1.Text, 0) < minimo) and (Length(form1.acesso) > 0) then exit;
+
+  Result   := true;
+  total    := SomaProdutosVenda;
+
+  desconto := total - StrToCurrDef(edit1.Text, 0);
+  total    := StrToCurrDef(Edit1.Text, 0);
 end;
 
 end.

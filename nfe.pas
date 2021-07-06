@@ -3057,7 +3057,7 @@ begin
       barras := item.codbar;
       if length(barras) <> 13 then barras := '';
 
-      if ((usaNFe4ouMaior) and (LeftStr(barras, 3) <> '789')) then barras := 'SEM GTIN';
+      if checaCodbar(barras) = false then barras := 'SEM GTIN';
 
       infAdProd := '';
 
@@ -3650,7 +3650,7 @@ begin
                   item.codbar := StrNum(query2.fieldbyname('codbar').AsString);
                 end;
 
-                if (LeftStr(item.codbar, 3) <> '789') then cb := false;
+                //if (LeftStr(item.codbar, 3) <> '789') then cb := false;
 
                 if cb = false then begin
                   item.codbar := DIGEAN('789000' + CompletaOuRepete('', query2.fieldbyname('cod').AsString ,'0',6));

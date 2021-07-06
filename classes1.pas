@@ -7,6 +7,7 @@ uses controls, Contnrs, dbGrids, Math;
 
 function OrdenaPorNomeTitensProduto(Item1, Item2: pointer): Integer;
 function OrdenaPorCodigoTacumProdASC(Item1, Item2: pointer): Integer;
+function OrdenaPorUNIDTacumProdASC(Item1, Item2: pointer): Integer;
 function OrdenaPorCodigoTacumProdDESC(Item1, Item2: pointer): Integer;
 function OrdenaPorQUANTTacumProd(Item1, Item2: pointer): Integer;
 function OrdenaPorDEPTacumProdDESC(Item1, Item2: pointer): Integer;
@@ -161,6 +162,7 @@ type
       procedure SetItems(Index: Integer; const Value: TacumProd);
     public
       procedure OrdenarLista(direcao : String = 'ASC');
+      procedure OrdenarListaAlfa(direcao : String = 'ASC');
       function Add(AObject: TacumProd): Integer;
       function Find(Cod : integer): Integer;
       function getText() : String;
@@ -529,6 +531,12 @@ begin
   Result := CompareValue(TacumProd(Item1).cod, TacumProd(Item2).cod);
 end;
 
+function OrdenaPorUNIDTacumProdASC(Item1, Item2: pointer): Integer;
+begin
+  Result := CompareStr(TacumProd(Item1).unid, TacumProd(Item2).unid);
+end;
+
+
 function OrdenaPorNomeTitensProduto(Item1, Item2: pointer): Integer;
 begin
   Result := CompareStr(TregProd(Item1).nome, TregProd(Item2).nome);
@@ -550,6 +558,11 @@ begin
     Sort(OrdenaPorQUANTTacumProd);
   end
   else Sort(OrdenaPorCodigoTacumProdASC);
+end;
+
+procedure TItensAcumProd.OrdenarListaAlfa(direcao : String = 'ASC');
+begin
+    Sort(OrdenaPorUNIDTacumProdASC);
 end;
 
 function TItensAcumProd.GetItems(Index: Integer): TacumProd;
