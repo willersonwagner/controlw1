@@ -11741,6 +11741,10 @@ object Form2: TForm2
           Caption = 'Estoque Negativo'
           OnClick = EstoqueNegativo1Click
         end
+        object ReposiodeEstoque1: TMenuItem
+          Caption = 'Reposi'#231#227'o de Estoque'
+          OnClick = ReposiodeEstoque1Click
+        end
       end
       object EtiquetasPreos1: TMenuItem
         Caption = 'Etiquetas Pre'#231'os'

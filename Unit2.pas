@@ -407,6 +407,7 @@ type
     ProdutosExcluidosdeServios1: TMenuItem;
     ResumodeContas1: TMenuItem;
     Timer3: TTimer;
+    ReposiodeEstoque1: TMenuItem;
     procedure LimparBloqueios1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure CadastrarUsurio1Click(Sender: TObject);
@@ -700,6 +701,7 @@ type
     procedure ProdutosExcluidosdeServios1Click(Sender: TObject);
     procedure ResumodeContas1Click(Sender: TObject);
     procedure Timer3Timer(Sender: TObject);
+    procedure ReposiodeEstoque1Click(Sender: TObject);
   private
     b, cont: integer;
     ini: Smallint;
@@ -1291,6 +1293,132 @@ begin
   Form16.showmodal;
   JsEdit.LiberaMemoria(Form16);
   Form16.Free;
+end;
+
+procedure TForm2.ReposiodeEstoque1Click(Sender: TObject);
+var
+  sim, prec, h1, h2, h3, h4, ordem, estoqueZero: string;
+  tam: integer;
+begin
+  form19.RichEdit1.Clear;
+  b := 80;
+  tam := 80;
+
+  form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((#18 + #13 + #10))));
+  form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+    Longint(PChar((funcoes.RelatorioCabecalho(funcoes.LerValorPGerais('empresa',
+    form22.Pgerais), 'Reposicao de Estoque', tam)))));
+  funcoes.PerguntasRel(dm.ProdutoQY, '12', false, '', '');
+
+  ordem := funcoes.dialogo('generico', 0, '123' + #8, 0, false, 'S',
+    'Control For Windows',
+    'Qual a Ordem (1-Nome 2-Quant Loja 3-Quant Deposito)?:', '1');
+  if ordem = '*' then
+    exit;
+
+  if ordem = '1' then
+    ordem := ' nome '
+  else if ordem = '2' then
+    ordem := ' quant '
+  else if ordem = '3' then
+    ordem := ' deposito ';
+
+  h1 := '';
+  h2 := '';
+  h3 := '';
+  h4 := '';
+
+  if fornec <> '' then
+    h1 := ' (fornec = ' + strnum(fornec) + ') and';
+  if grupo <> '' then
+    h2 := ' (grupo = ' + strnum(grupo) + ') and';
+  if fabric <> '' then
+    h3 := ' (fabric = ' + strnum(fabric) + ') and';
+
+  prec := 'p_venda';
+
+  h4 := ' (quant <= 0) and (deposito > 0) and ';
+
+  dm.ProdutoQY.Close;
+  dm.ProdutoQY.SQL.Clear;
+  dm.ProdutoQY.SQL.Add('select cod,unid as UN,emb,codbar,nome as DESCRICAO, ' +
+    prec + ' as Preco, quant as ESTOQUE, DEPOSITO,fabric,fornec,grupo from produto where '
+    + h1 + ' ' + h2 + ' ' + h3 + ' ' + h4 + ' (cod <> -1) order by ' + ordem);
+
+  //ShowMessage(dm.ProdutoQY.SQL.Text);
+  dm.ProdutoQY.Open;
+  dm.ProdutoQY.FetchAll;
+
+  addRelatorioForm19(' CODIGO DESCRICAO DO PRODUTO                               QUANT        DEPOSITO'+ CRLF);
+
+  form19.RichEdit1.Perform(EM_REPLACESEL, 1,Longint(PChar((funcoes.CompletaOuRepete('', '', '-', tam) + #13 + #10))));
+
+  dm.ProdutoQY.First;
+
+  funcoes.informacao(1, 2, 'AGUARDE... ', true, false, 2);
+  b := 60;
+  while not dm.ProdutoQY.Eof do
+  begin
+    if funcoes.PerguntasRel(dm.ProdutoQY, '12', true, '', '') then
+    begin
+      if form19.RichEdit1.Lines.Count = b then
+      begin
+        b := b + 67;
+        form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+          Longint(PChar((funcoes.CompletaOuRepete('', '', '-', tam) + #13
+          + #10))));
+        addRelatorioForm19(#12);
+        // form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete('-','','-', tam) +CRLF))));
+        form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+          Longint(PChar((' s ' + funcoes.RelatorioCabecalho
+          (funcoes.LerValorPGerais('empresa', form22.Pgerais),
+          'Reposicao de Estoque', tam)))));
+
+        addRelatorioForm19(' CODIGO DESCRICAO DO PRODUTO                               QUANT        DEPOSITO'+ CRLF);
+
+        form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+          Longint(PChar((funcoes.CompletaOuRepete('', '', '-', tam) + #13
+          + #10))));
+      end;
+
+      funcoes.informacao(dm.ProdutoQY.RecNo, dm.ProdutoQY.RecordCount,
+        'AGUARDE... ', false, false, 2);
+        addRelatorioForm19(funcoes.CompletaOuRepete(' ',
+          dm.ProdutoQY.FieldByName('COD').AsString, '0', 7) + ' ' +
+          funcoes.CompletaOuRepete(LeftStr(dm.ProdutoQY.FieldByName('DESCRICAO')
+          .AsString, 39), '', ' ', 39) + ' ' + funcoes.CompletaOuRepete('',
+          FormatCurr('#,###,###0.000',
+          StrToCurr(dm.ProdutoQY.FieldByName('estoque').AsString)), ' ', 16) +
+          funcoes.CompletaOuRepete(' ', FormatCurr('#,###,###0.00',
+          StrToCurr(dm.ProdutoQY.FieldByName('DEPOSITO').AsString)), ' ', 16) +
+          #13 + #10);
+      // addRelatorioForm19(funcoes.CompletaOuRepete(' ',dm.ProdutoQY.fieldbyname('COD').AsString,'0',7)+' '+funcoes.CompletaOuRepete(dm.ProdutoQY.fieldbyname('DESCRICAO').AsString,FormatCurr('#,###,###0.000',StrToCurr(dm.ProdutoQY.fieldbyname('estoque').AsString)),' ',56)+'     '   + funcoes.CompletaOuRepete(dm.ProdutoQY.fieldbyname('UN').AsString,'',' ',6)+ funcoes.CompletaOuRepete(dm.ProdutoQY.fieldbyname('emb').AsString,'',' ',10)+#13+#10);
+      // form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete(' ',dm.ProdutoQY.fieldbyname('COD').AsString,' ',7)+' '+funcoes.CompletaOuRepete(dm.ProdutoQY.fieldbyname('DESCRICAO').AsString,FormatCurr('#,###,###0.00',StrToCurr(dm.ProdutoQY.fieldbyname('PRECO').AsString)),' ',56)+'     '   + funcoes.CompletaOuRepete(dm.ProdutoQY.fieldbyname('UN').AsString,'',' ',6)+ funcoes.CompletaOuRepete(dm.ProdutoQY.fieldbyname('emb').AsString,'',' ',10)+#13+#10))));
+      if dm.ProdutoQY.RecNo = dm.ProdutoQY.RecordCount then
+        form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+          Longint(PChar((funcoes.CompletaOuRepete('', '', '-', tam) + #13
+          + #10))));
+      // form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete(dm.ProdutoQY.fieldbyname('CODbar').AsString,'',' ',15)+funcoes.CompletaOuRepete(dm.ProdutoQY.fieldbyname('DESCRICAO').AsString,FormatCurr('#,###,###0.000',StrToCurr(dm.ProdutoQY.fieldbyname('estoque').AsString)),' ',52)   +    funcoes.CompletaOuRepete(' ',FormatCurr('#,###,###0.00',StrToCurr(dm.ProdutoQY.fieldbyname('PRECO').AsString)),' ',13)+#13+#10))));
+      dm.ProdutoQY.Next;
+    end
+    else
+      dm.ProdutoQY.Next;
+  end;
+  // end;
+  if not funcoes.Contido('*', grupo + fornec + fabric + sim) then
+  begin
+    grupo := '';
+    fornec := '';
+    fabric := '';
+
+    funcoes.informacao(dm.ProdutoQY.RecNo, dm.ProdutoQY.RecordCount,
+      'AGUARDE... ', false, true, 2);
+    form19.RichEdit1.SelStart := 1;
+    dm.ProdutoQY.Close;
+
+    funcoes.CharSetRichEdit(form19.RichEdit1);
+    form19.showmodal;
+  end;
 end;
 
 procedure TForm2.RequisioDepsito1Click(Sender: TObject);
