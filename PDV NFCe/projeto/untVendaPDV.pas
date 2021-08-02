@@ -641,7 +641,7 @@ begin
           dtmMain.IBQuery1.ParamByName('quant').AsCurrency   := IBClientDataSet1.fieldbyname('quant').AsCurrency;
           dtmMain.IBQuery1.ParamByName('p_venda').AsCurrency := IBClientDataSet1.fieldbyname('precoOrigi').AsCurrency;
           dtmMain.IBQuery1.ParamByName('total').AsCurrency   := Arredonda(IBClientDataSet1.FieldByName('quant').AsCurrency * IBClientDataSet1.FieldByName('precoOrigi').AsCurrency, 3);
-          dtmMain.IBQuery1.ParamByName('p_compra').AsCurrency := Arredonda(IBClientDataSet1.fieldbyname('quant').AsCurrency * dtmMain.IBQuery2.fieldbyname('p_compra').AsCurrency,2);
+          dtmMain.IBQuery1.ParamByName('p_compra').AsCurrency := Arredonda(IBClientDataSet1.fieldbyname('quant').AsCurrency * dtmMain.IBQuery2.fieldbyname('p_compra').AsCurrency,3);
           dtmMain.IBQuery1.ParamByName('codbar').AsString     := dtmMain.IBQuery2.fieldbyname('codbar').AsString;
           dtmMain.IBQuery1.ParamByName('aliq').AsString       := copy(dtmMain.IBQuery2.fieldbyname('aliquota').AsString,1 ,2);
           IF StrToIntDef(dtmMain.IBQuery1.ParamByName('aliq').AsString, 0) = 0 THEN dtmMain.IBQuery1.ParamByName('aliq').AsString := '2';
@@ -861,6 +861,7 @@ begin
       try
         tecladoOK := false;
         ok := enviNFCe(nota_venda, cliente);
+        //ok := true;
       finally
         tecladoOK := true;
       end;

@@ -367,7 +367,6 @@ object Form1: TForm1
     Configuracoes.Geral.ValidarDigest = False
     Configuracoes.Geral.ModeloDF = moNFCe
     Configuracoes.Geral.AtualizarXMLCancelado = True
-    Configuracoes.Geral.VersaoQRCode = veqr200
     Configuracoes.Arquivos.OrdenacaoPath = <>
     Configuracoes.WebServices.UF = 'RR'
     Configuracoes.WebServices.AguardarConsultaRet = 0

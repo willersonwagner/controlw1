@@ -3006,6 +3006,7 @@ IF mat.Reducao <> 0 then begin
   end;
 
   //TRIBUTADO INTEGRAL
+  //BASE_ICM := tot + item.DespAcessorias; //retirado 14/07/2021 pq o josenir nao autorizou essa mudança
   BASE_ICM := tot;
   item.base_icm := BASE_ICM;
   VLR_ICM := arrendondaNFe(BASE_ICM * mat.PercICMS / 100, 2);

@@ -380,8 +380,7 @@ type
     function trocaChar(texto, velho, novo: string): string;
     procedure limpaMemoria();
     function trocaDeUsuario(var codhis : string): boolean;
-    function ImprimirPedidoVias(qtdVias: Smallint;
-      orcamento: boolean = False): boolean;
+    function ImprimirPedidoVias(qtdVias: Smallint;orcamento: boolean = False; reimpressao : boolean = false): boolean;
     function formataChaveNFE(const chave: String): String;
     function lerConfigIMPRESSORA(): String;
     function allTrim(const texto: String): String;
@@ -3216,7 +3215,7 @@ begin
 end;
 
 function Tfuncoes.ImprimirPedidoVias(qtdVias: Smallint;
-  orcamento: boolean = False): boolean;
+  orcamento: boolean = False; reimpressao : boolean = false): boolean;
 var
   tmp: string;
   ini, fim, LIN: integer;
@@ -3245,8 +3244,7 @@ begin
   end;
 
 
-  if qtdVias > 1 then  fim := qtdVias;
-
+  if ((qtdVias > 1) or (reimpressao)) then  fim := qtdVias;
 
   ini := 0;
   // for ini := 0 to fim -1 do begin
@@ -11245,15 +11243,12 @@ begin
     if not VerificaCampoTabela('USULIB', 'VENDA') then begin
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Clear;
-      dm.IBQuery1.SQL.Add
-        ('ALTER TABLE VENDA ADD USULIB VARCHAR(3) DEFAULT '''' ');
+      dm.IBQuery1.SQL.Add('ALTER TABLE VENDA ADD USULIB VARCHAR(3) DEFAULT '''' ');
       dm.IBQuery1.ExecSQL;
       if execSqlMostraErro(dm.IBQuery1) = false then exit;
     end;
 
-
     //VerificaVersao_do_bd
-
   end;
 
   if dm.IBQuery1.Transaction.InTransaction then
@@ -15910,7 +15905,8 @@ begin
 
       salvaRicheditForm19comoPDF;
 
-      funcoes.ImprimirPedidoVias(StrToIntDef(funcoes.LerConfig(form22.Pgerais.Values['conf_ter'], 14), 1), opcao = 2);
+      //ShowMessage('qtd=' + funcoes.LerConfig(form22.Pgerais.Values['conf_ter'], 14));
+      funcoes.ImprimirPedidoVias(StrToIntDef(funcoes.LerConfig(form22.Pgerais.Values['conf_ter'], 14), 1), opcao = 2, true);
       //imprime.textx('');
 
       if ((opcao = 1) and (funcoes.buscaParamGeral(118, '') = 'S')) then begin

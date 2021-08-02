@@ -1515,15 +1515,14 @@ begin
     Application.ProcessMessages;
     IBQueryServer1.Close;
     IBQueryServer1.SQL.Text :=
-      'insert into item_venda(nota, cod, quant, p_venda, total, aliquota, data, unid, vendedor)'
-      + ' values(:nota, :cod, :quant, :p_venda, :total, :aliquota, :data, :unid, :vendedor)';
+      'insert into item_venda(nota, cod, quant, p_venda, p_compra, total, aliquota, data, unid, vendedor)'
+      + ' values(:nota, :cod, :quant, :p_venda, :p_compra, :total, :aliquota, :data, :unid, :vendedor)';
     IBQueryServer1.ParamByName('nota').AsInteger := notaNova;
     IBQueryServer1.ParamByName('cod').AsInteger := IBQuery2.fieldbyname('cod')
       .AsInteger;
-    IBQueryServer1.ParamByName('quant').AsCurrency :=
-      IBQuery2.fieldbyname('quant').AsCurrency;
-    IBQueryServer1.ParamByName('p_venda').AsCurrency :=
-      IBQuery2.fieldbyname('p_venda').AsCurrency;
+    IBQueryServer1.ParamByName('quant').AsCurrency := IBQuery2.fieldbyname('quant').AsCurrency;
+    IBQueryServer1.ParamByName('p_venda').AsCurrency := IBQuery2.fieldbyname('p_venda').AsCurrency;
+    IBQueryServer1.ParamByName('p_compra').AsCurrency := IBQuery2.fieldbyname('p_compra').AsCurrency;
     IBQueryServer1.ParamByName('total').AsCurrency :=
       IBQuery2.fieldbyname('total').AsCurrency;
     IBQueryServer1.ParamByName('aliquota').AsString :=

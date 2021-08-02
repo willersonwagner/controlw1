@@ -18672,9 +18672,10 @@ end;
 procedure TForm2.Cdigo1Click(Sender: TObject);
 var
   ini, fim, ee, CODINI, CODFIM, orde: string;
-  totalgeral: currency;
+  totalgeral, p_compra: currency;
   i, fi: integer;
-  qtd, p_compra, total: TStringList;
+  qtd, total: TStringList;
+  lista : TItensProduto;
 begin
 
   ini := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,
@@ -18708,8 +18709,8 @@ begin
     orde := 'i.cod';
 
   qtd := TStringList.Create;
-  p_compra := TStringList.Create;
   total := TStringList.Create;
+  lista := TItensProduto.Create;
 
   form19.RichEdit1.Clear;
   form19.RichEdit1.Perform(EM_REPLACESEL, 1,
@@ -18727,14 +18728,20 @@ begin
     Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10))));
   form19.RichEdit1.Perform(EM_REPLACESEL, 1,
     Longint(PChar
-    (('CODIGO DESCRICAO                          QUANT.   CUSTO     VENDA       LUCRO '
+    (('CODIGO DESCRICAO                          QUANT.     CUSTO     VENDA       LUCRO'
     + #13 + #10))));
   form19.RichEdit1.Perform(EM_REPLACESEL, 1,
     Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10))));
+
+
+  //dm.ibselect.Close;
+  //dm.IBselect.Text := 'select cod from item_venda where (data >= :v1) and (data<=:v2) and cancelado = 0'
+
+
   dm.ibselect.Close;
   dm.ibselect.SQL.Clear;
   dm.ibselect.SQL.Add
-    ('select v.nota,v.data,i.p_compra,i.cod,i.quant,i.total from venda v,item_venda i, produto p where (v.nota = i.nota) and (v.cancelado = 0) and ((i.cod >= :cini) and (i.cod <= :cfim))'
+    ('select v.nota,v.data,i.p_compra,i.cod,i.quant,i.total, p.p_compra as custo from venda v,item_venda i, produto p where (v.nota = i.nota) and (v.cancelado = 0) and ((i.cod >= :cini) and (i.cod <= :cfim))'
     + ' and (p.cod = i.cod) and ((v.data >= :v1) and (v.data<=:v2)) order by ' +
     orde);
   dm.ibselect.ParamByName('cini').AsInteger := StrToIntDef(CODINI, 0);
@@ -18745,50 +18752,62 @@ begin
   dm.ibselect.First;
   totalgeral := 0;
 
-  while not dm.ibselect.Eof do
-  begin
-    qtd.Values[dm.ibselect.FieldByName('cod').AsString] :=
-      CurrToStr(StrToCurrDef(qtd.Values[dm.ibselect.FieldByName('cod')
-      .AsString], 0) + dm.ibselect.FieldByName('quant').AsCurrency);
-    p_compra.Values[dm.ibselect.FieldByName('cod').AsString] :=
-      CurrToStr(StrToCurrDef(p_compra.Values[dm.ibselect.FieldByName('cod')
-      .AsString], 0) + dm.ibselect.FieldByName('p_compra').AsCurrency);
-    total.Values[dm.ibselect.FieldByName('cod').AsString] :=
-      CurrToStr(StrToCurrDef(total.Values[dm.ibselect.FieldByName('cod')
-      .AsString], 0) + dm.ibselect.FieldByName('total').AsCurrency);
+
+
+  //ShowMessage('1');
+
+  while not dm.ibselect.Eof do begin
+    fi := lista.Find(dm.ibselect.FieldByName('cod').AsInteger);
+    if fi = -1 then begin
+      fi := lista.Add(TregProd.Create);
+      lista[fi].cod   := dm.ibselect.FieldByName('cod').AsInteger;
+      lista[fi].quant := 0;
+      lista[fi].PERC_ICM := 0;
+      lista[fi].total    := 0;
+    end;
+
+    p_compra := dm.ibselect.FieldByName('p_compra').AsCurrency;
+
+    if p_compra = 0 then p_compra := (dm.ibselect.FieldByName('quant').AsCurrency * dm.ibselect.FieldByName('custo').AsCurrency);
+
+    lista[fi].quant    := lista[fi].quant + dm.ibselect.FieldByName('quant').AsCurrency;
+    lista[fi].PERC_ICM := lista[fi].PERC_ICM + p_compra;
+    lista[fi].total    := lista[fi].total    + dm.ibselect.FieldByName('total').AsCurrency;
 
     totalgeral := totalgeral + dm.ibselect.FieldByName('total').AsCurrency;
     dm.ibselect.Next;
   end;
 
-  fi := qtd.Count - 1;
+  //ShowMessage('2');
+
+  //fi := qtd.Count - 1;
   funcoes.iniciaDataset(dm.ibselect,
     'select nome from produto where cod = :cod');
 
+  fi := lista.Count - 1;
   for i := 0 to fi do
   begin
     dm.ibselect.Close;
-    dm.ibselect.ParamByName('cod').AsString := qtd.Names[i];
+    dm.ibselect.ParamByName('cod').AsInteger := lista[i].cod;
     dm.ibselect.Open;
 
-    addRelatorioForm19(funcoes.CompletaOuRepete('', qtd.Names[i], ' ', 6) + '-'
+    addRelatorioForm19(funcoes.CompletaOuRepete('', IntToStr(lista[i].cod), ' ', 6) + '-'
       + funcoes.CompletaOuRepete(copy(dm.ibselect.FieldByName('nome').AsString,
       1, 30), '', ' ', 30) + funcoes.CompletaOuRepete('',
-      formataCurrency(StrToCurrDef(qtd.Values[qtd.Names[i]], 0)), ' ', 10) + ' '
+      formataCurrency(lista[i].quant), ' ', 10) + ' '
       + funcoes.CompletaOuRepete('',
-      formataCurrency(StrToCurrDef(p_compra.Values[qtd.Names[i]], 0)), ' ', 10)
+      formataCurrency(lista[i].PERC_ICM), ' ', 10)
       + ' ' + funcoes.CompletaOuRepete('',
-      formataCurrency(StrToCurrDef(total.Values[qtd.Names[i]], 0)), ' ', 10) +
+      formataCurrency(lista[i].total), ' ', 10) +
       ' ' + funcoes.CompletaOuRepete('',
-      formataCurrency(StrToCurrDef(total.Values[qtd.Names[i]],
-      0) - StrToCurrDef(p_compra.Values[qtd.Names[i]], 0)), ' ', 10) + CRLF);
+      formataCurrency(lista[i].total - lista[i].PERC_ICM), ' ', 10) + CRLF);
   end;
 
   // form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete(FormatDateTime('dd/mm/yy',dm.IBselect.fieldbyname('data').AsDateTime),'',' ',8)+funcoes.CompletaOuRepete('',dm.IBselect.fieldbyname('cod').AsString,' ',6)+'-'+funcoes.CompletaOuRepete(copy(dm.IBselect.fieldbyname('nome').AsString,1,30),'',' ',30)+funcoes.CompletaOuRepete('',FormatCurr('#,###,###0.00',dm.IBselect.fieldbyname('quant').AsCurrency),' ',13)+funcoes.CompletaOuRepete('',FormatCurr('#,###,###0.00',dm.IBselect.fieldbyname('total').AsCurrency),' ',13)+funcoes.CompletaOuRepete('',dm.IBselect.fieldbyname('nota').AsString,' ',9)+#13+#10))));
   dm.ibselect.Close;
   qtd.Free;
   total.Free;
-  p_compra.Free;
+  lista.Free;
 
   form19.RichEdit1.Perform(EM_REPLACESEL, 1,
     Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10))));

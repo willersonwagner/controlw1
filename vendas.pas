@@ -5807,6 +5807,7 @@ begin
     JsEdit2.SetFocus
   else
     JsEdit3.SetFocus;
+
   JsEdit1.Text := '0';
   desco.Caption := '';
 end;
@@ -6977,6 +6978,7 @@ procedure TForm20.JsEdit3KeyPress(Sender: TObject; var Key: Char);
 var
   i: currency;
 begin
+
   verificaCliente := false;
   if Key = #27 then
   begin
@@ -7696,11 +7698,10 @@ procedure TForm20.JsEdit3Exit(Sender: TObject);
 begin
   // sem cliente vai ser false quando a configuracao de usuario 5 estiver <> 'N'
   // quando estiver 'N' nao vai ser preciso verificar cliente
-  if semCliente = false then
-  begin
+  if semCliente = false then begin
     if not verificaCliente then
     begin
-      JsEdit3.SetFocus;
+      if JsEdit3.Enabled then JsEdit3.SetFocus;
     end;
   end;
 end;
@@ -7710,7 +7711,8 @@ begin
   validaVendedor;
   verificaCliente := true;
   JsEdit1.Enabled := true;
-  JsEdit2.Enabled := true;
+
+  //JsEdit2.Enabled := true;
   DBGrid1.Repaint;
 
   if separaPecas and (finaliza = false) then

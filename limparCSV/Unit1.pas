@@ -88,12 +88,12 @@ begin
 
 
   for i := 0 to arq.Count -1 do begin
-    if pos('Taxa', arq[i]) > 0 then begin
+    if pos('Taxa de boleto', arq[i]) > 0 then begin
       if pos('; -', arq[i]) = 0 then arq2.Add(arq[i]);
     end;
   end;
 
-  arq2.SaveToFile(ExtractFileDir(op.FileName) + '\novo.csv');
+  arq2.SaveToFile(ExtractFileDir(op.FileName) + '\Asaas.csv');
   arq.Free;
 end;
 
