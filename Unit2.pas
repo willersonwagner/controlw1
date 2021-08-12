@@ -19195,6 +19195,7 @@ procedure TForm2.OrdemdeServio1Click(Sender: TObject);
 begin
   form51 := tform51.Create(self);
   form51.showmodal;
+  JsEdit.LiberaMemoria(form51);
   form51.Free;
 end;
 

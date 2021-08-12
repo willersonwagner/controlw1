@@ -29647,8 +29647,7 @@ begin
           FormatCurr('#,###,###0.00', lim_atraso - total_atraso), mtInformation,
           [mbok], HexToTColor('FFD700'), true, false, HexToTColor('B22222'));
         Result := lim_atraso - total_atraso;
-        Form20.Caption := Form20.Caption + ' ' + '(Venda Limitada R$ ' +
-          FormatCurr('#,###,###0.00', Result) + ')';
+
         exit;
       end
       else
@@ -29683,8 +29682,7 @@ begin
       WWMessage('Esta Venda está Sendo Autorizada com Valor Até: R$ ' +
         FormatCurr('#,###,###0.00', lim_atraso - total_atraso), mtInformation,
         [mbok], HexToTColor('FFD700'), true, false, HexToTColor('B22222'));
-      Form20.Caption := Form20.Caption + ' ' + '(Venda Limitada R$ ' +
-        FormatCurr('#,###,###0.00', Result) + ')';
+    
       exit;
     end;
   end
@@ -29724,8 +29722,7 @@ begin
         FormatCurr('#,###,###0.00', lim_compra - total_devendo), mtInformation,
         [mbok], HexToTColor('FFD700'), true, false, HexToTColor('B22222'));
       Result := lim_compra - total_devendo;
-      Form20.Caption := Form20.Caption + ' ' + '(Venda Limitada R$ ' +
-        FormatCurr('#,###,###0.00', Result) + ')';
+
       exit;
     end;
   end;
@@ -29750,8 +29747,7 @@ begin
         FormatCurr('#,###,###0.00', lim_compra - total_devendo), mtInformation,
         [mbok], HexToTColor('FFD700'), true, false, HexToTColor('B22222'));
       Result := lim_compra - total_devendo;
-      Form20.Caption := Form20.Caption + ' ' + '(Venda Limitada R$ ' +
-        FormatCurr('#,###,###0.00', Result) + ')';
+
       exit;
     end;
   end;

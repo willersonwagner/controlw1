@@ -40,7 +40,6 @@ type
     JsBotao1: JsBotao;
     JsBotao2: JsBotao;
     vendedor: JsEditInteiro;
-    procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure codKeyPress(Sender: TObject; var Key: Char);
     procedure FormShow(Sender: TObject);
     procedure JsBotao1Click(Sender: TObject);
@@ -131,11 +130,6 @@ begin
   ' ' ;
 end;
 
-
-procedure TForm51.FormClose(Sender: TObject; var Action: TCloseAction);
-begin
-  JsEdit.LiberaMemoria(self);
-end;
 
 procedure TForm51.codKeyPress(Sender: TObject; var Key: Char);
 begin
@@ -251,6 +245,7 @@ begin
 
           if funcoes.buscaParamGeral(126, 'N') = 'S' then begin
             limite := funcoes.ver_limites(cliente.Text, 0);
+
 
             if limite = 0 then begin
               cliente.Text := '';
