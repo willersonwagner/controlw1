@@ -8092,7 +8092,7 @@ end;
 
 procedure TForm2.ResumoFinanceiro1Click(Sender: TObject);
 var
-  grupo, ini, fim, g1, saldo: string;
+  grupo, ini, fim, g1, saldo, h2: string;
   entrada, saida, acc, anterior, banco: currency;
   b, i: integer;
   entradaLis, saidaLis: TStringList;
@@ -8148,7 +8148,7 @@ begin
 
   dm.ibselect.Close;
   dm.ibselect.SQL.Clear;
-  dm.ibselect.SQL.Add('select codhis, entrada, saida from caixa where ' + g1 +
+  dm.ibselect.SQL.Add('select codhis, codgru, entrada, saida from caixa where ' + g1 +
     ' ((cast(data as date)>=:v1) and (cast(data as date)<=:v2) ) and (tipo <> ''E'')  order by data');
   dm.ibselect.ParamByName('v1').AsDateTime := StrToDate(ini);
   dm.ibselect.ParamByName('v2').AsDateTime := StrToDate(fim);
@@ -8185,7 +8185,7 @@ begin
         dm.ibselect.FieldByName('entrada').AsCurrency);
     end;
 
-    if dm.ibselect.FieldByName('codhis').AsInteger >= 1000 then
+    if dm.ibselect.FieldByName('codgru').AsInteger >= 1000 then
       banco := banco + (dm.ibselect.FieldByName('entrada').AsCurrency -
         dm.ibselect.FieldByName('saida').AsCurrency);
 
@@ -8197,6 +8197,10 @@ begin
     dm.ibselect.Next;
   end;
   dm.ibselect.Close;
+
+  h2 := 'SALDO BANCO  ';
+  if banco = 0 then h2 := '             ';
+
 
   form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((#13 + #10))));
   form19.RichEdit1.Perform(EM_REPLACESEL, 1,
@@ -8247,7 +8251,7 @@ begin
     + #13 + #10))));
   form19.RichEdit1.Perform(EM_REPLACESEL, 1,
     Longint(PChar
-    (('|  ANTERIOR   |  ENTRADAS   |     SAIDAS  | SALDO ATUAL |SALDO CAIXA  |SALDO BANCO  |'
+    (('|  ANTERIOR   |  ENTRADAS   |     SAIDAS  | SALDO ATUAL |SALDO CAIXA  |'+h2+'|'
     + #13 + #10))));
   form19.RichEdit1.Perform(EM_REPLACESEL, 1,
     Longint(PChar
@@ -9593,11 +9597,11 @@ begin
     fim := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,
       'Qual a Data Final?', formataDataDDMMYY(endOfTheMonth(form22.datamov)));
   if not funcoes.Contido('*', ini + fim) then
-    cli := funcoes.dialogo('normal', 0, '', 20, false, '', application.Title,
+    cli := funcoes.dialogo('generico', 0, '0123456789' + #13 , 200, false, '', application.Title,
       'Qual o cliente?', '');
   if (not funcoes.Contido('*', cli)) and (cli = '') then
     cli := funcoes.localizar('Localizar Cliente', 'cliente', 'cod,nome', 'cod',
-      'cod', 'nome', 'cod', false, false, false, '', 0, nil);
+      '', 'nome', 'cod', false, false, false, '', 0, nil);
   if funcoes.Contido('*', ini + fim + cli) then
     exit;
 
@@ -9621,12 +9625,13 @@ begin
   form19.RichEdit1.Perform(EM_REPLACESEL, 1,
     Longint(PChar((funcoes.CompletaOuRepete('+', '+' + #13 + #10, '-', 81)))));
 
+  dias := 0;
   if cli <> '' then
     c1 := ' and (documento=' + cli + ')';
   dm.ibselect.Close;
   dm.ibselect.SQL.Clear;
   dm.ibselect.SQL.Add
-    ('select * from contasreceber where  ((data>=:v1) and (data<=:v2) and (pago<>0)) '
+    ('select * from contasreceber where  ((vencimento >= :v1) and (vencimento <= :v2) and (pago<>0)) '
     + c1 + ' order by vencimento');
   dm.ibselect.ParamByName('v1').AsDateTime := StrToDate(ini);
   dm.ibselect.ParamByName('v2').AsDateTime := StrToDate(fim);
@@ -9661,8 +9666,11 @@ begin
         Longint(PChar((funcoes.CompletaOuRepete('+', '+' + #13 + #10,
         '-', 81)))));
     end;
-    dias := trunc(dm.ibselect.FieldByName('data').AsDateTime -
-      dm.ibselect.FieldByName('vencimento').AsDateTime);
+    dias := trunc(now - dm.ibselect.FieldByName('vencimento').AsDateTime);
+    if dias > 0 then dias := 0
+    else if dias < 0 then dias := abs(dias);
+         
+
     addRelatorioForm19('|' + funcoes.CompletaOuRepete('',
       FormatDateTime('dd/mm/yy', dm.ibselect.FieldByName('data').AsDateTime),
       ' ', 8) + ' ' + funcoes.CompletaOuRepete('', FormatDateTime('dd/mm/yy',
@@ -9674,9 +9682,11 @@ begin
       '|' + CRLF);
     totalgeral := totalgeral + dm.ibselect.FieldByName('pago').AsCurrency;
     totalD := totalD + dias;
-    cont := cont + 1;
+
+    if dias > 0 then cont := cont + 1;
     dm.ibselect.Next;
   end;
+
   form19.RichEdit1.Perform(EM_REPLACESEL, 1,
     Longint(PChar((funcoes.CompletaOuRepete('+', '+' + #13 + #10, '-', 81)))));
   form19.RichEdit1.Perform(EM_REPLACESEL, 1,
@@ -10576,7 +10586,7 @@ begin
 
     TOTCANCELADAS := 0;
     while not dm.IBselect.Eof do begin
-      addRelatorioForm19(CompletaOuRepete('', dm.IBselect.FieldByName('nota').AsString, '0', 6) + ' ' + formataDataDDMMYY(dm.IBselect.FieldByName('DATA').AsDateTime) + ' ' +
+      addRelatorioForm19(CompletaOuRepete('', dm.IBselect.FieldByName('nota').AsString, '0', 8) + ' ' + formataDataDDMMYY(dm.IBselect.FieldByName('DATA').AsDateTime) + ' ' +
       FormatDateTime('dd/mm/yy hh:mm', dm.IBselect.FieldByName('data_canc').AsDateTime) + ' ' + CompletaOuRepete(LeftStr(dm.IBselect.FieldByName('cancelado').AsString + '-' + dm.IBselect.FieldByName('nomeusuario').AsString, 12), '', ' ', 12) + CRLF +
        CompletaOuRepete(LeftStr(dm.IBselect.FieldByName('cliente').AsString + '-' + dm.IBselect.FieldByName('nomecliente').AsString, 48), '', ' ', 48)+ CompletaOuRepete('', formataCurrency(dm.IBselect.FieldByName('total').AsCurrency), ' ', 12)  + CRLF);
 
@@ -17474,10 +17484,8 @@ begin
     funcoes.informacao(ini, fim, 'Aguarde, Reajustando Preços...', false,
       false, 2);
 
-    dm.IBQuery1.ParamByName('preco').AsCurrency :=
-      (dm.ibselect.FieldByName('p_venda').AsCurrency * perc / 100);
-    dm.IBQuery1.ParamByName('cod').AsString :=
-      dm.ibselect.FieldByName('cod').AsString;
+    dm.IBQuery1.ParamByName('preco').AsCurrency := dm.ibselect.FieldByName('p_venda').AsCurrency + (dm.ibselect.FieldByName('p_venda').AsCurrency * perc / 100);
+    dm.IBQuery1.ParamByName('cod').AsString := dm.ibselect.FieldByName('cod').AsString;
     dm.IBQuery1.ExecSQL;
 
     dm.ibselect.Next;
@@ -17556,8 +17564,7 @@ begin
     funcoes.informacao(dm.ibselect.RecNo, fim,
       'Reajustando Preço de Atacado...', false, false, 2);
 
-    dm.IBQuery1.ParamByName('preco').AsCurrency :=
-      Arredonda(dm.ibselect.FieldByName('p_venda').AsCurrency * perc / 100, 2);
+    dm.IBQuery1.ParamByName('preco').AsCurrency := dm.ibselect.FieldByName('p_venda').AsCurrency + (dm.ibselect.FieldByName('p_venda').AsCurrency * perc / 100);
     dm.IBQuery1.ParamByName('cod').AsString :=
       dm.ibselect.FieldByName('cod').AsString;
     dm.IBQuery1.ExecSQL;
@@ -17634,9 +17641,7 @@ begin
     if ((dm.ibselect.FieldByName('p_venda').AsCurrency >= pini) AND
       (dm.ibselect.FieldByName('p_venda').AsCurrency <= pfim)) then
     begin
-      dm.IBQuery1.ParamByName('preco').AsCurrency :=
-        Arredonda(dm.ibselect.FieldByName('p_venda').AsCurrency * perc
-        / 100, 2);
+      dm.IBQuery1.ParamByName('preco').AsCurrency := dm.ibselect.FieldByName('p_venda').AsCurrency + Arredonda(dm.ibselect.FieldByName('p_venda').AsCurrency * perc / 100, 2);
       dm.IBQuery1.ParamByName('cod').AsString :=
         dm.ibselect.FieldByName('cod').AsString;
       dm.IBQuery1.ExecSQL;
@@ -17659,7 +17664,7 @@ end;
 procedure TForm2.PorFornecedor2Click(Sender: TObject);
 var
   perce, sim: String;
-  perc: currency;
+  perc, totvelho, totnovo: currency;
   ini, fim, reg: integer;
 begin
   if not funcoes.senhaDodia then
@@ -17703,9 +17708,21 @@ begin
   if ((sim = '*') or (sim = 'N')) then
     exit;
 
+  totvelho  := 0;
+  totnovo   := 0;
+
+
+  form19.RichEdit1.Clear;
+  addRelatorioForm19('-----------------------------------------------------------' + CRLF);
+  addRelatorioForm19('AJUSTE DE PRECO DE VENDA ' + CRLF);
+  addRelatorioForm19('-----------------------------------------------------------' + CRLF);
+  addRelatorioForm19('COD    NOME                             ANTIGO         NOVO' + CRLF);
+  addRelatorioForm19('-----------------------------------------------------------' + CRLF);
+
+
   dm.ibselect.Close;
   dm.ibselect.SQL.Clear;
-  dm.ibselect.SQL.Add('select cod, fornec, p_venda from produto');
+  dm.ibselect.SQL.Add('select cod, fornec, p_venda, nome from produto');
   dm.ibselect.Open;
   dm.ibselect.FetchAll;
 
@@ -17727,10 +17744,17 @@ begin
     if ((dm.ibselect.FieldByName('fornec').AsString = fornec) and
       (dm.ibselect.FieldByName('p_venda').AsCurrency <> 0)) then
     begin
-      dm.IBQuery1.ParamByName('preco').AsCurrency :=
-        (dm.ibselect.FieldByName('p_venda').AsCurrency * perc / 100);
-      dm.IBQuery1.ParamByName('cod').AsString :=
-        dm.ibselect.FieldByName('cod').AsString;
+
+      dm.IBQuery1.ParamByName('preco').AsCurrency := dm.ibselect.FieldByName('p_venda').AsCurrency + (dm.ibselect.FieldByName('p_venda').AsCurrency * perc / 100);
+      dm.IBQuery1.ParamByName('cod').AsString     := dm.ibselect.FieldByName('cod').AsString;
+
+      addRelatorioForm19(CompletaOuRepete(LeftStr(dm.ibselect.FieldByName('cod').AsString + ' ' + dm.ibselect.FieldByName('nome').AsString, 37), '', ' ', 37) + CompletaOuRepete('', FormatCurr('0.00', dm.ibselect.FieldByName('p_venda').AsCurrency), ' ', 10) +
+      CompletaOuRepete('', FormatCurr('0.00', dm.IBQuery1.ParamByName('preco').AsCurrency), ' ', 12) + CRLF);
+
+      totvelho := totvelho + dm.ibselect.FieldByName('p_venda').AsCurrency;
+      totnovo  := totnovo  + dm.IBQuery1.ParamByName('preco').AsCurrency;
+
+
       dm.IBQuery1.ExecSQL;
       reg := reg + 1;
     end;
@@ -17746,6 +17770,12 @@ begin
 
   dm.ibselect.Close;
   ShowMessage(IntToStr(reg) + ' Produtos Reajustos Com Sucesso');
+
+  addRelatorioForm19('-----------------------------------------------------------' + CRLF);
+  addRelatorioForm19('REAJUSTE > > >' + CompletaOuRepete('', FormatCurr('0.00', totvelho), ' ', 32) + CompletaOuRepete('', FormatCurr('0.00', totnovo), ' ', 13) + CRLF);
+  addRelatorioForm19('TOTAL > > >' +  CompletaOuRepete('', FormatCurr('0.00', totnovo - totvelho), ' ', 13) + CRLF);
+  addRelatorioForm19('-----------------------------------------------------------' + CRLF);
+  form19.ShowModal;
 end;
 
 procedure TForm2.PorGrupo1Click(Sender: TObject);
@@ -18000,8 +18030,7 @@ begin
     if ((dm.ibselect.FieldByName('fabric').AsString = fornec) and
       (dm.ibselect.FieldByName('p_venda').AsCurrency <> 0)) then
     begin
-      dm.IBQuery1.ParamByName('preco').AsCurrency :=
-        (dm.ibselect.FieldByName('p_venda').AsCurrency * perc / 100);
+      dm.IBQuery1.ParamByName('preco').AsCurrency := dm.ibselect.FieldByName('p_venda').AsCurrency + (dm.ibselect.FieldByName('p_venda').AsCurrency * perc / 100);
       dm.IBQuery1.ParamByName('cod').AsString :=
         dm.ibselect.FieldByName('cod').AsString;
       dm.IBQuery1.ExecSQL;
