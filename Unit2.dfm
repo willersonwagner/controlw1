@@ -12141,6 +12141,10 @@ object Form2: TForm2
             Caption = 'Por Fabricante'
             OnClick = PorFabricante1Click
           end
+          object PorGrupo2: TMenuItem
+            Caption = 'Por Grupo'
+            OnClick = PorGrupo2Click
+          end
           object VendanoAtacado1: TMenuItem
             Caption = 'Venda Atacado'
             OnClick = VendanoAtacado1Click

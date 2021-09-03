@@ -1235,8 +1235,10 @@ begin
         // if copiado then RichEdit1.Lines.Add('Nota Servidor: ' + IntToStr(notaVenda) + ' OK!!')
         // else RichEdit1.Lines.Add('ERRO Nota Servidor: ' + IntToStr(notaVenda) + ' !');
       end
-      else
+      else begin
         XMLnEncontrado := XMLnEncontrado + 1;
+        RichEdit1.Lines.Add('XML nao Encontrado: ' +IBQuery1.fieldbyname('chave').AsString);
+      end;
 
       IBQuery1.Next;
     end;

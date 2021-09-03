@@ -7682,7 +7682,7 @@ end;
 procedure TForm20.ClientDataSet1AfterPost(DataSet: TDataSet);
 begin
   escrveValor;
-  if tipoTrocaDescontoUsuario <> 'F' then begin
+  if ((tipoTrocaDescontoUsuario <> 'F') and (funcoes.buscaParamGeral(128, 'S') = 'S')) then begin
     form22.Pgerais.Values['configu'] := configUsuario;
   end;
 end;

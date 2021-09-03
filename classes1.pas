@@ -114,6 +114,7 @@ type
   end;
 
   TregProd = class
+    data     : tdate;
     cod      : integer;
     codStr   : String;
     tipo_item   : String;

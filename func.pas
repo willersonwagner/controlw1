@@ -26917,8 +26917,7 @@ begin
     begin
       if FileExists(trim(lista.Values[IntToStr(i)])) then
       begin
-        dm.ACBrMail1.AddAttachment(trim(lista.Values[IntToStr(i)]),
-          'Anexo ' + IntToStr(i + 1));
+        dm.ACBrMail1.AddAttachment(trim(lista.Values[IntToStr(i)]), 'Anexo ' + IntToStr(i + 1));
       end;
     end;
   end;

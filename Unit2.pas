@@ -408,6 +408,7 @@ type
     ResumodeContas1: TMenuItem;
     Timer3: TTimer;
     ReposiodeEstoque1: TMenuItem;
+    PorGrupo2: TMenuItem;
     procedure LimparBloqueios1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure CadastrarUsurio1Click(Sender: TObject);
@@ -702,6 +703,7 @@ type
     procedure ResumodeContas1Click(Sender: TObject);
     procedure Timer3Timer(Sender: TObject);
     procedure ReposiodeEstoque1Click(Sender: TObject);
+    procedure PorGrupo2Click(Sender: TObject);
   private
     b, cont: integer;
     ini: Smallint;
@@ -1926,8 +1928,8 @@ begin
       Longint(PChar
       (('REFERENCIA    DESCRICAO DO PRODUTO                            QUANT        PRECO'
       + #13 + #10))));
-    form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-      Longint(PChar((funcoes.CompletaOuRepete('', #13 + #10, '-', 82)))));
+   // form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+     // Longint(PChar((funcoes.CompletaOuRepete('', #13 + #10, '-', 82)))));
   end;
 
   if (sim = 'S') and (sim <> '*') then
@@ -1948,13 +1950,12 @@ begin
           Longint(PChar
           (('REFERENCIA    DESCRICAO DO PRODUTO                            QUANT        PRECO'
           + #13 + #10))));
-        form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-          Longint(PChar((funcoes.CompletaOuRepete('', #13 + #10, '-', 82)))));
+       // form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+         // Longint(PChar((funcoes.CompletaOuRepete('', #13 + #10, '-', 82)))));
       end;
       // ShowMessage('tentando '+IntToStr(dm.ProdutoQY.RecNo));
       if dm.ProdutoQY.RecNo = dm.ProdutoQY.RecordCount then
-        form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-          Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 80)))));
+        addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13);
 
       if funcoes.PerguntasRel(dm.ProdutoQY, '123', true, '', '') then
       begin
@@ -2106,7 +2107,7 @@ begin
         'AGUARDE... ', false, false, 2);
       form19.RichEdit1.Perform(EM_REPLACESEL, 1,
         Longint(PChar((funcoes.CompletaOuRepete('',
-        dm.ProdutoQY.FieldByName('COD').AsString, ' ', 7) + '    ' +
+        dm.ProdutoQY.FieldByName('COD').AsString, '0', 7) + '    ' +
         funcoes.CompletaOuRepete(dm.ProdutoQY.FieldByName('DESCRICAO').AsString,
         dm.ProdutoQY.FieldByName('un').AsString, ' ',
         52) + funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00',
@@ -2116,6 +2117,10 @@ begin
     end;
     funcoes.informacao(dm.ProdutoQY.RecNo, dm.ProdutoQY.RecordCount,
       'AGUARDE... ', false, true, 2);
+
+    form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+          Longint(PChar((funcoes.CompletaOuRepete('-', #12 + #13 + #10,
+          '-', 83)))));
     form19.RichEdit1.SelStart := 1;
     dm.ProdutoQY.Close;
     form19.Show;
@@ -4287,6 +4292,7 @@ begin
   form40.tipo.Add('125=normal');
   form40.tipo.Add('126=generico');
   form40.tipo.Add('127=generico');
+  form40.tipo.Add('128=generico');
 
   form40.troca := TStringList.Create;
   form40.troca.Add('0=S');
@@ -4420,6 +4426,7 @@ begin
   form40.troca.Add('125=');
   form40.troca.Add('126=S');
   form40.troca.Add('127=S');
+  form40.troca.Add('128=S');
 
   form40.teclas := TStringList.Create;
   form40.teclas.Add('0=FT');
@@ -4552,6 +4559,7 @@ begin
   form40.teclas.Add('125=1234567890ABCDEFGHIJLMNOPKXYZWQRSTUVXZ|' + #46);
   form40.teclas.Add('126=SN');
   form40.teclas.Add('127=SN');
+  form40.teclas.Add('128=SN');
 
   form40.ListBox1.Clear;
   form40.ListBox1.Items.Add
@@ -4758,6 +4766,7 @@ begin
   form40.ListBox1.Items.Add('125=Qual a Mensagem no Pedido de Venda TICKET Fixo na Venda?');
   form40.ListBox1.Items.Add('126=Considerar Limites de ativo, atraso e compra?');
   form40.ListBox1.Items.Add('127=Somar Entradas em Caixa no Resumo de Form Pagto no Relatorio de Vendas por Nota (S/N/E-Somente Entradas)?');
+  form40.ListBox1.Items.Add('128=Permitir Somente Uma Alteração em 1 produto na venda quando Pedir permissao de desconto ?');
 
 
   form40.ListBox1.Selected[0] := true;
@@ -11069,9 +11078,10 @@ end;
 
 procedure TForm2.relClienteNota(cliente : String = '');
 var
-  ini, fim, h1, ee, clix, ordem: string;
+  ini, fim, h1, ee, clix, ordem, agrup: string;
   totalgeral: currency;
   i: integer;
+  lista : TItensProduto;
 begin
   if cliente = '' then begin
     cliente := funcoes.dialogo('generico', 30, '1234567890' + #8, 30, false, '',
@@ -11100,10 +11110,13 @@ begin
   ini := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,
     'Qual a Data Inicial?', formataDataDDMMYY(StartOfTheMonth(form22.datamov)));
   if not funcoes.Contido('*', ini) then
-    fim := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,
-      'Qual a Data Final?', formataDataDDMMYY(endOfTheMonth(form22.datamov)));
+    fim := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,'Qual a Data Final?', formataDataDDMMYY(endOfTheMonth(form22.datamov)));
   if funcoes.Contido('*', ini + fim) then
     exit;
+
+  agrup := funcoes.dialogo('generico', 30, 'SN' + #8, 30, false, 'S', application.Title, 'Deseja Agrupar Os produtos por Quantidade ?', 'N');
+  if agrup = '*' then exit;
+  
 
   h1 := '';
   if cliente <> '' then
@@ -11133,9 +11146,7 @@ begin
     Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10))));
   dm.ibselect.Close;
   dm.ibselect.SQL.Clear;
-  dm.ibselect.SQL.Add
-    ('select v.cliente, v.nota,v.data,i.cod,p.nome,i.quant,i.total from venda v,item_venda i,produto p where (v.nota = i.nota) and (v.cancelado = 0) and (i.cod = p.cod) and ((v.data >= :v1) and (v.data<=:v2)) '
-    + h1 + ' order by ' + ordem);
+  dm.ibselect.SQL.Add('select v.cliente, v.nota,v.data,i.cod,p.nome,i.quant,i.total from venda v,item_venda i,produto p where (v.nota = i.nota) and (v.cancelado = 0) and (i.cod = p.cod) and ((v.data >= :v1) and (v.data<=:v2)) '+ h1 + ' order by ' + ordem);
   dm.ibselect.ParamByName('v1').AsDateTime := StrToDate(ini);
   dm.ibselect.ParamByName('v2').AsDateTime := StrToDate(fim);
   // dm.IBselect.ParamByName('cliente').AsInteger := StrToIntDef(cliente , 0);
@@ -11143,15 +11154,43 @@ begin
   dm.ibselect.First;
   totalgeral := 0;
   clix := 'xx';
-  while not dm.ibselect.Eof do
-  begin
-    if clix <> dm.ibselect.FieldByName('cliente').AsString then
-    begin
+  lista := TItensProduto.Create;
+
+  while not dm.ibselect.Eof do begin
+    if agrup = 'S' then begin
+      i := lista.FindCodSTR(dm.ibselect.FieldByName('cliente').AsString + '-'+dm.ibselect.FieldByName('cod').AsString );
+      if i = -1 then begin
+        i := lista.Add(TregProd.Create);
+        lista[i].codStr := dm.ibselect.FieldByName('cliente').AsString + '-'+dm.ibselect.FieldByName('cod').AsString ;
+        lista[i].cod    := dm.ibselect.FieldByName('cod').AsInteger;
+        lista[i].quant  := dm.ibselect.FieldByName('quant').AsCurrency;
+        lista[i].temp   := dm.ibselect.FieldByName('cliente').AsString;
+        lista[i].total  := dm.ibselect.FieldByName('total').AsCurrency;
+        lista[i].nome   := dm.ibselect.FieldByName('nome').AsString;
+      end
+      else begin
+        lista[i].quant  := lista[i].quant + dm.ibselect.FieldByName('quant').AsCurrency;
+        lista[i].total  := lista[i].total + dm.ibselect.FieldByName('total').AsCurrency;
+      end;
+    end
+    else begin
+      i := lista.Add(TregProd.Create);
+      lista[i].codStr := dm.ibselect.FieldByName('cliente').AsString + '-'+dm.ibselect.FieldByName('cod').AsString ;
+      lista[i].cod    := dm.ibselect.FieldByName('cod').AsInteger;
+      lista[i].quant  := dm.ibselect.FieldByName('quant').AsCurrency;
+      lista[i].temp   := dm.ibselect.FieldByName('cliente').AsString;
+      lista[i].total  := dm.ibselect.FieldByName('total').AsCurrency;
+      lista[i].nome   := dm.ibselect.FieldByName('nome').AsString;
+      lista[i].data   := dm.ibselect.FieldByName('data').AsDateTime;
+      lista[i].aliqCred := dm.ibselect.FieldByName('nota').AsInteger;
+    end;
+
+
+
+    {if clix <> dm.ibselect.FieldByName('cliente').AsString then begin
       dm.IBQuery2.Close;
-      dm.IBQuery2.SQL.Text :=
-        'select telres, telcom from cliente where cod = :cod';
-      dm.IBQuery2.ParamByName('cod').AsString :=
-        dm.ibselect.FieldByName('cliente').AsString;
+      dm.IBQuery2.SQL.Text := 'select telres, telcom from cliente where cod = :cod';
+      dm.IBQuery2.ParamByName('cod').AsString := dm.ibselect.FieldByName('cliente').AsString;
       dm.IBQuery2.Open;
 
       form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((CRLF))));
@@ -11168,8 +11207,7 @@ begin
     end;
 
     totalgeral := totalgeral + dm.ibselect.FieldByName('total').AsCurrency;
-    form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-      Longint(PChar((funcoes.CompletaOuRepete(FormatDateTime('dd/mm/yy',
+    addRelatorioForm19(funcoes.CompletaOuRepete(FormatDateTime('dd/mm/yy',
       dm.ibselect.FieldByName('data').AsDateTime), '', ' ',
       8) + funcoes.CompletaOuRepete('', dm.ibselect.FieldByName('cod').AsString,
       ' ', 6) + '-' + funcoes.CompletaOuRepete(copy(dm.ibselect.FieldByName
@@ -11177,10 +11215,40 @@ begin
       FormatCurr('#,###,###0.00', dm.ibselect.FieldByName('quant').AsCurrency),
       ' ', 13) + funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00',
       dm.ibselect.FieldByName('total').AsCurrency), ' ',
-      13) + funcoes.CompletaOuRepete('', dm.ibselect.FieldByName('nota')
-      .AsString, ' ', 9) + #13 + #10))));
+      13) + funcoes.CompletaOuRepete('', dm.ibselect.FieldByName('nota').AsString, ' ', 9) + #13 + #10);}
+
     dm.ibselect.Next;
   end;
+
+  lista.OrdenarPorNome;
+
+  for i := 0 to lista.Count -1 do begin
+    if clix <> lista[i].temp then begin
+      dm.IBQuery2.Close;
+      dm.IBQuery2.SQL.Text := 'select telres, telcom from cliente where cod = :cod';
+      dm.IBQuery2.ParamByName('cod').AsString := lista[i].temp;
+      dm.IBQuery2.Open;
+
+      addRelatorioForm19(funcoes.CompletaOuRepete(LeftStr('CLIENTE: ' +
+        lista[i].temp + '-' +
+        funcoes.BuscaNomeBD(dm.IBQuery1, 'nome', 'cliente',
+        'where cod=' + lista[i].temp) + ' ' +
+        dm.IBQuery2.FieldByName('telres').AsString + ' ' +
+        dm.IBQuery2.FieldByName('telcom').AsString, 78), '', ' ', 80) + #13
+        + #10);
+       addRelatorioForm19(CRLF);
+      clix := lista[i].temp;
+    end;
+
+    totalgeral := totalgeral + lista[i].total;
+
+    addRelatorioForm19(funcoes.CompletaOuRepete(IfThen(agrup = 'S', '', FormatDateTime('dd/mm/yy',lista[i].data)), '', ' ',8) + funcoes.CompletaOuRepete('', IntToStr(lista[i].cod),' ', 6) + '-' +
+    funcoes.CompletaOuRepete(copy(lista[i].nome, 1, 30), '', ' ', 30) + funcoes.CompletaOuRepete('',
+      FormatCurr('#,###,###0.00', lista[i].quant),
+      ' ', 13) + funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00',lista[i].total), ' ',
+      13) + funcoes.CompletaOuRepete('', IfThen(agrup = 'S', '',CurrToStr(lista[i].aliqCred)), ' ', 9) + #13 + #10);
+  end;
+
 
   dm.ibselect.Close;
   form19.RichEdit1.Perform(EM_REPLACESEL, 1,
@@ -17473,7 +17541,7 @@ begin
   dm.IBQuery1.Close;
   dm.IBQuery1.SQL.Clear;
   dm.IBQuery1.SQL.Add
-    ('update produto set p_venda = p_venda + :preco where cod = :cod');
+    ('update produto set p_venda = :preco where cod = :cod');
 
   ini := 0;
   fim := dm.ibselect.RecordCount;
@@ -17548,14 +17616,14 @@ begin
 
   dm.ibselect.Close;
   dm.ibselect.SQL.Clear;
-  dm.ibselect.SQL.Add('select cod, p_venda from produto');
+  dm.ibselect.SQL.Add('select cod, p_venda1 as p_venda from produto');
   dm.ibselect.Open;
   dm.ibselect.FetchAll;
 
   dm.IBQuery1.Close;
   dm.IBQuery1.SQL.Clear;
   dm.IBQuery1.SQL.Add
-    ('update produto set p_venda1 = p_venda - :preco where cod = :cod');
+    ('update produto set p_venda1 = :preco where cod = :cod');
 
   fim := dm.ibselect.RecordCount;
   funcoes.informacao(1, 2, 'Reajustando Preço de Atacado...', true, false, 2);
@@ -17627,7 +17695,7 @@ begin
   dm.IBQuery1.Close;
   dm.IBQuery1.SQL.Clear;
   dm.IBQuery1.SQL.Add
-    ('update produto set p_venda = p_venda + :preco where cod = :cod');
+    ('update produto set p_venda = :preco where cod = :cod');
 
   ini := 0;
   reg := 0;
@@ -17729,7 +17797,7 @@ begin
   dm.IBQuery1.Close;
   dm.IBQuery1.SQL.Clear;
   dm.IBQuery1.SQL.Add
-    ('update produto set p_venda = p_venda + :preco where cod = :cod');
+    ('update produto set p_venda = :preco where cod = :cod');
 
   ini := 0;
   reg := 0;
@@ -17959,6 +18027,124 @@ begin
   form19.showmodal;
 end;
 
+procedure TForm2.PorGrupo2Click(Sender: TObject);
+var
+  perce, sim: String;
+  perc, totvelho, totnovo: currency;
+  ini, fim, reg: integer;
+begin
+  if not funcoes.senhaDodia then
+    exit;
+
+  fornec := funcoes.dialogo('generico', 60, '1234567890' + #8, 50, false, '',
+    'Control For Windows', 'Qual o Grupo:', '');
+  if fornec = '*' then
+    exit;
+
+  if fornec = '' then
+  begin
+    fornec := funcoes.localizar('Localizar Grupo', 'GRUPOPROD',
+      'cod,nome', 'cod', '', 'nome', 'nome', true, false, false, '', 500, nil);
+  end;
+  if ((fornec = '*') or (fornec = '')) then
+    exit;
+
+  dm.ibselect.Close;
+  dm.ibselect.SQL.Clear;
+  dm.ibselect.SQL.Add('select cod from GRUPOPROD where cod = :cod');
+  dm.ibselect.ParamByName('cod').AsString := fornec;
+  dm.ibselect.Open;
+
+  if dm.ibselect.IsEmpty then
+  begin
+    ShowMessage('Grupo ' + fornec + ' Não Encontrado');
+    exit;
+  end;
+  dm.ibselect.Close;
+
+  perce := funcoes.dialogo('numero', 0, '', 2, true, 'S', application.Title,
+    'Qual o valor do Percentual de Reajuste ?', '0,00');
+  if perce = '*' then
+    exit;
+
+  perc := StrToCurr(perce);
+  sim := funcoes.dialogo('generico', 0, 'SN' + #8, 0, false, 'S',
+    'Control For Windows', 'Confirma Reajuste de ' + formataCurrency(perc) +
+    '% ?S/N', 'N');
+  if ((sim = '*') or (sim = 'N')) then
+    exit;
+
+  totvelho  := 0;
+  totnovo   := 0;
+
+
+  form19.RichEdit1.Clear;
+  addRelatorioForm19('-----------------------------------------------------------' + CRLF);
+  addRelatorioForm19('AJUSTE DE PRECO DE VENDA ' + CRLF);
+  addRelatorioForm19('Grupo: ' + fornec + CRLF);
+  addRelatorioForm19('-----------------------------------------------------------' + CRLF);
+  addRelatorioForm19('COD    NOME                             ANTIGO         NOVO' + CRLF);
+  addRelatorioForm19('-----------------------------------------------------------' + CRLF);
+
+
+  dm.ibselect.Close;
+  dm.ibselect.SQL.Clear;
+  dm.ibselect.SQL.Add('select cod, grupo as fornec, p_venda, nome from produto');
+  dm.ibselect.Open;
+  dm.ibselect.FetchAll;
+
+  dm.IBQuery1.Close;
+  dm.IBQuery1.SQL.Clear;
+  dm.IBQuery1.SQL.Add
+    ('update produto set p_venda = :preco where cod = :cod');
+
+  ini := 0;
+  reg := 0;
+  fim := dm.ibselect.RecordCount;
+  funcoes.informacao(1, 2, 'Aguarde, Reajustando Preços ', true, false, 2);
+  while not dm.ibselect.Eof do
+  begin
+    ini := ini + 1;
+    funcoes.informacao(ini, fim, 'Aguarde, Reajustando Preços...', false,
+      false, 2);
+
+    if ((dm.ibselect.FieldByName('fornec').AsString = fornec) and
+      (dm.ibselect.FieldByName('p_venda').AsCurrency <> 0)) then
+    begin
+
+      dm.IBQuery1.ParamByName('preco').AsCurrency := dm.ibselect.FieldByName('p_venda').AsCurrency + (dm.ibselect.FieldByName('p_venda').AsCurrency * perc / 100);
+      dm.IBQuery1.ParamByName('cod').AsString     := dm.ibselect.FieldByName('cod').AsString;
+
+      addRelatorioForm19(CompletaOuRepete(LeftStr(dm.ibselect.FieldByName('cod').AsString + ' ' + dm.ibselect.FieldByName('nome').AsString, 37), '', ' ', 37) + CompletaOuRepete('', FormatCurr('0.00', dm.ibselect.FieldByName('p_venda').AsCurrency), ' ', 10) +
+      CompletaOuRepete('', FormatCurr('0.00', dm.IBQuery1.ParamByName('preco').AsCurrency), ' ', 12) + CRLF);
+
+      totvelho := totvelho + dm.ibselect.FieldByName('p_venda').AsCurrency;
+      totnovo  := totnovo  + dm.IBQuery1.ParamByName('preco').AsCurrency;
+
+
+      dm.IBQuery1.ExecSQL;
+      reg := reg + 1;
+    end;
+
+    dm.ibselect.Next;
+  end;
+  funcoes.informacao(1, 2, 'Aguarde, Reajustando Preços ', false, true, 2);
+
+  try
+    dm.IBQuery1.Transaction.Commit;
+  except
+  end;
+
+  dm.ibselect.Close;
+  ShowMessage(IntToStr(reg) + ' Produtos Reajustos Com Sucesso');
+
+  addRelatorioForm19('-----------------------------------------------------------' + CRLF);
+  addRelatorioForm19('REAJUSTE > > >' + CompletaOuRepete('', FormatCurr('0.00', totvelho), ' ', 32) + CompletaOuRepete('', FormatCurr('0.00', totnovo), ' ', 13) + CRLF);
+  addRelatorioForm19('TOTAL > > >' +  CompletaOuRepete('', FormatCurr('0.00', totnovo - totvelho), ' ', 13) + CRLF);
+  addRelatorioForm19('-----------------------------------------------------------' + CRLF);
+  form19.ShowModal;
+end;
+
 procedure TForm2.PorFabricante1Click(Sender: TObject);
 var
   perce, sim: String;
@@ -18015,7 +18201,7 @@ begin
   dm.IBQuery1.Close;
   dm.IBQuery1.SQL.Clear;
   dm.IBQuery1.SQL.Add
-    ('update produto set p_venda = p_venda + :preco where cod = :cod');
+    ('update produto set p_venda = :preco where cod = :cod');
 
   ini := 0;
   reg := 0;

@@ -810,10 +810,10 @@ end;
 FUNCTION ALIQ_INTEREST(ESTADO : String) : currency;
 begin
   Result := 12;
-  if Contido(ESTADO, 'MG-PR-RS-RJ-SC-SP') then
+  {if Contido(ESTADO, 'MG-PR-RS-RJ-SP') then
     begin
       Result := 7;
-    end;
+    end;}
   if ESTADO = 'RR' then Result := 17;
 end;
 
@@ -5825,4 +5825,3 @@ end;
 
 
 end.
-

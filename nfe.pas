@@ -59,7 +59,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ComCtrls, SHDocVw,  FileCtrl, DateUtils, IniFiles, OleCtrls,  ExtCtrls, Buttons,
   IdBaseComponent, IdComponent, IdTCPServer, funcoesdav, Classes1, pcnConversao,pcnConversaonfe, untnfceForm, jsedit1,
-  IdCustomTCPServer,spedFiscal;
+  IdCustomTCPServer,spedFiscal, ACBrMail;
 
 type
   TNfeVenda = class(TForm)
@@ -1182,7 +1182,7 @@ begin
           pergunta1.Visible := false;
           funcoes.Mensagem(Application.Title ,'Aguarde, Enviando NFe...',15,'Courier New',false,0,clred, false);
           try
-            ACBrNFe.Enviar(0,false);
+            ACBrNFe.Enviar(0,false, true);
           except
             on e:exception do begin
               pergunta1.Visible := false;
@@ -1393,7 +1393,7 @@ begin
 
       AcbrEmail.ClearAttachments;
       AcbrEmail.AddAttachment(caminhoEXE_com_barra_no_final + 'NFe\PDF\' + nf+ '-nfe.pdf');
-      AcbrEmail.AddAttachment(buscaPastaNFe(nf) + '\'+ nf +'-nfe.xml');
+      AcbrEmail.AddAttachment(buscaPastaNFe(nf) + '\'+ nf +'-nfe.xml', '', adAttachment);
      dm.ACBrMail1.Send(true);
 
      while true do begin
@@ -4137,7 +4137,8 @@ begin
               ACBrNFe.WebServices.Retorno.Executar;
             except
             end;
-            csta := ACBrNFe.WebServices.Retorno.cstat;
+
+            csta := ACBrNFe.WebServices.Enviar.cStat;
           end
            else begin
              //as vezes acbrNFeEnviar função retorna FALSE mas tem numero de recibo
@@ -4148,7 +4149,7 @@ begin
                end;
              end;
 
-             csta := ACBrNFe.WebServices.Retorno.cstat;
+             csta := ACBrNFe.WebServices.Enviar.cStat;
            end;
           //ShowMessage(erro_dados + #13 + ACBrNFe.WebServices.Retorno.xMotivo + #13 + ACBrNFe.WebServices.Retorno.Msg);
           if (((csta > 0) and (csta < 999)) or (i >= 15)) then break;
@@ -4885,6 +4886,7 @@ begin
     Result := '<pag>'+
                 '<detPag>'+
                   '<tpag>'+tpag+'</tpag>'+
+                  IfThen(tpag = '99', '<xPag>Pagamento Misto</xpag>', '') +
                   '<vpag>' + Format_num(TOTAL) +  '</vpag>' +
                 '</detPag>' +
                 '</pag>';
@@ -4916,6 +4918,7 @@ begin
   Result := '<pag>';
   for i := 0 to listaPagamentos.Count -1 do begin
       Result := Result +  '<detPag>' + '<tpag>' + listaPagamentos[i].cod + '</tpag>' +
+      IfThen(listaPagamentos[i].cod = '99', '<xPag>Pagamento Misto</xpag>', '') +
       '<vpag>' + Format_num(listaPagamentos[i].total) + '</vpag>' + '</detPag>';
       tmp := tmp + listaPagamentos[i].total;
   end;
@@ -4930,6 +4933,7 @@ begin
      Result := '<pag>'+
                 '<detPag>'+
                   '<tpag>'+tpag+'</tpag>'+
+                  IfThen(tpag = '99', '<xPag>Pagamento Misto</xpag>', '') +
                   '<vpag>' + Format_num(TOTAL) +  '</vpag>' +
                 '</detPag>' +
                 '</pag>';
@@ -5106,4 +5110,5 @@ begin
 end;
 
 end.
+
 

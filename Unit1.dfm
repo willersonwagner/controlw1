@@ -62,6 +62,7 @@ object dm: Tdm
     Top = 50
   end
   object bd: TIBDatabase
+    Connected = True
     DatabaseName = 'f:\ControlW\bd.fdb'
     Params.Strings = (
       'user_name=sysdba'
@@ -75,6 +76,7 @@ object dm: Tdm
     Top = 2
   end
   object IBTransaction2: TIBTransaction
+    Active = True
     DefaultDatabase = bd
     Params.Strings = (
       'read_committed'
@@ -207,6 +209,7 @@ object dm: Tdm
     Top = 161
   end
   object IBTransaction3: TIBTransaction
+    Active = True
     DefaultDatabase = bd
     Params.Strings = (
       'read_committed'
@@ -706,6 +709,7 @@ object dm: Tdm
     Top = 8
   end
   object IBTransaction5: TIBTransaction
+    Active = True
     DefaultDatabase = bd
     Params.Strings = (
       'read_committed'
@@ -738,6 +742,7 @@ object dm: Tdm
       end>
   end
   object IBTransaction6: TIBTransaction
+    Active = True
     DefaultDatabase = bd
     Params.Strings = (
       'read_committed'

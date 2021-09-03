@@ -3359,8 +3359,8 @@ begin
         a := a + 1;
         form65.Label1.Caption := 'Aguarde, Enviando ' + IntToStr(a) + '...';
         form65.Label1.Update;
-        if acbrNFeEnviar(10) then
-        begin
+        if acbrNFeEnviar(10) then begin
+
           // se entrou aqui é pq passou do metodo acbr.Enviar
           ACBrNFe.WebServices.Retorno.Recibo :=
             ACBrNFe.WebServices.enviar.Recibo;
@@ -3369,7 +3369,7 @@ begin
           except
           end;
 
-          csta := ACBrNFe.WebServices.Retorno.cstat;
+          csta := ACBrNFe.WebServices.Enviar.cStat;
         end
         else
         begin
@@ -3382,7 +3382,7 @@ begin
             end;
           end;
 
-          csta := ACBrNFe.WebServices.Retorno.cstat;
+          csta := ACBrNFe.WebServices.Enviar.cStat;
         end;
 
         if (((csta > 0) and (csta < 999)) or (a >= 4)) then
@@ -3403,7 +3403,7 @@ begin
           form65.Label1.Update;
           if acbrNFeConsultar(10) then
           begin
-            csta := ACBrNFe.NotasFiscais[0].nfe.procNFe.cstat;
+            csta := ACBrNFe.WebServices.Consulta.cStat;
             ACBrNFe.NotasFiscais[0].GravarXML(CHAVENF + '-nfe.xml',
               buscaPastaNFCe(CHAVENF, false));
           end;
@@ -3454,7 +3454,7 @@ begin
         // grava o log de erro
         gravaERRO_LOG1('', e.Message, 'Enviar');
         // pega o cstat do retorno
-        csta := ACBrNFe.WebServices.Retorno.cstat;
+        //csta := ACBrNFe.WebServices.Retorno.cstat;
 
         try
           // aqui envia o retorno pro nosso site remoto
@@ -3488,7 +3488,7 @@ begin
           e.Message) or (csta = 539) or (csta = 204)) THEN
         begin
           try
-            trataDuplicidade1(e.Message, false, false, true);
+            trataDuplicidade1(ACBrNFe.WebServices.Enviar.XMotivo, false, false, true);
             ACBrNFe.NotasFiscais.Clear;
           except
             on e: Exception do
@@ -3886,9 +3886,10 @@ begin
           richED.Lines.Add('Aguarde, Enviando ' + IntToStr(a) + '...');
           if acbrNFeEnviar(10) then begin
             // se entrou aqui é pq passou do metodo acbr.Enviar
+
             ACBrNFe.WebServices.Retorno.Recibo :=
               ACBrNFe.WebServices.enviar.Recibo;
-            richED.Lines.Add('Recibo: ' + ACBrNFe.WebServices.enviar.Recibo);
+            richED.Lines.Add('Retorno WS: ' + IntToStr(ACBrNFe.WebServices.Enviar.cStat));
             richED.Lines.Add('Consultando Recibo... ');
 
             try
@@ -3899,11 +3900,14 @@ begin
               end;
             end;
 
-            csta := ACBrNFe.WebServices.Retorno.cstat;
+            //csta := ACBrNFe.WebServices.Retorno.cstat;
+            csta := ACBrNFe.WebServices.Enviar.cstat;
           end
           else
           begin
             // as vezes acbrNFeEnviar função retorna FALSE mas tem numero de recibo
+
+            richED.Lines.Add('Retorno WS: ' + IntToStr(ACBrNFe.WebServices.Enviar.cStat));
             if ACBrNFe.WebServices.enviar.Recibo <> '' then begin
               richED.Lines.Add('Recibo: ' + ACBrNFe.WebServices.enviar.Recibo);
               richED.Lines.Add('Consultando Recibo... ');
@@ -3916,7 +3920,7 @@ begin
               end;
             end;
 
-            csta := ACBrNFe.WebServices.Retorno.cstat;
+            csta := ACBrNFe.WebServices.Enviar.cStat;
           end;
 
           if (((csta > 0) and (csta < 999)) or (a >= 4)) then break;
@@ -3937,7 +3941,7 @@ begin
             richED.Lines.Add('Aguarde, Consultando ' + IntToStr(a) + '...');
             if acbrNFeConsultar(10) then
             begin
-              csta := ACBrNFe.NotasFiscais[0].nfe.procNFe.cstat;
+              csta := ACBrNFe.WebServices.Consulta.cstat;;
               ACBrNFe.NotasFiscais[0].GravarXML(CHAVENF + '-nfe.xml',
                 buscaPastaNFCe(CHAVENF, false));
             end;
@@ -4007,6 +4011,9 @@ begin
         end
         else richED.Lines.Add('xMotivo=' + ACBrNFe.WebServices.enviar.xmotivo);
 
+        if csta > 200 then ERRO_dados := ACBrNFe.WebServices.enviar.xmotivo;
+
+
         if ERRO_dados <> '' then
         begin
           estado := ERRO_dados;
@@ -4018,8 +4025,8 @@ begin
             end;
           end;
 
-          csta   := ACBrNFe.WebServices.Retorno.cstat;
-          estado :=  ACBrNFe.WebServices.Retorno.xMotivo;
+          //csta   := ACBrNFe.WebServices.Enviar.cStat;
+          estado :=  ACBrNFe.WebServices.Enviar.xMotivo;
           if csta <> 100 then
             raise Exception.Create(estado);
         end;
@@ -4027,15 +4034,7 @@ begin
       except
         On e: Exception do
         begin
-          try
-              ACBrNFe.WebServices.Retorno.Executar;
-            except
-              on e:exception do begin
-                richED.Lines.Add('Erro 3971: ' + e.Message);
-              end;
-            end;
-
-          csta := ACBrNFe.WebServices.Retorno.cstat;
+          //csta := ACBrNFe.WebServices.Retorno.cstat;
 
           richED.Lines.Add('*** erro: ' + e.Message + #13 + 'cstat: ' +
             IntToStr(csta) + ' ***' + #13 + ACBrNFe.WebServices.Retorno.xmotivo
@@ -4062,7 +4061,7 @@ begin
               if not Contido('Duplicidade de', erro2) then
                 erro2 := e.Message;
 
-              trataDuplicidade1(ACBrNFe.WebServices.Retorno.xmotivo, false, false, false, CHAVENF);
+              trataDuplicidade1(ACBrNFe.WebServices.Enviar.xmotivo, false, false, false, CHAVENF);
               gravaERRO_LOG1('', 'Fim trataDuplicidade1' +
                 FormatDateTime('dd/mm/yyyy', now) + FormatDateTime('hh:mm:ss',
                 now), 'trataDuplicidade1');
@@ -6764,8 +6763,9 @@ begin
         //se a soma das formas for menor que o total entao lança a diferença pra ultima forma de pagamento
         if ((listaPagamentos.Count > 1) and (tmp < total ) and ((listaPagamentos.Count -1) = i)) then listaPagamentos[i].total := listaPagamentos[i].total + abs(tmp - total);
 
-        Result := Result + '<detPag>' + '<tpag>' + listaPagamentos[i].cod +
-        '</tpag>' + '<vpag>' + Format_num(listaPagamentos[i].total) + '</vpag>'
+        Result := Result + '<detPag>' + '<tpag>' + listaPagamentos[i].cod + '</tpag>' +
+        IfThen(listaPagamentos[i].cod = '99', '<xPag>Pagamento Misto</xpag>', '') +
+         '<vpag>' + Format_num(listaPagamentos[i].total) + '</vpag>'
         + '</detPag>';
       end;
 
@@ -6790,8 +6790,9 @@ begin
     exit;
   end;
 
-  Result := '<pag>' + '<tpag>' + venda.codFormaNFCE + '</tpag>' + '<vpag>' +
-    FormatCurr('0.00', totalNota - TOTDESC) + '</vpag>' + '</pag>';
+  Result := '<pag>' + '<tpag>' + venda.codFormaNFCE + '</tpag>' +
+  IfThen(venda.codFormaNFCE = '99', '<xPag>Pagamento Misto</xpag>', '') +
+  '<vpag>' + FormatCurr('0.00', totalNota - TOTDESC) + '</vpag>' + '</pag>';
 end;
 
 function getDataHoraAtualXML(comFuso: boolean = true): String;
@@ -8469,7 +8470,7 @@ begin
   enviouNFE := 'N';
   try
     ACBrNFe.Configuracoes.WebServices.Visualizar := false;
-    ACBrNFe.enviar(0, false);
+    ACBrNFe.Enviar(0, false, true);
     enviouNFE := 'S';
   except
     on e: Exception do
