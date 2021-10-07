@@ -694,6 +694,22 @@ var
   campo, cod, nota, tabela, sim, validade, codentrada : string;
   total, qtd :currency;
 begin
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select p_venda from produto where cod = :cod';
+  dm.IBselect.ParamByName('cod').AsString := codigoProd;
+  dm.IBselect.Open;
+
+  if ((dm.IBselect.FieldByName('p_venda').AsCurrency > p_venda.getValor) and (length(form22.Pgerais.Values['acessousu']) > 0)) then begin
+    ShowMessage('Usuário Bloqueado para Redução do Preço de Venda:' + #13 +
+                'Preço Antigo: ' + FormatCurr('#,###,###0.000',dm.IBselect.FieldByName('p_venda').AsCurrency) + #13 +
+                'Preço   Novo: ' + FormatCurr('#,###,###0.000',p_venda.getValor) + #13 +
+                'Procure um Usuário Autorizado!');
+    p_venda.SetFocus;
+    exit;
+
+
+  end;
+
   if (trim(codigo.Text) = '') then begin
     ShowMessage('Número da Nota Fiscal Inválido');
     codigo.Enabled := true;

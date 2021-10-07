@@ -736,17 +736,25 @@ begin
 
   if key = #13 then
     begin
-      if DBGrid1.SelectedField.FieldName = 'PRECO_ATUAL' then
-        begin
-          preco := StrToCurrDef(ClientDataSet1.fieldbyname('PRECO_ATUAL').AsString, 0);
-          if preco = 0 then preco := StrToCurrDef(ClientDataSet1.fieldbyname('PRECO_NOVO').AsString, 0);
-          sim := funcoes.dialogo('numero',0,'',2,true,'S',Application.Title,'Qual o Preço de Venda ?', formataCurrency(preco));
-          if sim = '*' then exit;
+      if DBGrid1.SelectedField.FieldName = 'PRECO_ATUAL' then begin
+        preco := StrToCurrDef(ClientDataSet1.fieldbyname('PRECO_ATUAL').AsString, 0);
+        if preco = 0 then preco := StrToCurrDef(ClientDataSet1.fieldbyname('PRECO_NOVO').AsString, 0);
+        sim := funcoes.dialogo('numero',0,'',2,true,'S',Application.Title,'Qual o Preço de Venda ?', formataCurrency(preco));
+        if sim = '*' then exit;
 
-          ClientDataSet1.Edit;
-          ClientDataSet1.FieldByName('PRECO_ATUAL').AsCurrency  := StrToCurrDef(sim, 0);
-          ClientDataSet1.Post;
+        if ((StrToCurr(sim) < preco) and (length(form22.Pgerais.Values['acessousu']) > 0) and (StrToIntDef(ClientDataSet1.fieldbyname('codigo').AsString, 0) > 0)) then begin
+          ShowMessage('Usuário Bloqueado para Redução do Preço de Venda:' + #13 +
+                'Preço Antigo: ' + FormatCurr('#,###,###0.000', preco) + #13 +
+                'Preço   Novo: ' + FormatCurr('#,###,###0.000', StrToCurr(sim)) + #13 +
+                'Procure um Usuário Autorizado!');
+          exit;
         end;
+
+
+        ClientDataSet1.Edit;
+        ClientDataSet1.FieldByName('PRECO_ATUAL').AsCurrency  := StrToCurrDef(sim, 0);
+        ClientDataSet1.Post;
+      end;
 
       if DBGrid1.SelectedField.FieldName = 'PRECO_COMPRA' then
         begin

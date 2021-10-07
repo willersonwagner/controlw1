@@ -160,6 +160,7 @@ type
     entrada: integer;
     RecuperarCadastro: boolean;
     produto_preco, desativado: string;
+    p_vendaAtual : currency;
 
     function CALCPRE(var _LUCRO, _PVENDA, _DEBICM, _BASEDEB, _CREDICM, _PCOMPRA,
       _FRETE, _ENCARGO, _BASECRED, AGREG: JsEditNumero;
@@ -1036,6 +1037,17 @@ var
   TMP, temp, descr: string;
   novo: boolean;
 begin
+  if ((p_vendaAtual > p_venda.getValor) and (length(form22.Pgerais.Values['acessousu']) > 0)) then begin
+    ShowMessage('Usuário Bloqueado para Redução do Preço de Venda:' + #13 +
+                'Preço Antigo: ' + FormatCurr('#,###,###0.000',p_vendaAtual) + #13 +
+                'Preço   Novo: ' + FormatCurr('#,###,###0.000',p_venda.getValor) + #13 +
+                'Procure um Usuário Autorizado!');
+    p_venda.SetFocus;
+    exit;
+
+
+  end;
+
   if (Trim(classif.Text) <> '') then
   begin
     if ((Length(StrNum(classif.Text)) <> 8) or
@@ -1142,6 +1154,9 @@ begin
     begin
       cod.Text := valorRetorno;
       JsEdit.SelecionaDoBD(self.Name);
+
+      p_vendaAtual := p_venda.getValor;
+
       cod.Text := '';
       codbar.Text := '';
       quant.Text := '0,000';
@@ -1210,6 +1225,7 @@ begin
     if StrNum(Trim(cod.Text)) = '0' then
       exit;
     JsEdit.SelecionaDoBD(self.Name);
+    p_vendaAtual := p_venda.getValor;
   end;
 
   { if (Key = 116) then
@@ -1745,6 +1761,7 @@ begin
         if StrNum(Trim(cod.Text)) = '0' then
           exit;
         JsEdit.SelecionaDoBD(self.Name);
+        p_vendaAtual := p_venda.getValor;
       end;
       // form24.Free;
       exit;
@@ -1757,6 +1774,7 @@ begin
     if StrNum(Trim(cod.Text)) = '0' then
       exit;
     JsEdit.SelecionaDoBD(self.Name);
+    p_vendaAtual := p_venda.getValor;
   end;
 
   if Key = 113 then

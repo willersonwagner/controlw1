@@ -2118,9 +2118,7 @@ begin
     funcoes.informacao(dm.ProdutoQY.RecNo, dm.ProdutoQY.RecordCount,
       'AGUARDE... ', false, true, 2);
 
-    form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-          Longint(PChar((funcoes.CompletaOuRepete('-', #12 + #13 + #10,
-          '-', 83)))));
+    form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete('-', #12 + #13 + #10, '-', 83)))));
     form19.RichEdit1.SelStart := 1;
     dm.ProdutoQY.Close;
     form19.Show;
@@ -11078,8 +11076,8 @@ end;
 
 procedure TForm2.relClienteNota(cliente : String = '');
 var
-  ini, fim, h1, ee, clix, ordem, agrup: string;
-  totalgeral: currency;
+  ini, fim, h1, ee, clix, ordem, agrup, orde: string;
+  totalgeral, quantGeral: currency;
   i: integer;
   lista : TItensProduto;
 begin
@@ -11116,13 +11114,16 @@ begin
 
   agrup := funcoes.dialogo('generico', 30, 'SN' + #8, 30, false, 'S', application.Title, 'Deseja Agrupar Os produtos por Quantidade ?', 'N');
   if agrup = '*' then exit;
+
+  orde := funcoes.dialogo('generico', 30, '12' + #8, 30, false, 'S', application.Title, 'Qual a Ordem 1-Descrição Prod 2-Nota/Data ?', '1');
+  if orde = '*' then exit;
   
 
   h1 := '';
   if cliente <> '' then
     h1 := ' and (cliente=' + cliente + ')';
 
-  ordem := 'v.cliente, v.data';
+  ordem := 'v.nota';
 
   form19.RichEdit1.Clear;
   form19.RichEdit1.Perform(EM_REPLACESEL, 1,
@@ -11220,7 +11221,8 @@ begin
     dm.ibselect.Next;
   end;
 
-  lista.OrdenarPorNome;
+  if orde = '1' then lista.OrdenarPorNome;
+  quantGeral := 0;
 
   for i := 0 to lista.Count -1 do begin
     if clix <> lista[i].temp then begin
@@ -11241,21 +11243,18 @@ begin
     end;
 
     totalgeral := totalgeral + lista[i].total;
+    quantGeral := quantGeral + lista[i].quant;
 
     addRelatorioForm19(funcoes.CompletaOuRepete(IfThen(agrup = 'S', '', FormatDateTime('dd/mm/yy',lista[i].data)), '', ' ',8) + funcoes.CompletaOuRepete('', IntToStr(lista[i].cod),' ', 6) + '-' +
-    funcoes.CompletaOuRepete(copy(lista[i].nome, 1, 30), '', ' ', 30) + funcoes.CompletaOuRepete('',
-      FormatCurr('#,###,###0.00', lista[i].quant),
-      ' ', 13) + funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00',lista[i].total), ' ',
-      13) + funcoes.CompletaOuRepete('', IfThen(agrup = 'S', '',CurrToStr(lista[i].aliqCred)), ' ', 9) + #13 + #10);
+    funcoes.CompletaOuRepete(copy(lista[i].nome, 1, 30), '', ' ', 30) + funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00', lista[i].quant),
+    ' ', 13) + funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00',lista[i].total), ' ', 13) + funcoes.CompletaOuRepete('', IfThen(agrup = 'S', '',CurrToStr(lista[i].aliqCred)), ' ', 9) + #13 + #10);
   end;
 
 
   dm.ibselect.Close;
   form19.RichEdit1.Perform(EM_REPLACESEL, 1,
     Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10))));
-  form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-    Longint(PChar((funcoes.CompletaOuRepete('TOTAL GERAL =>   ' +
-    FormatCurr('#,###,###0.00', totalgeral), '', ' ', 80) + #13 + #10))));
+  addRelatorioForm19('TOTAL GERAL =>' +funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00', quantGeral), ' ', 44) + funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00', totalgeral), ' ', 13) + #13 + #10);
   form19.RichEdit1.Perform(EM_REPLACESEL, 1,
     Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10))));
   form19.showmodal;

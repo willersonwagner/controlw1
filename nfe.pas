@@ -437,7 +437,7 @@ end;
 
 function TNfeVenda.cartaDeCorrecao : string;
 var
-  texto, cod_nota,cnpj,nf, just, te, cCmd, nSeqEvento, xCondUso, cod, xCorrecao, crlf : string;
+  texto, cod_nota,cnpj,nf, just, te, cCmd, nSeqEvento, xCondUso, cod, xCorrecao, crlf, serie : string;
   xml, cce : TStringList;
 begin
   crlf := #13 + #10;
@@ -445,8 +445,13 @@ begin
   te := Incrementa_Generator('nfe', 0);
   te := IntToStr(StrToIntDef(te, 1) -1);
   nf := funcoes.dialogo('generico',40,'1234567890'+#8,40,false,'','Control For Windows','Informe o Número da Nota Fiscal Eletrônica:', te);
+  if nf = '*' then exit;
+
+  serie := funcoes.dialogo('generico',40,'1234567890'+#8,40,false,'','Control For Windows','Qual a Serie:', getSerieNFe);
+  if serie = '*' then exit;
+
   te := nf;
-  cod_nota := te;
+  cod_nota := te + '-' + serie;
   if nf = '*' then exit;
 
   nSeqEvento := '1';
@@ -467,7 +472,7 @@ begin
 
 
   te := funcoes.StrNum(nf);
-  nf := funcoes.recuperaChaveNFe(te);
+  nf := funcoes.recuperaChaveNFe(te, serie);
 
   if nf = '' then
     begin
@@ -577,7 +582,7 @@ end;
 
 function TNfeVenda.cartaDeCorrecao1 : string;
 var
-  texto, cod_nota,cnpj,nf, just, te, cCmd, nSeqEvento, xCondUso, cod, xCorrecao, crlf : string;
+  texto, cod_nota,cnpj,nf, just, te, cCmd, nSeqEvento, xCondUso, cod, xCorrecao, crlf, serie : string;
   xml, cce : TStringList;
   lote     : integer;
   previ   : boolean;
@@ -588,6 +593,15 @@ begin
   te := Incrementa_Generator('nfe', 0);
   te := IntToStr(StrToIntDef(te, 1) -1);
   nf := funcoes.dialogo('generico',100,'1234567890'+#8,100,false,'','Control For Windows','Informe o Número da Nota Fiscal Eletrônica:', te);
+
+  serie := funcoes.dialogo('generico',40,'1234567890'+#8,40,false,'','Control For Windows','Qual a Serie:', getSerieNFe);
+  if serie = '*' then exit;
+
+  te := nf;
+  cod_nota := te + '-' + serie;
+  if nf = '*' then exit;
+
+
   te := nf;
   cod_nota := te;
   if nf = '*' then exit;
@@ -608,7 +622,8 @@ begin
   if nSeqEvento = '*' then exit;
 
   te := funcoes.StrNum(nf);
-  nf := funcoes.recuperaChaveNFe(te);
+  nf := funcoes.recuperaChaveNFe(te, serie);
+
 
   if nf = '' then
     begin
@@ -2809,19 +2824,27 @@ begin
   if (funcoes.buscaParamGeral(10, '') = '1') then
     begin
       if (((mat.Reducao <> 0) or (FIN_NFE1 = '4')) and (indIEDest <> '9')) then begin
-          Result := '<ICMS><ICMSSN900><orig>' + _ORIGE + '</orig><CSOSN>900</CSOSN><modBC>3</modBC>' +
-          '<vBC>' + FORMAT_NUM(arrendondaNFe(tot, 2)) + '</vBC>' +
+        BASE_ICM := tot;
+        if item.PercICMS = 0 then begin
+          BASE_ICM := 0;
+          VLR_ICM  := 0;
+        end
+        else begin
+          VLR_ICM := arrendondaNFe(BASE_ICM * ITEM.PercICMS / 100, 2);
+        end;
+
+        TOT_BASEICM := TOT_BASEICM + BASE_ICM;
+
+        Result := '<ICMS><ICMSSN900><orig>' + _ORIGE + '</orig><CSOSN>900</CSOSN><modBC>3</modBC>' +
+          '<vBC>' + FORMAT_NUM(BASE_ICM) + '</vBC>' +
           '<pRedBC>' + FORMAT_NUM(item.Reducao) + '</pRedBC>' +
           '<pICMS>' + FORMAT_NUM(item.PercICMS) + '</pICMS>' +
-          '<vICMS>' + FORMAT_NUM(arrendondaNFe(tot * item.PercICMS / 100, 2)) + '</vICMS>' +
+          '<vICMS>' + FORMAT_NUM(arrendondaNFe(VLR_ICM, 2)) + '</vICMS>' +
           '<modBCST>0.00</modBCST><vBCST>0.00</vBCST>' +
           '<pICMSST>0.00</pICMSST><vICMSST>0.00</vICMSST>' +
           '<pCredSN>0.00</pCredSN><vCredICMSSN>0.00</vCredICMSSN>' +
           '</ICMSSN900></ICMS>' ;
 
-          BASE_ICM := tot;
-          TOT_BASEICM := TOT_BASEICM + arrendondaNFe(tot, 2);
-          VLR_ICM := arrendondaNFe(BASE_ICM * ITEM.PercICMS / 100, 2);
           TOTICM := TOTICM + VLR_ICM;
           exit;
         end;
@@ -4267,7 +4290,7 @@ begin
     end else begin
       ACBrNFe.NotasFiscais[0].GravarXML(ExtractFileName(arq),ExtractFileDir(arq) + '\');
       ShowMessage('NF-e '+ ' Houve uma falha na Validação!'+#13+#10+#13+#10+
-                  'Favor Corrigir: ' + dm.ACBrNFe.WebServices.Retorno.xMotivo + #13 +
+                  'Favor Corrigir: ' + dm.ACBrNFe.WebServices.Enviar.xMotivo + #13 +
                   'cStat=' + IntToStr(csta));//+qry.FieldByName('RECIBO_DESCSTATUS').AsString);
     end;
 
@@ -4871,6 +4894,9 @@ begin
   Result    := '';
   detBoleto := '';
 
+  IF TRIM(listaPagamentos[0].CST) = '' then listaPagamentos[0].CST := 'Pagamento Misto';
+
+
   if usaNFe4ouMaior = false then exit;
 
   tpag := '01';
@@ -4886,7 +4912,7 @@ begin
     Result := '<pag>'+
                 '<detPag>'+
                   '<tpag>'+tpag+'</tpag>'+
-                  IfThen(tpag = '99', '<xPag>Pagamento Misto</xpag>', '') +
+                  IfThen(tpag = '99', '<xPag>'+listaPagamentos[0].CST+'</xpag>', '') +
                   '<vpag>' + Format_num(TOTAL) +  '</vpag>' +
                 '</detPag>' +
                 '</pag>';
@@ -4918,7 +4944,7 @@ begin
   Result := '<pag>';
   for i := 0 to listaPagamentos.Count -1 do begin
       Result := Result +  '<detPag>' + '<tpag>' + listaPagamentos[i].cod + '</tpag>' +
-      IfThen(listaPagamentos[i].cod = '99', '<xPag>Pagamento Misto</xpag>', '') +
+      IfThen(listaPagamentos[i].cod = '99', '<xPag>'+listaPagamentos[i].CST+'</xpag>', '') +
       '<vpag>' + Format_num(listaPagamentos[i].total) + '</vpag>' + '</detPag>';
       tmp := tmp + listaPagamentos[i].total;
   end;
@@ -4933,7 +4959,7 @@ begin
      Result := '<pag>'+
                 '<detPag>'+
                   '<tpag>'+tpag+'</tpag>'+
-                  IfThen(tpag = '99', '<xPag>Pagamento Misto</xpag>', '') +
+                  IfThen(tpag = '99', '<xPag>'+listaPagamentos[0].CST+'</xpag>', '') +
                   '<vpag>' + Format_num(TOTAL) +  '</vpag>' +
                 '</detPag>' +
                 '</pag>';

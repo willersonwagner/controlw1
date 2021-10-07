@@ -77,6 +77,7 @@ procedure atualizaRegistroNFCe(chaveVelha1, chaveNova1: String);
 function CodificaDataPelaChave(chave: String): TDateTime;
 function manifestoDestinatarioNFe(chave: string): boolean;
 procedure validaNCM_NaNFCe(chave1: String);
+procedure validaDescricaoFormaPagto(chave1: String);
 procedure validaTroco_NaNFCe(chave1: String);
 function GravaConfigNaPastaDoControlW(Const config_name: String;
   const default: string): String;
@@ -233,7 +234,7 @@ function EnviarCupomEletronico2(nota, chave1: String; var richED: TRichEdit;
   var estado: String; const imprime, dav: boolean;
   const lerconfig: boolean = true): boolean;
 function EnviarCupomEletronicoTitular(nota: String; var Status, xmotivo: string;
-  const tipo: integer; const enviar: boolean; const cliente1: String;
+  const tipo: integer; enviar: boolean; const cliente1: String;
   obs1: String = ''; serie1: String = '1'; nnf: STRING = '';
   imp: boolean = true; recebido: currency = 0; EscPos: boolean = false)
   : boolean;
@@ -430,6 +431,8 @@ begin
       begin
         i := listaPagamentos.Add(TacumPis.Create);
         listaPagamentos[i].cod := '01';
+        listaPagamentos[i].CST := venda._FORMPG;
+
         listaPagamentos[i].total := listaPagamentos[i].total + entrada;
       end
       else
@@ -443,6 +446,7 @@ begin
       begin
         i := listaPagamentos.Add(TacumPis.Create);
         listaPagamentos[i].cod := venda.codFormaNFCE;
+        listaPagamentos[i].CST := venda._FORMPG;
         listaPagamentos[i].total := listaPagamentos[i].total + total;
       end
       else
@@ -457,6 +461,7 @@ begin
       begin
         i := listaPagamentos.Add(TacumPis.Create);
         listaPagamentos[i].cod := venda.codFormaNFCE;
+        listaPagamentos[i].CST := venda._FORMPG;
         listaPagamentos[i].total := listaPagamentos[i].total + total;
       end
       else
@@ -3151,7 +3156,7 @@ begin
 end;
 
 function EnviarCupomEletronicoTitular(nota: String; var Status, xmotivo: string;
-  const tipo: integer; const enviar: boolean; const cliente1: String;
+  const tipo: integer; enviar: boolean; const cliente1: String;
   obs1: String = ''; serie1: String = '1'; nnf: STRING = '';
   imp: boolean = true; recebido: currency = 0; EscPos: boolean = false)
   : boolean;
@@ -3334,8 +3339,7 @@ begin
 
     ACBrNFe.NotasFiscais[0].GravarXML(CHAVENF + '-nfe.xml', buscaPastaNFCe(CHAVENF, false));
 
-    if (ACBrNFe.Configuracoes.WebServices.Ambiente = taHomologacao) then
-    begin
+    if (ACBrNFe.Configuracoes.WebServices.Ambiente = taHomologacao) then begin
       try
         ACBrNFe.NotasFiscais[0].nfe.Det[0].Prod.xProd :=
           'NOTA FISCAL EMITIDA EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL';
@@ -3354,8 +3358,7 @@ begin
       ACBrNFe.WebServices.enviar.Clear;
 
       // tenta enviar 2 vezes em intervalo de 10s de espera, caso venha retorno entao sai do while
-      while true do
-      begin
+      while true do begin
         a := a + 1;
         form65.Label1.Caption := 'Aguarde, Enviando ' + IntToStr(a) + '...';
         form65.Label1.Update;
@@ -3424,10 +3427,17 @@ begin
         exit;
       end;}
 
-      if ((csta = 0) and (ERRO_dados = '')) then
+
+
+      if (((csta = 0) or (csta = 999))) then
       begin
         ERRO_dados := 'Requisicao nao Enviada';
+        Status  := '999';
+        xmotivo := 'Sem retorno do WebService!';
+        exit;
       end;
+
+      //ShowMessage('csta=' +IntToStr(csta) + #13 + ERRO_dados);
 
       form65.Label1.Caption := 'Retorno OK: ' + IntToStr(csta) + '...';
       form65.Label1.Update;
@@ -3930,7 +3940,8 @@ begin
 
         // se nao veio resposta entao consulta 3x pra ver se foi emitida ou o cstat veio com valor 999
         // como foi iniciado a variavel, caso venha um cstat entao sai do while
-        if (Contido('(5)-', ERRO_dados) or (csta = 999) or (csta = 204) or
+        //if (Contido('(5)-', ERRO_dados) or (csta = 999) or (csta = 204) or
+        if (Contido('(5)-', ERRO_dados) or (csta = 999) or
           (csta = 0)) then
         begin
           a := 0;
@@ -4090,6 +4101,12 @@ begin
           if ((csta = 778) or (false)) then
           begin
             validaNCM_NaNFCe('');
+            exit;
+          end;
+
+          if ((csta = 441)) then
+          begin
+            validaDescricaoFormaPagto('');
             exit;
           end;
 
@@ -5603,7 +5620,7 @@ end;
 function inutilizacaoNFCE(ini, fim, modelo: integer; just: String;
   _serie: integer = 0): boolean;
 var
-  CNPJ: String;
+  CNPJ, pasta : String;
 begin
   carregaConfigsNFCe;
   query1.Close;
@@ -5615,35 +5632,33 @@ begin
 
   if modelo = 55 then
   begin
-    CriaDiretorio(ExtractFileDir(ParamStr(0)) + '\NFE\INU\');
-    ACBrNFe.Configuracoes.Arquivos.PathInu := ExtractFileDir(ParamStr(0)) +
-      '\NFE\INU\';
+    pasta := ExtractFileDir(ParamStr(0)) + '\NFE\INU\';
+    CriaDiretorio(pasta);
+    ACBrNFe.Configuracoes.Arquivos.PathInu := pasta;
     ACBrNFe.Configuracoes.Geral.ModeloDF := moNFe;
     ACBrNFe.DANFE := DANFE_Rave;
     _serie := 1;
   end
   else
   begin
-    CriaDiretorio(ExtractFileDir(ParamStr(0)) + '\NFCE\INU\');
-    ACBrNFe.Configuracoes.Arquivos.PathInu := ExtractFileDir(ParamStr(0)) +
-      '\NFCE\INU\';
+    pasta := ExtractFileDir(ParamStr(0)) + '\NFCE\INU\';
+    CriaDiretorio(pasta);
+    ACBrNFe.Configuracoes.Arquivos.PathInu := pasta;
     ACBrNFe.Configuracoes.Geral.ModeloDF := moNFCe;
     ACBrNFe.DANFE := DANFE;
-    if _serie = 0 then
-      _serie := StrToIntDef(getSerieNFCe, 1);
+    if _serie = 0 then _serie := StrToIntDef(getSerieNFCe, 1);
   end;
+
 
   try
     try
       ACBrNFe.Configuracoes.WebServices.Visualizar := true;
-      ACBrNFe.WebServices.Inutiliza(CNPJ, just,
-        StrToIntDef(FormatDateTime('yyyy', now), 2016), modelo, _serie,
-        ini, fim);
+      ACBrNFe.WebServices.Inutiliza(CNPJ, just, StrToIntDef(FormatDateTime('yyyy', now), 2016), modelo, _serie, ini, fim);
     except
       on e: Exception do
       begin
         if ACBrNFe.WebServices.Inutilizacao.cstat <> 563 then begin
-          ShowMessage(e.Message);
+          ShowMessage('erro1:' +e.Message);
           exit;
         end;
       end;
@@ -5655,6 +5670,7 @@ begin
 
   if Contido('-'+IntToStr(ACBrNFe.WebServices.Inutilizacao.cstat) + '-', '-102-563-') then begin
     insereInutilizacao(ini, fim, IntToStr(modelo), IntToStr(_serie), now);
+    GravarTexto(pasta + IntToStr(ini)+'-'+IntToStr(fim)+'-'+ inttostr(modelo)+ '-INU.xml', ACBrNFe.WebServices.Inutilizacao.RetornoWS);
   end;
   // ACBrNFe.DANFE := DANFE_Rave;
   // DANFE_Rave.MostrarPreview := true;
@@ -6069,8 +6085,7 @@ begin
 
   dHAtual := getDataHoraAtualXML();
 
-  if contOFFLINE then
-  begin
+  if contOFFLINE then begin
     tpEmis := '9';
     partContigencia := '<dhCont>' + dHAtual + '</dhCont>' +
       '<xJust>NOTA FISCAL EMITIDA EM CONTINGENCIA</xJust>';
@@ -6756,6 +6771,8 @@ begin
 
 
       for i := 0 to listaPagamentos.Count - 1 do begin
+        IF TRIM(listaPagamentos[i].CST) = '' then listaPagamentos[i].CST := 'Pagamento Misto';
+
         if listaPagamentos.Count = 1 then listaPagamentos[i].total := TOTAL; //se estiver somente com uma forma e pega logo o total
 
         tmp := tmp + listaPagamentos[i].total;
@@ -6764,7 +6781,7 @@ begin
         if ((listaPagamentos.Count > 1) and (tmp < total ) and ((listaPagamentos.Count -1) = i)) then listaPagamentos[i].total := listaPagamentos[i].total + abs(tmp - total);
 
         Result := Result + '<detPag>' + '<tpag>' + listaPagamentos[i].cod + '</tpag>' +
-        IfThen(listaPagamentos[i].cod = '99', '<xPag>Pagamento Misto</xpag>', '') +
+        IfThen(listaPagamentos[i].cod = '99', '<xPag>'+listaPagamentos[i].CST+'</xpag>', '') +
          '<vpag>' + Format_num(listaPagamentos[i].total) + '</vpag>'
         + '</detPag>';
       end;
@@ -6791,7 +6808,7 @@ begin
   end;
 
   Result := '<pag>' + '<tpag>' + venda.codFormaNFCE + '</tpag>' +
-  IfThen(venda.codFormaNFCE = '99', '<xPag>Pagamento Misto</xpag>', '') +
+  IfThen(venda.codFormaNFCE = '99', '<xPag>'+venda._FORMPG+'</xpag>', '') +
   '<vpag>' + FormatCurr('0.00', totalNota - TOTDESC) + '</vpag>' + '</pag>';
 end;
 
@@ -7336,8 +7353,7 @@ begin
     end;
     end;   }
 
-  if not FileExists(buscaPastaNFCe(chavt) + chavt + '-nfe.xml') then
-  begin
+  if not FileExists(buscaPastaNFCe(chavt) + chavt + '-nfe.xml') then begin
     query1.Close;
     query1.SQL.text :=
       'update nfce set adic = '''', exportado = 1 where chave = :chave';
@@ -7353,8 +7369,25 @@ begin
     // exit;
   end;
 
-  if not FileExists(buscaPastaNFCe(chavb.chave) + chavb.chave + '-nfe.xml') then
+  if not FileExists(buscaPastaNFCe(chavt) + chavt + '-nfe.xml') then
   begin
+    vend := Tvenda.Create;
+    vend.adic := '';
+    vend.nota := chavb.codNF;
+    vend.chave := chavb.chave;
+    vend.adic := 'OFF';
+
+    insereNotaBD2(vend);
+    chavb.Free;
+    vend.Free;
+
+    richedt.Lines.Add('Troca de Chave OK >> ' );
+
+    richedt.Lines.Add('Chave Velha= ' + chaveAtual);
+    richedt.Lines.Add('Chave Nova = ' + chavt);
+    richedt.Lines.Add('XML Não Encontrado, Recrie pelo ControlW!');
+
+    exit;
     // criaXMLs(IntToStr(chavb.codNF), '', chavb.chave);
   end;
 
@@ -8414,6 +8447,22 @@ begin
     ACBrNFe.NotasFiscais[0].GerarXML);
 end;
 
+procedure validaDescricaoFormaPagto(chave1: String);
+var
+  ini, fim: integer;
+begin
+  fim := ACBrNFe.NotasFiscais[0].nfe.pag.Count - 1;
+  for ini := 0 to fim do
+  begin
+    if ACBrNFe.NotasFiscais[0].nfe.pag[ini].tPag = fpOutro then begin
+      ACBrNFe.NotasFiscais[0].nfe.pag[ini].xPag := 'Pagamento Misto';
+    end;
+  end;
+
+  GravarTexto(buscaPastaNFCe(CHAVENF) + CHAVENF + '-nfe.xml',
+    ACBrNFe.NotasFiscais[0].GerarXML);
+end;
+
 procedure validaCodbarCSTAT882(chave1: String);
 var
   ini, fim: integer;
@@ -8627,7 +8676,7 @@ begin
     end;
   end;
 
-  ShowMessage(query1.SQL.text);
+  //ShowMessage(query1.SQL.text);
 end;
 
 procedure baixaxml(var http: TIdHTTP; chave : String);

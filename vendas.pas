@@ -236,7 +236,7 @@ implementation
 
 uses Unit1, Math, localizar, entrasimples, func, formpagtoformulario,
   principal, subconsulta, Unit38, DateUtils, relatorio, imprime1,
-  cadcliente, cadfornecedor, dm1, StrUtils, Unit2, Unit83, cadproduto;
+  cadcliente, cadfornecedor, dm1, StrUtils, Unit2, Unit83, cadproduto, troco;
 
 {$R *.dfm}
 
@@ -621,7 +621,12 @@ begin
   recebido := StrToCurr(rece);
   troco := recebido - valor;
 
-  ShowMessage('O valor do troco é: R$ ' + FormatCurr('#,###,###0.00', troco));
+  form86.pago.Caption := FormatCurr('#,###,###0.00', recebido);
+  form86.total.Caption := FormatCurr('#,###,###0.00', total1);
+  form86.troco.Caption := FormatCurr('#,###,###0.00', troco);
+  form86.ShowModal;
+
+  //ShowMessage('O valor do troco é: R$ ' + FormatCurr('#,###,###0.00', troco));
 end;
 
 procedure TForm20.buscaReferencia();

@@ -5336,8 +5336,8 @@ object Form2: TForm2
       0FCA37425B2F4623250000000049454E44AE426082}
   end
   object btnConsultaProd: TPngSpeedButton
-    Left = 207
-    Top = 256
+    Left = 176
+    Top = 224
     Width = 146
     Height = 121
     OnClick = Consultas1Click

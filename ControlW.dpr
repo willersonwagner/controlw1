@@ -120,7 +120,8 @@ uses
   pagamento in 'pagamento.pas' {Form82},
   Unit83 in 'Unit83.pas' {Form83},
   qrcodePIX in 'qrcodePIX.pas' {Form84},
-  declaracaoImportacao in 'declaracaoImportacao.pas' {Form85};
+  declaracaoImportacao in 'declaracaoImportacao.pas' {Form85},
+  troco in 'troco.pas' {Form86};
 
 {$R *.res}
 
@@ -145,6 +146,7 @@ begin
   Application.CreateForm(TForm75, Form75);
   Application.CreateForm(TForm84, Form84);
   Application.CreateForm(TForm85, Form85);
+  Application.CreateForm(TForm86, Form86);
   //Application.CreateForm(TForm83, Form83);
   //Application.CreateForm(TForm82, Form82);
   //Application.CreateForm(TForm81, Form81);

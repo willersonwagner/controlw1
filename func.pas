@@ -417,7 +417,7 @@ type
     function SincronizarExtoque2(CaminhoArq: String): boolean;
     function receberSincronizacaoExtoque1(CaminhoArq: String): boolean;
     function geraRelFechamento(const cod12: integer; vendedor: String): String;
-    function recuperaChaveNFe(const nota: string): string;
+    function recuperaChaveNFe(const nota: string; serie : string = '1'): string;
     function recuperaChaveNFe1(const nota: string; var queri : TIBQuery): string;
     function listaArquivos(const pasta: String): tstringList;
     function dadosAdicSped(xml: String): tstringList;
@@ -3098,7 +3098,8 @@ begin
       end;
 
       if arq.Values['3'] = '1' then begin
-        if MessageDlg('O Sistema Precisa ser Atualizado! Deseja Atualizar Agora ?', mtInformation, [mbYes, mbNo], 1) = idyes then begin
+        MessageDlg('O Sistema Precisa ser Atualizado! Deseja Atualizar Agora ?', mtInformation, [mbOK], 1);
+        if true then begin
            WinExec(pansichar(ansistring(caminhoEXE_com_barra_no_final + 'atualiza.exe')),SW_SHOWNORMAL);
            Application.Terminate;
         end;
@@ -6542,6 +6543,9 @@ begin
   except
   end;
 
+  if LeftStr(vx_cod, 3) <> '789' then Result := false;
+
+
 
  { Result := False;
   vx_cod := trim(vx_cod);
@@ -6623,7 +6627,7 @@ begin
 end;
 
 
-function Tfuncoes.recuperaChaveNFe(const nota: string): string;
+function Tfuncoes.recuperaChaveNFe(const nota: string; serie : string = '1'): string;
 var
   arq: tstringList;
   fim, i: Smallint;
@@ -6631,8 +6635,10 @@ var
 begin
   dm.IBselect.Close;
   dm.IBselect.SQL.Clear;
-  dm.IBselect.SQL.Add('select chave from nfe where nota = :nota');
+  dm.IBselect.SQL.Add('select chave from nfe where nota = :nota and (substring(chave from 23 for 3) = '+QuotedStr(strzero(serie, 3))+')');
   dm.IBselect.ParamByName('nota').AsString := nota;
+  //dm.IBselect.ParamByName('serie').AsString := strzero(serie, 3);
+
   dm.IBselect.Open;
 
   Result := '';
@@ -29171,11 +29177,14 @@ begin
   if taxa > 0 then begin
     addRelatorioForm19('Hora Saida:____________________________' + CRLF + CRLF);
     addRelatorioForm19(centraliza('TAXA  DE  ENTREGA R$ ' + formataCurrency(TAXA), ' ', 40) + CRLF);
-    addRelatorioForm19('Prazo de Entrega 30 minutos' + CRLF + CRLF);
+    //addRelatorioForm19('Prazo de Entrega 30 minutos' + CRLF + CRLF);
+    addRelatorioForm19('.' + CRLF + CRLF);
   end
   else begin
     addRelatorioForm19('Hora Saida:____________________________' + CRLF + CRLF);
-    addRelatorioForm19('Prazo de Entrega 30 minutos' + CRLF + CRLF);
+    //addRelatorioForm19('Prazo de Entrega 30 minutos' + CRLF + CRLF);
+    addRelatorioForm19('.' + CRLF + CRLF);
+
   end;
   //addRelatorioForm19('Quant Rota:____________________________' + CRLF);
   addRelatorioForm19('* * * * * * * * * * * * * * * * * * * *' + CRLF);
@@ -29889,6 +29898,17 @@ begin
 
   funcoes.informacao(dm.IBselect.RecNo, fim, 'AGUARDE... ', False, true, 2);
   if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+end;
+
+procedure atualizaPrecoCompraItem_venda;
+var
+  cod : String;
+  listaPreco : TStringList;
+begin
+  cod := funcoes.dialogo('generico', 150, '1234567890,.' + #8, 150, false, '',application.Title, 'Qual o Código do Produto?', '');
+  if cod = '*' then exit;
+
+
 end;
 
 
