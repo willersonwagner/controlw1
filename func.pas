@@ -29374,14 +29374,16 @@ begin
   else begin
     imprime1.imprime.RLBand18.Visible := true;
     dm.IBselect.Close;
-    dm.IBselect.SQL.Text := 'select cod, nome, cnpj, ies, ende, bairro, tipo, cid, est from cliente where cod = ' + cliente;
+    dm.IBselect.SQL.Text := 'select cod, nome, cnpj, ies, ende, bairro, tipo, cid, est, obs, telres, telcom from cliente where cod = ' + cliente;
     dm.IBselect.Open;
                                                            //Ende...:  RUA APOCALIPSE, 35, CINTURAO VERDE
-    imprime1.imprime.rlcliente.Caption := 'Cliente: ' + dm.IBselect.FieldByName('nome').AsString;
+    imprime1.imprime.rlcliente.Caption := 'Cliente: ' + dm.IBselect.FieldByName('cod').AsString +'-'+ dm.IBselect.FieldByName('nome').AsString;
     imprime1.imprime.rlende.Caption    := 'Ende...: ' + dm.IBselect.FieldByName('ende').AsString + ', ' + dm.IBselect.FieldByName('bairro').AsString + '  ' + dm.IBselect.FieldByName('cid').AsString + '-' + dm.IBselect.FieldByName('est').AsString;
 
-    imprime1.imprime.rlcpf.Caption     := 'CPF/CNPJ....: ' + dm.IBselect.FieldByName('cnpj').AsString;
-    imprime1.imprime.rlinsc.Caption    := 'RG/Insc. Est: ' + dm.IBselect.FieldByName('ies').AsString;
+    imprime1.imprime.rlcpf.Caption         := 'CPF/CNPJ....: ' + dm.IBselect.FieldByName('cnpj').AsString;
+    imprime1.imprime.rlinsc.Caption        := 'RG/Insc. Est: ' + dm.IBselect.FieldByName('ies').AsString;
+    imprime1.imprime.rlOBS_Cliente.Caption := 'Obs: ' + dm.IBselect.FieldByName('obs').AsString;
+    imprime1.imprime.rlFoneCel.Caption := 'Fone: ' + dm.IBselect.FieldByName('telres').AsString + ' Cel: ' + dm.IBselect.FieldByName('telcom').AsString;
   end;
 
   if FileExists(caminhoEXE_com_barra_no_final + 'logoMed.bmp') then begin

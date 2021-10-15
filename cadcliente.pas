@@ -867,6 +867,9 @@ var
   sim : string;
 begin
   Result := true;
+
+  if funcoes.buscaParamGeral(129, 'N') = 'S' then exit;
+
   if cod.Text <> '0' then exit;
   if tipo.Text = '7' then exit;
   if strnum(cnpj.Text) = '0' then exit;

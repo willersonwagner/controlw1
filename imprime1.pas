@@ -186,10 +186,13 @@ type
     RLLabel47: TRLLabel;
     RLBand19: TRLBand;
     RLMemo6: TRLMemo;
+    rlOBS_Cliente: TRLLabel;
+    rlFoneCel: TRLLabel;
     procedure Timer1Timer(Sender: TObject);
     procedure RLBand7BeforePrint(Sender: TObject; var PrintIt: Boolean);
-    procedure RLReport2AfterPrint(Sender: TObject);
+    //procedure RLReport2AfterPrint(Sender: TObject);
     procedure RLBand19BeforePrint(Sender: TObject; var PrintIt: Boolean);
+    //procedure rlOBS_ClienteAfterPrint(Sender: TObject);
   private
     tipo : integer;
     procedure MudaTamPapel(PaperSize, Comp, Alt: integer);
@@ -421,11 +424,6 @@ procedure Timprime.RLBand7BeforePrint(Sender: TObject; var PrintIt: Boolean);
 begin
   if rlband7.Color = clwhite then rlband7.Color := cl3dlight else
   rlband7.Color := clwhite;
-end;
-
-procedure Timprime.RLReport2AfterPrint(Sender: TObject);
-begin
-  //RLReport2.DefaultFilter := rlpd
 end;
 
 function Timprime.setCofiguracoesImpressora(nomeImp : String) : String;

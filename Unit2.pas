@@ -4291,6 +4291,8 @@ begin
   form40.tipo.Add('126=generico');
   form40.tipo.Add('127=generico');
   form40.tipo.Add('128=generico');
+  form40.tipo.Add('129=generico');
+  form40.tipo.Add('130=generico');
 
   form40.troca := TStringList.Create;
   form40.troca.Add('0=S');
@@ -4425,6 +4427,8 @@ begin
   form40.troca.Add('126=S');
   form40.troca.Add('127=S');
   form40.troca.Add('128=S');
+  form40.troca.Add('129=S');
+  form40.troca.Add('130=S');
 
   form40.teclas := TStringList.Create;
   form40.teclas.Add('0=FT');
@@ -4558,6 +4562,8 @@ begin
   form40.teclas.Add('126=SN');
   form40.teclas.Add('127=SN');
   form40.teclas.Add('128=SN');
+  form40.teclas.Add('129=SN');
+  form40.teclas.Add('130=SN');
 
   form40.ListBox1.Clear;
   form40.ListBox1.Items.Add
@@ -4765,6 +4771,8 @@ begin
   form40.ListBox1.Items.Add('126=Considerar Limites de ativo, atraso e compra?');
   form40.ListBox1.Items.Add('127=Somar Entradas em Caixa no Resumo de Form Pagto no Relatorio de Vendas por Nota (S/N/E-Somente Entradas)?');
   form40.ListBox1.Items.Add('128=Permitir Somente Uma Alteração em 1 produto na venda quando Pedir permissao de desconto ?');
+  form40.ListBox1.Items.Add('129=Permitir Cadastro de Cliente com CPF/CNPJ Duplicado ?');
+  form40.ListBox1.Items.Add('130=Buscar Somente Registros de Venda Não Recebido da Data Atual Na Rotina de Forma de Pagamento ?');
 
 
   form40.ListBox1.Selected[0] := true;
@@ -13196,7 +13204,7 @@ end;
 
 procedure TForm2.FormasdePagamento1Click(Sender: TObject);
 var
-  formpagto, vende, total, conf, pag, sim, semcliente, comcliente: string;
+  formpagto, vende, total, conf, pag, sim, semcliente, comcliente, h1 : string;
   valor, entrada, totVenda, recebido, entradaOrigi: currency;
   atualizarData : boolean;
   err1, ini: integer;
@@ -13211,23 +13219,31 @@ begin
     if nota = '*' then
       exit;
 
+    h1 := ' and (v.data = :data) ';
+
+    if funcoes.buscaParamGeral(130, 'S') = 'N' then h1 := '';
+
+
+
     if nota = '' then
     begin
       semcliente :=
         'select v.nota, v.data, v.codhis as formapagto, a.nome as vendedor, v.desconto, v.total from venda v left join  vendedor a on (v.vendedor = a.cod) where (v.cancelado = 0) and ((v.ok = '
         + QuotedStr('') + ') or (v.ok = ' + QuotedStr('N') +
-        ' )) and (data = :data) order by v.nota desc';
+        ' )) '+h1+' order by v.nota desc';
       comcliente :=
         'select v.nota, v.data, v.codhis as formapagto, a.nome as vendedor, v.desconto, v.total, c.nome as cliente from ((venda v left join vendedor a on (v.vendedor = a.cod)) left join cliente c on (c.cod = v.cliente)) where (v.cancelado = 0) and ((v.ok = '
         + QuotedStr('') + ') or (v.ok = ' + QuotedStr('N') +
-        ' )) and (v.data = :data) order by v.nota desc';
+        ' )) '+h1+' order by v.nota desc';
       dm.IBQuery2.Close;
       dm.IBQuery2.SQL.Clear;
+
       if funcoes.buscaParamGeral(102, 'N') = 'S' then
         dm.IBQuery2.SQL.Add(comcliente)
       else
         dm.IBQuery2.SQL.Add(semcliente);
-      dm.IBQuery2.ParamByName('data').AsDate := form22.datamov;
+
+      if funcoes.buscaParamGeral(130, 'S') <> 'N' then dm.IBQuery2.ParamByName('data').AsDate := form22.datamov;
       dm.IBQuery2.Open;
 
       dm.ibselect.Close;

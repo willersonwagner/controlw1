@@ -992,7 +992,6 @@ object imprime: Timprime
     Font.Height = -13
     Font.Name = 'Arial'
     Font.Style = []
-    AfterPrint = RLReport2AfterPrint
     object RLBand9: TRLBand
       Left = 8
       Top = 69
@@ -1252,7 +1251,6 @@ object imprime: Timprime
     Font.Height = -13
     Font.Name = 'Arial'
     Font.Style = []
-    AfterPrint = RLReport2AfterPrint
     object RLBand5: TRLBand
       Left = 8
       Top = 83
@@ -1917,7 +1915,7 @@ object imprime: Timprime
       Left = 8
       Top = 143
       Width = 748
-      Height = 37
+      Height = 53
       AutoSize = True
       BandType = btHeader
       Borders.Sides = sdCustom
@@ -1992,10 +1990,38 @@ object imprime: Timprime
         ParentFont = False
         Transparent = False
       end
+      object rlOBS_Cliente: TRLLabel
+        Left = 2
+        Top = 37
+        Width = 203
+        Height = 14
+        Caption = 'Obs....: TESTE DE OBSERVA'#199#195'O'
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clBlack
+        Font.Height = -11
+        Font.Name = 'Courier New'
+        Font.Style = [fsBold]
+        ParentFont = False
+        Transparent = False
+      end
+      object rlFoneCel: TRLLabel
+        Left = 485
+        Top = 37
+        Width = 252
+        Height = 16
+        Caption = 'Fone: 95 991715639 Cel: 95991715639'
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clBlack
+        Font.Height = -12
+        Font.Name = 'Courier New'
+        Font.Style = [fsBold]
+        ParentFont = False
+        Transparent = False
+      end
     end
     object RLBand13: TRLBand
       Left = 8
-      Top = 180
+      Top = 196
       Width = 748
       Height = 22
       BandType = btHeader
@@ -2103,7 +2129,7 @@ object imprime: Timprime
     object RLBand15: TRLBand
       AlignWithMargins = True
       Left = 8
-      Top = 202
+      Top = 218
       Width = 748
       Height = 19
       AlignToBottom = True
@@ -2188,7 +2214,7 @@ object imprime: Timprime
     end
     object RLBand16: TRLBand
       Left = 8
-      Top = 271
+      Top = 287
       Width = 748
       Height = 85
       BandType = btSummary
@@ -2373,7 +2399,7 @@ object imprime: Timprime
     end
     object RLBand19: TRLBand
       Left = 8
-      Top = 221
+      Top = 237
       Width = 748
       Height = 50
       AutoExpand = False
