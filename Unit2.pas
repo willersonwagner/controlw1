@@ -409,6 +409,7 @@ type
     Timer3: TTimer;
     ReposiodeEstoque1: TMenuItem;
     PorGrupo2: TMenuItem;
+    abeladeFornecedoresCadastrados1: TMenuItem;
     procedure LimparBloqueios1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure CadastrarUsurio1Click(Sender: TObject);
@@ -704,6 +705,7 @@ type
     procedure Timer3Timer(Sender: TObject);
     procedure ReposiodeEstoque1Click(Sender: TObject);
     procedure PorGrupo2Click(Sender: TObject);
+    procedure abeladeFornecedoresCadastrados1Click(Sender: TObject);
   private
     b, cont: integer;
     ini: Smallint;
@@ -3585,6 +3587,44 @@ begin
   dm.ProdutoQY.Close;
   form19.showmodal;
 
+end;
+
+procedure TForm2.abeladeFornecedoresCadastrados1Click(Sender: TObject);
+begin
+
+  form19.RichEdit1.Clear;
+
+  addRelatorioForm19(funcoes.RelatorioCabecalho(form22.Pgerais.Values
+    ['empresa'], 'TABELA DE FORNECEDORES ' , 80));
+  addRelatorioForm19
+    ('CODIGO NOME                                     CNPJ               TEL' +
+    CRLF);
+  addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + CRLF);
+  funcoes.iniciaDataset(dm.ibselect,
+    'select cod, nome, cnpj, fone from fornecedor');
+  dm.ibselect.Open;
+  dm.ibselect.FetchAll;
+
+  fim := dm.ibselect.RecordCount;
+  funcoes.informacao(0, fim, 'Gerando Relatório...', true, false, 5);
+  ini := 0;
+
+  while not dm.ibselect.Eof do
+  begin
+    ini := ini + 1;
+    funcoes.informacao(ini, fim, 'Gerando Relatório...', false, false, 5);
+    addRelatorioForm19(funcoes.CompletaOuRepete('',
+      dm.ibselect.FieldByName('cod').AsString, ' ', 6) + ' ' +
+      funcoes.CompletaOuRepete(copy(dm.ibselect.FieldByName('nome').AsString, 1,
+      40), '', ' ', 40) + ' ' + funcoes.CompletaOuRepete(dm.ibselect.FieldByName('cnpj').AsString, '', ' ',19) + funcoes.CompletaOuRepete(dm.ibselect.FieldByName('fone').AsString, '', ' ',16) + CRLF);
+    dm.ibselect.Next;
+  end;
+
+  addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + CRLF);
+  funcoes.informacao(0, fim, 'Gerando Relatório...', false, true, 5);
+  dm.ibselect.Close;
+
+  form19.showmodal;
 end;
 
 procedure TForm2.abelaPorRefOriginal1Click(Sender: TObject);
@@ -22090,12 +22130,12 @@ end;
 
 procedure TForm2.NFCePorData1Click(Sender: TObject);
 var
-  dini, dfim, pstaNfe, tmp, sit, NUMFALTA: string;
+  dini, dfim, pstaNfe, tmp, sit, NUMFALTA, nPAG, cb1: string;
   dini1, dfim1: TDate;
   arq, lista, pag, formas: TStringList;
   i1, f1: integer;
   chav1: TChaveDetalhes;
-  TOT, vnf, cancela: currency;
+  TOT, vnf, cancela, valVenda: currency;
   cont, estad: integer;
 begin
   pstaNfe := caminhoEXE_com_barra_no_final + 'NFCE\EMIT\';
@@ -22201,9 +22241,22 @@ begin
       if Contido(trim(CST_PIS), '100-150') then
       begin
         sit := 'AUTORIZADA';
-        pag.Values[Le_Nodo('tPag', arq.GetText)] :=
-          CurrToStr(StrToCurrDef(pag.Values[Le_Nodo('tPag', arq.GetText)], 0) +
-          converteCurrencyNFe(Le_Nodo('vPag', arq.GetText)));
+
+        nPAG := Le_Nodo('pag', arq.GetText);
+        cb1 := copy(nPAG, 1, pos('</detPag>', nPAG) + 9);
+        pag.Values[Le_Nodo('tPag', cb1)] :=
+          CurrToStr(StrToCurrDef(pag.Values[Le_Nodo('tPag', cb1)], 0) +
+          converteCurrencyNFe(Le_Nodo('vPag', cb1)));
+
+        nPAG := copy(nPAG, pos('</detPag>', nPAG) + 9, length(nPAG));
+        cb1 := copy(nPAG, 1, pos('</detPag>', nPAG) + 9);
+
+        if trim(cb1) <> '' then begin
+          pag.Values[Le_Nodo('tPag', cb1)] :=
+          CurrToStr(StrToCurrDef(pag.Values[Le_Nodo('tPag', cb1)], 0) +
+          converteCurrencyNFe(Le_Nodo('vPag', cb1)));
+        end;
+
       end
       else if CST_PIS = '135' then
         sit := 'CANCELADA'
@@ -22231,12 +22284,21 @@ begin
       TOT := TOT + vnf;
     end;
 
+    dm.IBQuery1.Close;
+    dm.IBQuery1.SQL.Text := 'select total from venda where nota = :nota';
+    dm.IBQuery1.ParamByName('nota').AsInteger := chav1.codnf;
+    dm.IBQuery1.Open;
+
+    valVenda := dm.IBQuery1.FieldByName('total').AsCurrency;
+
     addRelatorioForm19(CompletaOuRepete('', IntToStr(chav1.nNF), '0', 10) + '  '
       + CompletaOuRepete('', IntToStr(chav1.codnf), '0', 10) + ' ' +
       CompletaOuRepete('', copy(chav1.chave, 23, 3), ' ', 3) + '   ' +
       FormatDateTime('dd/mm/yy', dm.ibselect.FieldByName('data').AsDateTime) +
       ' ' + CompletaOuRepete(sit, '', ' ', 30) + CompletaOuRepete('',
-      formataCurrency(vnf), ' ', 10) + CRLF);
+      formataCurrency(vnf), ' ', 10) + '  ' + formataCurrency(valVenda)  + CRLF);
+
+
     dm.ibselect.Next;
     cont := cont + 1;
   end;

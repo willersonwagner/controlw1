@@ -4846,6 +4846,16 @@ begin
   vICMSUFRemet := ArredondaFinanceiro(DIFAL * pIcmsEmit / 100, 2);
   Result := //'';
   '<ICMSUFDest>' +
+   '<vBCUFDest>'+ FORMAT_NUM(vICMSUFDest) +'</vBCUFDest>' +
+   '<pFCPUFDest>0.00</pFCPUFDest>' +
+   '<pICMSUFDest>'+FORMAT_NUM(vICMSUFDest)+'</pICMSUFDest>'+
+   '<pICMSInter>'+FORMAT_NUM(pICMSInter)+'</pICMSInter>' +
+   '<pICMSInterPart>'+FORMAT_NUM(picmsDest)+'</pICMSInterPart>' +
+   '<vFCPUFDest>0.00</vFCPUFDest>' +
+   '<vICMSUFDest>'+FORMAT_NUM(vICMSUFDest)+'</vICMSUFDest>' +
+   '<vICMSUFRemet>'+FORMAT_NUM(vICMSUFRemet)+'</vICMSUFRemet>' +
+'</ICMSUFDest>';
+  {'<ICMSUFDest>' +
    '<vBCUFDest>'+ FORMAT_NUM(TOT_BASEICM) +'</vBCUFDest>' +
    '<pFCPUFDest>0.00</pFCPUFDest>' +
    '<pICMSUFDest>'+FORMAT_NUM(pICMSUFDest)+'</pICMSUFDest>'+
@@ -4854,7 +4864,7 @@ begin
    '<vFCPUFDest>0.00</vFCPUFDest>' +
    '<vICMSUFDest>'+FORMAT_NUM(vICMSUFDest)+'</vICMSUFDest>' +
    '<vICMSUFRemet>'+FORMAT_NUM(vICMSUFRemet)+'</vICMSUFRemet>' +
-'</ICMSUFDest>';
+'</ICMSUFDest>';   }
 
   TOTvICMSUFDest  := TOTvICMSUFDest  + vICMSUFDest;
   TOTvICMSUFRemet := TOTvICMSUFRemet + vICMSUFRemet;

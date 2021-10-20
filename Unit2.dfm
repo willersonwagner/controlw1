@@ -12005,6 +12005,10 @@ object Form2: TForm2
           Caption = 'Produtos Excluidos de Servi'#231'os'
           OnClick = ProdutosExcluidosdeServios1Click
         end
+        object abeladeFornecedoresCadastrados1: TMenuItem
+          Caption = 'Tabela de Fornecedores Cadastrados'
+          OnClick = abeladeFornecedoresCadastrados1Click
+        end
       end
       object Faturamento1: TMenuItem
         Caption = 'Faturamento *'

@@ -498,13 +498,24 @@ end;
 procedure Tform22.Button2Click(Sender: TObject);
 var
   //op : TOpenDialog;
-  codbar : string;
+  codbar, cb1, nPAG : string;
 begin
   //op := TOpenDialog.Create(self);
   //funcoes.enviaArquivoGdrive(op.FileName);
   codbar := InputBox('','','');
-  if EAN13Valido(codbar) then ShowMessage('valido')
-  else ShowMessage('invalido');
+  nPAG := Le_Nodo('pag', codbar);
+  cb1 := copy(nPAG, 1, pos('</detPag>', nPAG) + 9);
+  ShowMessage('1='+cb1);
+
+  nPAG := copy(nPAG, pos('</detPag>', nPAG) + 9, length(nPAG));
+  cb1 := copy(nPAG, 1, pos('</detPag>', nPAG) + 9);
+
+  ShowMessage('2='+cb1);
+
+
+
+  //if EAN13Valido(codbar) then ShowMessage('valido')
+  //else ShowMessage('invalido');
 end;
 
 function Tform22.enviNFCe(const perg : String = ''; nnf : String = ''; recebido : currency = 0) : boolean;
