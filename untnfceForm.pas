@@ -7693,6 +7693,45 @@ begin
   query1.Close;
 end;
 
+
+{function verificaSePodeEmitirContigencia(): boolean;
+var
+  notas: string;
+  dias: Smallint;
+begin
+  Result := false;
+  query1.Close;
+  query1.SQL.text :=
+    'select count(*) as reg,min(data) from nfce where (adic = ''OFF'') and (right(extract(YEAR from current_date), 2) = substring(chave from 3 for 2)) and (substring(chave from 23 for 3) = :serie)';
+  query1.ParamByName('serie').AsString := strzero(getSerieNFCe, 3);
+  query1.Open;
+
+  if query1.IsEmpty then begin
+    Result := true;
+    query1.Close;
+    exit;
+  end;
+
+  notas := '';
+  while not query1.Eof do begin
+    notas := notas + #13 + query1.fieldbyname('chave').AsString + ' ' +
+      FormatDateTime('dd/mm/yyy', query1.fieldbyname('data').AsDateTime);
+    query1.Next;
+  end;
+
+  dias := StrToIntDef(pgerais.Values['79'], 2);
+  if dias < 2 then dias := 2;
+
+  if abs(DaysBetween(query1.fieldbyname('data').AsDateTime, now)) >= dias then begin
+    MessageDlg('O Sistema só pode Emitir NFCe quando As Notas Forem Enviadas: '
+      + #13 + notas, mtInformation, [mbOK], 1);
+    exit;
+  end;
+
+  Result := true;
+  query1.Close;
+end;  }
+
 function verificaSePodeEmitirContigencia(): boolean;
 var
   notas: string;

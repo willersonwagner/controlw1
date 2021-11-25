@@ -127,7 +127,7 @@ type
     pedido, configUsuarioConfirmarPreco, NomeOrcamento, formaAlterada: string;
     bdSmall: boolean;
     configUsuario, clienteNome, ultimaNota, ordemCompra, ENDE_ENTREGA, adicionarEntrega,
-    tipoTrocaDescontoUsuario : String;
+    tipoTrocaDescontoUsuario, ultOrcamentoRecuperado : String;
     semCliente: boolean;
     produtosServico: TStringList;
     procedure impNovo(TIPO1 : SMALLINT = 1);
@@ -1027,7 +1027,8 @@ begin
   begin
     ClientDataSet1.EmptyDataSet;
     ClientDataSet1.Open;
-    total.Caption := '0,00'
+    total.Caption := '0,00';
+    ultOrcamentoRecuperado := '';
   end;
 end;
 
@@ -1424,6 +1425,15 @@ begin
     mult := funcoes.dialogo('numero', 0, '', 2, False, 'X', Application.Title,'Confirme a Quantidade:', '1,00');
     if mult = '*' then mult := '1';
   end;
+
+  if Contido('-'+numOrcamento+ '-',ultOrcamentoRecuperado) then begin
+    MessageDlg('O Orçamento Não Pode ser Recuperado mais de 1 vez, Refaça a Operação!', TMsgDlgType.mtError, [mbOK], 1);
+    exit;
+  end
+  else begin
+    ultOrcamentoRecuperado := ultOrcamentoRecuperado + '-'+numOrcamento+ '-';
+  end;
+
 
   dm.IBselect.Close;
   dm.IBselect.SQL.Clear;
@@ -6401,6 +6411,7 @@ begin
 
       ultimaNota    := novocod;
       formaAlterada := '';
+      ultOrcamentoRecuperado := '';
 
       if Modo_Orcamento then
         gravaOrcamento;
@@ -6611,6 +6622,7 @@ end;
 
 procedure TForm20.FormCreate(Sender: TObject);
 begin
+  ultOrcamentoRecuperado := '';
   fimVenda := 0;
   tipoTrocaDescontoUsuario := '';
   adicionarEntrega := 'N';
@@ -9351,6 +9363,8 @@ begin
   else begin
     ImprimeNota;
   end;
+
+  ENDE_ENTREGA := '';
 end;
 
 

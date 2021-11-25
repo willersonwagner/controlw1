@@ -43,6 +43,7 @@ type
     procedure dataKeyPress(Sender: TObject; var Key: Char);
     procedure descricaoKeyPress(Sender: TObject; var Key: Char);
     procedure DBGrid1KeyPress(Sender: TObject; var Key: Char);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   private
     procedure abreDataSet();
     procedure limpaCampos(parcial : boolean = true);
@@ -256,6 +257,14 @@ procedure TForm21.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   JsEdit.LiberaMemoria(self);
 
+end;
+
+procedure TForm21.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if key = 113 then begin
+    funcoes.imprimeTranferencia(documento.Text);
+  end;
 end;
 
 procedure TForm21.quantKeyPress(Sender: TObject; var Key: Char);

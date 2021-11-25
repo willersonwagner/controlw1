@@ -410,6 +410,7 @@ type
     ReposiodeEstoque1: TMenuItem;
     PorGrupo2: TMenuItem;
     abeladeFornecedoresCadastrados1: TMenuItem;
+    ransferencias1: TMenuItem;
     procedure LimparBloqueios1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure CadastrarUsurio1Click(Sender: TObject);
@@ -706,6 +707,7 @@ type
     procedure ReposiodeEstoque1Click(Sender: TObject);
     procedure PorGrupo2Click(Sender: TObject);
     procedure abeladeFornecedoresCadastrados1Click(Sender: TObject);
+    procedure ransferencias1Click(Sender: TObject);
   private
     b, cont: integer;
     ini: Smallint;
@@ -9808,15 +9810,17 @@ begin
   if nota = '*' then
     exit;
 
+
+  //ShowMessage(nota + #13 + sql);
+
   dm.IBQuery2.Close;
-  dm.IBQuery2.SQL.Clear;
-  dm.IBQuery2.SQL.Add(SQL);
+  dm.IBQuery2.SQL.Text := (SQL);
   dm.IBQuery2.ParamByName('nota').AsString := nota;
   dm.IBQuery2.Open;
 
   if dm.IBQuery2.IsEmpty then
   begin
-    ShowMessage('Nota Não Encontrada!');
+    ShowMessage('Nota Não Encontrada!1');
     dm.IBQuery2.Close;
     exit;
   end;
@@ -10114,6 +10118,82 @@ begin
   funcoes.CtrlResize(TForm(form21));
   form21.showmodal;
   form21.Free;
+end;
+
+procedure TForm2.ransferencias1Click(Sender: TObject);
+var
+  imprimirtotaldia, ini, fim, documento : String;
+  ContaNota : integer;
+begin
+  {ini := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,
+    'Qual a Data Inicial?', formataDataDDMMYY(StartOfTheMonth(form22.datamov)));
+  if ini = '*' then
+    exit;
+
+  fim := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,
+    'Qual a Data Final?', formataDataDDMMYY(endOfTheMonth(form22.datamov)));
+  if fim = '*' then
+    exit;      }
+
+  documento :=  funcoes.dialogo('generico', 0, '1234567890' + #8, 90, false, '',
+    application.Title, 'Qual o Numero do Documento ?', '');
+  if ((documento = '*') or (documento = '')) then exit;
+
+
+
+  form19.RichEdit1.Lines.Clear;
+
+ dm.ibselect.Close;
+    dm.ibselect.SQL.Text :=
+      'select e.cod, p.nome, p.codbar, e.quant, e.usuario || ''-'' ||u.nome as usuario, datahora, serv from '
+      + 'excserv e left join produto p on (e.cod = p.cod) left join usuario u on (u.cod = e.usuario) where '
+      + 'cast(datahora as date) >= :v1 and  cast(datahora as date) <= :v2';
+    dm.ibselect.ParamByName('v1').AsDateTime := StrToDate(ini);
+    dm.ibselect.ParamByName('v2').AsDateTime := StrToDate(fim);
+    dm.ibselect.Open;
+
+    ContaNota := 0;
+    while not dm.ibselect.Eof do
+    begin
+      if ContaNota = 0 then
+      begin
+        addRelatorioForm19
+          ('+-----------------------------------------------------------------------+'
+          + CRLF);
+        addRelatorioForm19
+          ('|                   PRODUTOS EXCLUIDOS DE SERVICOS                      |'
+          + CRLF);
+        addRelatorioForm19
+          ('+-----------------------------------------------------------------------+'
+          + CRLF);
+        addRelatorioForm19
+          ('|COD NOME                         QUANT USUARIO        DATAHORA   SERVI |'
+          + CRLF);
+        addRelatorioForm19('+-----------------------------------------------------------------------+'+ CRLF);
+      end;
+
+      if funcoes.buscaParamGeral(5, 'N') = 'S' then
+        imprimirtotaldia := 'codbar'
+      else
+        imprimirtotaldia := 'cod';
+
+      addRelatorioForm19(funcoes.CompletaOuRepete
+        (LeftStr(dm.ibselect.FieldByName(imprimirtotaldia).AsString + '-' +
+        dm.ibselect.FieldByName('nome').AsString, 28), '', ' ', 28) + ' ' +
+        CompletaOuRepete('', formataCurrency(dm.ibselect.FieldByName('quant')
+        .AsCurrency), ' ', 10) + ' ' + CompletaOuRepete
+        (LeftStr(dm.ibselect.FieldByName('usuario').AsString, 10), '', ' ', 10)
+        + ' ' + FormatDateTime('dd/mm/yy hh:mm',
+        dm.ibselect.FieldByName('datahora').AsDateTime) + ' ' +
+        CompletaOuRepete('', dm.ibselect.FieldByName('serv').AsString, '0',
+        6) + CRLF);
+
+      ContaNota := ContaNota + 1;
+      dm.ibselect.Next;
+    end;
+
+  addRelatorioForm19('+-----------------------------------------------------------------------+'+ CRLF);
+
 end;
 
 procedure TForm2.roca1Click(Sender: TObject);
@@ -21491,7 +21571,7 @@ end;
 
 procedure TForm2.PorCliente3Click(Sender: TObject);
 var
-  sim, cliente, vencidas, h1: string;
+  sim, cliente, vencidas, h1, cli, h2: string;
   totalgeral, vlpago, vlnpago: currency;
   atual: TDateTime;
   ini, fim: integer;
@@ -21509,6 +21589,8 @@ begin
   if sim = '*' then
     exit;
 
+  h2 := sim;
+
   if sim = '2' then
     sim := ' (pago <> 0) and '
   else if sim = '3' then
@@ -21518,6 +21600,8 @@ begin
   h1 := '';
   vlpago := 0;
   vlnpago := 0;
+
+  cli := cliente;
 
   if cliente <> '' then
   begin
@@ -21556,11 +21640,12 @@ begin
     (('--------------------------------------------------------------------------------'
     + #13 + #10))));
 
+
   dm.ibselect.Close;
   dm.ibselect.SQL.Text :=
     'SELECT ENTRADA as valor, DATA, HISTORICO, documento from caixa v ' +
-    ' WHERE (V.DOCUMENTO = ' + strnum(cliente) +
-    ') AND (ENTRADA > 0) ORDER BY V.DATA';
+    ' WHERE (V.DOCUMENTO = ' + strnum(cli) +
+    ') AND (ENTRADA > 0) and (v.tipo = ''R'') ORDER BY V.DATA';
   // dm.IBselect.ParamByName('CLI').AsInteger := CLICOD;
   // dm.IBselect.ParamByName('INI').AsDate    := StrToDate(dataini);
   // dm.IBselect.ParamByName('FIM').AsDate    := StrToDate(datafim);
@@ -21613,7 +21698,8 @@ begin
     dm.ibselect.Next;
   end;
 
-  if pagos.Count > 0 then
+
+  if ((pagos.Count > 0) and (Contido(h2, '12'))) then
   begin
     form19.RichEdit1.Perform(EM_REPLACESEL, 1,
       Longint(PChar
@@ -21637,7 +21723,7 @@ begin
       80) + CRLF);
   end;
 
-  if npagos.Count > 0 then
+  if ((npagos.Count > 0) and (Contido(h2, '13'))) then
   begin
     form19.RichEdit1.Perform(EM_REPLACESEL, 1,
       Longint(PChar
@@ -22296,7 +22382,7 @@ begin
       CompletaOuRepete('', copy(chav1.chave, 23, 3), ' ', 3) + '   ' +
       FormatDateTime('dd/mm/yy', dm.ibselect.FieldByName('data').AsDateTime) +
       ' ' + CompletaOuRepete(sit, '', ' ', 30) + CompletaOuRepete('',
-      formataCurrency(vnf), ' ', 10) + '  ' + formataCurrency(valVenda)  + CRLF);
+      formataCurrency(vnf), ' ', 10) {+ '  ' + formataCurrency(valVenda) } + CRLF);
 
 
     dm.ibselect.Next;

@@ -41,7 +41,6 @@ object Form83: TForm83
     ParentShowHint = False
     ShowHint = False
     TabOrder = 0
-    ExplicitTop = 179
     object BitBtn1: TBitBtn
       Left = -1
       Top = 0
@@ -118,8 +117,6 @@ object Form83: TForm83
     Align = alClient
     Caption = 'Identifica'#231#227'o'
     TabOrder = 1
-    ExplicitTop = 1
-    ExplicitHeight = 178
     object Label2: TLabel
       Left = 11
       Top = 18
@@ -175,9 +172,9 @@ object Form83: TForm83
     object Label4: TLabel
       Left = 11
       Top = 162
-      Width = 125
+      Width = 286
       Height = 16
-      Caption = 'Cobrar Taxa(S/N) ?'
+      Caption = 'Cobrar Taxa(N-N'#227'o/C-5 Reais/D-10 Reais) ?'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -13

@@ -4839,11 +4839,17 @@ begin
   if (picmsDest - pICMSInter) = 0 then exit;
 
 
-  vICMSUFDest  := ArredondaFinanceiro(item.base_icm * pICMSUFDest /100, 2);
+  {vICMSUFDest  := ArredondaFinanceiro(item.base_icm * pICMSUFDest /100, 2);
   vICMSUFRemet := ArredondaFinanceiro(item.base_icm * pICMSInter  /100, 2);
   DIFAL        := abs(vICMSUFDest - vICMSUFRemet);
   vICMSUFDest  := ArredondaFinanceiro(DIFAL * picmsDest / 100, 2);
+  vICMSUFRemet := ArredondaFinanceiro(DIFAL * pIcmsEmit / 100, 2);}
+  vICMSUFDest  := 0;
+  vICMSUFRemet := 0;
+  DIFAL        := abs(vICMSUFDest - vICMSUFRemet);
+  vICMSUFDest  := ArredondaFinanceiro(DIFAL * picmsDest / 100, 2);
   vICMSUFRemet := ArredondaFinanceiro(DIFAL * pIcmsEmit / 100, 2);
+
   Result := //'';
   '<ICMSUFDest>' +
    '<vBCUFDest>'+ FORMAT_NUM(vICMSUFDest) +'</vBCUFDest>' +

@@ -1100,8 +1100,7 @@ begin
         + 1), TMP), '0', 6));
     end;
 
-    if ((funcoes.buscaParamGeral(5, 'N') <> 'S') or
-      (funcoes.buscaParamGeral(82, 'N') = 'S')) then
+    if ((funcoes.buscaParamGeral(5, 'N') <> 'S') or (funcoes.buscaParamGeral(82, 'N') = 'S')) then
     begin
       temp := funcoes.verificaCodbar(cod.Text, codbar.Text, 0);
       if temp <> '' then
@@ -2331,5 +2330,6 @@ begin
 end;
 
 end.
+
 
 

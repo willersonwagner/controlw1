@@ -12009,6 +12009,10 @@ object Form2: TForm2
           Caption = 'Tabela de Fornecedores Cadastrados'
           OnClick = abeladeFornecedoresCadastrados1Click
         end
+        object ransferencias1: TMenuItem
+          Caption = 'Transfer'#234'ncias de Estoque'
+          OnClick = ransferencias1Click
+        end
       end
       object Faturamento1: TMenuItem
         Caption = 'Faturamento *'

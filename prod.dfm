@@ -10,9 +10,11 @@ object Form21: TForm21
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Font.Style = []
+  KeyPreview = True
   OldCreateOrder = False
   Position = poScreenCenter
   OnClose = FormClose
+  OnKeyDown = FormKeyDown
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
@@ -224,9 +226,9 @@ object Form21: TForm21
       object Label7: TLabel
         Left = 96
         Top = 16
-        Width = 91
+        Width = 172
         Height = 16
-        Caption = 'F8 - Consulta'
+        Caption = 'F8 - Consulta F2-Imprime'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = -13

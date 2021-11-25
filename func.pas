@@ -141,6 +141,7 @@ type
     enviandoCupom, enviandoBackup: boolean;
     fonteRelatorioForm19: integer;
     NegritoRelatorioForm19, saiComEnter: boolean;
+    procedure imprimeTranferencia(doc : String);
     procedure atualizaDataEntradaProduto;
     function ImpVendaExec(verifica: boolean) : boolean;
     function execSqlMostraErro(var qry : TIBQuery) : boolean;
@@ -11252,6 +11253,14 @@ begin
       dm.IBQuery1.SQL.Add('ALTER TABLE VENDA ADD USULIB VARCHAR(3) DEFAULT '''' ');
       dm.IBQuery1.ExecSQL;
       if execSqlMostraErro(dm.IBQuery1) = false then exit;
+    end;
+
+    if retornaEscalaDoCampo('P_VENDA', 'ITEM_VENDA', '') = 3 then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('update RDB$FIELDS set RDB$FIELD_SCALE = -6 where RDB$FIELD_NAME = ''RDB$443''');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
     end;
 
     //VerificaVersao_do_bd
@@ -29910,6 +29919,76 @@ begin
   cod := funcoes.dialogo('generico', 150, '1234567890,.' + #8, 150, false, '',application.Title, 'Qual o Código do Produto?', '');
   if cod = '*' then exit;
 
+
+end;
+
+procedure Tfuncoes.imprimeTranferencia(doc : String);
+var
+  imprimirtotaldia, ini, fim : String;
+  ContaNota : integer;
+begin
+  {ini := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,
+    'Qual a Data Inicial?', formataDataDDMMYY(StartOfTheMonth(form22.datamov)));
+  if ini = '*' then
+    exit;
+
+  fim := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,
+    'Qual a Data Final?', formataDataDDMMYY(endOfTheMonth(form22.datamov)));
+  if fim = '*' then
+    exit;      }
+
+  if doc = '' then begin
+    doc :=  funcoes.dialogo('generico', 0, '1234567890' + #8, 90, false, '',
+    application.Title, 'Qual o Numero do Documento ?', '');
+  end;
+  if ((doc = '*') or (doc = '')) then exit;
+
+
+
+  form19.RichEdit1.Lines.Clear;
+
+ dm.ibselect.Close;
+    dm.ibselect.SQL.Text :=
+      'select T.COD, P.NOME, p.codbar, T.DATA, T.DESTINO, T.QUANT, U.NOME AS USUARIO1, T.DOCUMENTO FROM TRANSFERENCIA T LEFT join '
+      + ' PRODUTO P ON (T.COD = P.COD) LEFT JOIN USUARIO U ON (U.COD = T.USUARIO) WHERE T.documento =  '+ StrNum(doc);
+    dm.ibselect.Open;
+
+    ContaNota := 0;
+    while not dm.ibselect.Eof do
+    begin
+      if ContaNota = 0 then
+      begin
+        addRelatorioForm19
+          ('+-----------------------------------------------------------------------+'
+          + CRLF);
+        addRelatorioForm19
+          ('|                   TRANSFERENCIA DE PRODUTOS                           |'+ CRLF);
+        addRelatorioForm19('| '+ CompletaOuRepete('DOCUMENTO: ' + doc + ' DATA: ' + formataDataDDMMYY(DM.IBselect.FieldByName('DATA').AsDateTime),'|', ' ', 71) + CRLF);
+        addRelatorioForm19('+-----------------------------------------------------------------------+'
+          + CRLF);
+        addRelatorioForm19
+          ('|COD NOME                                   DEST    QUANT    USUARIO    |'
+          + CRLF);
+        addRelatorioForm19
+          ('+-----------------------------------------------------------------------+'+ CRLF);
+      end;
+
+        imprimirtotaldia := 'codbar';
+
+      addRelatorioForm19(funcoes.CompletaOuRepete
+        (LeftStr(dm.ibselect.FieldByName(imprimirtotaldia).AsString + '-' +
+        dm.ibselect.FieldByName('nome').AsString, 44), '', ' ', 44) + ' ' +
+        CompletaOuRepete(IfThen(dm.ibselect.FieldByName('destino').AsString = '2', 'DEP', 'LOJ'), '', ' ', 3) +
+        CompletaOuRepete('', formataCurrency(dm.ibselect.FieldByName('quant').AsCurrency), ' ', 9) + '     ' + CompletaOuRepete
+        (LeftStr(dm.ibselect.FieldByName('usuario1').AsString, 11), '', ' ', 11)
+       + CRLF);
+
+      ContaNota := ContaNota + 1;
+      dm.ibselect.Next;
+    end;
+
+  addRelatorioForm19('+-----------------------------------------------------------------------+'+ CRLF);
+  form19.ShowModal;
 
 end;
 

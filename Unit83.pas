@@ -72,13 +72,17 @@ end;
 
 procedure TForm83.taxaKeyPress(Sender: TObject; var Key: Char);
 begin
-  if key = #32 then tedit(sender).Text := 'S';
+  if key = #32 then begin
+   if tedit(sender).Text = 'N' then  tedit(sender).Text := 'C'
+   else if tedit(sender).Text = 'C' then  tedit(sender).Text := 'D';
+  end;
+
   if key = #8  then tedit(sender).Text := 'N';
 
   teclaEsc(key);
   proximo(key);
 
-  if not(funcoes.Contido(UpCase(key), 'SN'))  then key := #0
+  if not(funcoes.Contido(UpCase(key), 'NCD'))  then key := #0
   else begin
     tedit(sender).Text := UpCase(key);
     key := #0;
@@ -171,6 +175,8 @@ begin
   '(:TAXA, :COD, :CLIENTE, :TELEFONE, :ENDERECO, :OBS )';
   //dm.IBQuery1.ParamByName('TAXA').AsCurrency   := StrToInt(codEntrega);
   dm.IBQuery1.ParamByName('TAXA').AsCurrency   := 0;
+  if TAXA.Text = 'C' then dm.IBQuery1.ParamByName('TAXA').AsCurrency   := 5;
+  if TAXA.Text = 'D' then dm.IBQuery1.ParamByName('TAXA').AsCurrency   := 10;
   if TAXA.Text = 'S' then dm.IBQuery1.ParamByName('TAXA').AsCurrency   := StrToCurr(funcoes.buscaParamGeral(124, '5'));
 
   dm.IBQuery1.ParamByName('cod').AsInteger     := StrToInt(codEntrega);
