@@ -1012,9 +1012,17 @@ begin
 
   while not dm.IBselect.Eof do
     begin
+      num := dm.IBselect.FieldByName('chave').AsString + '-nfe.xml'; //cria o nome do arquivo
+
+      if FileExists(caminhoEXE_com_barra_no_final + 'NFE\EMIT\' + num) = false then begin
+        arq.Text := dm.ibselect.FieldByName('xml').AsString;
+        arq.SaveToFile(caminhoEXE_com_barra_no_final + 'NFE\EMIT\' + num);
+      end;
+
+
+
       funcoes.informacao(dm.IBselect.RecNo, gf, 'Aguarde, Verificando Arquivos...', false, false, 5);
 
-      num := dm.IBselect.FieldByName('chave').AsString + '-nfe.xml'; //cria o nome do arquivo
 
       if FileExists(caminhoEXE_com_barra_no_final + 'NFE\EMIT\' + num) then begin
         funcoes.checaAssinatura(caminhoEXE_com_barra_no_final + 'NFE\EMIT\' + num);
@@ -1273,8 +1281,10 @@ end;
 procedure TNfeVenda.enviarPorEmail(chave : String = '');
 var
  nf, email, ERRO, codCliente, cnpj : string;
- destinatario, mmEmailMsg, arq : Tstrings;
+ mmEmailMsg, arq : Tstrings;
+ destinatario : TStringList;
  mbody : tmemo;
+ i : integer;
 begin
   if chave = '' then begin
     nf := Incrementa_Generator('nfe', 0);
@@ -1345,6 +1355,7 @@ begin
   dm.IBselect.Open;
 
   email := dm.IBselect.FieldByName('email').AsString;
+
   dm.IBselect.Close;
 
   if chave = '' then begin
@@ -1371,11 +1382,17 @@ begin
   funcoes.configuraMail(dm.ACBrMail1);
 
 
-  destinatario :=  TStringList.Create;
-  mmEmailMsg   :=  TStringList.Create;
-  destinatario.Add(email);
+  LE_CAMPOS(destinatario, ','+email+',', ',',true);
 
-  dm.ACBrMail1.AddAddress(email, email);
+
+  mmEmailMsg   :=  TStringList.Create;
+
+  for i := 0 to destinatario.Count -1 do begin
+    email := destinatario.ValueFromIndex[i];
+    dm.ACBrMail1.AddAddress(email, email);
+  end;
+
+
   dm.ACBrMail1.Subject := 'NFe ' + nf + ' ' + LeftStr(form22.Pgerais.Values['empresa'], 25);
   erro := '';
 

@@ -11066,6 +11066,15 @@ begin
       dm.IBQuery1.Transaction.Commit;
     end;
 
+    if funcoes.retornaTamanhoDoCampoBD('EMAIL', 'CLIENTE') = 60 then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add
+        ('alter table CLIENTE alter EMAIL type VARCHAR(200)');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
     if not VerificaCampoTabela('cnpj_sinc', 'registro') then begin
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Clear;
@@ -26630,6 +26639,13 @@ begin
 
     { linha := troca_str(linha, 'PRODUTO' + iif(ini <> 0, copy(linha, pos('NOME', linha) + 6,
       2), ''), copy(dm.IBselect.FieldByName('nome').AsString, 1, ini)); }
+    if Contido('NOMED', linha) then
+    begin
+      tam1 := StrToIntDef(copy(linha, pos('NOMED', linha) + 5, 2), 20);
+      posi := StrToIntDef(copy(linha, pos('NOMED', linha) + 7, 2), 20);
+      linha := troca_str(linha, copy(linha, pos('NOMED', linha), 9), copy(dm.IBselect.FieldByName('nome').AsString, tam1, posi));
+    end;
+
 
     if Contido('NOMEX', linha) then
     begin

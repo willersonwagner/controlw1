@@ -3632,7 +3632,7 @@ end;
 procedure TForm2.abelaPorRefOriginal1Click(Sender: TObject);
 var
   SQL, cod, estoqueZero, ini, fim, entrereferencias, imprimiQTD, SelecaoStr,
-    lin, usaCodbar, campoRef: string;
+    lin, usaCodbar, campoRef, h1: string;
   separa, selecao, cabecalho: TStringList;
   linhas: integer;
 begin
@@ -3662,7 +3662,10 @@ begin
   form19.RichEdit1.Clear;
   fornec := '';
   grupo := '';
-  funcoes.PerguntasRel(dm.ProdutoQY, '3', false, '', '');
+  funcoes.PerguntasRel(dm.ProdutoQY, '23', false, '', '');
+
+  if fornec = '*' then exit;
+
 
   if fabric <> '*' then
     SQL := funcoes.dialogo('generico', 0, '123456', 0, false, 'S',
@@ -3711,23 +3714,22 @@ begin
     estoqueZero := funcoes.dialogo('generico', 0, 'SN', 0, false, 'S',
       'Control For Windows', 'Imprimir Itens Com Estoque Zero', 'S');
   if estoqueZero = 'N' then
-    estoqueZero := 'where (' + funcoes.LerValorPGerais
+    estoqueZero := ' and (' + funcoes.LerValorPGerais
       (IntToStr(StrToInt(SelecaoStr) + 4), selecao) + '>0)'
   else
     estoqueZero := '';
+
+  h1 := '';
+  if fornec <> '' then h1 := ' and (fornec = '+StrNum(fornec)+')';
+
 
   // if (ini<>'') and (fim<>'') and funcoes.Contido('where',estoquezero) then entrereferencias:=' and  ('+campoRef+'>='+QuotedStr(ini)+' ) and ('+campoRef+'<='+QuotedStr(fim)+') ';
   // if (ini<>'') and (fim<>'') and not funcoes.Contido('where',estoquezero) then entrereferencias:= ' where ('+campoRef+'>='+QuotedStr(ini)+' ) and ('+campoRef+'<='+QuotedStr(fim)+') ';
 
   if (ini <> '') and (fim <> '') then
   begin
-    if funcoes.Contido('where', estoqueZero) then
       entrereferencias := ' and (left(' + campoRef + ', ' + IntToStr(length(fim)
         ) + ') between ' + QuotedStr(ini) + ' and ' + QuotedStr(fim) + ') '
-    else
-      entrereferencias := ' where (left(' + campoRef + ', ' +
-        IntToStr(length(fim)) + ') between ' + QuotedStr(ini) + ' and ' +
-        QuotedStr(fim) + ') ';
   end;
 
   // if (ini<>'') and (fim<>'') and not funcoes.Contido('where',estoquezero) then entrereferencias:= ' where (left('+campoRef+', '+IntToStr(Length(fim))+') between '+QuotedStr(ini)+' and '+QuotedStr(fim)+') ';
@@ -3744,8 +3746,8 @@ begin
     dm.ProdutoQY.SQL.Clear;
     dm.ProdutoQY.SQL.Add('select cod,unid,fornec,' + campoRef +
       ' as refori,fabric,grupo,codbar,nome, p_venda,p_compra,' +
-      funcoes.LerValorPGerais(SelecaoStr, selecao) + ' from produto ' +
-      estoqueZero + ' ' + entrereferencias + ' order by ' +
+      funcoes.LerValorPGerais(SelecaoStr, selecao) + ' from produto where (cod > 0) ' +
+      estoqueZero + ' ' + entrereferencias + h1 + ' order by ' +
       funcoes.LerValorPGerais(SQL, separa));
     dm.ProdutoQY.Open;
     dm.ProdutoQY.FetchAll;
@@ -4602,7 +4604,7 @@ begin
   form40.teclas.Add('124=1234567890');
   form40.teclas.Add('125=1234567890ABCDEFGHIJLMNOPKXYZWQRSTUVXZ|' + #46);
   form40.teclas.Add('126=SN');
-  form40.teclas.Add('127=SN');
+  form40.teclas.Add('127=SNE');
   form40.teclas.Add('128=SN');
   form40.teclas.Add('129=SN');
   form40.teclas.Add('130=SN');
@@ -14191,7 +14193,8 @@ begin
       ('SELECT cast(c.data as date) as data, c.historico, c.entrada, cr.vendedor,'
       + ' cr.documento, c.entrada as valor FROM CAIXA c' +
       ' left join contasreceber cr on (c.codentradasaida = cr.cod)' + ' where '
-      + h1 + ' c.codentradasaida <> 0 and c.entrada > 0 and (cast(c.data as date) >= :dini and (cast(c.data as date) <= :dfim))'
+     // + h1 + ' c.codentradasaida <> 0 and c.tipo <> ''E'' and c.entrada > 0 and (cast(c.data as date) >= :dini and (cast(c.data as date) <= :dfim))'
+     + h1 + ' c.codentradasaida <> 0 and c.entrada > 0 and (cast(c.data as date) >= :dini and (cast(c.data as date) <= :dfim))'
       + ' order by cr.vendedor');
     dm.ibselect.ParamByName('dini').AsDateTime := StrToDateTime(dini);
     dm.ibselect.ParamByName('dfim').AsDateTime := StrToDateTime(dfim);
@@ -23417,10 +23420,10 @@ begin
   dm.ibselect.Close;
   dm.ibselect.SQL.Text :=
     'select i.cod, i.quant, p.nome, i.validade, i.nota, (p.quant + p.deposito) as estoque from item_entrada i left join produto p on (p.cod = i.cod) '
-    + 'where i.validade >= ''01.01.2014'' ' + h1 + ' order by ' + ordem +
+    + 'where i.validade <= :data and i.validade >= ''01.01.2014'' ' + h1 + ' order by ' + ordem +
     ', i.validade desc'; // jss-acrescentei ordem e campo validade
   // 'where i.validade <= :data and i.validade >= ''01.01.2000'' order by i.cod, i.validade desc'; //jss-acrescentei ordem e campo validade
-  // dm.IBselect.ParamByName('data').AsDate := dataDeVencimento;
+   dm.IBselect.ParamByName('data').AsDate := dataDeVencimento;
   dm.ibselect.Open;
   dm.ibselect.FetchAll;
 

@@ -107,8 +107,9 @@ begin
       funcoes.ReParcelamento.Add('periodo='+dias.Text);
       funcoes.ReParcelamento.Add('qtd='+qtd.Text);
       funcoes.ReParcelamento.Add('taxa='+funcoes.ConverteNumerico(taxa.Text));
-      if StrToCurr(funcoes.ConverteNumerico(valorp.Text)) > calculaPrestacao then funcoes.ReParcelamento.Add('valorp='+funcoes.ConverteNumerico(CurrToStr(calculaPrestacao)))
-        else funcoes.ReParcelamento.Add('valorp='+funcoes.ConverteNumerico(valorp.Text));
+      funcoes.ReParcelamento.Add('valorp='+funcoes.ConverteNumerico(CurrToStr(calculaPrestacao)));
+      //if StrToCurr(funcoes.ConverteNumerico(valorp.Text)) > calculaPrestacao then funcoes.ReParcelamento.Add('valorp='+funcoes.ConverteNumerico(CurrToStr(calculaPrestacao)))
+        //else funcoes.ReParcelamento.Add('valorp='+funcoes.ConverteNumerico(valorp.Text));
       funcoes.ReParcelamento.Add('total='+CurrToStr(total));
       key := #0;
       close;

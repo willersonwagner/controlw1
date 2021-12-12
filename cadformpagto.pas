@@ -125,6 +125,13 @@ if (key=#13) and ((tedit(sender).Text='0') or (tedit(sender).Text='')) then
    form39.ListBox1.Items.Add('11 - Vale Refeição');
    form39.ListBox1.Items.Add('12 - Vale Presente');
    form39.ListBox1.Items.Add('13 - Vale Combustível');
+   form39.ListBox1.Items.Add('14 - Duplicata Mercantil');
+   form39.ListBox1.Items.Add('15 - Boleto Bancario');
+   form39.ListBox1.Items.Add('16 - Deposito Bancario');
+   form39.ListBox1.Items.Add('17 - Pagamento Instantaneo (PIX)');
+   form39.ListBox1.Items.Add('18 - Transferência bancaria, Carteira Digital ');
+   form39.ListBox1.Items.Add('19 - Programa de Fidelidade, Cashback, Credito Virtual');
+   form39.ListBox1.Items.Add('90 - Sem Pagamento');
    form39.ListBox1.Items.Add('99 - Outro');
    tedit(sender).Text := funcoes.lista(Sender, false);
    if tedit(sender).Text = '*' then
