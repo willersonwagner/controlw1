@@ -866,14 +866,25 @@ begin
 
     h1 := '';
 
-    dtmMain.IBQuery1.Close;
-    dtmMain.IBQuery1.SQL.Text :=
+    if FileExists(ExtractFileDir(ParamStr(0)) + '\NEMIT.dat') then begin
+      dtmMain.IBQuery1.Close;
+      dtmMain.IBQuery1.SQL.Text :=
+      'select (v.codhis) as forma, v.entrada, f.nome, v.total as valor, v.desconto as desconto  from venda v left join formpagto f on (v.codhis = f.cod) where (v.cancelado = 0)  and '
+      + h1 + ' ((v.data >= :data) and (v.data <= :fim))';
+      dtmMain.IBQuery1.ParamByName('data').AsDate := StrToDate(data);
+      dtmMain.IBQuery1.ParamByName('fim').AsDate := StrToDate(fim);
+      dtmMain.IBQuery1.Open;
+    end
+    else begin
+      dtmMain.IBQuery1.Close;
+      dtmMain.IBQuery1.SQL.Text :=
       'select (v.codhis) as forma, v.entrada, f.nome, v.total as valor, v.desconto as desconto  from venda v left join formpagto f on (v.codhis = f.cod) where (v.cancelado = 0) and (entrega = ''E'') and (substring(v.crc from 8 for 9) = :crc) and '
       + h1 + ' ((v.data >= :data) and (v.data <= :fim))';
-    dtmMain.IBQuery1.ParamByName('crc').AsString := strzero(getSerieNFCe, 2);
-    dtmMain.IBQuery1.ParamByName('data').AsDate := StrToDate(data);
-    dtmMain.IBQuery1.ParamByName('fim').AsDate := StrToDate(fim);
-    dtmMain.IBQuery1.Open;
+      dtmMain.IBQuery1.ParamByName('crc').AsString := strzero(getSerieNFCe, 2);
+      dtmMain.IBQuery1.ParamByName('data').AsDate := StrToDate(data);
+      dtmMain.IBQuery1.ParamByName('fim').AsDate := StrToDate(fim);
+      dtmMain.IBQuery1.Open;
+    end;
 
     while not dtmMain.IBQuery1.Eof do
     begin
@@ -1335,6 +1346,11 @@ procedure TfrmMain.reiniciaDAVNFCe();
 var
   arq: TStringList;
 begin
+  if FileExists(ExtractFileDir(ParamStr(0)) + '\NEMIT.dat') then begin
+    exit;
+  end;
+
+
   arq := TStringList.Create;
   arq.SaveToFile(ExtractFileDir(ParamStr(0)) + '\davXXX.rca');
   arq.Free;

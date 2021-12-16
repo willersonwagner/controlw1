@@ -2221,6 +2221,12 @@ var
   envi, enviarOFFlineAgora, imp   : boolean;
   totTrib, tot1 : currency;
 begin
+  if FileExists(ExtractFileDir(ParamStr(0)) + '\NEMIT.dat') then begin
+    Result := true;
+    exit;
+  end;
+
+
   DANFE.Cancelada := false;
 
   if not verificaSePodeEmitirContigencia then exit;
