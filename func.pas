@@ -5689,7 +5689,7 @@ begin
       begin
         item := new(Ptr_sinc);
         item.cod := dm.IBselect.FieldByName('cod').AsInteger;
-        item.nome := dm.IBselect.FieldByName('nome').AsString;
+        item.nome := arq.Values['3'];
         item.p_vendaEstoque := dm.IBselect.FieldByName('p_venda').AsCurrency;
         item.p_vendaSincronizacao := StrToCurrDef(arq.Values['5'], 0);
 
@@ -11239,7 +11239,6 @@ begin
       dm.IBQuery1.SQL.Clear;
       dm.IBQuery1.SQL.Add
         ('ALTER TABLE nfce ADD sinc VARCHAR(1)');
-      dm.IBQuery1.ExecSQL;
       if execSqlMostraErro(dm.IBQuery1) = false then exit;
 
       dm.IBQuery1.Close;
@@ -11260,7 +11259,6 @@ begin
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Clear;
       dm.IBQuery1.SQL.Add('ALTER TABLE VENDA ADD USULIB VARCHAR(3) DEFAULT '''' ');
-      dm.IBQuery1.ExecSQL;
       if execSqlMostraErro(dm.IBQuery1) = false then exit;
     end;
 
@@ -11270,6 +11268,19 @@ begin
       dm.IBQuery1.SQL.Add('update RDB$FIELDS set RDB$FIELD_SCALE = -6 where RDB$FIELD_NAME = ''RDB$443''');
       if execSqlMostraErro(dm.IBQuery1) = false then exit;
       dm.IBQuery1.Transaction.Commit;
+    end;
+
+    if not VerificaCampoTabela('RECNO', 'ITEM_VENDA') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('ALTER TABLE ITEM_VENDA ADD RECNO VARCHAR(10) ');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('ALTER TABLE ITEM_VENDA ADD CONSTRAINT UNQ1_ITEM_VENDA UNIQUE (RECNO) ');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
     end;
 
     //VerificaVersao_do_bd

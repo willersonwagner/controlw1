@@ -2799,11 +2799,18 @@ begin
       ('TOTAL DEPOSITOS                   => ', formataCurrency(_ENTDEP) +
       ' => ' + formataCurrency(_SAIDEP), ' ', 60) + #13 + #10);
 
+
+  tmp := (ENTR_CAIXA1 + avista - despesas) / IfThen(funcoes.buscaParamGeral(25, '') = '3', _TOTAL, CUSTO) * 100;
+  if tmp < -500000 then tmp := 0;
+  
+
   addRelatorioForm19(funcoes.CompletaOuRepete
     ('SALDO PERIODO (ENTRADAS-DESPESAS) => ' + formataCurrency(ENTR_CAIXA1 +
-    avista - despesas) + ' => ' + formataCurrency((ENTR_CAIXA1 + avista -
-    despesas) / IfThen(funcoes.buscaParamGeral(25, '') = '3', _TOTAL,
-    CUSTO) * 100) + '%', '', ' ', 70) + #13 + #10);
+    avista - despesas) + ' => ' + formataCurrency(tmp) + '%', '', ' ', 70) + #13 + #10);
+
+
+  tmp := (CUSTO) / (_TOTAL) * 100;
+  if tmp < -500000 then tmp := 0;
 
   addRelatorioForm19('  ' + #13 + #10);
   addRelatorioForm19(funcoes.CompletaOuRepete
@@ -2814,8 +2821,7 @@ begin
     _TOTAL), ' ', 60) + '+' + #13 + #10);
   addRelatorioForm19(funcoes.CompletaOuRepete
     ('CUSTO DA MERCADORIA VENDIDA       => ', FormatCurr('#,###,###0.00',
-    CUSTO), ' ', 60) + '- ' + formataCurrency(Arredonda((CUSTO) / (_TOTAL) *
-    100, 2)) + '%' + #13 + #10);
+    CUSTO), ' ', 60) + '- ' + formataCurrency(Arredonda(tmp, 2)) + '%' + #13 + #10);
 
   LIQ := _TOTAL - CUSTO - despesas;
 
@@ -2838,15 +2844,20 @@ begin
       _ICM), ' ', 60) + '-' + #13 + #10);
   end;
 
-  fim := ' (' + formataCurrency((despesas) / (_TOTAL) * 100) + '% DE ' +
+  tmp := despesas / (_TOTAL) * 100;
+  if tmp < -500000 then tmp := 0;
+
+  fim := ' (' + formataCurrency(tmp) + '% DE ' +
     formataCurrency(_TOTAL) + ')';
   addRelatorioForm19(funcoes.CompletaOuRepete
     ('TOTAL DE ENCARGOS                 => ' + formataCurrency(despesas) + '- '
     + fim, '', ' ', 80) + #13 + #10 + CRLF);
   // addRelatorioForm19(funcoes.CompletaOuRepete('TOTAL DE ENCARGOS                 => ' + formataCurrency(despesas - pag) + '- '+ fim, '', ' ', 80) + #13 + #10 + CRLF);
 
-  fim := ' => ' + formataCurrency((LIQ) / IfThen(funcoes.buscaParamGeral(25,
-    '') = '3', _TOTAL, CUSTO) * 100) + '%';
+  tmp := (LIQ) / IfThen(funcoes.buscaParamGeral(25,'') = '3', _TOTAL, CUSTO) * 100;
+  if tmp < -500000 then tmp := 0;
+
+  fim := ' => ' + formataCurrency(tmp) + '%';
   addRelatorioForm19(funcoes.CompletaOuRepete
     ('TOTAL LUCRO LIQUIDO               => ', FormatCurr('#,###,###0.00', LIQ),
     ' ', 60) + fim + #13 + #10);
@@ -23210,7 +23221,7 @@ begin
   form19.RichEdit1.Perform(EM_REPLACESEL, 1,
     Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10))));
   form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-    Longint(PChar(('    NOTA   DATA                 VALOR  USUARIO' + #13
+    Longint(PChar(('    NOTA   DATA    DATA CANC                   VALOR   USUARIO' + #13
     + #10))));
   form19.RichEdit1.Perform(EM_REPLACESEL, 1,
     Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10))));
@@ -23218,7 +23229,7 @@ begin
 
   dm.ibselect.Close;
   dm.ibselect.SQL.Text :=
-    ('select nota,data,total, u.nome from venda v left join usuario u on (u.cod = v.cancelado) where ((cancelado > 0) and(data >= :v1) and (data <= :v2))');
+    ('select nota,data,total, u.nome, data_canc from venda v left join usuario u on (u.cod = v.cancelado) where ((cancelado > 0) and(cast(data_canc as date) >= :v1) and (cast(data_canc as date) <= :v2))');
   dm.ibselect.ParamByName('v1').AsDateTime := StrToDate(ini);
   dm.ibselect.ParamByName('v2').AsDateTime := StrToDate(fim);
   dm.ibselect.Open;
@@ -23253,8 +23264,8 @@ begin
     form19.RichEdit1.Perform(EM_REPLACESEL, 1,
       Longint(PChar((funcoes.CompletaOuRepete('',
       dm.ibselect.FieldByName('nota').AsString, ' ', 8) + ' ' +
-      funcoes.CompletaOuRepete(FormatDateTime('dd/mm/yy',
-      dm.ibselect.FieldByName('data').AsDateTime), '', ' ', 8) + '  ' +
+      funcoes.CompletaOuRepete(FormatDateTime('dd/mm/yy',dm.ibselect.FieldByName('data').AsDateTime), '', ' ', 8) + '  ' +
+      funcoes.CompletaOuRepete(FormatDateTime('dd/mm/yy',dm.ibselect.FieldByName('data_canc').AsDateTime) + ' ' + FormatDateTime('hh:mm',dm.ibselect.FieldByName('data_canc').AsDateTime), '', ' ', 14) + '  ' +
       funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00',
       dm.ibselect.FieldByName('total').AsCurrency), ' ', 18) + '  ' +
       funcoes.CompletaOuRepete(dm.ibselect.FieldByName('nome').AsString, '',

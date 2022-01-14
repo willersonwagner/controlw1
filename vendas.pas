@@ -5886,7 +5886,7 @@ end;
 
 function TForm20.gravaVenda : boolean;
 var
-  cod, codmov, tabela, padrao: string;
+  cod, codmov, tabela, padrao, recnoItem_venda: string;
   totProd, vlcaixa: currency;
   InsereCaixa: boolean;
   ini: integer;
@@ -5925,9 +5925,12 @@ begin
   totVenda := 0;
   totVolumes := 0;
   total_A_Limitar := 0;
-  for ini := 1 to ClientDataSet1.RecordCount do
-  begin
-    ClientDataSet1.RecNo := ini;
+  //for ini := 1 to ClientDataSet1.RecordCount do
+  while not ClientDataSet1.Eof do begin
+    //ClientDataSet1.RecNo := ini;
+
+    recnoItem_venda  :=  QuotedStr(novocod + IntToStr(ClientDataSet1.RecNo));
+    //recnoItem_venda  :=  QuotedStr(novocod + IntToStr(1));
 
     totProd := StrToCurr(ClientDataSet1TOTAL.AsString);
     total_A_Limitar := StrToCurr(ClientDataSet1PRECO.AsString);
@@ -5935,21 +5938,22 @@ begin
     cod := ClientDataSet1CODIGO.AsString;
     dm.IBQuery1.Close;
 
-    if LeftStr(tipoV, 1) = 'V' then
+
+  if LeftStr(tipoV, 1) = 'V' then
     begin
       dm.IBQuery1.SQL.Text :=
-        ('insert into item_venda(data,nota,COD, QUANT, p_venda,total,origem,p_compra,codbar,aliquota, unid, desconto, nome, vendedor, TIPO, cod_seq)'
+        ('insert into item_venda(data,nota,COD, QUANT, p_venda,total,origem,p_compra,codbar,aliquota, unid, desconto, nome, vendedor, TIPO, cod_seq, recno)'
         + ' values(:data,' + novocod + ',:cod, :quant, :p_venda,:total,' +
         IntToStr(origem) +
-        ',:p_compra, :codbar,:aliq, :unid, :desconto, :nome, :vend, :tipo, gen_id(item_venda, 1))');
+        ',:p_compra, :codbar,:aliq, :unid, :desconto, :nome, :vend, :tipo, gen_id(item_venda, 1), '+recnoItem_venda+')');
     end
     else
     begin
       dm.IBQuery1.SQL.Text :=
-        ('insert into item_venda(data,nota,COD, QUANT, p_venda,total,origem,p_compra,codbar,aliquota, unid, desconto, nome, vendedor, TIPO, cod_seq)'
+        ('insert into item_venda(data,nota,COD, QUANT, p_venda,total,origem,p_compra,codbar,aliquota, unid, desconto, nome, vendedor, TIPO, cod_seq, recno)'
         + ' values(:data,' + novocod + ',:cod, :quant, :p_venda,:total,' +
         IntToStr(origem) +
-        ',:p_compra, :codbar,:aliq, :unid, :desconto, :nome, :vend, :tipo, gen_id(item_venda, 1))');
+        ',:p_compra, :codbar,:aliq, :unid, :desconto, :nome, :vend, :tipo, gen_id(item_venda, 1), '+recnoItem_venda+')');
     end;
 
     dm.IBQuery1.ParamByName('data').AsDateTime := form22.datamov;
@@ -6002,11 +6006,24 @@ begin
       dm.IBQuery1.ParamByName('vend').AsString :=
         strnum(funcoes.retiraZerosEsquerda(JsEdit2.Text));
 
+    //dm.IBQuery1.ParamByName('recno').AsString := novocod + IntToStr(ClientDataSet1.RecNo);
+
+    //dm.IBQuery1.SQL.SaveToFile('sql1.txt');
     dm.IBselect.Close;
 
-    dm.IBQuery1.ExecSQL;
+    try
+      dm.IBQuery1.ExecSQL;
+    except
+      on e: exception do begin
+        ShowMessage(e.Message);
 
-    // ClientDataSet1.Next;
+          if Contido('UNQ1_ITEM_VENDA', e.Message) = false then begin
+            exit;
+          end;
+      end;
+    end;
+
+     ClientDataSet1.Next;
   end;
 
   // grava a venda

@@ -623,8 +623,7 @@ begin
 
   te := funcoes.StrNum(nf);
   nf := funcoes.recuperaChaveNFe(te, serie);
-
-
+ 
   if nf = '' then
     begin
       ShowMessage('Não foi Encontrado NFe com este Número de Nota');
@@ -658,7 +657,7 @@ begin
 
   try
     dm.ACBrNFe.NotasFiscais.Clear;
-    dm.ACBrNFe.NotasFiscais.LoadFromFile(pastaNFE_ControlW+'\NFE\EMIT\'+ nf +'-nfe.xml');
+    dm.ACBrNFe.NotasFiscais.LoadFromFile(caminhoEXE_com_barra_no_final+'NFE\EMIT\'+ nf +'-nfe.xml');
   except
     on e:exception do
       begin
@@ -668,7 +667,8 @@ begin
       end;
   end;
 
-  lote := StrToInt(FormatDateTime('yymmddhhmm', NOW));
+  //lote := StrToInt(FormatDateTime('yymmddhhmm', NOW));
+   lote := 1;
 
   ACBrNFe.EventoNFe.Evento.Clear;
   ACBrNFe.EventoNFe.idLote := lote;
@@ -2121,33 +2121,36 @@ begin
       ACBrNFe.Configuracoes.WebServices.Visualizar := true;
       try
         dm.ACBrNFe.EnviarEvento(0);
-        cStat := IntToStr(ACBrNFe.WebServices.EnvEvento.EventoRetorno.retEvento.Items[0].RetInfEvento.cStat);
+        cStat := '-'+IntToStr(ACBrNFe.WebServices.EnvEvento.EventoRetorno.retEvento.Items[0].RetInfEvento.cStat) + '-';
       except
         on e:exception do
           begin
             ShowMessage(e.Message);
             ACBrNFe.Configuracoes.WebServices.Visualizar := false;
-            exit;
+            //exit;
           end;
       end;
 
       ACBrNFe.Configuracoes.WebServices.Visualizar := false;
-      cStat := IntToStr(ACBrNFe.WebServices.EnvEvento.EventoRetorno.retEvento.Items[0].RetInfEvento.cStat);
+
+      //cStat := IntToStr(ACBrNFe.WebServices.Retorno.cStat);//IntToStr(ACBrNFe.WebServices.EnvEvento.EventoRetorno.retEvento.Items[0].RetInfEvento.cStat);
+      //if cstat = '0' then cstat
 
 
-      {ShowMessage('1='+cstat + #13 +
+     { ShowMessage('1='+cstat + #13 +
                   '2=' + IntToStr(ACBrNFe.WebServices.Retorno.cStat) + #13 +
                   '3=' + IntToStr(ACBrNFe.WebServices.EnvEvento.cStat) + #13 + #13 +
-                  '4=' + IntToStr(ACBrNFe.WebServices.Consulta.cStat));
+                  '4=' + IntToStr(ACBrNFe.WebServices.Consulta.cStat) + #13 +
+                  '5=' + IntToStr(ACBrNFe.WebServices.EnvEvento.EventoRetorno.retEvento.Items[0].RetInfEvento.cStat));
       }//GravarTexto(ExtractFileDir(ParamStr(0)) + '\NFE\EVENTO\' + buscaPastaNFe(nf) + '\'+ nf +'-nfe.xml',ACBrNFe.WebServices.EnvEvento.EventoRetorno.XML);
 
-      if funcoes.Contido(cstat, '101-135-151-573-155') then
+      if funcoes.Contido(cstat, '-101-135-151-573-155-') then
         begin
           if not FileExists(pastaNFE_ControlW + 'NFE\EMIT\' + nf + '-nfe.old') then CopyFile(pchar(pastaNFE_ControlW + 'NFE\EMIT\' + nf + '-nfe.xml'),pchar(pastaNFE_ControlW + 'NFE\EMIT\' + nf + '-nfe.old'), true)
             else CopyFile(pchar(pastaNFE_ControlW + 'NFE\EMIT\' + nf + '-nfe.xml'),pchar(pastaNFE_ControlW + 'NFE\EMIT\' + nf + '-nfe.old1'), true);
 
 
-          if cstat = '135' then begin
+          if funcoes.Contido(cstat, '101-135') then begin
             criaPasta(pastaNFE_ControlW + 'NFE\EVENTO\CANC\' + copy(nf, 3, 4) + '\');
             GravarTexto(pastaNFE_ControlW + 'NFE\EVENTO\CANC\'+ copy(nf, 3, 4) + '\'+ nf + '_CANC_nfe.xml', ACBrNFe.WebServices.EnvEvento.EventoRetorno.retEvento.Items[0].RetInfEvento.XML);
           end;
@@ -2185,7 +2188,10 @@ begin
                    'xMotivo: ' + ACBrNFe.WebServices.EnvEvento.EventoRetorno.retEvento.Items[0].RetInfEvento.xMotivo;
           except
           end;
-          ShowMessage('Ocorreu um Erro no Cancelamento:' + #13 + cstat + #13 + tmp + IfThen(pos('Duplicidade', tmp) > 0, #13 + #13 + 'Esta Nota já pode ter Sido Cancelada', ''));
+          //ShowMessage('Ocorreu um Erro no Cancelamento:' + #13 + cstat + #13 + tmp + IfThen(pos('Duplicidade', tmp) > 0, #13 + #13 + 'Esta Nota já pode ter Sido Cancelada', ''));
+          pergunta1.Visible := false;
+          valida := true;
+          exit;
         end;
 
       if StrToIntDef(funcoes.StrNum(Incrementa_Generator('nfe', 0)), 0) = StrToIntDef(te, 0)  then Incrementa_Generator('nfe', 1);
