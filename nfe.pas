@@ -582,7 +582,7 @@ end;
 
 function TNfeVenda.cartaDeCorrecao1 : string;
 var
-  texto, cod_nota,cnpj,nf, just, te, cCmd, nSeqEvento, xCondUso, cod, xCorrecao, crlf, serie : string;
+  texto, cstat, cod_nota,cnpj,nf, just, te, cCmd, nSeqEvento, xCondUso, cod, xCorrecao, crlf, serie : string;
   xml, cce : TStringList;
   lote     : integer;
   previ   : boolean;
@@ -680,7 +680,7 @@ begin
       infEvento.tpEvento   := teCCe;
       infEvento.nSeqEvento := StrToInt(nSeqEvento);
       infEvento.detEvento.xCorrecao := xCorrecao;
-      //InfEvento.detEvento.xCondUso  := xCondUso;
+      InfEvento.detEvento.xCondUso  := xCondUso;
     end;
 
     funcoes.Mensagem(Application.Title ,'Aguarde, Enviando CCE...',15,'Courier New',false,0,clred, false);
@@ -697,17 +697,31 @@ begin
     finally
       pergunta1.Visible := false;
     end;
-        cce := TStringList.Create;
-        cce.Values['nSeqEvento'] := nSeqEvento;
-        cce.Values['xCorrecao']  := xCorrecao;
-        cce.SaveToFile(pastaNFE_ControlW + 'NFE\CCE\CCE' + cod_nota + '.txt');
-        cce.Free;
-        dm.DANFE.PathPDF := caminhoEXE_com_barra_no_final + 'NFE\PDF\';
-        previ := DANFE.MostraPreview;
-        DANFE.MostraPreview := true;
-        ACBrNFe.ImprimirEvento;
-        ACBrNFe.ImprimirEventoPDF;
-        DANFE.MostraPreview := previ;
+
+    cStat := '-'+IntToStr(ACBrNFe.WebServices.EnvEvento.EventoRetorno.retEvento.Items[0].RetInfEvento.cStat) + '-';
+
+    if funcoes.Contido(cstat, '-101-135-151-573-155-') then begin
+      if funcoes.Contido(cstat, '101-135') then begin
+        criaPasta(pastaNFE_ControlW + 'NFE\EVENTO\CCE\' + copy(nf, 3, 4) + '\');
+        GravarTexto(pastaNFE_ControlW + 'NFE\EVENTO\CCE\'+ copy(nf, 3, 4) + '\'+ nf + '_CCE_nfe.xml', ACBrNFe.WebServices.EnvEvento.EventoRetorno.retEvento.Items[0].RetInfEvento.XML);
+      end;
+
+      cce := TStringList.Create;
+      cce.Values['nSeqEvento'] := nSeqEvento;
+      cce.Values['xCorrecao']  := xCorrecao;
+      cce.SaveToFile(pastaNFE_ControlW + 'NFE\CCE\CCE' + cod_nota + '.txt');
+      cce.Free;
+      dm.DANFE.PathPDF := caminhoEXE_com_barra_no_final + 'NFE\PDF\';
+      previ := DANFE.MostraPreview;
+      DANFE.MostraPreview := true;
+      ACBrNFe.ImprimirEvento;
+      ACBrNFe.ImprimirEventoPDF;
+      DANFE.MostraPreview := previ;
+
+
+      //ShowMessage('NF-e Cancelada com Sucesso. '+ #13 +'Protocolo '+ ACBrNFe.WebServices.Retorno.Protocolo + #13 + 'xMotivo:' + tmp);
+    end;
+
 end;
 
 function TNfeVenda.tiraDoCaminhoDaNota_Option_1_numero_Option_2_chave(const caminho : String; const option : smallint) : String;
@@ -2118,14 +2132,14 @@ begin
         end;
 
       contador := 0;
-      ACBrNFe.Configuracoes.WebServices.Visualizar := true;
+      ACBrNFe.Configuracoes.WebServices.Visualizar := false;
       try
         dm.ACBrNFe.EnviarEvento(0);
         cStat := '-'+IntToStr(ACBrNFe.WebServices.EnvEvento.EventoRetorno.retEvento.Items[0].RetInfEvento.cStat) + '-';
       except
         on e:exception do
           begin
-            ShowMessage(e.Message);
+            ShowMessage('ERRO> ' +e.Message);
             ACBrNFe.Configuracoes.WebServices.Visualizar := false;
             //exit;
           end;
@@ -2137,7 +2151,7 @@ begin
       //if cstat = '0' then cstat
 
 
-     { ShowMessage('1='+cstat + #13 +
+      {ShowMessage('1='+cstat + #13 +
                   '2=' + IntToStr(ACBrNFe.WebServices.Retorno.cStat) + #13 +
                   '3=' + IntToStr(ACBrNFe.WebServices.EnvEvento.cStat) + #13 + #13 +
                   '4=' + IntToStr(ACBrNFe.WebServices.Consulta.cStat) + #13 +
@@ -2183,12 +2197,9 @@ begin
         end
       else
         begin
-          try
-          cstat := 'cStat:   ' + IntToStr(ACBrNFe.WebServices.EnvEvento.EventoRetorno.retEvento.Items[0].RetInfEvento.cStat) + #13 +
+          cstat := 'cStat:   ' + cstat + #13 +
                    'xMotivo: ' + ACBrNFe.WebServices.EnvEvento.EventoRetorno.retEvento.Items[0].RetInfEvento.xMotivo;
-          except
-          end;
-          //ShowMessage('Ocorreu um Erro no Cancelamento:' + #13 + cstat + #13 + tmp + IfThen(pos('Duplicidade', tmp) > 0, #13 + #13 + 'Esta Nota já pode ter Sido Cancelada', ''));
+          ShowMessage('Ocorreu um Erro no Cancelamento:' + #13 + cstat + #13 + tmp + IfThen(pos('Duplicidade', tmp) > 0, #13 + #13 + 'Esta Nota já pode ter Sido Cancelada', ''));
           pergunta1.Visible := false;
           valida := true;
           exit;

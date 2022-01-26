@@ -4599,12 +4599,12 @@ begin
 
                   checaISPIS_CODISPIS(listaProdutos[ini].CST_PIS, COD_ISPIS, listaProdutos[ini].cod);
 
-                  {if ChecaIsencaoPis_Cst_49_Devoluções(listaProdutos[ini].CFOP) then begin
+                  if ChecaIsencaoPis_Cst_49_Devoluções(listaProdutos[ini].CFOP) then begin
                     listaProdutos[ini].CST_PIS := '49';
                     COD_ISPIS   := '';
                     CSTPIS_CFOP := '';
                     ISPIS       := '';
-                  end;}
+                  end;
 
                   TOT_ITEM := listaProdutos[ini].total;  
 
@@ -4687,6 +4687,7 @@ begin
                   '|' + FORM_NUM1(listaProdutos[ini].descCom) + '|0|' + '0' + TRIB + '|' + _CFOP + '|' + _CFOP + '|' +
                   FORM_NUM1(BASE_ICM) + '|' + FORM_NUM1(ALIQ) + '|' + FORM_NUM1(TOT_ICM) + '|' + '0|0|0|0|' +
                   IfThen(StrToIntDef(LeftStr(_CFOP, 1 ), 5) <= 3, '03', '53') + '||0|0|0|'  + CST_PIS + '|'+codCTA+'|';  //99|0|0|0|0|0|99|0|0|0|0|0
+
                   MAT_NOTA.Add(LINHA);
 
                   if ((StrToIntDef(StrNum(trim(CST_PIS)), 0) > 0) and (StrNum(COD_ISPIS) = '0')) then

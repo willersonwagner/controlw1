@@ -39,6 +39,7 @@ object Form48: TForm48
     OnCellClick = DBGrid1CellClick
     OnDrawDataCell = DBGrid1DrawDataCell
     OnDrawColumnCell = DBGrid1DrawColumnCell
+    OnEnter = DBGrid1Enter
     OnKeyPress = DBGrid1KeyPress
     OnKeyUp = DBGrid1KeyUp
   end
@@ -124,6 +125,19 @@ object Form48: TForm48
       Font.Color = clWindowText
       Font.Height = -16
       Font.Name = 'MS Sans Serif'
+      Font.Style = [fsBold]
+      ParentFont = False
+    end
+    object Label4: TLabel
+      Left = 216
+      Top = 108
+      Width = 113
+      Height = 20
+      Caption = 'Prod. Atual: '
+      Font.Charset = ANSI_CHARSET
+      Font.Color = 3155860
+      Font.Height = -17
+      Font.Name = 'Arial Rounded MT Bold'
       Font.Style = [fsBold]
       ParentFont = False
     end

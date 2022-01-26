@@ -24,6 +24,7 @@ type
     Button1: TButton;
     Label2: TLabel;
     Label3: TLabel;
+    Label4: TLabel;
     procedure DBGrid1KeyUp(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure DBGrid1CellClick(Column: TColumn);
@@ -37,6 +38,7 @@ type
       Field: TField; State: TGridDrawState);
     procedure DBGrid1DrawColumnCell(Sender: TObject; const Rect: TRect;
       DataCol: Integer; Column: TColumn; State: TGridDrawState);
+    procedure DBGrid1Enter(Sender: TObject);
   private
     inseriuFornecedor, campoDataExiste : boolean;
     procedure escondeCampos();
@@ -50,6 +52,7 @@ type
     function  verificaCodigosDeBarrasDosProdutos() : string;
     procedure lerProdutosParaDarEntrada(var lista : TItensProduto);
     procedure mostraNomesCampos();
+    procedure escreveNomeDoProduto;
     { Private declarations }
   public
     fornecedor, unidadeTemp        : String;
@@ -563,6 +566,11 @@ var
   codTMP   : integer;
   mat : TStringList;
 begin
+  if (key = 38)or(key = 40) then begin
+    escreveNomeDoProduto;
+    exit;
+  end;
+
   if key = 113 then //F2
     begin
       salvarArq();
@@ -1188,6 +1196,11 @@ begin
   end;
 end;
 
+procedure TForm48.DBGrid1Enter(Sender: TObject);
+begin
+  escreveNomeDoProduto;
+end;
+
 procedure TForm48.DBGrid1DrawColumnCell(Sender: TObject; const Rect: TRect;
   DataCol: Integer; Column: TColumn; State: TGridDrawState);
 begin
@@ -1639,6 +1652,11 @@ begin
   ClientDataSet1.First;
   ClientDataSet1.MoveBy(codTMP);
   ClientDataSet1.EnableControls;
+end;
+
+procedure TForm48.escreveNomeDoProduto;
+begin
+  Label4.Caption := 'Prod. Atual:' + copy(ClientDataSet1.FieldByName('REF_NFE').AsString, 1, pos('|', ClientDataSet1.FieldByName('REF_NFE').AsString) -1) + '-' +  ClientDataSet1.FieldByName('DESCRICAO_FORNECEDOR').AsString;
 end;
 
 end.

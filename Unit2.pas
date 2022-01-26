@@ -16686,9 +16686,6 @@ procedure TForm2.CartadeCorreo1Click(Sender: TObject);
 begin
   NfeVenda := TNfeVenda.Create(self);
   try
-    if funcoes.buscaParamGeral(36, '') <> 'N' then
-      NfeVenda.cartaDeCorrecao()
-    else
       NfeVenda.cartaDeCorrecao1();
   except
     on e: exception do

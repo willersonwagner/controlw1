@@ -26624,9 +26624,12 @@ begin
     exit;
   end;
 
-  qtd := iif(StrToCurrDef(qtd, 0) / 3 = trunc(StrToCurrDef(qtd, 0) / 3),
+
+  if funcoes.lista1 = '0' then begin
+    qtd := iif(StrToCurrDef(qtd, 0) / 3 = trunc(StrToCurrDef(qtd, 0) / 3),
     CurrToStr(StrToCurrDef(qtd, 0) / 3),
     CurrToStr(trunc(StrToCurrDef(qtd, 0) / 3) + 1));
+  end;
 
   hand.LoadFromFile(iif(lista1 = '0', caminhoEXE_com_barra_no_final +
     'JS000041.dat', caminhoEXE_com_barra_no_final + 'JS000042.dat'));
