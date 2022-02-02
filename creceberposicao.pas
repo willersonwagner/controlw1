@@ -341,6 +341,7 @@ var
   saldo, valor : currency;
   datamaior : TDateTime;
   d : integer;
+  nfes1 : String;
 begin
   //ClientDataSet1.FieldByName('cod').Visible := false;
   ClientDataSet1.FieldByName('cod').Visible      := false;
@@ -354,9 +355,15 @@ begin
   try
     ClientDataSet1.DisableControls;
   dm.IBselect.Close;
-  dm.IBselect.SQL.Text := 'select datamov,codgru, vencimento, documento, historico, previsao, valor, cod, valor as saldo  from contasreceber where ' +
+  dm.IBselect.SQL.Text := 'select datamov,codgru, vencimento, documento, historico, previsao, valor, cod, valor as saldo, nota  from contasreceber where ' +
   '(documento='+strnum(client1)+') and (pago=0) order by vencimento';
   dm.IBselect.Open;
+
+  {dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select c.datamov,c.codgru, c.vencimento, c.documento, c.historico, c.previsao, c.valor, c.cod, c.valor as saldo, cast(substring(n.chave from 26 for 9)'+
+  ' as integer) as nfe, c.nota  from contasreceber c left join nfe n on (cast(substring(n.chave from 37 for 7) as integer) = c.nota) where' +
+  '(c.documento='+strnum(client1)+') and (c.pago=0) order by c.vencimento';
+  dm.IBselect.Open;}
 
   query11 := dm.IBselect;
 
@@ -383,6 +390,25 @@ begin
         valor := valor + Arredonda((valor *( juros /100)) * d,2);
       end;
 
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := 'select substring(n.chave from 26 for 9) as nfe from nfe n where (substring(n.chave from 37 for 7) = lpad('+QuotedStr(dm.IBselect.FieldByName('nota').AsString)+',7, ''0'')) ';
+      //dm.IBQuery1.ParamByName('nota').AsString := ;
+      dm.IBQuery1.Open;
+      dm.IBQuery1.FetchAll;
+
+      nfes1 := iif(IntToStr(strtointdef(dm.IBQuery1.FieldByName('nfe').AsString, 0)) = '0', '', IntToStr(strtointdef(dm.IBQuery1.FieldByName('nfe').AsString, 0)));
+
+     if dm.IBQuery1.RecordCount > 1 then begin
+        nfes1 := '';
+        while not dm.IBQuery1.Eof  do begin
+
+          nfes1 := nfes1 + iif(IntToStr(strtointdef(dm.IBQuery1.FieldByName('nfe').AsString, 0)) = '0', '', IntToStr(strtointdef(dm.IBQuery1.FieldByName('nfe').AsString, 0)));
+          if dm.IBQuery1.RecordCount <> dm.IBQuery1.RecNo then nfes1 := nfes1 + ',';
+          dm.IBQuery1.Next;
+        end;
+      end;
+
+
       saldo := saldo + valor;
       ClientDataSet1.Append;
       ClientDataSet1.FieldByName('codgru').AsInteger      := query11.FieldByName('codgru').AsInteger;
@@ -392,6 +418,9 @@ begin
       ClientDataSet1.FieldByName('valor').AsCurrency      := valor;
       ClientDataSet1.FieldByName('saldo').AsCurrency      := saldo;
       ClientDataSet1.FieldByName('cod').AsInteger         := query11.FieldByName('cod').AsInteger;
+      ClientDataSet1.FieldByName('nfe').AsString         := nfes1;
+
+      ClientDataSet1.FieldByName('nota').AsInteger         := query11.FieldByName('nota').AsInteger;
       ClientDataSet1.Post;
     end;
     query11.Next;
@@ -400,6 +429,10 @@ begin
     ClientDataSet1.First;
     ClientDataSet1.EnableControls;
   end;
+
+
+  ClientDataSet1.FieldByName('nota').DisplayLabel := 'Num. Venda';
+  ClientDataSet1.FieldByName('nfe').DisplayLabel  := 'Num. NFe';
 
   ClientDataSet1.FieldByName('cod').Visible := false;
 end;

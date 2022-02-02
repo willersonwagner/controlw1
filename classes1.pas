@@ -230,10 +230,10 @@ type
     nome : string;
     unid : string[6];
     codISPIS : string[3];
-    quant : currency;
+    quant : Double;
     quant_achado : currency;
-    p_venda : currency;
-    p_vendaOriginal : currency;
+    p_venda : Double;
+    p_vendaOriginal : Double;
     total : currency;
     total_achado : currency;
     PercICMS : currency;

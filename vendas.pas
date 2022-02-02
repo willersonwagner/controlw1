@@ -183,6 +183,7 @@ type
     { Private declarations }
   public
     ordenaCampos: boolean;
+    decimaisPrecoUsuario : SmallInt;
     tamanho_nota, finalizouServico, fimVenda: integer;
     origem: integer;
     tipoV, CLIENTE_ENTREGA, CLIENTE_VENDA, condicaoSQL, numvenda: string;
@@ -671,7 +672,7 @@ end;
 function TForm20.confirmaPrecoProduto(cod: String; var qtd, valor: String;
   opcao: Smallint; servico: boolean = false): string;
 var
-  porcDesc, p_venda, temp1, p_vendatemp: currency;
+  porcDesc, p_venda, temp1, p_vendatemp: Double;
   tipoDesconto, podeDarAcrescimo, campo: String;
 begin
   valor := '0';
@@ -749,9 +750,9 @@ begin
 
     // fim := '-999999';
     while true do begin
-      fim := funcoes.dialogo('numero', 3, '1234567890,.' + #8, 3, false, 'ok',
+      fim := funcoes.dialogo('numero', decimaisPrecoUsuario, '1234567890,.' + #8, decimaisPrecoUsuario, false, 'ok',
         'Control for Windows:', 'Confirme o Preço(Minimo: R$ ' +
-        FormatCurr('#,###,###0.00', minimo) + ':', FormatCurr('###,##0.000',
+        FormatCurr('#,###,###0.00', minimo) + ':', FormatCurr('###,##0.' + CompletaOuRepete('','','0',decimaisPrecoUsuario),
         StrToCurr(fim)));
       if fim = '*' then
       begin
@@ -759,7 +760,7 @@ begin
         exit;
       end;
 
-      temp1 := StrToCurrDef(fim, 0);
+      temp1 := StrToFloatDef(fim, 0);
 
       if ((podeDarAcrescimo = 'S') and (temp1 > p_venda)) then
       begin
@@ -780,9 +781,10 @@ begin
       end;
     end;
 
-    Result := CurrToStr(temp1);
-    valor := CurrToStr(temp1);
-    exit;
+    Result := FloatToStr(temp1);
+    valor := FloatToStr(temp1);
+
+   exit;
   end
   else if tipoDesconto = 'P' then
   begin
@@ -808,8 +810,8 @@ begin
         break;
     end;
 
-    temp1 := StrToCurrDef(desc, 0);
-    Result := CurrToStr(Arredonda(p_venda - (p_venda * temp1 / 100), 2));
+    temp1 := StrToFloatDef(desc, 0);
+    Result := FloatToStr(Arredonda(p_venda - (p_venda * temp1 / 100), 2));
     valor := Result;
     exit;
   end
@@ -837,7 +839,7 @@ begin
         break;
     end;
 
-    temp1 := StrToCurrDef(desc, 0);
+    temp1 := StrToFloatDef(desc, 0);
     if temp1 = 0 then
       p_vendatemp := p_vendatemp
     else
@@ -857,7 +859,7 @@ begin
         exit;
       end;
 
-      temp1 := StrToCurrDef(fim, 0);
+      temp1 := StrToFloatDef(fim, 0);
 
       // ShowMessage('minimo=' + CurrToStr(minimo) + #13 + 'p_vendatemp=' +  CurrToStr(p_vendatemp) + 'p_venda=' + CurrToStr(p_venda) +
       // #13 + 'temp1=' + CurrToStr(temp1));
@@ -894,7 +896,7 @@ begin
 
     end;
 
-    Result := CurrToStr(temp1);
+    Result := FloatToStr(temp1);
     valor := Result;
     exit;
   end
@@ -5962,12 +5964,12 @@ begin
       funcoes.BuscaNomeBD(dm.IBQuery2, 'codbar', 'produto',
       'where cod=' + ClientDataSet1CODIGO.AsString);
     dm.IBQuery1.ParamByName('quant').AsFloat := ClientDataSet1QUANT.AsFloat;
-    dm.IBQuery1.ParamByName('p_venda').AsCurrency := total_A_Limitar;
+    dm.IBQuery1.ParamByName('p_venda').AsFloat := ClientDataSet1PRECO.AsFloat;
     dm.IBQuery1.ParamByName('total').AsCurrency := totProd;
 
     totVolumes := totVolumes + dm.IBQuery1.ParamByName('quant').AsCurrency;
-    totVenda := totVenda + Arredonda(dm.IBQuery1.ParamByName('quant').AsCurrency
-      * StrToCurr(ClientDataSet1PRECO.AsString), 2);
+    totVenda := totVenda + Arredonda(ClientDataSet1QUANT.AsFloat
+      * ClientDataSet1PRECO.AsFloat, 2);
 
     dm.IBselect.Close;
     dm.IBselect.SQL.Clear;
@@ -6642,7 +6644,11 @@ begin
   ultOrcamentoRecuperado := '';
   fimVenda := 0;
   tipoTrocaDescontoUsuario := '';
+
   adicionarEntrega := 'N';
+  decimaisPrecoUsuario :=  StrToIntDef(funcoes.LerConfig(form22.Pgerais.Values['configu'], 17), 3);
+  if decimaisPrecoUsuario < 3 then decimaisPrecoUsuario := 3;
+
   formaAlterada := '';
   COD_SERVICO  := '0';
   ENDE_ENTREGA := '0';
@@ -6723,8 +6729,7 @@ begin
     ClientDataSet1TOT_ORIGI2.Visible := true;
   end;
 
-  configUsuarioConfirmarPreco :=
-    trim(funcoes.LerConfig(form22.Pgerais.Values['configu'], 2));
+  configUsuarioConfirmarPreco := trim(funcoes.LerConfig(form22.Pgerais.Values['configu'], 2));
   if trim(configUsuarioConfirmarPreco) = '' then
     configUsuarioConfirmarPreco := 'N';
 
@@ -8999,7 +9004,7 @@ procedure TForm20.AddSegundaClienteDataSet_antigo(quanti, valor: double;
   nome: String = ''; m2: integer = 0);
 var
   cod, busca, cbar: string;
-  v2, vtot, totProd, tmp: currency;
+  v2, vtot, totProd, tmp: double;
   qtd : Double;
   fla, grupo, tam, cont: Smallint;
 begin
@@ -9141,7 +9146,7 @@ begin
           dm.produto.FieldByName('cod').AsString;
         ClientDataSet1DESCRICAO.Text := nome;
         ClientDataSet1.FieldByName('quant').AsFloat := qtd;
-        ClientDataSet1.FieldByName('preco').AsCurrency := v2;
+        ClientDataSet1.FieldByName('preco').AsFloat := v2;
         ClientDataSet1Refori.AsString :=
           dm.produto.FieldByName('codbar').AsString;
 

@@ -1404,7 +1404,11 @@ begin
 
        DADOS_PROD(IntToStr(listaProdutos[ini].cod) , DESC, UNID, COD_ALIQ, TRIB, ISPIS, COD_ISPIS, PERC_ICMS, BASE_ICM, false);
 
-       UNID := listaProdutos[ini].unid;
+       //retirado pra nao lançar a unidade da nfe de entrada 02/02/2022
+       //agora está pegando a unidade do cadastro de produto
+
+       //UNID := listaProdutos[ini].unid;
+       listaProdutos[ini].unid := UNID;
 
        SOMA_MOV(listaProdutos[ini].cod, listaProdutos[ini].quant);
        //ALIQUOTA DE ICMS (PEGA A ALIQUOTA INTERESTADUAL)
@@ -2195,7 +2199,7 @@ begin
          //if StrToCurrDef(strnum1(unid), 1) > 1 then
            begin
              if Contido('-' + codProd[idx].unid + '-', '-M2-M3-') = false then begin
-               LINHA := '|0220|' + TRIM(codProd[idx].unid) + '|' + strnum1(codProd[idx].unid) + '|';
+               LINHA := '|0220|' + TRIM(codProd[idx].unid) + '|' + strnum1(codProd[idx].unid) + '|' + IfThen(StrToDateTime(dataIni) >= StrToDateTime('01/01/2022'), '|', '');
                mat0200.Add(linha);
              end;
              //GRAVA_SPED(ARQ_SPED, LINHA);

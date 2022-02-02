@@ -11470,6 +11470,7 @@ begin
       ibquer.FieldDefs.Items[i].DataType, ibquer.FieldDefs.Items[i].Size,
       ibquer.FieldDefs.Items[i].Required);
   end;
+
   Cliente.CreateDataSet;
   Cliente.EmptyDataSet;
 end;

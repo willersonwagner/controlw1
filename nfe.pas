@@ -3604,7 +3604,7 @@ end;
 
 procedure TNfeVenda.CriaLista_De_itens_Venda(var lista : Tlist);
 var
-   desc,temp, tot, TOT1, temp1, p_venda : currency;
+   desc,temp, tot, TOT1, temp1, p_venda : double;
    i, fim, tem : integer;
    aliq : string[3];
    CB : Boolean;
@@ -3683,7 +3683,7 @@ begin
 
          if not query2.IsEmpty then
            begin
-             p_venda := (IfThen(tipo = 'T', query2.fieldbyname('p_compra').AsCurrency, query1.fieldbyname('p_venda').AsCurrency));
+             p_venda := (IfThen(tipo = 'T', query2.fieldbyname('p_compra').AsFloat, query1.fieldbyname('p_venda').AsFloat));
              p_venda := abs(p_venda);
 
              tem := ProcuraItemNaLista(lista, query1.fieldbyname('cod').AsInteger, p_venda);
@@ -3691,7 +3691,7 @@ begin
                begin
                  item := lista.Items[tem];
 
-                 item.quant := item.quant + abs(query1.fieldbyname('quant').AsCurrency);
+                 item.quant := item.quant + abs(query1.fieldbyname('quant').AsFloat);
                  item.total := item.total + abs(arrendondaNFe(query1.fieldbyname('total').AsCurrency, 2));
                end
              else
@@ -3717,7 +3717,7 @@ begin
                  item.cod     := query2.fieldbyname('cod').AsInteger;
                  item.nome    := trim(removeCarateresEspeciais(query2.fieldbyname('nome').AsString));
                  item.unid    := removeCarateresEspeciais(IfThen(Trim(query2.fieldbyname('unid').AsString) = '', 'UN', query2.fieldbyname('unid').AsString));
-                 item.quant   := abs(query1.fieldbyname('quant').AsCurrency);
+                 item.quant   := abs(query1.fieldbyname('quant').AsFloat);
 
                  //if tipo = 'T' then item.p_venda := abs(query2.fieldbyname('p_compra').AsCurrency);
                  ///else item.p_venda := abs(query1.fieldbyname('p_venda').AsCurrency);

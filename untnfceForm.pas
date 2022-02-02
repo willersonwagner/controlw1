@@ -2607,6 +2607,7 @@ begin
 
     tipoDanfe := ini.ReadInteger('SERVER', 'tipoNFe', 0);
     DANFE_Rave.tipoDanfe := TpcnTipoImpressao(tipoDanfe);
+
     DANFE.ImprimeDescAcrescItem := ini.ReadBool('SERVER',
       'impDescProduto', true);
     DANFE_Rave.ImprimeNomeFantasia := ini.ReadBool('SERVER',

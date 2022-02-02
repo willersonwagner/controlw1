@@ -559,8 +559,8 @@ object dm: Tdm
     ExpandeLogoMarcaConfig.Dimensionar = False
     ExpandeLogoMarcaConfig.Esticar = True
     CasasDecimais.Formato = tdetInteger
-    CasasDecimais.qCom = 2
-    CasasDecimais.vUnCom = 2
+    CasasDecimais.qCom = 4
+    CasasDecimais.vUnCom = 4
     CasasDecimais.MaskqCom = ',0.00'
     CasasDecimais.MaskvUnCom = ',0.00'
     ExibeCampoFatura = False

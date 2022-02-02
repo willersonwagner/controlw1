@@ -6012,13 +6012,25 @@ begin
 
   Form34.client1 := cliente;
 
-  dm.ibselect.Close;
+  //retirado pra adicionar o campo nfe a pedido do kotinsk 28/01/2022
+  {dm.ibselect.Close;
   dm.ibselect.SQL.Text :=
     'select datamov,codgru, vencimento, documento, historico, previsao, valor, cod, valor as saldo  from contasreceber where '
     + '(documento=' + strnum(cliente) + ') and (pago=0)';
+  dm.ibselect.Open;}
+
+  dm.ibselect.Close;
+  dm.ibselect.SQL.Text := 'select c.datamov,c.codgru, c.vencimento, c.documento, c.historico, c.previsao, c.valor, c.cod, c.valor as saldo, substring(n.chave from 26 for 9)'+
+  ' as nfe, c.nota  from contasreceber c left join nfe n on (substring(n.chave from 37 for 7) = lpad(c.nota,7, ''0'') ) where'
+    + '(c.documento=' + strnum(cliente) + ') and (c.pago=0)';
   dm.ibselect.Open;
 
   funcoes.Ibquery_to_clienteDataSet(dm.ibselect, Form34.ClientDataSet1);
+  Form34.ClientDataSet1.FieldDefs[9].DataType := ftString;
+
+  Form34.ClientDataSet1.Close;
+  Form34.ClientDataSet1.CreateDataSet;
+
   Form34.DataSource1.DataSet := Form34.ClientDataSet1;
 
   Form34.copiaContasReceber(dm.ibselect);
@@ -9924,6 +9936,7 @@ begin
     form36.teclas.Add('SN'); // 14
     form36.teclas.Add('SN'); // 15
     form36.teclas.Add('SN'); // 16
+    form36.teclas.Add('1234567890' + #8); //17
 
     form36.tipo.Add('numero');
     form36.tipo.Add('generico');
@@ -9942,6 +9955,8 @@ begin
     form36.tipo.Add('generico'); // 14
     form36.tipo.Add('generico'); // 15
     form36.tipo.Add('generico'); // 16
+    form36.tipo.Add('generico');   //17
+
 
     form36.troca.Add('');
     form36.troca.Add('S');
@@ -9960,6 +9975,7 @@ begin
     form36.troca.Add('S'); // 14
     form36.troca.Add('S'); // 15
     form36.troca.Add('S'); // 16
+    form36.troca.Add('S');
 
     form36.ListBox1.Items.Add
       ('0-Qual o Desconto Máximo Permitido (de 0 a 99%)?');
@@ -9985,6 +10001,7 @@ begin
     form36.ListBox1.Items.Add('14-Perguntar Juros em Conta Atrasada de Cliente(Verificar Param Geral 44 = U)?');
     form36.ListBox1.Items.Add('15-Permitir uso da Rotina de Reimpressao ?');
     form36.ListBox1.Items.Add('16-Permitir uso da Rotina de Cancelamento de NFe ?');
+    form36.ListBox1.Items.Add('17-Quantas Casas Decimais no Preço de Venda na Rotina de Vendas(Padrao 3) ?');
 
     form36.configu := dm.ibselect.FieldByName('configu').AsString;
     dm.ibselect.Close;
