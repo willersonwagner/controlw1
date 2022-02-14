@@ -132,6 +132,7 @@ type
     preco    : currency;
     total    : currency;
     BASE_ICM : Extended;
+    BASE_PIS : Extended;
     PERC_ICM : currency;
     TOT_ICM  : currency;
     TOT_RED_ICM  : currency;
@@ -709,7 +710,7 @@ begin
   for ini := 0 to Count -1 do
     begin
       Result := Result + Items[ini].cod + '|' + CurrToStr(Items[ini].pis) + '|' + CurrToStr(Items[ini].cofins) + '|' +  Items[ini].CST +
-      '|'+CurrToStr(Items[ini].total) + #13;
+      '|'+CurrToStr(Items[ini].total)+'|' + CurrToStr(Items[ini].Base) + #13;
     end;
 end;
 

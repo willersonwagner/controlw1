@@ -172,8 +172,8 @@ begin
   erro12 := '1';
   QueryControlProd.Close;
   QueryControlProd.SQL.Text :=
-    //'select nota, chave, data from nfce where ((adic = ''OFF'') and (substring(chave from 23 for 3) = :serie)) and (right(extract(YEAR from current_date), 2) = substring(chave from 3 for 2)) and tentativa < 10 ';
-    'select nota, chave, data from nfce where ((adic = ''OFF'') and (substring(chave from 23 for 3) = :serie))  and tentativa < 10 ';
+    'select nota, chave, data from nfce where ((adic = ''OFF'') and (substring(chave from 23 for 3) = :serie)) and (right(extract(YEAR from current_date), 2) = substring(chave from 3 for 2)) and tentativa < 10 ';
+    //'select nota, chave, data from nfce where ((adic = ''OFF'') and (substring(chave from 23 for 3) = :serie))  and tentativa < 10 ';
   QueryControlProd.ParamByName('serie').AsString := strzero(getSerieNFCe, 3);
   try
     QueryControlProd.Open;
@@ -1198,8 +1198,7 @@ begin
   if (bdPronto = false) and (pastaControlW_Servidor <> '') then begin
     //RichEdit1.Lines.Add('-----------Nao Tem Sincronização de BD----------------');
     IBQuery1.Close;
-    IBQuery1.SQL.Text :=
-      'select chave, nota from nfce where ((adic <> ''OFF'')  and (adic = '''') or (adic = ''CANC'') or (adic = ''DENEGADA'')) and exportado = 0 and (substring(chave from 23 for 3) = :serie) ';
+    IBQuery1.SQL.Text := 'select chave, nota from nfce where ((adic <> ''OFF'')  and (adic = '''') or (adic = ''CANC'') or (adic = ''DENEGADA'')) and exportado = 0 and (substring(chave from 23 for 3) = :serie) ';
     IBQuery1.ParamByName('serie').AsString := strzero(getSerieNFCe, 3);
     IBQuery1.Open;
 

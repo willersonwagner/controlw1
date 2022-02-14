@@ -194,7 +194,8 @@ type
     tipoVenda, codhis, cliente, ativo, novocod, desc, fim, ordem, justiSaida,
       COD_SERVICO, sqlVenda, campoEstoque: string;
     Desconto, total1, total_compras_a_prazo_cliente, total_A_Limitar,
-      lim_compra, minimo, lim_atraso: currency;
+      lim_compra, lim_atraso: Currency;
+    minimo : double;
     function CalculaMinimoVendaCDS(var descDado: currency;var totOriginal: currency; var deuDesconto: boolean): currency;
     function CalculaMinimoVendaCDS1(var descDado: currency;var totOriginal: currency; var deuDesconto: boolean): currency;
     function buscaProdutoCDS(cod: String; Preco: currency; descri: string = '';
@@ -715,7 +716,7 @@ begin
   end;
 
   // calcula o minimo a partir do preco com o desconto maximo configurado na conta do usuario
-  minimo := Arredonda(p_venda - ((p_venda * porcDesc) / 100), 2);
+  minimo := ArredondaFinanceiro(p_venda - ((p_venda * porcDesc) / 100), 2);
 
   dm.IBselect.Close;
 
@@ -739,9 +740,9 @@ begin
       aprazo := StrToCurrDef(funcoes.buscaParamGeral(29, ''), 0);
 
       if codhis = '1' then
-        avista := Arredonda(p_venda - (p_venda * (avista / 100)), 2)
+        avista := ArredondaFinanceiro(p_venda - (p_venda * (avista / 100)), 2)
       else if StrToIntDef(codhis, 0) > 2 then
-        avista := Arredonda(p_venda - (p_venda * (aprazo / 100)), 2)
+        avista := ArredondaFinanceiro(p_venda - (p_venda * (aprazo / 100)), 2)
       else
         avista := p_venda;
       fim := CurrToStr(avista);
@@ -811,7 +812,7 @@ begin
     end;
 
     temp1 := StrToFloatDef(desc, 0);
-    Result := FloatToStr(Arredonda(p_venda - (p_venda * temp1 / 100), 2));
+    Result := FloatToStr(ArredondaFinanceiro(p_venda - (p_venda * temp1 / 100), 2));
     valor := Result;
     exit;
   end
@@ -843,7 +844,7 @@ begin
     if temp1 = 0 then
       p_vendatemp := p_vendatemp
     else
-      p_vendatemp := Arredonda(p_venda - (p_venda * temp1 / 100), 2);
+      p_vendatemp := ArredondaFinanceiro(p_venda - (p_venda * temp1 / 100), 2);
 
     fim := '-999999';
     while true do
@@ -861,13 +862,14 @@ begin
 
       temp1 := StrToFloatDef(fim, 0);
 
-      // ShowMessage('minimo=' + CurrToStr(minimo) + #13 + 'p_vendatemp=' +  CurrToStr(p_vendatemp) + 'p_venda=' + CurrToStr(p_venda) +
-      // #13 + 'temp1=' + CurrToStr(temp1));
+//       ShowMessage('minimo=' + FloatToStr(minimo) + #13 + 'p_vendatemp=' +  FloatToStr(p_vendatemp) +#13 +'p_venda=' + FloatToStr(p_venda) +
+//      #13 + 'temp1=' + FloatToStr(temp1)+ #13 + #13 + FloatToStr(temp1) + ' >= ' + FloatToStr(minimo) +  ' and ' );
 
       if ((podeDarAcrescimo = 'S') and (temp1 > p_venda)) then
       begin
         break;
       end;
+
 
       if (((temp1 >= minimo) and (temp1 <= p_venda) and (temp1 > 0)) or
         ((temp1 > p_venda) and

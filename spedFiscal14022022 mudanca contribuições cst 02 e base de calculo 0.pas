@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, DateUtils, forms, funcoesDAV, dialogs,
-  unit1, ibquery, Contnrs, dbclient, dialog, classes1, func, untnfceForm, relatorio;
+  unit1, ibquery, Contnrs, dbclient, dialog, midaslib, classes1, func;
 
 
 type matriz = array of string;
@@ -58,20 +58,20 @@ type matrizCurrency = array of currency;
      listaUnidades : Tlist;
      datamov : TDateTime;
      //DADOS_ADIC : matrizCurrency;
-     DADOS_ADIC : array[1..11] of currency;
+     DADOS_ADIC : array[1..8] of currency;
      num1, num2, TOTCREDICM, TOTDEBICM : Currency;
      MATTRIB : TObjectList;
      aliquota : ItemALIQ;
      REC_BRUTA, BC_PISTRIB, TOT_APUR_CST : currency;
      ARQ_SPED, ARQ_PIS, ARQ_TMP : TextFile;
      listaCOD_PROD, MAT_ALIQPIS, BAS_ALIQPIS, VAL_ALIQPIS, BASC_ALIQPIS, CRED_ALIQPIS, DESC_ALIQPIS, MAT_CST_PIS : TStringList;
-     CODCFOP, CODFOR, ERRO_CHAVE, arqTmp, valordg, _CNPJ, CST_PIS, chaveAnoMes, pisInvalido, codMunSistema : String;
+     CODCFOP, CODFOR, ERRO_CHAVE, arqTmp, valordg, _CNPJ, CST_PIS : String;
      movimento, contReg, MAT_ALIQCFOP,
      VAL_ALIQCFOP, BAS_ALIQCFOP, ICM_ALIQCFOP, ADC_ALIQCFOP, MAT_REG, lisTMP, MAT_PED : TStringList;
      dsProduto, dsAliq, arqTemp : TClientDataSet;
      codProd : TItensAcumProd;
      dataIni, CODCLI, DataFim, mes, ano, arqSPED, sim, TRIB, COD, _CFOP, _FRETE, TIPO, _CHNFE, _SER, linha, DESC, UNID, ss : String;
-     UF_EMPRESA, COD_ALIQ, ISPIS, COD_ISPIS, ALIQ_CFOP, ACUM_COD_FOR, Arquivo_CFOP_ISENTOS : String;
+     UF_EMPRESA, COD_ALIQ, ISPIS, COD_ISPIS, ALIQ_CFOP, ACUM_COD_FOR : String;
      NUM_ALIQ, NOTA, COD_FOR : integer;
      QTD, QTD1,POS1, POS2, ALIQ, TOT, LIDO, TOT_ITEM, PERC_ICMS, BASE_ICM, TOT_ICM,
      TOT_PISST_ENT, BASE_PIS_RD, BASE_PIS_ST, BASE_PIS_ISENTO : currency;
@@ -79,32 +79,20 @@ type matrizCurrency = array of currency;
      prod, prod1 : itemPROD;
      lista : TList;
      fim, i, ret, ini : integer;
-     TRIB_REGIME, CSTPIS_CFOP, prodRuins, codCTA, chavesDuplicidade : String;
+     TRIB_REGIME, CSTPIS_CFOP, prodRuins : String;
      mat_uni, mat_uniok : TItensUnid;
-     listaProdutos, Lista0200Importados : TItensProduto;
+     listaProdutos : TItensProduto;
      prodtemp      : TregProd;
      TOTDESC, TOTADIC, totDespAcess, TRIB_ALIQ_PIS, TRIB_ALIQ_COFINS, TOT_PIS,
       TOT_COFINS, _PISNT, _PIS, _COFINS  : currency;
      MAT_MOV : TItensAcumProd;
-     MAT_NOTA, MAT_NOTA1, codigosClientesExterior, lista0500, listaChecaPIS : TStringList;
-     listaPIS, listaTOT_PIS : TItensPISCOFINS;
+     MAT_NOTA, MAT_NOTA1 : TStringList;
      TOT_ECF         : TItensAliqSped;
-     detalhamentoPIS : TStringList;
 
-procedure checaISPIS_CODISPIS(var ispis1, codPIS1 : String; codProduto : integer);
-function ChecaIsencaoPis_Cst_49_Devoluções(CFOP : String) : boolean;
-function insereClientePeloNodo(nodo_dest : String) : String;
-procedure leNfesImportadasDeOutroSistema();
-procedure restauraCadastroProduto(cod2 : String; msg : boolean);
-procedure insereInutilizacoesFiscal();
-procedure rateioCredICMS();
-function buscaCST_PIS_Por_ISPIS(ispis1, codispis1 : String; var pis : currency) : string;
-FUNCTION ACUM_PISCST2(prod_CFOP, prod_CST_PIS : String;vpis, vcofins, icms, total : currency; var listPis : TItensPISCOFINS; cod_ispis1, cstpis : String) : currency;
 function leSerieDaChaveNfe(const chave : String) : String;
-procedure leCFEsCONTRIBUICOES();
+procedure leCFEsCONTRIBUICOES();     
 FUNCTION ACUM_PISCST(ALIQ_PIS : String; TOT_ITEM, VLR_PIS, CRED_PIS, DESC : currency) : currency;
-FUNCTION ACUM_PISCST1(produto : TregProd; var listPis : TItensPISCOFINS; cod_ispis1, cstpis : String) : currency;
-FUNCTION ACUM_IcmsCstCFOP(produto : TregProd; var listPis : TItensPISCOFINS; var base_calcICMS : currency) : currency;
+FUNCTION ACUM_PISCST1(produto : TregProd; var listPis : TItensPISCOFINS) : currency;
 FUNCTION VE_CSTPISCFOP(_CFOP1 : String) : STRING;
 procedure iniciaContribuicoes();
 FUNCTION MONTA_REG(var MAT : TStringList) : String;     
@@ -115,10 +103,11 @@ FUNCTION VE_VENDAECF(var query : tibquery; LIQ : boolean) : currency;
 FUNCTION VAL_ALIQ(ALIQ : String) : integer;
 FUNCTION VE_MOVCUPOM(DAT : TDate; ALIQ : Integer = 2; TOT : currency = 0; const indiceECF : String = '') : currency;
 FUNCTION VE_ECF(const COD_ECF : integer) : String;
-function ACHA_CODCLI(CPF_CNPJ, UF : String; nodo_destXML : String = '') : String;
+function ACHA_CODCLI(CPF_CNPJ, UF : String) : String;
 FUNCTION CALC_PISCOF(var TOT_ITEM : currency; _ISPIS : String; var VLR_PIS, VLR_COFINS : currency; CST_PIS : String) : String;
 FUNCTION CALC_PISCOF1(var TOT_ITEM : currency; _ISPIS : String; var VLR_PIS, VLR_COFINS : currency; CST_PIS : String; nfe : boolean = true) : String;
 procedure SOMA_MOV(const COD: integer;const QTD2 : currency);
+function indiceFinalArrayProduto() : Integer;
 procedure zerarArrayProduto();
 procedure leCFEs();
 //procedure iniciaArrayProduto();
@@ -130,18 +119,11 @@ function cabecalho_SF_Bloco_0(const contribuicoes : boolean = false) : String;
 function bloco1() : String;
 function blocoE() : String;
 function blocoA() : String;
-function blocoB() : String;
 function blocoF(reg : integer = 1) : String;
 function blocoG() : String;
 function blocoH() : String;
-function CriaBlocoH() : String;
-function blocoI() : String;
 function blocoM() : String;
-function blocoP_vazio() : String;
-function blocoM01012019() : String;
-function blocoK() : String;
 FUNCTION BLOCOP() : string;
-FUNCTION BLOCO0500() : string;
 function bloco0_Sped_Contribuicoes() : String;
 FUNCTION CONTA_REG(REG : String) : String;
 function leEntradas_SF() : Smallint;
@@ -161,7 +143,7 @@ FUNCTION ALIQ_CREDICM(const CODFOR : Integer) : currency;
 function REM_SPED() : String;
 function escreveArqSPED(var arqTXT : TextFile; const linha : String; var numercacao : integer) : String;
 function escreveArqSPED_sem_somar(var arqTXT : TextFile; const linha : String) : String;
-FUNCTION DADOS_ADNF(nota, fornec : Integer; var cod_sit, _CFOP, _FRETE, TIPO, _CHNFE, _SER : String) : String;
+FUNCTION DADOS_ADNF(nota, fornec : Integer; var _CFOP, _FRETE, TIPO, _CHNFE, _SER : String) : String;
 FUNCTION FORM_NUM1(VALOR : currency) : String;
 FUNCTION DATA_BRA_FULL(DAT : TDateTime) : String;
 procedure CriaArquivo(var arq : TextFile; Caminho, Texto : String);
@@ -291,16 +273,13 @@ begin
       if MAT_REG.Names[ini] = '9900' then QTD := StrToIntDef(MAT_REG.ValueFromIndex[ini], 0) + 1
         else QTD := StrToIntDef(MAT_REG.ValueFromIndex[ini], 0);
 
-      if (MAT_REG.Names[ini]) <> '' then begin
-        LINHA := '|9900|' + MAT_REG.Names[ini] + '|' + IntToStr(QTD) + '|';
-        GRAVA_SPED(HAND, LINHA);
-      end;
+      LINHA := '|9900|' + MAT_REG.Names[ini] + '|' + IntToStr(QTD) + '|';
+      GRAVA_SPED(HAND, LINHA);
 
       fim := MAT_REG.Count -1;
       if ini = fim then break;
       ini := ini + 1;
     end;
-
   TOTAL_REG(HAND, '9');
   TOT := 0;
 
@@ -318,7 +297,6 @@ end;
 
 procedure LimpaMemoria();
 begin
-
   CODCFOP := '-';
   CODFOR  := '';
   try
@@ -327,11 +305,7 @@ begin
     codProd.Free;
     MAT_MOV.Free;
     dsaliq.Free;
-  except
-    ShowMessage('erro0');
-  end;
 
-  try
     lisTMP.Free;
     MAT_ALIQCFOP.Free;
     VAL_ALIQCFOP.Free;
@@ -339,39 +313,21 @@ begin
     ICM_ALIQCFOP.Free;
     ADC_ALIQCFOP.Free;            
     MAT_NOTA.Free;
-  except
-     ShowMessage('erro1');
-  end;
-
-  try
     listaUnidades.Free;
     listaProdutos.Free;
-    codigosClientesExterior.Free;
-    lista0500.Free;
-    listaChecaPIS.Free;
     TOT_ECF.Free;
-    CloseFile(ARQ_SPED);
-  except
-    on e:exception do begin
-      ShowMessage('erro343: ' + e.Message);
-    end;
-  end;
 
+    CloseFile(ARQ_SPED);
 
     dm.IBQuery4.Close;
     dm.IBQuery1.Close;
     dm.IBselect.Close;
 
-  try
     finalize(dados_adic);
-    listaPIS.Free;
-    listaTOT_PIS.Free;
+
   except
-    ShowMessage('erro3');
   end;
-
-
-  end;
+end;
 
 function addLinha(var cli : TClientDataSet; valor, campo : String) : integer;
 begin
@@ -386,29 +342,6 @@ procedure iniciaDataSets();
 var
   i : integer;
 begin
-  //detalhamentoPIS := TStringList.Create;
-
-  //cria um registro de unidade - só teste
-  reg1 := new(RegistroUnidade);
-  listaUnidades := TList.Create;
-  listaUnidades.Add(reg1);
-  //teste unidades em Tlist
-
-  listaPIS     := TItensPISCOFINS.Create;
-  listaTOT_PIS := TItensPISCOFINS.Create;
-  codigosClientesExterior := TStringList.Create;
-  lista0500               := TStringList.Create;
-  listaChecaPIS           := TStringList.Create;
-
-
-  if FileExists(caminhoEXE_com_barra_no_final + 'CODPIS.txt') then begin
-    listaChecaPIS.LoadFromFile(caminhoEXE_com_barra_no_final + 'CODPIS.txt');
-  end
-  else begin
-    MessageDlg(caminhoEXE_com_barra_no_final + 'CODPIS.txt Não Encontrado. Favor Atualize seu sistema!',  mtError, [mbok], 1);
-  end;
-
-
   CODCLI       := '-';
   ACUM_COD_FOR := '-';
   CODCFOP := '-';
@@ -430,8 +363,7 @@ begin
   arqTemp       := TClientDataSet.Create(Application);
   codProd       := TItensAcumProd.Create;
   MAT_MOV       := TItensAcumProd.Create;
-  listaProdutos       := TItensProduto.Create;
-  Lista0200Importados := TItensProduto.Create;
+  listaProdutos := TItensProduto.Create;
   TOT_ECF       := TItensAliqSped.Create;
 
   lisTMP       := TStringList.Create;
@@ -479,8 +411,8 @@ begin
     end; 
   dm.IBselect.Close;
 
-  TRIB_ALIQ_PIS    := StrToCurrDef(funcoes.buscaParamGeral(11, '0,65'), 0.65);
-  TRIB_ALIQ_COFINS := StrToCurrDef(funcoes.buscaParamGeral(12, '3'), 3);
+  TRIB_ALIQ_PIS    := StrToCurrDef(ConfParamGerais[11], 0.65);
+  TRIB_ALIQ_COFINS := StrToCurrDef(ConfParamGerais[12], 3);
 
   MAT_ALIQPIS  := TStringList.Create;
   BAS_ALIQPIS  := TStringList.Create;
@@ -523,9 +455,8 @@ function VE_UNIDADE(var uni : String) : String;
 var
  ret, ret1 : integer;
 begin
-  {uni := trim(uni);
+  uni := trim(uni);
   ret := mat_uni.Find(uni);
-
   if ret = -1 then uni := 'UN'
   else
     begin
@@ -537,18 +468,9 @@ begin
           mat_uniok[ret1].unid_ent := mat_uni[ret].unid_ent;
           mat_uniok[ret1].unid_ent := mat_uni[ret].unid_ent;
         end;
-
+        
       Result := mat_uniok[ret1].unid_ent;
       exit;
-    end;}
-
-  if uni = '' then uni := 'UN';  
-  ret1 := mat_uniok.Find(uni);
-
-  if ret1 = -1 then
-    begin
-      ret1 := mat_uniok.Add(TUnid.Create);
-      mat_uniok[ret1].unid_ent := uni;
     end;
 
 
@@ -574,13 +496,8 @@ begin
     begin
       i := codProd.Add(TacumProd.Create);
       codProd[i].cod  := StrToInt(strnum(cod));
-      codProd[i].unid := unid;
-    end
-  else begin
-    if ((contido(unid, codProd[i].unid) = false) and (unid <> '')) then begin
-      codProd[i].unid := codProd[i].unid + '*' + unid;
+      codProd[i].unid := unid; 
     end;
-  end;
 
   {if not codProd.FindKey([cod]) then
     begin
@@ -614,7 +531,7 @@ procedure carregaAliquotasEm_MATTRIB;
 begin
   dm.IBselect.Close;
   dm.IBselect.SQL.Clear;
-  dm.IBselect.SQL.Add('select cod, aliq, cst, reducao from aliq order by cod');
+  dm.IBselect.SQL.Add('select cod, aliq, cst, reducao from aliq');
   dm.IBselect.Open;
 
   while not dm.IBselect.Eof do
@@ -653,13 +570,13 @@ begin
     begin
       //NUM_ALIQ := 0;
       DESC := dm.IBQuery2.fieldbyname('nome').AsString;
-      UNI := trim(dm.IBQuery2.fieldbyname('unid').AsString);
+      UNI := dm.IBQuery2.fieldbyname('unid').AsString;
       //IF(COD_ALIQ = NIL, COD_ALIQ := FIELD->ALIQUOTA, NIL)
       //if trim(COD_ALIQ) = '' then COD_ALIQ := dm.IBQuery2.fieldbyname('aliquota').AsString;
-      COD_ALIQ := StrNum(trim(dm.IBQuery2.fieldbyname('aliquota').AsString));
+      COD_ALIQ := trim(dm.IBQuery2.fieldbyname('aliquota').AsString);
 
       //NÃO CREDITAR ICMS DE MATERIAL DE CONSUMO
-      IF (LeftStr(DESC, 1) = '_') and (StrToInt(strnum(COD_ALIQ)) <  11) then COD_ALIQ := '12';
+      IF (LeftStr(DESC, 1) = '_') then COD_ALIQ := '12';
       NUM_ALIQ := StrToIntDef(COD_ALIQ, 0);
 
       NUM_ALIQ := menor(NUM_ALIQ, 12);
@@ -669,11 +586,11 @@ begin
       _CODISPIS := StrNum(dm.IBQuery2.fieldbyname('COD_ISPIS').AsString);
 
    //SE O CODIGO DA ISENÇÃO DO PIS É VALIDO, PEGA ELE, SENÃO, TORNA O PRODUTO TRIBUTADO
-   IF ISPIS = '' then _CODISPIS := '';
-   IF Length(trim(_CODISPIS)) <> 3 then
+   IF ISPIS = ' ' then _CODISPIS := '   ';
+   IF Length(ALLTRIM(_CODISPIS)) <> 3 then
      begin
-       _CODISPIS := '';
-       ISPIS := '';
+       _CODISPIS := '   ';
+       ISPIS := ' ';
      end;
 {   ELSE
      begin
@@ -718,7 +635,6 @@ begin
     ENDIF}
      end;
  //aki pra frente falta terminar
-
   if dsAliq.FindKey([NUM_ALIQ]) then
     begin
       ALIQ := dsAliq.fieldbyname('aliq').AsCurrency; // PERC DE ICMS DA ALIQUOTA
@@ -740,7 +656,7 @@ begin
   if addUnidade then
     begin
       VE_UNIDADE(UNI);
-      ACUMULA_COD(COD, UNI);
+      ACUMULA_COD(COD);
     end;  
 end;
 
@@ -750,7 +666,7 @@ procedure CriaArquivo(var arq : TextFile; Caminho, Texto : String);
 begin
   try
     AssignFile(arq, Caminho);
-    Rewrite(arq);
+    Rewrite(arq, Caminho);
   finally
   end;
 end;
@@ -774,9 +690,6 @@ BEGIN
       DADOS_ADIC[6] := query.fieldbyname('TOTPIS').AsCurrency;
       DADOS_ADIC[7] := query.fieldbyname('TOTCONFINS').AsCurrency;
       DADOS_ADIC[8] := query.fieldbyname('CREDICMS').AsCurrency;
-      DADOS_ADIC[9] := query.fieldbyname('TOTICMSST').AsCurrency;
-      DADOS_ADIC[10] := query.fieldbyname('TOTICMS_DESON').AsCurrency;
-      DADOS_ADIC[11] := query.fieldbyname('CREDICMS_REAIS').AsCurrency;
      end
   else
     begin
@@ -788,15 +701,12 @@ BEGIN
       DADOS_ADIC[6] := 0;
       DADOS_ADIC[7] := 0;
       DADOS_ADIC[8] := 0;
-      DADOS_ADIC[9] := 0;
-      DADOS_ADIC[10] := 0;
-      DADOS_ADIC[11] := 0;
     end;
 END;
 
 FUNCTION TOT_ADIC() : currency;
 begin
-  Result := DADOS_ADIC[1] + DADOS_ADIC[2] + DADOS_ADIC[5] + DADOS_ADIC[9];// + DADOS_ADIC[6] + DADOS_ADIC[7];
+  Result := DADOS_ADIC[1] + DADOS_ADIC[2] + DADOS_ADIC[5] + DADOS_ADIC[6] + DADOS_ADIC[7];
   // DADOS_ADIC[3] e DADOS_ADIC[4] não é adicionado pq é o valor do desconto da nota
 end;
 
@@ -818,10 +728,10 @@ end;
 FUNCTION ALIQ_INTEREST(ESTADO : String) : currency;
 begin
   Result := 12;
-  {if Contido(ESTADO, 'MG-PR-RS-RJ-SP') then
+  if Contido(ESTADO, 'MG-PR-RS-RJ-SC-SP') then
     begin
       Result := 7;
-    end;}
+    end;
   if ESTADO = 'RR' then Result := 17;
 end;
 
@@ -838,7 +748,7 @@ begin
   Writeln(arqTXT, linha);
 end;
 
-FUNCTION DADOS_ADNF(nota, fornec : Integer; var cod_sit, _CFOP, _FRETE, TIPO, _CHNFE, _SER : String) : String;
+FUNCTION DADOS_ADNF(nota, fornec : Integer; var _CFOP, _FRETE, TIPO, _CHNFE, _SER : String) : String;
 begin
   Result := '';
 
@@ -857,15 +767,11 @@ begin
 
   if not dm.IBselect.IsEmpty then
     begin
-      cod_sit := dm.IBselect.fieldbyname('cod_sit').AsString;
-      if trim(cod_sit) = '' then cod_sit := '00';
-
-
-      _CFOP   := dm.IBselect.fieldbyname('cfop').AsString;
-      _FRETE  := dm.IBselect.fieldbyname('TIPOFRETE').AsString;
-      tipo    := dm.IBselect.fieldbyname('tipo').AsString;
-      _CHNFE  := dm.IBselect.fieldbyname('chavenfe').AsString;
-      _SER    := dm.IBselect.fieldbyname('serie').AsString;
+      _CFOP  := dm.IBselect.fieldbyname('cfop').AsString;
+      _FRETE := dm.IBselect.fieldbyname('TIPOFRETE').AsString;
+      tipo   := dm.IBselect.fieldbyname('tipo').AsString;
+      _CHNFE := dm.IBselect.fieldbyname('chavenfe').AsString;
+      _SER   := dm.IBselect.fieldbyname('serie').AsString;
 
       //DADOS ADICIONAIS DA NF: 1-FRETE, 2-SEGURO 3-DESCONTO, 4-DESC. NAO TRIB, 5-DESP. ACESS., 6-PIS ST, 7-COFINS ST, 8-credImcs *****Control****
       LE_VALORES_DADOADIC(dm.IBselect); //carrega os valores da matriz DADOS_ADIC
@@ -879,15 +785,19 @@ end;
 FUNCTION FORM_NUM1(VALOR : currency) : String;
 begin
   Result := '0.00';
-  //Result := CurrToStr(VALOR);
-  Result := FormatCurr('0.00',VALOR);
+  Result := FormatCurr('0.00', VALOR);
 end;
 
 
 function REM_SPED() : String;
-var
-  ent : SmallInt;
 begin
+  //cria um registro de unidade - só teste
+  reg1 := new(RegistroUnidade);
+  listaUnidades := TList.Create;
+  listaUnidades.Add(reg1);
+  //teste unidades em Tlist
+
+
   datamov := now;
 
   mes := FormatDateTime('mm', datamov);
@@ -901,17 +811,14 @@ begin
      ano := IntToStr(StrToInt(ano) - 1);
    end;
 
-  dataIni := '01/' + strzero(mes, 2) + '/' + ano;
+  dataIni := '01/' + FormatFloat('###,##00', StrToInt(mes)) + '/' + ano;
+  DataFim := FormatDateTime('dd/mm/yy', EndOfTheMonth(StrToDateTime(dataIni)));
 
   dataIni := dialogo('data', 0, '', 2, true, '', Application.Title,'Confirme a Data Inicial:', dataIni);
   if dataIni = '*' then exit;
 
-  DataFim := FormatDateTime('dd/mm/yy', EndOfTheMonth(StrToDateTime(dataIni)));
-
   DataFim := dialogo('data', 0, '', 2, true, '', Application.Title,'Confirme a Data Final:', DataFim);
   if DataFim = '*' then exit;
-
-  chaveAnoMes := FormatDateTime('yy', StrToDate(dataIni)) + FormatDateTime('mm', StrToDate(dataIni));
 
   CriaDiretorio(caminhoEXE_com_barra_no_final + 'SPED\TEMP');
   CriaDiretorio(caminhoEXE_com_barra_no_final + 'SPED');
@@ -930,8 +837,7 @@ begin
 
   num1 := 0;
   num2 := 0;
-  ERRO_CHAVE        := '';
-  chavesDuplicidade := '';
+  ERRO_CHAVE := '';
 
 {  if FileExists(arqSPED) then
     begin
@@ -964,25 +870,10 @@ begin
    informacao(0, fim, 'Verificando Entradas...', true, false, 5);
    erro1 := 0;
 
-   blocoB();
-
-
-   //gera os registros C100, C170 e C190 da tabela ENTRADA
-   ent := leEntradas_SF();
-   if ent = -1 then begin
-     erro1 := 999;
-     exit;
-   end;
-
-   if ent = -2 then begin
-     erro1 := 998;
-     exit;
-   end;
-
+   leEntradas_SF(); //gera os registros C100, C170 e C190 da tabela ENTRADA
    if erro1 = 1 then exit;
 
    leSaidas_SF();   //gera os registros C100, C170 e C190 das Vendas
-
    TOTAL_REG(ARQ_TMP, 'C');
 
    leConhecimentos_de_frete_Bloco_D_SF();
@@ -992,7 +883,7 @@ begin
    TOTAL_REG(ARQ_TMP, 'E');
 
    blocoG();
-
+   TOTAL_REG(ARQ_TMP, 'G');
 
    try
    blocoH();
@@ -1000,11 +891,9 @@ begin
    except
      on e: exception do
        begin
-         ShowMessage('ERRO BLOCOH: ' + e.Message + #13 + linha);
+         ShowMessage('ERRO BLOCOH: ' + e.Message);
        end;
    end;
-
-   blocoK();
 
    bloco1();
    TOTAL_REG(ARQ_TMP, '1');
@@ -1013,6 +902,7 @@ begin
    TOTAL_REG(ARQ_SPED, '0');
 
    TOTAL_REG(ARQ_TMP, '');
+   montaArquivo();
    except
      on e: exception do
        begin
@@ -1020,14 +910,8 @@ begin
        end;
    end;
   finally
-    montaArquivo();
     informacao(0, fim, 'Aguarde...', false, true, 5);
-    if erro1 = 0 then ShowMessage('Remessa criada com sucesso em: ' + #13 + arqSPED)
-    else if erro1 = 999 then ShowMessage('Ocorreram Erros Na Entrada de Mercadoria e a Remessa Não foi Gerada!')
-    else if erro1 = 998 then ShowMessage('Ocorreram Erros Na NFCes e a Remessa Não foi Gerada!');
-
-    //if erro1 <> 999 then ShowMessage('Remessa criada com sucesso em: ' + #13 + arqSPED)
-    //else ShowMessage('Ocorreram Erros Na Entrada de Mercadoria e a Remessa Não foi Gerada!');
+    ShowMessage('Remessa criada com sucesso em: ' + #13 + arqSPED);
     LimpaMemoria();
   end;
 
@@ -1102,48 +986,29 @@ var
   _CFOP : string;
 begin
   _CFOP := copy(ALIQ_CFOP, 4, 4);
-  IF (Contido(LeftStr(_CFOP, 1), '123') or (_CFOP = '1605'))     then TOTCREDICM := TOTCREDICM + (VALOR_ICM)
-  ELSE IF (Contido(LeftStr(_CFOP, 1), '567') or (_CFOP = '5605'))then TOTDEBICM := TOTDEBICM   + (VALOR_ICM)
+  IF (Contido(LeftStr(_CFOP, 1), '123') or (_CFOP = '1605'))     then TOTCREDICM := TOTCREDICM + VALOR_ICM
+  ELSE IF (Contido(LeftStr(_CFOP, 1), '567') or (_CFOP = '5605'))then TOTDEBICM := TOTDEBICM + VALOR_ICM
   ELSE
-    begin
-      ShowMessage('Icms no valor de R$ ' + FORM_NUM1(VALOR_ICM) + ' foi registrado ' +
-      'no codigo CFOP ' + _CFOP + ' pelo documento ' + TIPO_DOC + '. Este codigo e invalido' +
-      ' e deve causar diferenca na apuração do ICMS. ' + #13 + 'ALIQ_CFOP='+ALIQ_CFOP);
-    end;
+    ShowMessage('Icms no valor de R$ ' + FORM_NUM1(VALOR_ICM) + ' foi registrado ' +
+    'no codigo CFOP ' + _CFOP + ' pelo documento ' + TIPO_DOC + '. Este codigo e invalido' +
+    ' e deve causar diferenca na apuração do ICMS.');
 end;
 
 function leEntradas_SF() : Smallint;
 var
- _COD_FORNEC, dinicrip, dfimcrip, cfopTemp, cod_sit : String;
+ _COD_FORNEC, dinicrip, dfimcrip : String;
  DATA_EMI : TDateTime;
- ini, i, fim, tmp1, C : integer;
+ ini, i, fim, tmp1 : integer;
  prod : TregProd;
- texto : TStringList;
- quant : double;
 begin
-  Result := -1;
-  if MessageDlg('Deseja fazer a checagem de NFCes ?', mtConfirmation, [mbYes, mbNo], 1) = idyes then begin
-    if funcoes.verificaNFCe(dataIni, DataFim, true) = false then begin
-      Result := -2;
-      exit;
-    end;
-  end;
-
-  if funcoes.verificaNFe(dataIni, DataFim, true) = false then begin
-    Result := -2;
-    exit;
-  end;
-
-  if not funcoes.checaEntradasSped(dataIni, DataFim) then begin
-    if MessageDlg('A Soma dos Dados Adicionais Não Conferem, Deseja Continuar Assim Mesmo ?', mtConfirmation, [mbYes, mbNo], 1) = idno then exit;
-  end;
-  Result := 0;
    {COMECO DA PARTE DE ENTRADAS}
 
   // este select busca as notas de entrada que a numeração nao foi gerada automaticamente
   // ex: dia + mes + ano = nota
 
+  //SetLength(dados_adic, 8);
   zera_Matriz(dados_adic);
+  fim := 0;
 
   dm.IBQuery4.Close;
   dm.IBQuery4.SQL.Text := ('select cod from SPED_REDUCAOZ where (data >= :dataini) and (data <= :datafim)');
@@ -1163,23 +1028,13 @@ begin
   fim := fim + dm.IBQuery4.RecordCount;
 
   dm.IBQuery4.Close;
-  dm.IBQuery4.SQL.Text := 'select * from nfe where (data >= :dataini) and (data <= :datafim)  and ((tipo <> ''2'') or (tipo is null)) ';
-  dm.IBQuery4.ParamByName('dataini').AsDateTime := StrToDate(dataIni);
-  dm.IBQuery4.ParamByName('datafim').AsDateTime := StrToDate(DataFim);
-  dm.IBQuery4.Open;
-  dm.IBQuery4.FetchAll;
-
-  fim := fim + dm.IBQuery4.RecordCount;
-
-  dm.IBQuery4.Close;
   //dm.IBQuery4.SQL.Text := ('select * from entrada where (chegada >= :dataini) and (chegada <= :datafim)');
-  dm.IBQuery4.SQL.Text := ('select * from entrada where (cast(chegada as date) >= :dataini) and (cast(chegada as date) <= :datafim) and' +
-  ' (nota <> LPAD(EXTRACT(DAY FROM chegada), 2, ''0'') || LPAD(EXTRACT(MONTH FROM chegada), 2, ''0'') || right(EXTRACT(YEAR FROM chegada), 2)) ORDER BY nota'); {FORMATACAO DA DATA PARA ddmmyy}
+  dm.IBQuery4.SQL.Text := ('select * from entrada where (chegada >= :dataini) and (chegada <= :datafim) and' +
+  ' (nota <> LPAD(EXTRACT(DAY FROM chegada), 2, ''0'') || LPAD(EXTRACT(MONTH FROM chegada), 2, ''0'') || right(EXTRACT(YEAR FROM chegada), 2))'); {FORMATACAO DA DATA PARA ddmmyy}
   dm.IBQuery4.ParamByName('dataini').AsDateTime := StrToDate(dataIni);
   dm.IBQuery4.ParamByName('datafim').AsDateTime := StrToDate(DataFim);
   dm.IBQuery4.Open;
   dm.IBQuery4.FetchAll;
-
   fim := fim + dm.IBQuery4.RecordCount;
 
    if fim > 0 then
@@ -1193,17 +1048,15 @@ begin
   GRAVA_SPED(ARQ_TMP, LINHA);
 
   TRIB := '00';
-  texto := TStringList.Create;
 
-  while not dm.IBQuery4.Eof do begin
-      listaTOT_PIS.Clear;
-
-      informacao(dm.IBQuery4.RecNo, c, 'Verificando Entradas...', false, false, 5);
+  while not dm.IBQuery4.Eof do
+    begin
+      informacao(dm.IBQuery4.RecNo, fim, 'Verificando Entradas...', false, false, 5);
 
       NOTA := dm.IBQuery4.fieldbyname('nota').AsInteger;
-      COD  := '00';
-      QTD  := 0;
-      TOT  := 0;
+      COD := '00';
+      QTD := 0;
+      TOT := 0;
       ALIQ := 0;
 
       ZERA_ALIQCFOP(); //ZERA OS TOTALIZADORES DE ALIQUOTA
@@ -1218,20 +1071,11 @@ begin
       //BUSCA DADOS ADICIONAIS DA NOTA FISCAL
       //DADOS_ADIC É UMA MATRIZ COM 8 POSIÇÕES, O OITAVO TERMO É O PERCENTUAL DE CRÉDITO DE ICMS
 
-      DADOS_ADNF(NOTA, COD_FOR, cod_sit, _CFOP, _FRETE, TIPO, _CHNFE, _SER);
+      DADOS_ADNF(NOTA, COD_FOR, _CFOP, _FRETE, TIPO, _CHNFE, _SER);
 
-      if length(StrNum(_CHNFE)) = 44 then  _SER := leSerieDaChaveNfe(_CHNFE);
+      _SER := leSerieDaChaveNfe(_CHNFE);
 
-      if ((tipo = '55') and (length(_CHNFE) <> 44)) then begin
-        //ShowMessage(_CHNFE);
-        ERRO_CHAVE := ERRO_CHAVE + inttostr(NOTA) + ' ';
-      end;
-
-      if (length(_CHNFE) = 44) then begin
-        if chavesDuplicidade = '' then chavesDuplicidade := '|';
-
-        chavesDuplicidade := chavesDuplicidade + _CHNFE + '|';
-      end;
+      if ((tipo = '55') and (length(_CHNFE) <> 44)) then ERRO_CHAVE := ERRO_CHAVE + inttostr(NOTA) + ' ';
 
       dm.IBselect.Close;
       dm.IBselect.SQL.Clear;
@@ -1246,50 +1090,38 @@ begin
       dm.IBselect.Close;
       dm.IBselect.SQL.Clear;
       dm.IBselect.Params.Clear;
-      //dm.IBselect.SQL.Add('select i.cod,p.aliquota, i.CRED_ICMS, i.quant, i.p_compra, trim(i.unid)as unid, p.tipo_item from item_entrada i left join produto p on (p.cod = i.cod)'+
-      dm.IBselect.SQL.Add('select i.cod,p.aliquota, i.CRED_ICMS, i.quant, i.p_compra, trim(i.unid)as unid, p.tipo_item from item_entrada i left join produto p on (p.cod = i.cod)'+
-      ' where (i.nota = :nott) and (i.fornec = :fornec)');
-      dm.IBselect.ParamByName('nott').AsInteger   := nota;
+      dm.IBselect.SQL.Add('select cod, quant, p_compra, unid from item_entrada where (nota = :nott) and (fornec = :fornec)');
+      dm.IBselect.ParamByName('nott').AsInteger := nota;
       dm.IBselect.ParamByName('fornec').AsInteger := COD_FOR;
       dm.IBselect.Open;
 
       listaProdutos.Clear;
-      TOT := 0;
 
       //PEGA OS ITENS DA NOTA E PASSA PARA O DATASET DSPRODUTO
       while not dm.IBselect.Eof do
         begin
           tmp1 := listaProdutos.Find(dm.IBselect.fieldbyname('cod').AsInteger);
-
-          quant := dm.IBselect.fieldbyname('quant').AsExtended;
-          if ((cod_sit = '06') and (quant = 0)) then quant := 1;
-
-          TOT_ITEM := arredonda(quant * dm.IBselect.fieldbyname('p_compra').AsExtended, 2);
-
+          TOT_ITEM := arredonda(dm.IBselect.fieldbyname('quant').AsCurrency * dm.IBselect.fieldbyname('p_compra').AsCurrency, 2);
           if tmp1 = -1 then
             begin
-              UNID := trim(dm.IBselect.fieldbyname('unid').AsString);
               tmp1 := listaProdutos.Add(TregProd.Create);
-              ACUMULA_COD(dm.IBselect.fieldbyname('cod').AsString, UNID);
+              ACUMULA_COD(dm.IBselect.fieldbyname('cod').AsString, dm.IBselect.fieldbyname('unid').AsString);
+              UNID := dm.IBselect.fieldbyname('unid').AsString;
               VE_UNIDADE(unid);
-              listaProdutos[tmp1].tipo_item := dm.IBselect.fieldbyname('tipo_item').AsString;
-              listaProdutos[tmp1].cod       := dm.IBselect.fieldbyname('cod').AsInteger;
-              listaProdutos[tmp1].quant    := quant;
+              listaProdutos[tmp1].cod      := dm.IBselect.fieldbyname('cod').AsInteger;
+              listaProdutos[tmp1].quant    := dm.IBselect.fieldbyname('quant').AsCurrency;
               listaProdutos[tmp1].unid     := unid;
               listaProdutos[tmp1].aliq     := '00';
-              listaProdutos[tmp1].cod_aliq := StrToInt(strnum(dm.IBselect.FieldByName('aliquota').AsString));
               //falta ler os valores de arredondamento
               //prod.total := arredonda(dm.IBselect.fieldbyname('quant').AsCurrency * dm.IBselect.fieldbyname('p_compra').AsCurrency, 2);
               listaProdutos[tmp1].total    := TOT_ITEM;
               listaProdutos[tmp1].descCom  := 0;
               listaProdutos[tmp1].despAces := 0;
               listaProdutos[tmp1].descNT   := 0;
-              listaProdutos[tmp1].descNT   := 0;
-              listaProdutos[tmp1].aliqCred := dm.IBselect.fieldbyname('CRED_ICMS').AsCurrency;
             end
           else
             begin
-              listaProdutos[tmp1].quant := listaProdutos[tmp1].quant + quant;
+              listaProdutos[tmp1].quant := listaProdutos[tmp1].quant + dm.IBselect.fieldbyname('quant').AsCurrency;
               listaProdutos[tmp1].total := listaProdutos[tmp1].total + TOT_ITEM;
             end;
 
@@ -1297,17 +1129,15 @@ begin
 
           dm.IBselect.Next;
         end;
-
       //FreeAndNil(prod);
 
       // A MATRIZ DADOS_ADIC JÁ ESTA POPULADA COM OS 7 VALORES DE DADOS ADICIONAIS
       // 1-FRETE, 2-SEGURO 3-DESCONTO, 4-DESC. NAO TRIB, 5-DESP. ACESS., 6-PIS ST, 7-COFINS ST
 
-      //if (total_mat(DADOS_ADIC)) > 0 then //total dos dados adicionais da NF-e
-      if (DADOS_ADIC[3] + DADOS_ADIC[4] + TOT_ADIC() + DADOS_ADIC[10]) > 0 then
+      if (total_mat(DADOS_ADIC)) > 0 then //total dos dados adicionais da NF-e
         begin
-          QTD  := DADOS_ADIC[3] ; //DESCONTO COMERCIAL
-	        QTD1 := DADOS_ADIC[4] + DADOS_ADIC[10]; //DESCONTO NT
+          QTD  := DADOS_ADIC[3]; //DESCONTO COMERCIAL
+	        QTD1 := DADOS_ADIC[4]; //DESCONTO NT
           POS1 := TOT_ADIC(); //DADOS ADICIONAIS DA NOTA FISCAL - DESCONTO
 
           POS2 := POS1;
@@ -1362,15 +1192,7 @@ begin
 
                   //RATEIA DESCONTO NT
                   //LIDO := ARREDONDA((dsProduto.FieldByName('total').AsCurrency / TOT) * DADOS_ADIC[4], 2);
-
-
-                  LIDO := ArredondaTrunca((listaProdutos[ini].total / TOT) * (DADOS_ADIC[4] + DADOS_ADIC[10]), 2);
-
-                  {ShowMessage(CurrToStr(DADOS_ADIC[4] + DADOS_ADIC[10]) + #13 +
-                  CurrToStr(LIDO) + #13 +
-                  CurrToStr(QTD1));}
-                  Sleep(1);
-
+                  LIDO := (listaProdutos[ini].total / TOT) * DADOS_ADIC[4];
 			            IF LIDO > 0 then
                     begin
                       IF LIDO <= QTD1 then
@@ -1388,208 +1210,75 @@ begin
         end; // se tem dados adic > 0
 
   lisTMP.Clear;
+  ret := 0;
   //ini := low(listaProdutos);
   fim := listaProdutos.Count -1;
-  listaTOT_PIS.Clear;
-  TOT_APUR_CST := 0;
-  TOT := 0;
-
-  {inicio do rateio do }
-
-  if DADOS_ADIC[11] > 0 then begin
-    rateioCredICMS();
-    //essa rotina faz o rateio do credito de icms em Reais se Houver
-  end;
-
-
-  ret := 0;
-
-  cfopTemp := _CFOP;
 
   for ini := 0 to fim do
     begin
-       _CFOP := cfopTemp;
        ret := ret + 1;
 
-       DADOS_PROD(IntToStr(listaProdutos[ini].cod) , DESC, UNID, COD_ALIQ, TRIB, ISPIS, COD_ISPIS, PERC_ICMS, BASE_ICM, false);
-
-       //retirado pra nao lançar a unidade da nfe de entrada 02/02/2022
-       //agora está pegando a unidade do cadastro de produto
+       DADOS_PROD(IntToStr(listaProdutos[ini].cod) , DESC, UNID, COD_ALIQ, TRIB, ISPIS, COD_ISPIS, PERC_ICMS, BASE_ICM, true);
 
        UNID := listaProdutos[ini].unid;
-       //listaProdutos[ini].unid := UNID;
 
        SOMA_MOV(listaProdutos[ini].cod, listaProdutos[ini].quant);
        //ALIQUOTA DE ICMS (PEGA A ALIQUOTA INTERESTADUAL)
+
+       PERC_ICMS := MENOR(ALIQ, PERC_ICMS);
+
+       //TOT_ITEM := dsProduto.fieldbyname('total').AsCurrency; //MAT_ITENS[INI, 4]  //- MAT_ITENS[INI, 6] - MAT_ITENS[INI, 8]
        TOT_ITEM := listaProdutos[ini].total;
-       BASE_ICM := 0;
 
-       if DADOS_ADIC[11] > 0 then begin //credICMS Reais dados adicionais
-         PERC_ICMS := listaProdutos[ini].PERC_ICM;
-         BASE_ICM  := listaProdutos[ini].total - listaProdutos[ini].descCom;
-         TRIB      := '00';
-       end
-       else begin
-         PERC_ICMS := MENOR(ALIQ, PERC_ICMS);
-         //CALCULA O VALOR DO CREDITO DE ICMS, SE TIVER
-         //BASE_ICM := IfThen(TRIB = '00', TOT_ITEM - dsProduto.fieldbyname('descCom').AsCurrency, 0);//MAT_ITENS[INI, 4] - MAT_ITENS[INI, 6], 0) //TIRANDO APENAS DESCONTO COMERCIAL DA BASE DE CALCULO
-         BASE_ICM := IfThen(TRIB = '00', TOT_ITEM - listaProdutos[ini].descCom, 0);//MAT_ITENS[INI, 4] - MAT_ITENS[INI, 6], 0) //TIRANDO APENAS DESCONTO COMERCIAL DA BASE DE CALCULO
-         if COD_ALIQ = '0' then COD_ALIQ := '2';
+       //CALCULA O VALOR DO CREDITO DE ICMS, SE TIVER
+       //BASE_ICM := IfThen(TRIB = '00', TOT_ITEM - dsProduto.fieldbyname('descCom').AsCurrency, 0);//MAT_ITENS[INI, 4] - MAT_ITENS[INI, 6], 0) //TIRANDO APENAS DESCONTO COMERCIAL DA BASE DE CALCULO
+       BASE_ICM := IfThen(TRIB = '00', TOT_ITEM - listaProdutos[ini].descCom, 0);//MAT_ITENS[INI, 4] - MAT_ITENS[INI, 6], 0) //TIRANDO APENAS DESCONTO COMERCIAL DA BASE DE CALCULO
 
-	       //VERIFICA SE FOI INFORMADA ALIQUOTA DE CREDITO DE ICMS EM DADOS ADICIONAIS DA NF (TERMO 8) E O PRODUTO É TRIBUTADO
-	       //CALCULA O CREDITO POR ESTA ALIQUOTA INFORMADA EM DADOS_ADICIONAIS
-         // O OITAVO TERMO É O CRÉDITO DE ICMS DA NFe
+	     //VERIFICA SE FOI INFORMADA ALIQUOTA DE CREDITO DE ICMS EM DADOS ADICIONAIS DA NF (TERMO 8) E O PRODUTO É TRIBUTADO
+	     //CALCULA O CREDITO POR ESTA ALIQUOTA INFORMADA EM DADOS_ADICIONAIS
+       // O OITAVO TERMO É O CRÉDITO DE ICMS DA NFe
+       IF(DADOS_ADIC[8] <> 0) AND (NUM_ALIQ < 10) then PERC_ICMS := DADOS_ADIC[8];
 
-         IF(DADOS_ADIC[8] <> 0) AND (StrToInt(COD_ALIQ) < 10) then PERC_ICMS := DADOS_ADIC[8];
-       end;
-
-       if listaProdutos[ini].aliqCred > 0 then begin
-         PERC_ICMS := listaProdutos[ini].aliqCred;
-         BASE_ICM  := listaProdutos[ini].total - listaProdutos[ini].descCom;
-         TRIB      := '00';
-       end;
-
-       if funcoes.buscaParamGeral(10, '') = '1' then begin
-         listaProdutos[ini].TOT_ICM := 0;
-         BASE_ICM  := 0;
-       end;
-
-       if ((_CFOP = '1102') AND (RightStr(TRIB, 2) = '60')) then _CFOP := '1403';
-       if ((_CFOP = '2102') AND (RightStr(TRIB, 2) = '60')) then _CFOP := '2403';
-
-       //SE A ALIQUOTA S ECREDITO FOR IGUAL 0,01, ENTAO ZERA
-       IF(PERC_ICMS = 0.01) then PERC_ICMS := 0;
-
-
-       //se for material de uso ou consumo entao zera o icms
-       if LeftStr(trim(DESC), 1) = '_' then begin
-         listaProdutos[ini].tipo_item := '07';
-         PERC_ICMS := 0;
-       end;
+	     //SE A ALIQUOTA S ECREDITO FOR IGUAL 0,01, ENTAO ZERA
+	     IF(PERC_ICMS = 0.01) then PERC_ICMS := 0;
 
        //TOT_ICM := IfThen(TRIB = '00', ARREDONDA(BASE_ICM * PERC_ICMS / 100, 2), 0);
-       TOT_ICM := 0;
-       //if BASE_ICM > 0 then TOT_ICM := IfThen(TRIB = '00', RoundTo1(BASE_ICM * PERC_ICMS / 100), 0);
-       if BASE_ICM > 0 then TOT_ICM := IfThen(TRIB = '00', BASE_ICM * PERC_ICMS / 100);
+       TOT_ICM := IfThen(TRIB = '00', RoundTo1(BASE_ICM * PERC_ICMS / 100), 0);
 
-       IF TOT_ICM = 0 THEN BASE_ICM := 0;
-
-       TOT_ICM := ArredondaFinanceiro(TOT_ICM, 2);
-
-       if  (Pos('-' +_CFOP + '-', CODCFOP) = 0) then CODCFOP := CODCFOP + _CFOP + '-';
-
-       LINHA := '|C170|' + IntToStr(ini + 1) + '|' + strzero(listaProdutos[ini].cod, 6) + '|' + trim(DESC) + '|' +
+       LINHA := '|C170|' + IntToStr(ret) + '|' + strzero(listaProdutos[ini].cod, 6) + '|' + trim(DESC) + '|' +
        FORM_NUM1(listaProdutos[ini].quant) + '|' + UNID + '|' + FORM_NUM1(TOT_ITEM) + '|' + FORM_NUM1(listaProdutos[ini].descCom) + '|' +
         IfThen( leftt(DESC, 1) = '_', '1', '0') + '|' + '0' + TRIB + '|' + _CFOP + '|' + _CFOP + '|' +
        FORM_NUM1(BASE_ICM) + '|' + FORM_NUM1(IfThen(TRIB = '00', PERC_ICMS, 0)) + '|' + FORM_NUM1(TOT_ICM) + '|' +
-       '0|0|0|0|03||0|0|0|99|0|0|0|0|0|99|0|0|0|0|0||' + IfThen(StrToDateTime(dataIni) >= StrToDateTime('01/01/2019'),FORM_NUM1(listaProdutos[ini].descNT)+ '|', '');
+       '0|0|0|0|03||0|0|0|99|0|0|0|0|0|99|0|0|0|0|0||';
        //CAMPO 09 - IF(LEFT(DESC, 1) = "_", "1", "0") - MAT DE CONSUMO - NAO EXISTE MOV. FISICA DO ITEM
        //ITENS DE MATERIAL DE CONSUMO DEVEM COMECAR COM O CARACTERE "_"
 
-       ACUMULA_COD(IntToStr(listaProdutos[ini].cod), UNID);
-
-      { if listaProdutos[ini].cod = 2109 then BEGIN
-
-       C := codProd.Find(listaProdutos[ini].cod);
-       ShowMessage(codProd[C].unid);
-       END;  }
-       VE_UNIDADE(unid);
        lisTMP.Add(linha); // adiciona em uma lista temporária
 
        ALIQ_CFOP := TRIB + '|' + _CFOP + '|' + FORM_NUM1(IfThen(TRIB = '00', PERC_ICMS, 0));
 
        //ACUMULA NOS TOTALIZADORES DE ALIQUOTA E CFOP
        //totDespAcess := dsProduto.fieldbyname('despAces').AsCurrency - dsProduto.fieldbyname('descCom').AsCurrency - dsProduto.fieldbyname('descNT').AsCurrency;
-
        totDespAcess := listaProdutos[ini].despAces - listaProdutos[ini].descCom - listaProdutos[ini].descNT;
-
-       {if NOTA = 152  then begin
-
-       ShowMessage('listaProdutos[ini].despAces=' + CurrToStr(listaProdutos[ini].despAces) + #13 +
-       'listaProdutos[ini].descCom=' + CurrToStr(listaProdutos[ini].descCom) + #13 + 'listaProdutos[ini].descNT=' + CurrToStr(listaProdutos[ini].descNT));
-       end;}
-
-
-       //if totDespAcess < 0 then totDespAcess := 0;
-       
-
-       if TRIB = '41' then begin
-         //ShowMessage(linha + #13 + #13 + CurrToStr(totDespAcess) + #13 + CurrToStr(TOT_ICM));
-       end;
-
-       ret := listaTOT_PIS.Find(ALIQ_CFOP);
-
-       if ret = -1 then begin
-         ret := listaTOT_PIS.Add(TacumPis.Create);
-         listaTOT_PIS[ret].cod    := ALIQ_CFOP;
-         listaTOT_PIS[ret].Base   := BASE_ICM;
-         listaTOT_PIS[ret].icms   := TOT_ICM;
-         listaTOT_PIS[ret].total  := TOT_ITEM;
-         listaTOT_PIS[ret].cofins := totDespAcess;
-       end
-       else begin
-         listaTOT_PIS[ret].Base   := listaTOT_PIS[ret].Base   + BASE_ICM;
-         listaTOT_PIS[ret].icms   := listaTOT_PIS[ret].icms   + TOT_ICM;
-         listaTOT_PIS[ret].total  := listaTOT_PIS[ret].total  + TOT_ITEM;
-         listaTOT_PIS[ret].cofins := listaTOT_PIS[ret].cofins + totDespAcess;
-       end;
-
-     { if nota = 151400 then begin
-        TOT_APUR_CST := TOT_APUR_CST + listaProdutos[ini].descCom;
-        // listaProdutos[ini].despAces + listaProdutos[ini].descCom + listaProdutos[ini].descNT;
-        ShowMessage(listaTOT_PIS.getText + #13 + #13+ trib + #13 + CurrToStr(totDespAcess)+ #13 +
-        CurrToStr(TOT_ITEM)+ #13 + CurrToStr(TOT_ICM)+ #13 + CurrToStr(BASE_ICM) + #13 + 'item: ' + #13 +
-        CurrToStr(listaProdutos[ini].despAces)+ #13 +CurrToStr(listaProdutos[ini].descCom)+ #13 +CurrToStr(listaProdutos[ini].descNT)+ #13 );
-      end;}
-
-
-       //ACUMULA_ALIQCFOP(ALIQ_CFOP, TOT_ITEM, BASE_ICM, TOT_ICM, totDespAcess);
+       ACUMULA_ALIQCFOP(ALIQ_CFOP, TOT_ITEM, BASE_ICM, TOT_ICM, totDespAcess);
       // dsProduto.Next;
    END;
-
    //DADOS ADICIONAIS DA NF: 1-FRETE, 2-SEGURO 3-DESCONTO, 4-DESC. NAO TRIB, 5-DESP. ACESS., 6-PIS ST, 7-COFINS ST
    //SUBTRAI DO TOTAL DAS MERCADORIAS O VALOR DO DESCONTO COMERCIAL
 
-   fim := listaTOT_PIS.Count -1;
-   //TOTALIZA A NOTA COM VÁRIOS SUB-TOTAIS SEPARADOS POR ALIQUOTAS DIFERENTES
-   TOT := 0; BASE_ICM := 0; TOT_ICM  := 0;
-   FOR ini := 0 TO fim do begin
-     BASE_ICM := BASE_ICM + listaTOT_PIS[ini].Base;
-     TOT      := TOT      + listaTOT_PIS[ini].total;
-     TOT_ICM  := TOT_ICM  + listaTOT_PIS[ini].icms;
-   end;
-
    //TOTAL DA NOTA = SOMA DOS VALORES DO ITENS (JA TIRADOS OS DESCONTOS) + SOMA DOS DADOS ADICIONAIS
    // VAL_ALIQCFOP tem o total dos itens
+   POS1 :=  (TOTAL_MATRIZ(VAL_ALIQCFOP) + TOT_ADIC() - DADOS_ADIC[3]) - DADOS_ADIC[4];
+//   POS1 := POS1 -
 
-   POS1 :=  (TOT + TOT_ADIC() - DADOS_ADIC[3]) - DADOS_ADIC[4] - DADOS_ADIC[10];
-   //POS1 :=  (TOT + TOT_ADIC() - DADOS_ADIC[3]) - DADOS_ADIC[4] ;
-   //POS1 :=  (TOT + TOT_ADIC() - DADOS_ADIC[3]);
-   //POS1 :=  (TOT + TOT_ADIC() - DADOS_ADIC[10]);
-   //POS1 :=  (TOT + TOT_ADIC());
-
-   {if NOTA =151 then begin
-     ShowMessage('total Geral='+ CurrToStr(POS1) +#13+ 'TOT=' + CurrToStr(tot) + #13 +
-     'TOT_ADIC()='+ CurrToStr(TOT_ADIC()) + #13 + 'DADOS_ADIC[3]='+ CurrToStr(DADOS_ADIC[3])+#13+
-
-      'DADOS_ADIC[4]='+ CurrToStr(DADOS_ADIC[4]) + #13 +  'DADOS_ADIC[10]=' + CurrToStr(DADOS_ADIC[10]));
-   end;}
-
-
-   //if BASE_ICM > POS1 then BASE_ICM := POS1;
-
-   if strnum(tipo) = '5' then tipo := '1B';
-   
-   LINHA := '|C100|'+IfThen(TIPO = '65', '1', '0')+'|1|1' + strzero(COD_FOR, 6) + '|' + strzero(TIPO, 2) + '|00|' + _SER + '|' + inttostr(NOTA) + '|' + _CHNFE + '|' + //9
+   LINHA := '|C100|0|1|1' + strzero(COD_FOR, 6) + '|' + strzero(TIPO, 2) + '|00|' + _SER + '|' + inttostr(NOTA) + '|' + _CHNFE + '|' + //9
    DATA_BRA_FULL(_DAT1) + '|' + DATA_BRA_FULL(_DAT2) + '|' +   FORM_NUM1(POS1) + '|0|' +
-    FORM_NUM1(DADOS_ADIC[3]) + '|' + FORM_NUM1(DADOS_ADIC[4] + DADOS_ADIC[10]) + '|' + FORM_NUM1(TOT) +
+    FORM_NUM1(DADOS_ADIC[3]) + '|' + FORM_NUM1(DADOS_ADIC[4]) + '|' + FORM_NUM1(TOTAL_MATRIZ(VAL_ALIQCFOP)) +
     '|' + _FRETE + '|' + FORM_NUM1(DADOS_ADIC[1]) + '|' + FORM_NUM1(DADOS_ADIC[2]) +  '|' + FORM_NUM1(DADOS_ADIC[5]) + '|' +
-// {21}  FORM_NUM1(BASE_ICM) + '|' + FORM_NUM1(TOT_ICM) + '|0|'+FORM_NUM1(DADOS_ADIC[9])+'|0|0|0|' + FORM_NUM1(DADOS_ADIC[6]) + '|' + FORM_NUM1(DADOS_ADIC[7]) + '|';
- {21}  FORM_NUM1(BASE_ICM) + '|' + FORM_NUM1(TOT_ICM) + '|0|0|0|0|0|' + FORM_NUM1(DADOS_ADIC[6]) + '|' + FORM_NUM1(DADOS_ADIC[7]) + '|';
+   FORM_NUM1(TOTAL_MATRIZ(BAS_ALIQCFOP)) + '|' + FORM_NUM1(TOTAL_MATRIZ(ICM_ALIQCFOP)) +
+   '|0|0|0|0|0|' + FORM_NUM1(DADOS_ADIC[6]) + '|' + FORM_NUM1(DADOS_ADIC[7]) + '|';
 
    GRAVA_SPED(ARQ_TMP, LINHA);
-
-   texto.Add('|' + inttostr(NOTA) + '|' + inttostr(COD_FOR) + '|' + CURRTOSTR(POS1) + '|' + _CHNFE + '|');
 
    TOT_PISST_ENT := TOT_PISST_ENT + (DADOS_ADIC[6] + DADOS_ADIC[7]);
 
@@ -1601,17 +1290,17 @@ begin
        GRAVA_SPED(ARQ_TMP, linha);
      end;
 
-   fim := listaTOT_PIS.Count -1;
+   fim := MAT_ALIQCFOP.Count -1;
    //TOTALIZA A NOTA COM VÁRIOS SUB-TOTAIS SEPARADOS POR ALIQUOTAS DIFERENTES
-   FOR ini := 0 TO fim do begin
-     TOT := listaTOT_PIS[ini].total + listaTOT_PIS[ini].cofins;
-
-     LINHA := '|C190|0' + listaTOT_PIS[ini].cod + '|' + FORM_NUM1(TOT) + '|' +
-     FORM_NUM1(listaTOT_PIS[ini].Base) + '|'  + FORM_NUM1(listaTOT_PIS[ini].icms) + '|'  +
-     '0|0|0|0||';
-     GRAVA_SPED(ARQ_TMP, LINHA);
-     ACUM_ICM(listaTOT_PIS[ini].cod, listaTOT_PIS[ini].icms, 'Nota de entrada: ' + inttostr(NOTA));
-   end;
+   FOR ini := 0 TO fim do
+     begin
+       TOT := StrToCurrDef(VAL_ALIQCFOP.ValueFromIndex[INI], 0) + StrToCurr(ADC_ALIQCFOP.ValueFromIndex[INI]);
+       LINHA := '|C190|0' + MAT_ALIQCFOP.ValueFromIndex[INI] + '|' + FORM_NUM1(TOT) + '|' +
+       FORM_NUM1(StrToCurrDef(BAS_ALIQCFOP.ValueFromIndex[INI], 0)) + '|'  + FORM_NUM1(StrToCurrDef(ICM_ALIQCFOP.ValueFromIndex[INI], 0)) + '|'  +
+       '0|0|0|0||';
+       GRAVA_SPED(ARQ_TMP, LINHA);
+	     ACUM_ICM(MAT_ALIQCFOP[INI], StrToCurrDef(ICM_ALIQCFOP.ValueFromIndex[INI], 0), 'Nota de entrada: ' + inttostr(NOTA));
+     end;
 
    //ACUMULA O CODIGO DO FORNECEDOR PARA INFORMAR NO REGISTRO 0150
    ACUMULACOD(COD_FOR, CODFOR);
@@ -1640,20 +1329,14 @@ begin
         end;
     end;
 
-  if not DirectoryExists(ExtractFileDir(ParamStr(0)) +  '\SPED\ENTRADAS\') then ForceDirectories(ExtractFileDir(ParamStr(0)) +  '\SPED\ENTRADAS\');
-  texto.SaveToFile(ExtractFileDir(ParamStr(0)) +  '\SPED\ENTRADAS\ENTRADAS_' + FormatDateTime('MMYYYY', NOW) + '.TXT');
-  texto.Free;
   {FIM DA PARTE DE ENTRADAS}
 
 end;
 
 function leConhecimentos_de_frete_Bloco_D_SF(reg : integer = 1) : Smallint;
 var
-  cfoptmp, CHV_CTE, codMunTransp : String;
-  aliqICMS  : currency;
+  cfoptmp, CHV_CTE : String;
 begin
-  Result := 0;
-  
   if reg = 0 then
     begin
       LINHA := '|D001|1|';
@@ -1661,14 +1344,6 @@ begin
       //TOTALIZA REGISTROS DO TIPO D - 1 DIGITO APENAS PORQUE   PARCIAL, SE FOR TOTAL, INFORMAM-SE 4 DIGITOS
       exit;
     end;
-
-  dm.IBselect.Close;
-  dm.IBselect.SQL.Clear;
-  dm.IBselect.SQL.Add('select cod_mun from registro');
-  dm.IBselect.Open;
-
-  codMunSistema := dm.IBselect.FieldByName('cod_mun').AsString;
-  dm.IBselect.Close;
 
   result := 0;
   dm.IBselect.Close;
@@ -1695,33 +1370,18 @@ begin
               if CHV_CTE = '0' then CHV_CTE := '';
             end;
 
-          dm.IBQuery1.Close;
-          dm.IBQuery1.SQL.Text := 'select cod_mun from TRANSPORTADORA where cod = :cod';
-          dm.IBQuery1.ParamByName('cod').AsString := dm.IBselect.fieldbyname('TRANSP').AsString;
-          dm.IBQuery1.Open;
-
-          codMunTransp := dm.IBQuery1.FieldByName('cod_mun').AsString;
-          dm.IBQuery1.Close;
-
           LINHA := '|D100|0|1|3' + strzero(dm.IBselect.fieldbyname('TRANSP').AsString, 6) + '|' + strzero(StrNum(dm.IBselect.fieldbyname('MOD_FRETE').AsString), 2) + '|00|' +
           dm.IBselect.fieldbyname('SERIE').AsString + '||' + dm.IBselect.fieldbyname('NUMDOC').AsString + '|'+ CHV_CTE +'|' + DATA_BRA_FULL(dm.IBselect.fieldbyname('DATA').AsDateTime) + '|' +
           DATA_BRA_FULL(dm.IBselect.fieldbyname('CHEGADA').AsDateTime) + '|||' + FORM_NUM1(dm.IBselect.fieldbyname('VLR_TOTAL').AsCurrency) + '|' +
           FORM_NUM1(dm.IBselect.fieldbyname('VLR_DESC').AsCurrency) + '|' + dm.IBselect.fieldbyname('IND_FRETE').AsString + '|' +
           FORM_NUM1(dm.IBselect.fieldbyname('VLR_SERV').AsCurrency) + '|' + FORM_NUM1(dm.IBselect.fieldbyname('VLR_BC_ICM').AsCurrency) + '|' +
-          FORM_NUM1(dm.IBselect.fieldbyname('VLR_ICMS').AsCurrency) + '|' + FORM_NUM1(dm.IBselect.fieldbyname('VLR_NT').AsCurrency) + '|||' +
-          codMunTransp + '|' + codMunSistema + '|';
-
+          FORM_NUM1(dm.IBselect.fieldbyname('VLR_ICMS').AsCurrency) + '|' + FORM_NUM1(dm.IBselect.fieldbyname('VLR_NT').AsCurrency) + '|||';
           GRAVA_SPED(ARQ_TMP, LINHA);
 
           //REGISTRO D190
-
-
-          if dm.IBselect.fieldbyname('ALIQICMS').AsCurrency > 0 then aliqICMS := dm.IBselect.fieldbyname('ALIQICMS').AsCurrency
-            else aliqICMS := dm.IBselect.fieldbyname('VLR_ICMS').AsCurrency / dm.IBselect.fieldbyname('VLR_BC_ICM').AsCurrency * 100;
-
           cfoptmp := IfThen(dm.IBselect.fieldbyname('VLR_ICMS').AsCurrency > 0, '000', '090');
           LINHA := '|D190|' + cfoptmp + '|' +
-          dm.IBselect.fieldbyname('COD_CFOP').AsString + '|' + FORM_NUM1(IfThen(cfoptmp = '090', 0, aliqICMS)) + '|' +
+          dm.IBselect.fieldbyname('COD_CFOP').AsString + '|' + FORM_NUM1(IfThen(cfoptmp = '090', 0, dm.IBselect.fieldbyname('VLR_ICMS').AsCurrency / dm.IBselect.fieldbyname('VLR_BC_ICM').AsCurrency) * 100) + '|' +
           FORM_NUM1(dm.IBselect.fieldbyname('VLR_TOTAL').AsCurrency) + '|' + FORM_NUM1(dm.IBselect.fieldbyname('VLR_BC_ICM').AsCurrency) + '|' +
           FORM_NUM1(dm.IBselect.fieldbyname('VLR_ICMS').AsCurrency) + '|0||';
           GRAVA_SPED(ARQ_TMP, LINHA);
@@ -1758,6 +1418,7 @@ begin
   FORM_NUM1(IfThen(TOTCREDICM > TOTDEBICM, TOTCREDICM - TOTDEBICM, 0)) + '|0|';
   GRAVA_SPED(ARQ_TMP, LINHA);
 
+
   IF TOTDEBICM > TOTCREDICM then
     begin
       LINHA := '|E116|000|' + FORM_NUM1(TOTDEBICM - TOTCREDICM) + '|' +
@@ -1766,33 +1427,11 @@ begin
     end;
 end;
 
-function blocoI() : String;
-begin
-  if StrToDateTime(dataIni) < StrToDateTime('01/01/2019') then exit;
-
-  LINHA := '|I001|1|';
-  GRAVA_SPED(ARQ_TMP, LINHA);
-
-  TOTAL_REG(ARQ_TMP, 'I');
-end;
-
-function blocoP_vazio() : String;
-begin
-  if StrToDateTime(dataIni) < StrToDateTime('01/01/2019') then exit;
-
-  LINHA := '|P001|1|';
-  GRAVA_SPED(ARQ_TMP, LINHA);
-
-  TOTAL_REG(ARQ_TMP, 'P');
-end;
-
 
 function blocoG() : String;
 begin
   LINHA := '|G001|1|';
   GRAVA_SPED(ARQ_TMP, LINHA);
-
-  TOTAL_REG(ARQ_TMP, 'G');
   //TOTALIZA REGISTROS DO TIPO G - 1 DIGITO APENAS PORQUE É PARCIAL, SE FOR TOTAL, INFORMAM-SE 4 DIGITOS
 end;
 
@@ -1812,7 +1451,7 @@ begin
         begin
           LINHA := '|H001|0|';
           GRAVA_SPED(ARQ_TMP, LINHA);
-          LINHA := '|H005|3112' + STRZERO(StrToInt(FormatDateTime('yyyy',StrToDateTime(dataIni))) - 1, 4) + '|0|03|';
+          LINHA := '|H005|3112' + STRZERO(StrToInt(FormatDateTime('yyyy',StrToDateTime(dataIni))) - 1, 4) + '|0|01|';
           GRAVA_SPED(ARQ_TMP, LINHA);
         end;  
     end
@@ -1825,60 +1464,24 @@ begin
     end;
 end;
 
-function CriaBlocoH() : String;
-var
-  sim, ano : string;
-  listaConteudo, listaCabecalho : TStringList;
-  totInv : currency;
-begin
-  listaConteudo  := TStringList.Create;
-  listaCabecalho := TStringList.Create;
-  totInv  := 0;
-
-  dm.IBselect.Close;
-  dm.IBselect.SQL.Text := 'select cod, nome, unid, p_venda, quant from produto';
-  dm.IBselect.Open;
-
-  while not dm.IBselect.Eof do begin
-   // listaConteudo.Add()
-    dm.IBselect.Next;
-  end;
-
-  LINHA := '|H001|0|';
-
-  GRAVA_SPED(ARQ_TMP, LINHA);
-  LINHA := '|H005|3112' + STRZERO(StrToInt(FormatDateTime('yyyy',StrToDateTime(dataIni))) - 1, 4) + '|0|01|';
-  GRAVA_SPED(ARQ_TMP, LINHA);
-end;
-
-
 function bloco1() : String;
 begin
   LINHA := '|1001|0|';
   GRAVA_SPED(ARQ_TMP, LINHA);
-  LINHA := '|1010|N|N|N|N|N|N|N|N|N|' + ifthen(StrToDateTime(dataIni) >= StrToDateTime('01/01/2019'),'N|N|N|', '') +
-  ifthen(StrToDateTime(dataIni) >= StrToDateTime('01/01/2020'),'N|', '');
+  LINHA := '|1010|N|N|N|N|N|N|N|N|N|';
   GRAVA_SPED(ARQ_TMP, LINHA);
   //TOTALIZA REGISTROS DO TIPO D - 1 DIGITO APENAS PORQUE É PARCIAL, SE FOR TOTAL, INFORMAM-SE 4 DIGITO
 end;
 
 function cabecalho_SF_Bloco_0(const contribuicoes : boolean = false) : String;
 var
-  LIN, _CODMUN, _CPF, _CNPJ, _SUFRAMA, _codbar, ies, tmp, tip, MODELO, tipo_item : string;
+  LIN, _CODMUN, _CPF, _CNPJ, _SUFRAMA, _codbar, ies, tmp, tip : string;
   CB : boolean;
-  fe, ini, idx : integer;
-  mat0200, lista0220 : TStringList;
+  fe, ini, tipo, idx : integer;
 begin
   if contribuicoes then
     begin
-      MODELO := '003';
-      IF StrToDateTime(dataIni) >= StrToDateTime('01/06/2018') THEN MODELO := '004';
-      IF StrToDateTime(dataIni) >= StrToDateTime('01/01/2019') THEN MODELO := '005';
-      IF StrToDateTime(dataIni) >= StrToDateTime('01/01/2020') THEN MODELO := '006';
-      {IF StrToDateTime(dataIni) >= StrToDateTime('01/01/2021') THEN MODELO := '007';
-      IF StrToDateTime(dataIni) >= StrToDateTime('01/01/2022') THEN MODELO := '008';
-      IF StrToDateTime(dataIni) >= StrToDateTime('01/01/2023') THEN MODELO := '009';
-      }LINHA := '|0000|'+ MODELO +'|0|||' + DATA_BRA_FULL(StrToDateTime(dataIni)) + '|' + DATA_BRA_FULL(StrToDateTime(DataFim)) + '|';
+      LINHA := '|0000|003|0|||' + DATA_BRA_FULL(StrToDateTime(dataIni)) + '|' + DATA_BRA_FULL(StrToDateTime(DataFim)) + '|';
 
       dm.IBselect.Close;
       dm.IBselect.SQL.Clear;
@@ -1899,17 +1502,7 @@ begin
     end
   else
     begin
-      MODELO := '009';
-      IF StrToDateTime(dataIni) >= StrToDateTime('01/01/2016') THEN MODELO := '010';
-      IF StrToDateTime(dataIni) >= StrToDateTime('01/01/2017') THEN MODELO := '011';
-      IF StrToDateTime(dataIni) >= StrToDateTime('01/01/2018') THEN MODELO := '012';
-      IF StrToDateTime(dataIni) >= StrToDateTime('01/01/2019') THEN MODELO := '013';
-      IF StrToDateTime(dataIni) >= StrToDateTime('01/01/2020') THEN MODELO := '014';
-      IF StrToDateTime(dataIni) >= StrToDateTime('01/01/2021') THEN MODELO := '015';
-      IF StrToDateTime(dataIni) >= StrToDateTime('01/01/2022') THEN MODELO := '016';
-      IF StrToDateTime(dataIni) >= StrToDateTime('01/01/2023') THEN MODELO := '017';
-
-      LINHA := '|0000|'+ MODELO +'|0|' + DATA_BRA_FULL(StrToDateTime(dataIni)) + '|' + DATA_BRA_FULL(StrToDateTime(DataFim)) + '|';
+      LINHA := '|0000|009|0|' + DATA_BRA_FULL(StrToDateTime(dataIni)) + '|' + DATA_BRA_FULL(StrToDateTime(DataFim)) + '|';
       dm.IBselect.Close;
       dm.IBselect.SQL.Clear;
       dm.IBselect.SQL.Add('select * from registro');
@@ -2000,15 +1593,8 @@ begin
               _CNPJ := StrNum(dm.IBselect.fieldbyname('cnpj').AsString);
             end;
 
-          if LENGTH(_CNPJ) < 3 then _CNPJ := '';
-          if LENGTH(_CPF) < 3 then   _CPF := '';
-
-          ies :=  StrNum(dm.IBselect.fieldbyname('ies').AsString);
-          if ies = '0'  then ies := '';
-          
-
           LINHA := '|0150|1' + strzero(dm.IBselect.fieldbyname('cod').AsString, 6) + '|' + trim(dm.IBselect.fieldbyname('nome').AsString) + '|1058|' + _CNPJ + '|' + _CPF + '|' +
-          ies + '|' + dm.IBselect.fieldbyname('cod_mun').AsString + '|' +
+          StrNum(dm.IBselect.fieldbyname('ies').AsString) + '|' + dm.IBselect.fieldbyname('cod_mun').AsString + '|' +
            IfThen(length(TRIM(dm.IBselect.fieldbyname('suframa').AsString)) = 9, StrNum(dm.IBselect.fieldbyname('suframa').AsString), '') + '|' + SEPARA_END(dm.IBselect.fieldbyname('endereco').AsString) +
           '||' + TRIM(dm.IBselect.fieldbyname('bairro').AsString) + '|';
           GRAVA_SPED(ARQ_SPED, LINHA);
@@ -2026,7 +1612,6 @@ begin
   dm.IBselect.FetchAll;
 
   COD := '';
-  COD_ALIQ := '';
   NOTA := 0;
   fim := dm.IBselect.RecordCount;
   informacao(0, fim, 'Verificando Clientes...', true, false, 2);
@@ -2036,10 +1621,8 @@ begin
       INI := pos('-'+dm.IBselect.fieldbyname('cod').AsString + '-', CODCLI);
       IF INI > 0 then
         begin
-          COD_ALIQ := '1058';
           _CPF  := '';
           _CNPJ := '';
-          COD := dm.IBselect.fieldbyname('cod_mun').AsString;
           IF((dm.IBselect.fieldbyname('tipo').AsString = '1') OR (dm.IBselect.fieldbyname('tipo').AsString = '6')) then
             begin
               _CPF  := StrNum(dm.IBselect.fieldbyname('cnpj').AsString);
@@ -2054,34 +1637,16 @@ begin
               _CNPJ := StrNum(dm.IBselect.fieldbyname('cnpj').AsString);
             end;
 
-          if codigosClientesExterior.Values[dm.IBselect.fieldbyname('cod').AsString] <> '' then
-            begin
-              _CPF  := '';
-              _CNPJ := '';
-              ies   := StrNum(dm.IBselect.fieldbyname('ies').AsString);
-              ies   := '';
-              cod   := '9999999';
-              //cod   := StrNum(dm.IBselect.fieldbyname('cod_mun').AsString);
-              COD_ALIQ := codigosClientesExterior.Values[dm.IBselect.fieldbyname('cod').AsString];
 
-              if COD_ALIQ = '1058' then begin
-                COD_ALIQ := StrNum(dm.IBselect.fieldbyname('cod_mun').AsString);
-              end;
-            end
-          else
-            begin
-              if Length(StrNum(dm.IBselect.fieldbyname('cnpj').AsString)) <= 11 then ies := ''
-               else ies := StrNum(dm.IBselect.fieldbyname('ies').AsString);
-            end;   
-          if (ies = '0') then ies := '';
+          if Length(StrNum(dm.IBselect.fieldbyname('cnpj').AsString)) <= 11 then ies := ''
+            else ies := StrNum(dm.IBselect.fieldbyname('ies').AsString);
 
-           if LENGTH(_CNPJ) < 3 then _CNPJ := '';
-           if LENGTH(_CPF) < 3 then   _CPF := '';
-           if LENGTH(IES) < 3  then    IES := '';
+          if (ies = '0') then ies := '';  
 
-
-          LINHA := '|0150|2' + strzero(dm.IBselect.fieldbyname('cod').AsString, 6) + '|' + trim(dm.IBselect.fieldbyname('nome').AsString) + '|'+COD_ALIQ+'|' + _CNPJ + '|' + _CPF + '|' +
-          ies + '|' + IfThen(trim(cod) = '', _CODMUN, COD) + '|' + IfThen(length(TRIM(dm.IBselect.fieldbyname('conj').AsString)) = 9, StrNum(dm.IBselect.fieldbyname('conj').AsString), '') + '|' + SEPARA_END(dm.IBselect.fieldbyname('ende').AsString) +
+          LINHA := '|0150|2' + strzero(dm.IBselect.fieldbyname('cod').AsString, 6) + '|' + trim(dm.IBselect.fieldbyname('nome').AsString) + '|1058|' + _CNPJ + '|' + _CPF + '|' +
+          //IfThen(((StrNum(dm.IBselect.fieldbyname('ies').AsString) = '0') or ()), '', StrNum(dm.IBselect.fieldbyname('ies').AsString)) + '|' + IfThen(trim(dm.IBselect.fieldbyname('cod_mun').AsString) = '', _CODMUN, dm.IBselect.fieldbyname('cod_mun').AsString) + '|' +
+          ies + '|' + IfThen(trim(dm.IBselect.fieldbyname('cod_mun').AsString) = '', _CODMUN, dm.IBselect.fieldbyname('cod_mun').AsString) + '|' +
+          IfThen(length(TRIM(dm.IBselect.fieldbyname('conj').AsString)) = 9, StrNum(dm.IBselect.fieldbyname('conj').AsString), '') + '|' + SEPARA_END(dm.IBselect.fieldbyname('ende').AsString) +
           '||' + ALLTRIM(dm.IBselect.fieldbyname('bairro').AsString) + '|';
           GRAVA_SPED(ARQ_SPED, LINHA);
         end;
@@ -2097,11 +1662,11 @@ begin
   dm.IBselect.FetchAll;
   COD  := '';
   NOTA := 0;
-  fim := dm.IBselect.RecordCount;
-  informacao(0, fim, 'Verificando Transportadoras...', true, false, 2);
+  fe := dm.IBselect.RecordCount;
+  informacao(0, fe, 'Verificando Transportadoras...', true, false, 2);
   while not dm.IBselect.Eof do
      begin
-       informacao(dm.IBselect.RecNo, fim, 'Verificando Transportadoras...', false, false, 2);
+       informacao(dm.IBselect.RecNo, fe, 'Verificando Transportadoras...', false, false, 2);
        INI := pos('-'+dm.IBselect.fieldbyname('cod').AsString+ '-', ACUM_COD_FOR);
        IF INI > 0 then
          begin
@@ -2124,13 +1689,17 @@ begin
            '||' + TRIM(dm.IBselect.fieldbyname('bairro').AsString) + '|';
            GRAVA_SPED(ARQ_SPED, LINHA);
          end;
-
        dm.IBselect.Next;
      end;
-//   funcoes.informacao(dm.IBselect.RecNo, fim, 'Verificando Transportadoras...', false, true, 2)
+//   funcoes.informacao(dm.IBselect.RecNo, fim, 'Verificando Transportadoras...', false, true, 2);
 
+   //REGISTROS 0190 - LISTA DAS UNIDADES DE MEDIDA - INFORMA APENAS AS UNIDADES QUE FORAM USADAS
 
-   mat0200 := TStringList.Create;
+   for ini := 0 to mat_uniok.Count -1 do
+     begin
+       LINHA := '|0190|' + mat_uniok[ini].unid_ent + '|[' +  mat_uniok[ini].unid_ent + ']|';
+       GRAVA_SPED(ARQ_SPED, LINHA);
+     end;
 
    //REGISTROS 0200 - PRODUTOS QUE TIVERAM ENTRADA OU SAIDAS
    DM.IBselect.Close;
@@ -2160,17 +1729,7 @@ begin
          //ITENS DE MATERIAL DE CONSUMO DEVEM COMECAR COM O CARACTERE "_"
 
          unid := codProd[idx].unid;
-
-         if contido('*', codProd[idx].unid) then begin
-           LE_CAMPOS(lista0220,'*'+ codProd[idx].unid + '*', '*', true);
-           for ini := 0 to lista0220.Count -1 do begin
-             unid := TRIM(lista0220.ValueFromIndex[ini]);
-             VE_UNIDADE(UNID);
-           end;
-         end else begin
-           VE_UNIDADE(UNID);
-         end;
-
+         VE_UNIDADE(UNID);
          if unid = '' then UNID := TRIM(dm.IBselect.fieldbyname('unid').AsString);
 
          try
@@ -2187,83 +1746,24 @@ begin
              _codbar := DIGEAN('789000' + CompletaOuRepete('',dm.IBselect.fieldbyname('cod').AsString ,'0',6));
            end;
 
-         _codbar := trim(_codbar);
+         //UNID := codProd.fieldbyname('unid').AsString;
 
-        // UNID := trim(dm.IBselect.fieldbyname('unid').AsString);
-         if unid = '' then UNID := 'UN';
+         LINHA := '|0200|' + strzero(dm.IBselect.fieldbyname('cod').AsString, 6) + '|' + TRIM(dm.IBselect.fieldbyname('nome').AsString) + '|' + _codbar + '|' +
+         //strzero(dm.IBselect.fieldbyname('cod').AsString, 6) + '|' + cortastring(UNID, 6) + '|' + IfThen(LeftStr(dm.IBselect.fieldbyname('nome').AsString, 1) = '_', '07', '00') + '|||||' + TRIB + '|';
+         '' + '|' + cortastring(UNID, 6) + '|' + IfThen(LeftStr(dm.IBselect.fieldbyname('nome').AsString, 1) = '_', '07', '00') + '|||||' + TRIB + '|';
+         GRAVA_SPED(ARQ_SPED, LINHA);
 
-         //VE_UNIDADE(unid);
-
-         tipo_item := '00';
-         if LeftStr(dm.IBselect.fieldbyname('nome').AsString, 1) = '_' then tipo_item := '07';
-         if StrToInt(StrNum(trim(dm.IBselect.fieldbyname('tipo_item').AsString))) > 0 then tipo_item := StrNum(trim(dm.IBselect.fieldbyname('tipo_item').AsString)); 
-
-         if contribuicoes then begin
-           LINHA := '|0200|' + strzero(dm.IBselect.fieldbyname('cod').AsString, 6) + '|' + TRIM(dm.IBselect.fieldbyname('nome').AsString) + '|' + _codbar + '|' +
-           //strzero(dm.IBselect.fieldbyname('cod').AsString, 6) + '|' + cortastring(UNID, 6) + '|' + IfThen(LeftStr(dm.IBselect.fieldbyname('nome').AsString, 1) = '_', '07', '00') + '|||||' + TRIB + '|';
-           '' + '|' + cortastring(UNID, 6) + '|' + tipo_item + '|||||' + TRIB + '|';
-         end
-         else begin
-           if StrToInt(FormatDateTime('yy', StrToDate(dataIni))) >= 17 then begin
-             LINHA := '|0200|' + strzero(dm.IBselect.fieldbyname('cod').AsString, 6) + '|' + TRIM(dm.IBselect.fieldbyname('nome').AsString) + '|' + _codbar + '|' +
-             '' + '|' + cortastring(UNID, 6) + '|' + tipo_item + '|||||' + TRIB + '||';
-           end
-           else begin
-             LINHA := '|0200|' + strzero(dm.IBselect.fieldbyname('cod').AsString, 6) + '|' + TRIM(dm.IBselect.fieldbyname('nome').AsString) + '|' + _codbar + '|' +
-             '' + '|' + cortastring(UNID, 6) + '|' + tipo_item + '|||||' + TRIB + '|';
-           end;
-         end;
-
-         mat0200.Add(linha);
-         //GRAVA_SPED(ARQ_SPED, LINHA);
-
-         try
-           StrToCurr(strnum1(codProd[idx].unid));
-         except
-           on e:exception do
-             begin
-               MessageDlg(e.Message + #13 + 'Cod: ' + IntToStr(codProd[idx].cod) + #13 + 'Unid: ' + codProd[idx].unid, mtError, [mbOK], 1);
-             end;
-         end;
-
-         if StrToCurr(strnum1(codProd[idx].unid)) > 1 then
+         if StrToCurr(strnum1(unid)) > 1 then
          //if StrToCurrDef(strnum1(unid), 1) > 1 then
            begin
-             if Contido('-' + codProd[idx].unid + '-', '-M2-M3-') = false then begin
-               if contido('*', codProd[idx].unid) then begin
-                 LE_CAMPOS(lista0220,'*'+ codProd[idx].unid + '*', '*', true);
-                 for ini := 0 to lista0220.Count -1 do begin
-                    LINHA := '|0220|' + TRIM(lista0220.ValueFromIndex[ini]) + '|' + iif(strnum1(TRIM(lista0220.ValueFromIndex[ini])) = '0', '1', strnum1(TRIM(lista0220.ValueFromIndex[ini])) ) + '|' + IfThen(StrToDateTime(dataIni) >= StrToDateTime('01/01/2022'), '|', '');
-                    if TRIM(lista0220.ValueFromIndex[ini]) <> '' then mat0200.Add(linha);
-                 end;
-               end
-               else begin
-                 LINHA := '|0220|' + TRIM(codProd[idx].unid) + '|' + strnum1(codProd[idx].unid) + '|' + IfThen(StrToDateTime(dataIni) >= StrToDateTime('01/01/2022'), '|', '');
-                 mat0200.Add(linha);
-               end;
-             end;
-             //GRAVA_SPED(ARQ_SPED, LINHA);
+             LINHA := '|0220|' + TRIM(codProd[idx].unid) + '|' + strnum1(codProd[idx].unid) + '|';
+             GRAVA_SPED(ARQ_SPED, LINHA);
            end;
        end;
 
        informacao(dm.IBselect.RecNo, fe, 'Verificando Produtos...', false, false, 2);
        dm.IBselect.Next;
      end;
-
-   //REGISTROS 0190 - LISTA DAS UNIDADES DE MEDIDA - INFORMA APENAS AS UNIDADES QUE FORAM USADAS
-   for ini := 0 to mat_uniok.Count -1 do
-     begin
-       LINHA := '|0190|' + mat_uniok[ini].unid_ent + '|[' +  mat_uniok[ini].unid_ent + ']|';
-       GRAVA_SPED(ARQ_SPED, LINHA);
-     end;
-
-   for ini := 0 to mat0200.Count -1 do
-     begin
-       LINHA := mat0200[ini];
-       GRAVA_SPED(ARQ_SPED, LINHA);
-     end;
-
-   mat0200.Free;
 //   funcoes.informacao(0, fim, 'Verificando Produtos...', false, true, 2);
 
    //REGISTROS 0400 - CODIGO CFOP UTILIZADOS
@@ -2281,14 +1781,6 @@ begin
          end;
        dm.IBselect.Next;
      end;
-
-  if contribuicoes then begin
-    linha := BLOCO0500;
-    if linha = '' then exit;
-    if (lista0500.Count > 0) and (trim(lista0500.Text) <> '') then begin
-      GRAVA_SPED(ARQ_SPED, linha);
-    end;
-  end;
 end;
 
 //ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
@@ -2431,37 +1923,39 @@ begin
     end;
 end;
 
+function indiceFinalArrayProduto() : Integer;
+var
+  ini, fim : integer;
+begin
+  //fim := length(listaProdutos) - 1;
+  Result := fim;
+  for ini := 0 to fim do
+    begin
+      if listaProdutos[ini].cod = 0 then
+        begin
+          Result := ini -1;
+          break;
+        end;
+    end;
+end;
+
 function leSaidas_SF() : Smallint;
 var
-  total1, totRED : currency;
-  mat, arq      : TStringList;
-  listaProdCST_pis_cod : TItensProduto;
-  CODNOTA, LIN, desti, crc, UF, nodo_dest1  : String;
+  mat      : TStringList;
+  CODNOTA, LIN, desti, crc  : String;
   DATA_EMI : TDate;
   DadosNfe : TDadosNFe;
-  ini2, fim2, i3, f3, i1, acc, LA, lu, indXNaoTrib : integer;
-  temMov : boolean;
+  ini2, fim2, i3, f3, i1, acc, LA, lu : integer;
 begin
-
   {INICIA SAIDAS}
 
   {DADOS DE NFES EMITIDAS}
-  {TIPO := '90';
+  TIPO := '90';
   dm.IBselect.Close;
-  dm.IBselect.SQL.Text := 'select item from fvmt f where (substring(f.item from 21 for 2) = :tipo) and (data >= :ini) and (data <= :fim) and estado <> ''C'' ';
+  dm.IBselect.SQL.Text := 'select item from fvmt f where (substring(f.item from 21 for 2) = :tipo) and (data >= :ini) and (data <= :fim)';
   dm.IBselect.ParamByName('tipo').AsString := TIPO;
   dm.IBselect.ParamByName('ini').AsDate  := StrToDate(dataIni);
   dm.IBselect.ParamByName('fim').AsDate  := StrToDate(DataFim);
-  dm.IBselect.Open;
-  dm.IBselect.FetchAll; }
-  TIPO := '90';
-  dm.IBselect.Close;
-  {dm.IBselect.SQL.Text := 'select * from nfe f where (data >= :ini) and (data <= :fim) and estado = ''E'' ';
-  dm.IBselect.ParamByName('ini').AsDate  := StrToDate(dataIni);
-  dm.IBselect.ParamByName('fim').AsDate  := StrToDate(DataFim);}
-
-  dm.IBselect.SQL.Text := 'select * from nfe f where substring(chave from 3 for 4) = :ini and estado = ''E''  and ((tipo <> ''2'') or (tipo is null)) ';
-  dm.IBselect.ParamByName('ini').AsString  := chaveAnoMes;
   dm.IBselect.Open;
   dm.IBselect.FetchAll;
   CODNOTA := '';
@@ -2471,64 +1965,33 @@ begin
   informacao(0, fim, 'Verificando Vendas...', true, false, 2);
   while not dm.IBselect.Eof do
     begin
-      BASE_ICM := 0;
-      TOT_ICM  := 0;
-      acc      := acc + 1;
-      totRED   := 0;
+      acc := acc + 1;
       informacao(acc, fim, 'Verificando Vendas...', false, false, 2);
-      //linha := dm.IBselect.fieldbyname('item').AsString;
-      //DECOMP_MOV(linha, mat);
+      linha := dm.IBselect.fieldbyname('item').AsString;
+      DECOMP_MOV(linha, mat);
       TOTDESC := 0;
       TOT     := 0;
-      listaPIS.Clear;
 
       zerarArrayProduto();
-      CHAVENF := dm.IBselect.FieldByName('chave').AsString;
+      NOTA := StrToIntDef(mat[2], 0);
 
-      if Contido('|' + CHAVENF + '|', chavesDuplicidade) = false then begin
-    
-      nota    := StrToIntDef(copy(chaveNF, 26, 9), 0);
-
-      //if not Contido(IntToStr(nota), CODNOTA) then
-        //begin
+      if not Contido(IntToStr(nota), CODNOTA) then
+        begin
           CODNOTA := CODNOTA + IntToStr(NOTA) + '-';
-          //DATA_EMI := converteDataYYMMDDParaTdate(mat[0]);
-          DATA_EMI := dm.IBselect.FieldByName('data').AsDateTime;
+          DATA_EMI := converteDataYYMMDDParaTdate(mat[0]);
 
-          LE_XMLNFE('', listaProdutos, dm.IBQuery4, DadosNfe, dm.IBselect.FieldByName('chave').AsString);
+          LE_XMLNFE(mat[2], listaProdutos, dm.IBQuery4, DadosNfe);
 
           if listaProdutos.Count > 0 then
             begin
-              DATA_EMI := DadosNfe.data;
-              //mat.Text := DadosNfe.xml;
+              mat.Text := DadosNfe.xml;
               //mat.SaveToFile(caminhoEXE_com_barra_no_final + 'arqNFE.xml');
               DESC := Le_Nodo('dest', DadosNfe.xml);
-              UF   := Le_Nodo('UF', DESC);
-              nodo_dest1 := DESC;
-
-              //if Contido('<idEstrangeiro>', DadosNfe.xml) then
-              IF Le_Nodo('idEstrangeiro', DadosNfe.xml) <> '' then
-                begin
-                  COD_ALIQ := Le_Nodo('cPais', DESC);
-                  DESC := Le_Nodo('idEstrangeiro', DESC);
-                  COD  := DESC;
-                  DESC := ACHA_CODCLI(DESC, UF, nodo_dest1);
-                  codigosClientesExterior.Values[DESC] := COD_ALIQ;
-                  //ShowMessage(DESC+ '=' + COD_ALIQ+#13+
-                  //'-----------------'+#13+codigosClientesExterior.GetText)
-                  //adicionei em uma variavel somente os codigos dos clientes do exterior para
-                  //descarregar no registro 0150
-                end
-              else begin
-                DESC := IfThen(Contido('<CPF>', DESC), Le_Nodo('CPF', DESC), Le_Nodo('CNPJ', DESC));
-                COD  := DESC;
-
-                DESC := ACHA_CODCLI(DESC, UF, nodo_dest1);
-              end;
-
+              DESC := IfThen(Contido('<CPF>', DESC), Le_Nodo('CPF', DESC), Le_Nodo('CNPJ', DESC));
+              COD  := DESC;
+              DESC := ACHA_CODCLI(DESC, '');
               COD  := DESC;
               if not Contido('-'+ desc + '-', CODCLI) then CODCLI := CODCLI + IntToStr(StrToIntDef(desc, 0)) + '-';
-
 
               _SER := Le_Nodo('serie', DadosNfe.xml);
               fim  := listaProdutos.Count -1;
@@ -2540,40 +2003,35 @@ begin
                 begin
                   ret := ret + 1;
 
-                  DADOS_PROD(IntToStr(listaProdutos[ini].cod) , DESC, UNID, COD_ALIQ, TRIB, ISPIS, COD_ISPIS, PERC_ICMS, BASE_PIS_RD, false);
+                  DADOS_PROD(IntToStr(listaProdutos[ini].cod) , DESC, UNID, COD_ALIQ, TRIB, ISPIS, COD_ISPIS, PERC_ICMS, BASE_ICM, false);
 
                   SOMA_MOV(listaProdutos[ini].cod, - listaProdutos[ini].quant);
+                  //ALIQUOTA DE ICMS (PEGA A ALIQUOTA INTERESTADUAL)
 
+                  PERC_ICMS := MENOR(ALIQ, PERC_ICMS);
+
+                  //TOT_ITEM := dsProduto.fieldbyname('total').AsCurrency; //MAT_ITENS[INI, 4]  //- MAT_ITENS[INI, 6] - MAT_ITENS[INI, 8]
                   //VALOR TOTAL DO ITEM - DESCONTO
-                  TOT_ITEM := listaProdutos[ini].total;
-
-                  if funcoes.buscaParamGeral(10, '') = '1' then begin
-                    listaProdutos[ini].TOT_ICM := 0;
-                  end;
-
-                  if True then
-
-
+                  //TOT_ITEM := listaProdutos[ini].total;
                   TOT      := TOT + listaProdutos[ini].total;
                   TOTDESC  := TOTDESC + listaProdutos[ini].descCom;
 
                   TRIB := Trim(listaProdutos[ini].CST);
                   TRIB := IfThen(Length(TRIB) = 2, trib, '41');  //CST - VERIFICA SE O CST DA NF-E   VALIDO, SEN? PEGA 41-N? TRIBUTADO
 
-                  if ((TRIB = '60') and (listaProdutos[ini].CFOP = '5102')) then listaProdutos[ini].CFOP := '5405';
-                  if ((TRIB = '60') and (listaProdutos[ini].CFOP = '6102')) then listaProdutos[ini].CFOP := '6404';
+                  //CALCULA O VALOR DO CREDITO DE ICMS, SE TIVER
+                  //BASE_ICM := IfThen(TRIB = '00', TOT_ITEM - dsProduto.fieldbyname('descCom').AsCurrency, 0);//MAT_ITENS[INI, 4] - MAT_ITENS[INI, 6], 0) //TIRANDO APENAS DESCONTO COMERCIAL DA BASE DE CALCULO
+                  BASE_ICM := IfThen(TRIB = '00', listaProdutos[ini].total, 0);//MAT_ITENS[INI, 4] - MAT_ITENS[INI, 6], 0) //TIRANDO APENAS DESCONTO COMERCIAL DA BASE DE CALCULO
 
-                  if Contido('-'+listaProdutos[ini].CFOP+'-', '-5929-6929-') then begin
-                    listaProdutos[ini].TOT_ICM  := 0;
-                    listaProdutos[ini].BASE_ICM := 0;
-                    listaProdutos[ini].PERC_ICM := 0;
-                    BASE_ICM  := 0;
-                  end;
+                  ALIQ := listaProdutos[ini].PERC_ICM; //PERCENTUAL DE ICMS
 
+	                BASE_ICM := listaProdutos[ini].BASE_ICM;
+                  TOT_ICM  := listaProdutos[ini].TOT_ICM;
+                  TOT_ICM  := IfThen(TRIB = '00', RoundTo1(BASE_ICM * PERC_ICMS / 100), 0);
 
-                  TOT_ICM  := TOT_ICM  + listaProdutos[ini].TOT_ICM;
-                  ACUM_IcmsCstCFOP(listaProdutos.Items[ini], listaPIS, BASE_ICM);
-                  totRED := totRED + listaProdutos[ini].TOT_RED_ICM;
+                  _CFOP := listaProdutos[ini].CFOP;
+                  ALIQ_CFOP := TRIB + '|' +  _CFOP + '|' + FORM_NUM1(ALIQ);
+                  ACUMULA_ALIQCFOP(ALIQ_CFOP, listaProdutos[ini].total, BASE_ICM, TOT_ICM, 0);
 
                   //ACUMULA VALORES DE PIS/COFINS DA NF-e
                   CALC_PISCOF(TOT_ITEM, ISPIS, listaProdutos[ini].vPIS, listaProdutos[ini].vCOFINS, '');
@@ -2594,107 +2052,43 @@ begin
               '|' + DadosNfe.chave + '|' +
               DATA_BRA_FULL(DATA_EMI) + '|' + DATA_BRA_FULL(DATA_EMI) + '|' +
               FORM_NUM1(TOT) + '|0|' +  FORM_NUM1(TOTDESC) + '|0|' + FORM_NUM1(TOT) + '|9|0|0|0|' +
-              FORM_NUM1(BASE_ICM) + '|' + FORM_NUM1(TOT_ICM) +
+              FORM_NUM1(TOTAL_MATRIZ(BAS_ALIQCFOP)) + '|' + FORM_NUM1(TOTAL_MATRIZ(ICM_ALIQCFOP)) +
               '|0|0|0|' + FORM_NUM1(TOT_PIS) + '|' + FORM_NUM1(TOT_COFINS) + '|0|0|';
 
               GRAVA_SPED(ARQ_TMP, LINHA);
 
+              fim := MAT_ALIQCFOP.Count -1;
 
-              fim := listaPIS.Count -1;
+              //TOTALIZA A NOTA COM VARIOS SUB-TOTAIS SEPARADOS POR ALIQUOTAS DIFERENTES
               for ini := 0 to fim do
                 begin
-                  if StrToIntDef(LeftStr(listaPIS[ini].CFOP, 1), 5) >= 5 then TOTDEBICM := TOTDEBICM + listaPIS[ini].icms
-                   else TOTCREDICM := TOTCREDICM + (listaPIS[ini].icms);
-                  LINHA := '|C190|0' + listaPIS[ini].CST + '|' + listaPIS[ini].CFOP + '|' + FORM_NUM1(listaPIS[ini].aliquota) + '|'  +
-                  FORM_NUM1(listaPIS[ini].total) + '|'  + FORM_NUM1(listaPIS[ini].Base) + '|'  + FORM_NUM1(listaPIS[ini].icms) + '|0|0|'+FORM_NUM1(totRED)+'|0||';
+                  LINHA := '|C190|0' + MAT_ALIQCFOP.ValueFromIndex[INI] + '|' + FORM_NUM1(StrToCurrDef(VAL_ALIQCFOP.ValueFromIndex[INI], 0)) + '|' +
+                  FORM_NUM1(StrToCurrDef(BAS_ALIQCFOP.ValueFromIndex[INI], 0)) + '|'  + FORM_NUM1(StrToCurrDef(ICM_ALIQCFOP.ValueFromIndex[INI], 0)) + '|'  +
+                  '0|0|0|0||';
 
                   GRAVA_SPED(ARQ_TMP, LINHA);
+                  ACUM_ICM(MAT_ALIQCFOP.ValueFromIndex[INI], StrToCurrDef(ICM_ALIQCFOP.ValueFromIndex[INI], 0), 'NF-e de venda: ' + IntToStr(NOTA));
                 end;
-            end;
 
             end;//if listaProdutos.Count > 0 then
-        //end;
+        end;
 
       dm.IBselect.Next;
     end;
-
-  dm.IBselect.Close;
-  dm.IBselect.SQL.Text := 'select chave, nota, data, estado from nfe f where'+
-  '  ((estado = ''C'') or  (estado = ''D'')) '+
-  ' and (data >= :ini) and (data <= :fim)';
-  dm.IBselect.ParamByName('ini').AsDate  := StrToDate(dataIni);
-  dm.IBselect.ParamByName('fim').AsDate  := StrToDate(DataFim);
-  dm.IBselect.Open;
-  dm.IBselect.FetchAll;
-  CODNOTA := '';
-
-  arq := TStringList.Create;
-
-  acc := 0;
-  fim := dm.IBselect.RecordCount;
-  informacao(0, fim, 'Verificando Vendas...', true, false, 2);
-  while not dm.IBselect.Eof do
-    begin
-      acc := acc + 1;
-      informacao(acc, fim, 'Verificando Vendas...', false, false, 2);
-
-      NOTA := dm.IBselect.FieldByName('nota').AsInteger;
-      DATA_EMI := dm.IBselect.FieldByName('data').AsDateTime;
-
-      {if not Assigned(dadosNfe) then dadosNfe := TDadosNFe.Create;
-
-      _SER := Le_Nodo('serie', DadosNfe.xml);}
-
-      DESC := '9999';
-
-      if dm.IBselect.FieldByName('estado').AsString = 'D' then DESC := '04'
-       else if dm.IBselect.FieldByName('estado').AsString = 'C' then DESC := '02';
-
-      //REGISTRO C100 - CABECALHO DA NOTA FISCAL
-      //VERIFICA SE A NF-e E DE ENTRADA OU SAIDA, PELO CFOP
-
-      if FileExists(ExtractFileDir(ParamStr(0)) + '\NFE\EMIT\' + dm.IBselect.FieldByName('chave').AsString + '-nfe.xml') then begin
-        arq.LoadFromFile(ExtractFileDir(ParamStr(0)) + '\NFE\EMIT\' + dm.IBselect.FieldByName('chave').AsString + '-nfe.xml');
-      end;
-
-      LIN := Le_Nodo('tpNF', arq.Text);
-      IF not Contido(LIN, '0-1') then LIN := '1'; //PADRAO SAIDA, SE NAO ACHAR A INFORMACAO
-
-     { LINHA := '|C100|' + LIN + '|0|2' + strzero(COD, 6) + '|55|'+DESC+'|' + _SER + '|' + strnum(IntToStr(NOTA)) +
-      '|' + DadosNfe.chave + '|||||||||||||||||||||';}
-
-      chaveNF := dm.IBselect.FieldByName('chave').AsString;
-      nota := StrToIntDef(copy(chaveNF, 26, 9), 0);
-      _SER := IntToStr(StrToIntDef(copy(chaveNF, 23, 3) , 1));
-      LINHA := '|C100|' + LIN + '|0||55|'+DESC+'|' + _SER + '|' + strnum(IntToStr(NOTA)) +
-      '|' + chaveNF + '|||||||||||||||||||||';
-
-      GRAVA_SPED(ARQ_TMP, LINHA);
-
-      dm.IBselect.Next;
-    end;
-
-    arq.free;
-
-  //gravaERRO_LOG1('', 'CODCLI4='+ CODCLI, '');
   {DADOS DE NFES EMITIDAS}
-  insereInutilizacoesFiscal;
 
 
-  {QUANDO TEM NFES IMPORTADAS DE OUTRO SISTEMA}
-  leNfesImportadasDeOutroSistema;
 
   {DADOS DE CFe EMITIDAS}
   leCFEs();
-
   {DADOS DE CFe EMITIDAS}
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
   {DADOS DE CUPOM FISCAIS}
   listaProdutos.Clear;
   MAT_NOTA.Clear;
   TOT_ECF.Clear;
-  indXNaoTrib := 0;
   i := TOT_ECF.Add(TaliqSped.Create);
   TOT_ECF[i].leng      := 'Can-T';
   TOT_ECF[i].CST       := 'XX';
@@ -2703,31 +2097,26 @@ begin
   TOT_ECF[i].totVendas := 0;
 
   dsAliq.First;
-  for ini := 1 to dsAliq.RecordCount-1 do
+  for ini := 1 to 8 do
     begin
       dsAliq.RecNo := ini;
-      if ini = 4 then break;
-      
-
-      if dsAliq.fieldbyname('cod').AsInteger < 10 then begin
-        num1 := dsAliq.fieldbyname('aliq').AsCurrency;
-        if dsAliq.fieldbyname('reducao').AsCurrency <> 0 then begin
+      num1 := dsAliq.fieldbyname('aliq').AsCurrency;
+      if dsAliq.fieldbyname('reducao').AsCurrency <> 0 then
+        begin
           num1 := (num1 * dsAliq.fieldbyname('reducao').AsCurrency) / 100;
         end;
-        num1 := arredonda(num1, 2);
-        num1 := num1 * 100;
+      num1 := arredonda(num1, 2);
+      num1 := num1 * 100;
 
-        i := TOT_ECF.Add(TaliqSped.Create);
-        TOT_ECF[i].leng      := strzero(IntToStr(ini), 2) + 'T' + STRZERO(CurrToStr(num1), 4) ;
-        TOT_ECF[i].CST       := '00';
-        TOT_ECF[i].codAliq   := ini;
-        TOT_ECF[i].totECF    := 0;
-        TOT_ECF[i].totVendas := 0;
-      end;
+      i := TOT_ECF.Add(TaliqSped.Create);
+      TOT_ECF[i].leng      := strzero(IntToStr(ini), 2) + 'T' + STRZERO(CurrToStr(num1), 4) ;
+      TOT_ECF[i].CST       := '00';
+      TOT_ECF[i].codAliq   := ini;
+      TOT_ECF[i].totECF    := 0;
+      TOT_ECF[i].totVendas := 0;
     end;
 
   i := TOT_ECF.Add(TaliqSped.Create);
-  indXNaoTrib := i;
   TOT_ECF[i].leng      := 'DT';
   TOT_ECF[i].CST       := 'XX';
   TOT_ECF[i].codAliq   := 0;
@@ -2761,17 +2150,11 @@ begin
   _CFOP := '5102';
   COD   := '000';
   dm.IBselect.Close;
-  //dm.IBselect.SQL.Text := 'select * from SPED_REDUCAOZ where (data >= :ini) and (data <= :fim) order by ecf';
-  dm.IBselect.SQL.Text := 'select COD, DATA, ECF, CONT_REINICIO, CONT_REDUCAOZ, CONT_OP, '+
-  'TOT_GERAL, TOT_CANC, TOT_ALIQ01,TOT_ALIQ02, TOT_ALIQ03, TOT_DESC, TOT_FF, TOT_II, TOT_NN, '+
-  'VENDABRUTA from SPED_REDUCAOZ where (data >= :ini) and (data <= :fim) order by ecf';
+  dm.IBselect.SQL.Text := 'select * from SPED_REDUCAOZ where (data >= :ini) and (data <= :fim) order by ecf';
   dm.IBselect.ParamByName('ini').AsDate  := StrToDate(dataIni);
   dm.IBselect.ParamByName('fim').AsDate  := StrToDate(DataFim);
   dm.IBselect.Open;
   dm.IBselect.FetchAll;
-
-  if dm.IBselect.IsEmpty then exit;
-  
 
   informacao(0, fim, 'Verificando Vendas...', true, false, 2);
   acc := 0;
@@ -2807,44 +2190,42 @@ begin
          GRAVA_SPED(ARQ_TMP, LINHA);
        end;
 
-     FOR ini := 7 TO dm.IBselect.FieldDefs.Count - 2 do// IfThen(dm.IBselect.FieldDefs.Count = 22, 3, 2) do
+
+     FOR ini := 8 TO dm.IBselect.FieldDefs.Count - IfThen(dm.IBselect.FieldDefs.Count = 22, 3, 2) do
      //FOR ini := 0 TO TOT_ECF.Count -1 do
        begin
-
-          TOT_ECF[ini - 7].totVendas := dm.IBselect.FieldByName(dm.IBselect.FieldDefs[ini].Name).AsCurrency;
          //ShowMessage('cont=' + IntToStr(ini - 7) + #13 + 'tot=' + IntToStr(dm.IBselect.FieldDefs.Count -2) + #13 + #13 + TOT_ECF.GetText);
-         //TOT_ECF[ini - (indXNaoTrib -1)].totECF    := 0;
-         //TOT_ECF[ini - (indXNaoTrib -1)].totVendas := 0;
+         TOT_ECF[ini - 7].totECF    := 0;
+         TOT_ECF[ini - 7].totVendas := 0;
           //nao pode adicionar os descontos e nem cancelamentos aqui
-          //IF ((dm.IBselect.FieldByName(dm.IBselect.FieldDefs[ini].Name).AsCurrency <> 0) and ((ini - (indXNaoTrib -1)) <> 9)) then
-           //    TOT_ECF[ini - (indXNaoTrib -1)].totVendas := dm.IBselect.FieldByName(dm.IBselect.FieldDefs[ini].Name).AsCurrency;
+          IF ((dm.IBselect.FieldByName(dm.IBselect.FieldDefs[ini].Name).AsCurrency <> 0) and ((ini - 7) <> 9)) then
+               TOT_ECF[ini - 7].totVendas := dm.IBselect.FieldByName(dm.IBselect.FieldDefs[ini].Name).AsCurrency;
        end;
 
-     //ShowMessage(TOT_ECF.GetText);
-
-     temMov := false;
      //GRAVA PRIMEIRO OS REGISTROS C420 DOS TOTALIZADORES QUE NAO TEM C425 (CANCELAMENTO E DESCONTOS)
      //LE OS TOTALIZADORES (A PARTIR DO 5. ELEMENTO) E VE OS QUE TEM MOVIMENTO
-
-     total1 := 0;
      FOR i1 := 0 TO TOT_ECF.Count - 1 do
        begin
          if (TOT_ECF[i1].totVendas <> 0) then
            begin
-             if Contido('-' + TOT_ECF[i1].leng + '-', '-DT-Can-T-') = false then begin
-               listaProdutos.Clear;
-               LIN := IfThen(copy(TOT_ECF[i1].leng, 3, 1) = 'T', trim(IntToStr(StrToInt(strnum(LeftStr(TOT_ECF[i1].leng, 2))))), '');
-               if LIN = '0' then LIN := '';
-               LINHA := '|C420|' + TOT_ECF[i1].leng + '|' + FORM_NUM1(TOT_ECF[i1].totVendas) + '|'+ LIN +'||';
-               MAT_NOTA.Add(LINHA);
+             listaProdutos.Clear;
+             LIN := IfThen(copy(TOT_ECF[i1].leng, 3, 1) = 'T', trim(IntToStr(StrToInt(strnum(LeftStr(TOT_ECF[i1].leng, 2))))), '');
+             if LIN = '0' then LIN := '';
+             LINHA := '|C420|' + TOT_ECF[i1].leng + '|' + FORM_NUM1(TOT_ECF[i1].totVendas) + '|'+ LIN +'||';
+             MAT_NOTA.Add(LINHA);
 
-               TOT_ITEM := VE_MOVCUPOM(dm.IBselect.fieldbyname('data').AsDateTime, TOT_ECF[i1].codAliq, TOT_ECF[i1].totVendas, cod);
+             TOT_ITEM := VE_MOVCUPOM(dm.IBselect.fieldbyname('data').AsDateTime, TOT_ECF[i1].codAliq, TOT_ECF[i1].totVendas, cod);
+            { IF (dm.IBselect.fieldbyname('data').AsDateTime = StrToDate('20/08/2015')) and (cod = '3') THEN
+               BEGIN
+                 ShowMessage('prodCount=' + IntToStr(listaProdutos.Count) + #13 + 'aliq='+ IntToStr(TOT_ECF[i1].codAliq) + #13 + 'totvendas=' + CurrToStr(TOT_ECF[i1].totVendas));
+               END;}
 
-               for i3 := 0 to listaProdutos.Count -1 do begin
+             for i3 := 0 to listaProdutos.Count -1 do
+               begin
                  //SE CHEGOU AQUI, ENT? ESTE ITEM E DA ALIQUOTA ATUAL
                  ret := ret + 1;
 
-                 DADOS_PROD(IntToStr(listaProdutos[i3].cod) , DESC, UNID, COD_ALIQ, TRIB, ISPIS, COD_ISPIS, PERC_ICMS, BASE_ICM, false);
+                 DADOS_PROD(IntToStr(listaProdutos[i3].cod) , DESC, UNID, COD_ALIQ, TRIB, ISPIS, COD_ISPIS, PERC_ICMS, BASE_ICM);
 
                  SOMA_MOV(listaProdutos[i3].cod, - listaProdutos[i3].quant);
 
@@ -2852,7 +2233,6 @@ begin
                  VALIDALIQ(listaProdutos[i3].aliq, num_aliq, ALIQ, TRIB, BASE_ICM);
 
                  //VALOR TOTAL DO ITEM
-                 //listaProdutos[i3].total := ArredondaTrunca(listaProdutos[i3].preco * listaProdutos[i3].quant, 2);
                  TOT_ITEM := listaProdutos[i3].total;
                  TOT      := TOT + listaProdutos[i3].total;
 
@@ -2862,12 +2242,6 @@ begin
                  //TOT_ICM := IfThen(ALIQ > 0, RoundTo(BASE_ICM * ALIQ / 100, 2), 0);
                  TOT_ICM := IfThen(ALIQ > 0, RoundTo1(BASE_ICM * ALIQ / 100), 0);
 
-                  if funcoes.buscaParamGeral(10, '') = '1' then begin
-                    listaProdutos[i3].TOT_ICM := 0;
-                    BASE_ICM := 0;
-                    TOT_ICM  := 0;
-                  end;
-
                  //CALCULA PIS/COFINS
                  CALC_PISCOF(TOT_ITEM, ISPIS, _PIS, _COFINS, '');
                  TOT_PIS    := TOT_PIS    + _PIS;
@@ -2876,33 +2250,20 @@ begin
 			           //SE NAO TEM PIS/COFINS, ACUMULA NO TOTALIZADOR DE PIS/COFINS NAO TRIBUTADO PARA O RELATORIO DE APURACAO
                  _PISNT := _PISNT + IfThen(_PIS + _COFINS = 0, TOT_ITEM, 0);
 
-                 UNID := listaProdutos[i3].unid;
-                 VE_UNIDADE(UNID);
-
-                 ACUMULA_COD(IntToStr(listaProdutos[i3].cod), UNID);
-
                  LINHA := '|C425|' + strzero(listaProdutos[i3].cod, 6) + '|' + FORM_NUM1(listaProdutos[i3].quant) + '|' + UNID + '|' +
                  FORM_NUM1(TOT_ITEM) + '|' + FORM_NUM1(_PIS) + '|' + FORM_NUM1(_COFINS) + '|';
                  //GRAVA_SPED(ARQ_TMP, LINHA)
                  MAT_NOTA.Add(LINHA);
 
-                 total1 := total1 + TOT_ITEM;
-
                  ALIQ_CFOP := TRIB + '|' + _CFOP + '|'+ IfThen(ALIQ > 0, FORM_NUM1(ALIQ), '0');
-
-                 temMov := true;
 
                  //ACUMULA NOS TOTALIZADORES DE ALIQUOTA E CFOP
                  ACUMULA_ALIQCFOP(ALIQ_CFOP, TOT_ITEM, BASE_ICM, TOT_ICM, 0);
                end;
-             end;
-             {MAT_NOTA.Add('');
-             MAT_NOTA.Add('total=' + CurrToStr(total1));
-             MAT_NOTA.Add('');}
            end;
        end;
 
-       if (((TOT_PIS + TOT_COFINS) > 0) and (temMov)) then
+       if (TOT_PIS + TOT_COFINS) > 0 then
          begin
            LINHA := '|C410|' + FORM_NUM1(TOT_PIS) + '|' + FORM_NUM1(TOT_COFINS) + '|';
            GRAVA_SPED(ARQ_TMP, LINHA);
@@ -2932,14 +2293,8 @@ begin
             begin
               LIN := (copy(MAT_ALIQCFOP.ValueFromIndex[INI2], PosFinal('|', MAT_ALIQCFOP.ValueFromIndex[INI2]) + 1, LENGTH(MAT_ALIQCFOP.ValueFromIndex[INI2])));
               ALIQ := StrToCurrDef(LIN, 0) / 100;
-
               BASE_ICM := IfThen(ALIQ = 0, 0, strtocurr(BAS_ALIQCFOP.ValueFromIndex[INI2]));
               TOT_ICM  := IfThen(ALIQ = 0, 0, RoundTo1(strtocurr(VAL_ALIQCFOP.ValueFromIndex[INI2]) * ALIQ));
-
-              if funcoes.buscaParamGeral(10, '') = '1' then begin
-                BASE_ICM := 0;
-                TOT_ICM  := 0;
-              end;
               TOTDEBICM := TOTDEBICM + TOT_ICM;
             end
           ELSE
@@ -3052,8 +2407,6 @@ begin
 end;
 
 FUNCTION CALC_PISCOF1(var TOT_ITEM : currency; _ISPIS : String; var VLR_PIS, VLR_COFINS : currency; CST_PIS : String; nfe : boolean = true) : String;
-var
-  basePIS, BaseCofins : currency;
 begin
   Result     := '';
   if not nfe then
@@ -3061,7 +2414,6 @@ begin
       VLR_PIS    := 0;
       VLR_COFINS := 0;
     end;
-
   CST_PIS := TRIM(CST_PIS);
   IF CST_PIS = '' then CST_PIS := '01';
   //SE A EMPRESA E DE REGIME NORMAL, CALCULA PIS/COFINS
@@ -3100,95 +2452,54 @@ begin
      end
 	 ELSE IF ((_ISPIS = 'B') OR (CST_PIS = '02')) then
      begin
-       //Result := '02|' + FORM_NUM1(TOT_ITEM) + '|0|||0|02|' + FORM_NUM1(TOT_ITEM) + '|0|||0';
        Result := '02|' + FORM_NUM1(TOT_ITEM) + '|0|||0|02|' + FORM_NUM1(TOT_ITEM) + '|0|||0';
-       BASE_PIS_RD := BASE_PIS_RD + TOT_ITEM;
-     end
-   ELSE IF (CST_PIS = '49') then
-     begin
-       Result := '49|' + FORM_NUM1(TOT_ITEM) + '|0|||0|49|' + FORM_NUM1(TOT_ITEM) + '|0|||0';
        BASE_PIS_RD := BASE_PIS_RD + TOT_ITEM;
      end
 	 ELSE
      begin
-       basePIS    := TOT_ITEM;
-       BaseCofins := TOT_ITEM;
+       if not nfe then
+         begin
+           VLR_PIS    := Arredonda(TOT_ITEM * TRIB_ALIQ_PIS / 100, 2);
+	         VLR_COFINS := Arredonda(TOT_ITEM * TRIB_ALIQ_COFINS / 100, 2);
+         end;  
 
-       if (VLR_PIS = 0) and (VLR_COFINS = 0) then begin
-         basePIS    := 0;
-         BaseCofins := 0;
-       end;
-      { else begin
-         VLR_PIS    := Arredonda(TOT_ITEM * TRIB_ALIQ_PIS / 100, 2);
-         VLR_COFINS := Arredonda(TOT_ITEM * TRIB_ALIQ_COFINS / 100, 2);
-       end;}
-
-       Result := '01|' + FORM_NUM1(basePIS) + '|' +  FORM_NUM1(TRIB_ALIQ_PIS) + '|||' +
+       Result := '01|' + FORM_NUM1(TOT_ITEM) + '|' +  FORM_NUM1(TRIB_ALIQ_PIS) + '|||' +
        FORM_NUM1(VLR_PIS) + '|' +
-       '01|' + FORM_NUM1(BaseCofins) + '|' +  FORM_NUM1(TRIB_ALIQ_COFINS) + '|||' +
+       '01|' + FORM_NUM1(TOT_ITEM) + '|' +  FORM_NUM1(TRIB_ALIQ_COFINS) + '|||' +
 	     FORM_NUM1(VLR_COFINS);
 	   end;
 end;
 
 
-function ACHA_CODCLI(CPF_CNPJ, UF : String; nodo_destXML : String = '') : String;
-var
-  idestra : string;
+function ACHA_CODCLI(CPF_CNPJ, UF : String) : String;
 begin
   Result := '000001';
-
-  idestra := Le_Nodo('idEstrangeiro', nodo_destXML);
-  if idestra <> '' then begin
-    dm.IBQuery2.Close;
-    dm.IBQuery2.SQL.Text := 'select cnpj, cod, est from cliente where ies = :cnpj';
-    dm.IBQuery2.ParamByName('cnpj').AsString := CPF_CNPJ;
-    dm.IBQuery2.Open;
-
-    Result := dm.IBQuery2.fieldbyname('cod').AsString;
-    dm.IBQuery2.Close;
-    exit;
-  end;
-
-
-  try
-    IF UF <> 'EX' then begin
-      if Length(CPF_CNPJ) = 14      then
-        begin
-          CPF_CNPJ := formataCNPJ(CPF_CNPJ);
-        end
-      else if Length(CPF_CNPJ) = 11 then
-        begin
-          CPF_CNPJ := formataCPF(CPF_CNPJ);
-        end
-      else
-        begin
-          exit;
-        end;
-
-      dm.IBQuery2.Close;
-      dm.IBQuery2.SQL.Text := 'select cnpj, cod, est from cliente where cnpj = :cnpj';
-      dm.IBQuery2.ParamByName('cnpj').AsString := CPF_CNPJ;
-      dm.IBQuery2.Open;
+  if Length(CPF_CNPJ) = 14      then
+    begin
+      CPF_CNPJ := formataCNPJ(CPF_CNPJ);
     end
-    else begin
-      dm.IBQuery2.Close;
-      dm.IBQuery2.SQL.Text := 'select cnpj, cod, est from cliente where ies = :cnpj';
-      dm.IBQuery2.ParamByName('cnpj').AsString := CPF_CNPJ;
-      dm.IBQuery2.Open;
+  else if Length(CPF_CNPJ) = 11 then
+    begin
+      CPF_CNPJ := formataCPF(CPF_CNPJ);
+    end
+  else
+    begin
+      exit;
     end;
 
-    if dm.IBQuery2.IsEmpty then begin
+  dm.IBQuery2.Close;
+  dm.IBQuery2.SQL.Text := 'select cnpj, cod, est from cliente where cnpj = :cnpj';
+  dm.IBQuery2.ParamByName('cnpj').AsString := CPF_CNPJ;
+  dm.IBQuery2.Open;
+
+  if dm.IBQuery2.IsEmpty then
+    begin
       dm.IBQuery2.Close;
       exit;
     end;
 
-    Result := dm.IBQuery2.fieldbyname('cod').AsString;
-    dm.IBQuery2.Close;
-  finally
-    if Result = '000001' then begin
-      Result := insereClientePeloNodo(nodo_destXML);
-    end;
-  end;
+  Result := dm.IBQuery2.fieldbyname('cod').AsString;
+  dm.IBQuery2.Close;
 end;
 
 FUNCTION VE_ECF(const COD_ECF : integer) : String;
@@ -3233,7 +2544,7 @@ begin
 
   dm.IBQuery4.Close;
   dm.IBQuery4.SQL.Text := 'select i.cod, i.quant, i.p_venda, i.total, i.aliquota from item_venda i ' +
-  ',venda v where (i.nota = v.nota) and (i.data = :ini) and (cast(iif(trim(aliquota) = '''', ''2'', trim(aliquota)) as integer) = :aliq) and (v.entrega = ''C'') and (substring(v.crc from 7 for 3) = :crc) and (v.total > 0)';
+  ',venda v where (i.nota = v.nota) and (i.data = :ini) and (i.aliquota = :aliq) and (v.cancelado = 0) and (v.entrega = ''C'') and (substring(v.crc from 7 for 3) = :crc) and (v.total > 0)';
   dm.IBQuery4.ParamByName('ini').AsDate     := DAT;
   dm.IBQuery4.ParamByName('aliq').AsInteger := ALIQ;
   dm.IBQuery4.ParamByName('crc').AsString   := strzero(indiceECF, 3);
@@ -3242,7 +2553,7 @@ begin
   if dm.IBQuery4.IsEmpty then
     begin
       dm.IBQuery4.SQL.Text := 'select i.cod, i.quant, i.p_venda, i.total, i.aliquota from item_venda i ' +
-      ',venda v where (i.nota = v.nota) and (i.data = :ini) and (substring(v.crc from 7 for 3) = :crc) and (v.total > 0)';
+      ',venda v where (i.nota = v.nota) and (i.data = :ini) and (v.cancelado = 0) and (substring(v.crc from 7 for 3) = :crc) and (v.total > 0)';
       dm.IBQuery4.ParamByName('ini').AsDate     := DAT;
       dm.IBQuery4.ParamByName('crc').AsString   := strzero(indiceECF, 3);
       {dm.IBQuery4.Close;
@@ -3460,15 +2771,6 @@ end;
 
 procedure REM_CONTRIBUICOES();
 begin
-  codCTA := '';
-  try
-    codCTA := funcoes.buscaParamGeral(99, '');
-  except
-  end;
-
-  if codCTA = '' then codCTA := '1';
-  pisInvalido := '-';
-
     //cria um registro de unidade - só teste
   reg1 := new(RegistroUnidade);
   listaUnidades := TList.Create;
@@ -3489,16 +2791,13 @@ begin
    end;
 
   dataIni := '01/' + FormatFloat('###,##00', StrToInt(mes)) + '/' + ano;
+  DataFim := FormatDateTime('dd/mm/yy', EndOfTheMonth(StrToDateTime(dataIni)));
 
   dataIni := dialogo('data', 0, '', 2, true, '', Application.Title,'Confirme a Data Inicial:', dataIni);
   if dataIni = '*' then exit;
 
-  DataFim := FormatDateTime('dd/mm/yy', EndOfTheMonth(StrToDateTime(dataIni)));
-
   DataFim := dialogo('data', 0, '', 2, true, '', Application.Title,'Confirme a Data Final:', DataFim);
   if DataFim = '*' then exit;
-
-  chaveAnoMes := FormatDateTime('yy', StrToDate(dataIni)) + FormatDateTime('mm', StrToDate(dataIni));
 
   CriaDiretorio(caminhoEXE_com_barra_no_final + 'SPED\TEMP\');
   CriaDiretorio(caminhoEXE_com_barra_no_final + 'SPED\');
@@ -3514,7 +2813,6 @@ begin
   movimento := TStringList.Create;
 
   iniciaDataSets();  //iniciou o dataSet de unidades, linhas
-
 
   num1 := 0;
   num2 := 0;
@@ -3540,54 +2838,41 @@ begin
   dm.IBselect.Close;
   carregaAliquotasEm_MATTRIB; //carrega as aliquotas em um DataSet na memoria dsAliq
 
-//  try
-
   if not verificaConsistenciaReducaoZ then
      begin
+       LimpaMemoria();
        exit;
      end;
-
+  try
   blocoA();
-
   leSaidas_Contribuicoes();
   TOTAL_REG(ARQ_TMP, 'C');
-
 
   leConhecimentos_de_frete_Bloco_D_SF(0);
   TOTAL_REG(ARQ_TMP, 'D');
 
   //daqui pra baixo ja o TOTAL_REG ja esta dentro da função
   blocoF(0);
-  blocoI;
   blocoM();
-
-  blocoP_vazio();
+  //BLOCOP();
   bloco0_Sped_Contribuicoes();
 
   cabecalho_SF_Bloco_0(true);
   TOTAL_REG(ARQ_SPED, '0');
 
   TOTAL_REG(ARQ_TMP, '');
-
-//  finally
-    montaArquivo();
+  montaArquivo();
+  finally
     informacao(0, fim, 'Aguarde...', false, true, 5);
     ShowMessage('Remessa criada com sucesso em: ' + #13 + arqSPED);
     LimpaMemoria();
-
-    if pisInvalido <> '-' then begin
-      form19.RichEdit1.Clear;
-      addRelatorioForm19('Produtos com Cód da Natureza de Pis Inválido:' + CRLF);
-      addRelatorioForm19(pisInvalido + CRLF);
-      form19.ShowModal;
-    end;
-//  end;
+  end;
 end;
 
 procedure MONTA_INVTXT(var arqTXT : TextFile; ano : String);
 var
  arqv, cod_ctod : string;
- i, f, ki, ka : integer;
+ i, f, ki : integer;
  mat12, arx : TStringList;
 begin
   LINHA := '|H001|0|';
@@ -3603,17 +2888,16 @@ begin
   for i := 0 to f do
     begin
       Application.ProcessMessages;
-      funcoes.informacao(i, f, 'Incluindo Inventario: INV_' + ANO + '.TXT ' + 'Reg. ' + IntToStr(i
-      ), false, false, 5);
+      funcoes.informacao(i, f, 'Incluindo Inventario: INV_' + ANO + '.TXT', false, false, 5);
       linha := arx.Strings[i];
 
       IF LeftStr(LINHA, 3) = '|H0' then
         begin
           le_campos(mat12,linha, '|', FALSE);
-          mat12.Values['2'] := trim(mat12.Values['2']);
           //Retorna_Array_de_Numero_de_Notas(mat12, linha, '|');
 
-          IF MAT12.Values['0'] = 'H010' then begin
+          IF MAT12.Values['0'] = 'H010' then
+            begin
               dm.IBselect.Close;
               dm.IBselect.SQL.Text := 'select unid from produto where cod = :cod';
               dm.IBselect.ParamByName('cod').AsString := StrNum(mat12.Values['1']);
@@ -3623,56 +2907,29 @@ begin
 
               if dm.IBselect.IsEmpty then
                 begin
-                  IF (trim(mat12.Values['2']) = '') then MAT12.Values['2'] := 'UN';
-
-                  try
+		              IF (mat12.Values['2'] = '') then MAT12.Values['2'] := 'UN';
 
                   dm.IBQuery1.Close;
-                  dm.IBQuery1.SQL.Text := 'select cod, nome, quant, deposito, codbar from produto where cod = :cod';
-                  dm.IBQuery1.ParamByName('cod').AsString := StrNum(mat12.Values['1']);
-                  dm.IBQuery1.Open;
-
-                  if not dm.IBQuery1.IsEmpty then
-                    begin
-                      ka := IDNO;
-                      //ka := MessageDlg('Foi Encontrado um Produto no código ' + StrNum(mat12.Values['1']) + ' - ' + dm.IBQuery1.fieldbyname('nome').AsString  + #13 +
-                      //'Deseja Substituir por: ' + mat12.Values['8'] + ' ?', mtConfirmation, [mbYes, mbNo], 1);
-                    end
-                  else ka := idyes;
-
-                  dm.IBQuery1.Close;
-
-                  if ka = idyes then
-                    begin
-                      dm.IBQuery1.Close;
-                      dm.IBQuery1.SQL.Text := 'update or insert into produto(cod, nome, quant, p_compra, p_venda, igual, unid, grupo) ' +
-                      'values(:cod, :nome, :quant, :p_compra, :p_venda, :igual, :unid, 0)';
-                      dm.IBQuery1.ParamByName('cod').AsString        := StrNum(mat12.Values['1']);
-                      dm.IBQuery1.ParamByName('nome').AsString       := mat12.Values['8'];
-                      dm.IBQuery1.ParamByName('quant').AsCurrency    := StrToCurrDef(mat12.Values['3'], 0);
-                      dm.IBQuery1.ParamByName('p_compra').AsCurrency := StrToCurrDef(mat12.Values['4'], 0);
-                      dm.IBQuery1.ParamByName('p_venda').AsCurrency  := StrToCurrDef(mat12.Values['4'], 0) * 2;
-                      dm.IBQuery1.ParamByName('igual').AsString      := 'PRODUTO CADASTRADO PELO INV. ' + ano;
-                      dm.IBQuery1.ParamByName('unid').AsString       := trim(mat12.Values['2']);
-                      dm.IBQuery1.ExecSQL;
-                      dm.IBQuery1.Transaction.Commit;
-                    end
-                  except
-                    on e:exception do
-                      begin
-                        ShowMessage('ERRO BLOCOH: linha 3002, ' + e.Message + #13 + #13 + linha + #13 + #13 + mat12.Text);
-                      end;
-                  end;
+                  dm.IBQuery1.SQL.Text := 'update or insert into produto(cod, nome, quant, p_compra, p_venda, igual, unid) ' +
+                  'values(:cod, :nome, :quant, :p_compra, :p_venda, :igual, :unid)';
+                  dm.IBQuery1.ParamByName('cod').AsString        := StrNum(mat12.Values['1']);
+                  dm.IBQuery1.ParamByName('nome').AsString       := mat12.Values['8'];
+                  dm.IBQuery1.ParamByName('quant').AsCurrency    := StrToCurrDef(mat12.Values['3'], 0);
+                  dm.IBQuery1.ParamByName('p_compra').AsCurrency := StrToCurrDef(mat12.Values['4'], 0);
+                  dm.IBQuery1.ParamByName('p_venda').AsCurrency  := StrToCurrDef(mat12.Values['4'], 0) * 2;
+                  dm.IBQuery1.ParamByName('igual').AsString      := 'PRODUTO CADASTRADO PELO INV. ' + ano;
+                  dm.IBQuery1.ParamByName('unid').AsString       := mat12.Values['2'];
+                  dm.IBQuery1.ExecSQL;
+                  dm.IBQuery1.Transaction.Commit;
                 end;
 
               UNID := VALIDA_UNID(dm.IBselect.fieldbyname('unid').AsString);
               //VALIDA A UNIDADE
 
-              //if Contido('|003845|', linha) then ShowMessage('UNID=' + UNID + #13 + 'BD=' + dm.IBselect.fieldbyname('unid').AsString + #13 +  #13 + #13 + mat12.GetText);
-
               VE_UNIDADE(UNID);
               IF mat12.Values['2'] <> UNID then
                 begin
+
                   mat12.Values['2'] := UNID;
                   if mat12.Count < 10 then
                     begin
@@ -3688,23 +2945,12 @@ begin
                   LINHA := MONTA_REG(MAT12);
                 End;
 
-             //if Contido('|003845|', linha) then ShowMessage('UNID=' + UNID + #13 + 'BD=' + dm.IBselect.fieldbyname('unid').AsString + #13 +  #13 + #13 + mat12.GetText);
-
               ki := ContaChar1(linha, '|');
               IF((mat12.Values['0'] = 'H010') AND (ki < 12)) then
                 begin
                   LINHA := LINHA + '|';
                 end;
-
-              try
-                ACUMULA_COD((mat12.Values['1']), UNID);
-              except
-                on e:exception do
-                  begin
-                    MessageDlg('Erro: ' + e.Message + #13 + 'Linha: ' + IntToStr(i) + #13 + #13 + 'Registro: ' + #13 + mat12.Text,
-                    mtError, [mbOK], 1);
-                  end;
-              end;
+              ACUMULA_COD(mat12.Values['1'], UNID);
             end;
         end;
         
@@ -3761,14 +3007,14 @@ end;
 procedure leCFEs();
 var
   mat      : TStringList;
-  CODNOTA, LIN, desti  : String;
+  CODNOTA, LIN, desti, crc  : String;
   DATA_EMI : TDate;
   DadosNfe : TDadosNFe;
-  i1, acc : integer;
+  ini2, fim2, i3, f3, i1, acc : integer;
 begin
   {DADOS DE NFCes EMITIDAS}
-  {dm.IBselect.Close;
-  dm.IBselect.SQL.Text := 'select chave, nota, cliente, data from nfce where (data >= :ini) and (data <= :fim) and (ADIC = ''CANC'')';
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select chave, nota, cliente, data from nfce where (data >= :ini) and (data <= :fim) and (ADIC = '''')';
   //dm.IBselect.ParamByName('tipo').AsString := TIPO;
   dm.IBselect.ParamByName('ini').AsDate  := StrToDate(dataIni);
   dm.IBselect.ParamByName('fim').AsDate  := StrToDate(DataFim);
@@ -3776,52 +3022,31 @@ begin
   dm.IBselect.FetchAll;
   CODNOTA := '';
 
-  while not dm.IBselect.Eof do
-    begin
-
-    end; }
-
-  dm.IBselect.Close;
-
-  dm.IBselect.SQL.Text := 'select chave, nota, cliente, data from nfce where substring(chave from 3 for 4) = :ini and ((ADIC = '''') or (ADIC = ''OFF''))';
-  dm.IBselect.ParamByName('ini').AsString  := chaveAnoMes;
-  {dm.IBselect.SQL.Text := 'select chave, nota, cliente, data from nfce where (data >= :ini) and (data <= :fim) and (ADIC = '''')';
-  //dm.IBselect.ParamByName('tipo').AsString := TIPO;
-  dm.IBselect.ParamByName('ini').AsDate  := StrToDate(dataIni);
-  dm.IBselect.ParamByName('fim').AsDate  := StrToDate(DataFim);}
-  dm.IBselect.Open;
-  dm.IBselect.FetchAll;
-  CODNOTA := '';
-
   acc := 0;
-  acc := dm.IBselect.RecordCount;
-  informacao(0, acc, 'Verificando NFCe...', true, false, 2);
-
+  fim := dm.IBselect.RecordCount;
+  informacao(0, fim, 'Verificando NFCe...', true, false, 2);
   while not dm.IBselect.Eof do
     begin
-      informacao(dm.IBselect.RecNo, acc, 'Verificando Vendas...', false, false, 2);
+      acc := acc + 1;
+      informacao(acc, fim, 'Verificando Vendas...', false, false, 2);
+      //linha := dm.IBselect.fieldbyname('item').AsString;
       DECOMP_MOV(linha, mat);
       TOTDESC := 0;
       TOT     := 0;
 
-      listaPIS.Clear;
-      BASE_ICM := 0;
-      TOT_ICM  := 0;
-
+      zerarArrayProduto();
       NOTA := dm.IBselect.fieldbyname('nota').AsInteger;
 
-      //if not Contido(IntToStr(nota), CODNOTA) then
-        //begin
+      if not Contido(IntToStr(nota), CODNOTA) then
+        begin
           CODNOTA := CODNOTA + IntToStr(NOTA) + '-';
           DATA_EMI := dm.IBselect.fieldbyname('data').AsDateTime;
 
-          listaProdutos.Clear;
-          LE_XMLNFCE(dm.IBselect.fieldbyname('chave').AsString, listaProdutos, dm.IBQuery4, DadosNfe, TRIB_ALIQ_PIS, TRIB_ALIQ_COFINS);
-          DATA_EMI := DadosNfe.data;
+          LE_XMLNFCE(dm.IBselect.fieldbyname('chave').AsString, listaProdutos, dm.IBQuery4, DadosNfe);
 
           if listaProdutos.Count > 0 then
             begin
-              //mat.Text := DadosNfe.xml;
+              mat.Text := DadosNfe.xml;
 
               _SER := Le_Nodo('serie', DadosNfe.xml);
               fim  := listaProdutos.Count -1;
@@ -3833,36 +3058,39 @@ begin
                 begin
                   ret := ret + 1;
 
-                  DADOS_PROD(IntToStr(listaProdutos[ini].cod) , DESC, UNID, COD_ALIQ, TRIB, ISPIS, COD_ISPIS, PERC_ICMS, BASE_PIS_RD, false);
-
-                  if ((listaProdutos.Items[ini].CST = '60') and (listaProdutos[ini].CFOP = '5102')) then listaProdutos[ini].CFOP := '5405';
+                  DADOS_PROD(IntToStr(listaProdutos[ini].cod) , DESC, UNID, COD_ALIQ, TRIB, ISPIS, COD_ISPIS, PERC_ICMS, BASE_ICM, false);
 
                   TOT_ITEM := listaProdutos[ini].total;
                   SOMA_MOV(listaProdutos[ini].cod, - listaProdutos[ini].quant);
                   //ALIQUOTA DE ICMS (PEGA A ALIQUOTA INTERESTADUAL)
 
+                  PERC_ICMS := MENOR(ALIQ, PERC_ICMS);
+
+                  //TOT_ITEM := dsProduto.fieldbyname('total').AsCurrency; //MAT_ITENS[INI, 4]  //- MAT_ITENS[INI, 6] - MAT_ITENS[INI, 8]
                   //VALOR TOTAL DO ITEM - DESCONTO
                   //TOT_ITEM := listaProdutos[ini].total;
                   TOT      := TOT + listaProdutos[ini].total;
                   TOTDESC  := TOTDESC + listaProdutos[ini].descCom;
 
-                  if funcoes.buscaParamGeral(10, '') = '1' then begin
-                    listaProdutos[ini].TOT_ICM := 0;
-                  end;
+                  TRIB := Trim(listaProdutos[ini].CST);
+                  TRIB := IfThen(Length(TRIB) = 2, trib, '41');  //CST - VERIFICA SE O CST DA NF-E   VALIDO, SEN? PEGA 41-N? TRIBUTADO
 
-                  TOT_ICM  := TOT_ICM  + listaProdutos[ini].TOT_ICM;
+                  //CALCULA O VALOR DO CREDITO DE ICMS, SE TIVER
+                  //BASE_ICM := IfThen(TRIB = '00', TOT_ITEM - dsProduto.fieldbyname('descCom').AsCurrency, 0);//MAT_ITENS[INI, 4] - MAT_ITENS[INI, 6], 0) //TIRANDO APENAS DESCONTO COMERCIAL DA BASE DE CALCULO
+                  BASE_ICM := IfThen(TRIB = '00', listaProdutos[ini].total, 0);//MAT_ITENS[INI, 4] - MAT_ITENS[INI, 6], 0) //TIRANDO APENAS DESCONTO COMERCIAL DA BASE DE CALCULO
 
-                  ACUM_IcmsCstCFOP(listaProdutos.Items[ini], listaPIS, BASE_ICM);
+                  ALIQ := listaProdutos[ini].PERC_ICM; //PERCENTUAL DE ICMS
 
-                  {if DadosNfe.chave = '14151005518176000153650010000000231000352150' then
-                    begin
-                      ShowMessage(listaPIS.getText);
-                    end;}
+	                BASE_ICM := listaProdutos[ini].BASE_ICM;
+                  TOT_ICM  := listaProdutos[ini].TOT_ICM;
+                  TOT_ICM  := IfThen(TRIB = '00', RoundTo1(BASE_ICM * PERC_ICMS / 100), 0);
 
-                  //ACUMULA_ALIQCFOP(ALIQ_CFOP, listaProdutos[ini].total, BASE_ICM, TOT_ICM, 0);
+                  _CFOP := listaProdutos[ini].CFOP;
+                  ALIQ_CFOP := TRIB + '|' +  _CFOP + '|' + FORM_NUM1(ALIQ);
+                  ACUMULA_ALIQCFOP(ALIQ_CFOP, listaProdutos[ini].total, BASE_ICM, TOT_ICM, 0);
 
                   //ACUMULA VALORES DE PIS/COFINS DA NF-e
-                  CALC_PISCOF1(TOT_ITEM, ISPIS, listaProdutos[ini].vPIS, listaProdutos[ini].vCOFINS, '');
+                  CALC_PISCOF(TOT_ITEM, ISPIS, listaProdutos[ini].vPIS, listaProdutos[ini].vCOFINS, '');
 
 	                TOT_PIS    := listaProdutos[ini].vPIS;
                   TOT_COFINS := listaProdutos[ini].vCOFINS;
@@ -3880,44 +3108,43 @@ begin
               '|' + DadosNfe.chave + '|' +
               DATA_BRA_FULL(DATA_EMI) + '|' + DATA_BRA_FULL(DATA_EMI) + '|' +
               FORM_NUM1(TOT) + '|0|' +  FORM_NUM1(TOTDESC) + '|0|' + FORM_NUM1(TOT) + '|9|0|0|0|' +
-              FORM_NUM1(BASE_ICM) + '|' + FORM_NUM1(TOT_ICM) +
+              FORM_NUM1(TOTAL_MATRIZ(BAS_ALIQCFOP)) + '|' + FORM_NUM1(TOTAL_MATRIZ(ICM_ALIQCFOP)) +
               '||||||||';
 
               GRAVA_SPED(ARQ_TMP, LINHA);
+              fim := MAT_ALIQCFOP.Count -1;
 
               //TOTALIZA A NOTA COM VARIOS SUB-TOTAIS SEPARADOS POR ALIQUOTAS DIFERENTES
-
-              fim := listaPIS.Count -1;
               for ini := 0 to fim do
                 begin
-                  TOTDEBICM := TOTDEBICM + listaPIS[ini].icms;
-                  LINHA := '|C190|0' + listaPIS[ini].CST + '|' + listaPIS[ini].CFOP + '|' + FORM_NUM1(listaPIS[ini].aliquota) + '|'  +
-                  FORM_NUM1(listaPIS[ini].total) + '|'  + FORM_NUM1(listaPIS[ini].Base) + '|'  + FORM_NUM1(listaPIS[ini].icms) + '|0|0|0|0||';
+                  LINHA := '|C190|0' + MAT_ALIQCFOP.ValueFromIndex[INI] + '|' + FORM_NUM1(StrToCurrDef(VAL_ALIQCFOP.ValueFromIndex[INI], 0)) + '|' +
+                  FORM_NUM1(StrToCurrDef(BAS_ALIQCFOP.ValueFromIndex[INI], 0)) + '|'  + FORM_NUM1(StrToCurrDef(ICM_ALIQCFOP.ValueFromIndex[INI], 0)) + '|'  +
+                  '0|0|0|0||';
 
                   GRAVA_SPED(ARQ_TMP, LINHA);
+                  ACUM_ICM(MAT_ALIQCFOP.ValueFromIndex[INI], StrToCurrDef(ICM_ALIQCFOP.ValueFromIndex[INI], 0), 'NF-e de venda: ' + IntToStr(NOTA));
                 end;
 
-            end//if listaProdutos.Count > 0 then
-            else begin
-              ERRO_CHAVE := ERRO_CHAVE + 'NFCe Nao adicionada: ' + DadosNfe.chave + #13;
-            end;
-
-
-        //end;
+            end;//if listaProdutos.Count > 0 then
+        end;
 
       dm.IBselect.Next;
-      //form22.TrimAppMemorySize;
     end;
+  {DADOS DE NFCeS EMITIDAS}
+end;
 
-
-  if ERRO_CHAVE <> '' then begin
-    ShowMessage(ERRO_CHAVE);
-  end;
-
+procedure leCFEsCONTRIBUICOES();
+var
+  mat      : TStringList;
+  CODNOTA, LIN, desti, crc  : String;
+  DATA_EMI : TDate;
+  DadosNfe : TDadosNFe;
+  ini2, fim2, i3, f3, i1, acc, xx, ui : integer;
+  listaPIS : TItensPISCOFINS;
+begin
+  {DADOS DE NFCes EMITIDAS}
   dm.IBselect.Close;
-  dm.IBselect.SQL.Text := 'select chave, nota, cliente, data, ADIC from nfce'+
-  ' where (data >= :ini) and (data <= :fim) and ((ADIC = ''DENEGADA'') ' +
-  ' OR (ADIC = ''CANC''))';
+  dm.IBselect.SQL.Text := 'select chave, nota, cliente, data from nfce where (data >= :ini) and (data <= :fim) and (ADIC = '''')';
   //dm.IBselect.ParamByName('tipo').AsString := TIPO;
   dm.IBselect.ParamByName('ini').AsDate  := StrToDate(dataIni);
   dm.IBselect.ParamByName('fim').AsDate  := StrToDate(DataFim);
@@ -3925,63 +3152,7 @@ begin
   dm.IBselect.FetchAll;
   CODNOTA := '';
 
-  acc := 0;
-  acc := dm.IBselect.RecordCount;
-  informacao(0, acc, 'Verificando NFCe...', true, false, 2);
-
-  while not dm.IBselect.Eof do
-    begin
-      informacao(dm.IBselect.RecNo, acc, 'Verificando Vendas...', false, false, 2);
-      TOTDESC := 0;
-      TOT     := 0;
-
-      listaPIS.Clear;
-      BASE_ICM := 0;
-      TOT_ICM  := 0;
-
-      //LE_XMLNFCE(dm.IBselect.fieldbyname('chave').AsString, listaProdutos, dm.IBQuery4, DadosNfe, TRIB_ALIQ_PIS, TRIB_ALIQ_COFINS);
-
-      _SER :=  copy(dm.IBselect.fieldbyname('chave').AsString, 23, 3);//Le_Nodo('serie', DadosNfe.xml);
-      i1   :=  StrToIntDef(copy(dm.IBselect.fieldbyname('chave').AsString, 26, 9), 0);
-
-      DESC := '998';
-      if trim(dm.IBselect.fieldbyname('adic').AsString) = 'CANC' then DESC := '02';
-      if trim(dm.IBselect.fieldbyname('adic').AsString) = 'DENEGADA' then DESC := '04';
-
-
-      LINHA := '|C100|1|0||65|'+DESC+'|' + _SER + '|' + IntToStr(i1) +
-      '|' + dm.IBselect.fieldbyname('chave').AsString + '|||||||||||||||||||||';
-
-      GRAVA_SPED(ARQ_TMP, LINHA);
-
-      dm.IBselect.Next;
-    end;
-
-  {DADOS DE NFCeS EMITIDAS}
-end;
-
-procedure leCFEsCONTRIBUICOES();
-var
-  mat      : TStringList;
-  CODNOTA, LIN, desti, crc, sim  : String;
-  DATA_EMI : TDate;
-  DadosNfe : TDadosNFe;
-  ini2, fim2, i3, f3, i1, acc, xx, ui : integer;
-begin
-  sim := 'N';
-  sim := dialogo('generico', 20, 'SN', 20, true, 'S', Application.Title,'Usar Códigos de inseção de PIS e COFINS do Estoque ? ' , sim);
-  if sim = '*' then sim := 'N';
-  {DADOS DE NFCes EMITIDAS}
-  dm.IBselect.Close;
-  {dm.IBselect.SQL.Text := 'select chave, nota, cliente, data from nfce where (data >= :ini) and (data <= :fim) and (ADIC = '''')';
-  //dm.IBselect.ParamByName('tipo').AsString := TIPO;
-  dm.IBselect.ParamByName('ini').AsDate  := StrToDate(dataIni);
-  dm.IBselect.ParamByName('fim').AsDate  := StrToDate(DataFim);}
-  dm.IBselect.SQL.Text := 'select chave, nota, cliente, data from nfce where substring(chave from 3 for 4) = :ini and (ADIC = '''')';
-  dm.IBselect.ParamByName('ini').AsString  := chaveAnoMes;
-  dm.IBselect.Open;
-  dm.IBselect.FetchAll;
-  CODNOTA := '';
+  listaPIS := TItensPISCOFINS.Create;
 
   acc := 0;
   ui  := 0;
@@ -4002,21 +3173,16 @@ begin
       zerarArrayProduto();
       NOTA := dm.IBselect.fieldbyname('nota').AsInteger;
 
-      //if not Contido(IntToStr(nota), CODNOTA) then
-        //begin
+      if not Contido(IntToStr(nota), CODNOTA) then
+        begin
           CODNOTA := CODNOTA + IntToStr(NOTA) + '-';
           DATA_EMI := dm.IBselect.fieldbyname('data').AsDateTime;
 
-          listaProdutos.Clear;
-          LE_XMLNFCE(dm.IBselect.fieldbyname('chave').AsString, listaProdutos, dm.IBQuery4, DadosNfe, TRIB_ALIQ_PIS, TRIB_ALIQ_COFINS);
-
-          DATA_EMI := DadosNfe.data;
-          BASE_ICM := 0;
-          MAT_NOTA.Clear;
+          LE_XMLNFCE(dm.IBselect.fieldbyname('chave').AsString, listaProdutos, dm.IBQuery4, DadosNfe);
 
           if listaProdutos.Count > 0 then
             begin
-              //mat.Text := DadosNfe.xml;
+              mat.Text := DadosNfe.xml;
 
               _SER := Le_Nodo('serie', DadosNfe.xml);
               fim  := listaProdutos.Count -1;
@@ -4029,31 +3195,23 @@ begin
               TOT_COFINS := 0;
               TOT_ITEM   := 0;
               _PISNT     := 0;
-              {_CFOP      := Le_Nodo('CFOP', DadosNfe.xml);
+              _CFOP      := Le_Nodo('CFOP', DadosNfe.xml);
               if _CFOP = '' then _CFOP := '5102';
-              CSTPIS_CFOP := VE_CSTPISCFOP(_CFOP);}
+              CSTPIS_CFOP := VE_CSTPISCFOP(_CFOP);
 
               for ini := 0 to fim do
                 begin
                   ret := ret + 1;
 
-                  //detalhamentoPIS.Values[listaProdutos[ini].CST_PIS] := CurrToStr(StrToCurrDef(detalhamentoPIS.Values[listaProdutos[ini].CST_PIS], 0) + listaProdutos[ini].BASE_PIS);
-
                   DADOS_PROD(IntToStr(listaProdutos[ini].cod) , DESC, UNID, COD_ALIQ, TRIB, ISPIS, COD_ISPIS, PERC_ICMS, BASE_ICM, false);
 
-                  _CFOP      := StrNum(listaProdutos[ini].CFOP);
-                  if _CFOP = '0' then _CFOP := '5102';
-                  CSTPIS_CFOP := VE_CSTPISCFOP(_CFOP);
 
-                  if funcoes.Contido(CSTPIS_CFOP, 'IRXDN') then
+
+                  if funcoes.Contido(CSTPIS_CFOP, 'IRMXDN') then
                     begin
                       ISPIS     := CSTPIS_CFOP;
                       COD_ISPIS := '999';
                     end;
-
-
-
-                  checaISPIS_CODISPIS(listaProdutos[ini].CST_PIS, COD_ISPIS, listaProdutos[ini].cod);
 
                   SOMA_MOV(listaProdutos[ini].cod, - listaProdutos[ini].quant);
                   //ALIQUOTA DE ICMS (PEGA A ALIQUOTA INTERESTADUAL)
@@ -4076,6 +3234,7 @@ begin
                   TOT_ICM  := IfThen(TRIB = '00', RoundTo1(BASE_ICM * PERC_ICMS / 100), 0);
 
                   ALIQ := listaProdutos[ini].PERC_ICM; //PERCENTUAL DE ICMS
+
 	                BASE_ICM := listaProdutos[ini].BASE_ICM;
                   TOT_ICM  := listaProdutos[ini].TOT_ICM;
                   TOT_ICM  := IfThen(TRIB = '00', RoundTo1(BASE_ICM * PERC_ICMS / 100), 0);
@@ -4085,34 +3244,30 @@ begin
 
                   //ACUMULA VALORES DE PIS/COFINS DA NF-e
                   CST_PIS := listaProdutos[ini].CST_PIS;
-
+                  ISPIS := '';
                   
-
-
-                  if sim = 'S' then begin
-                    ISPIS   := trim(ISPIS);
-                    CST_PIS := buscaCST_PIS_Por_ISPIS(ISPIS, COD_ISPIS, listaProdutos[ini].vpis);
-                    if listaProdutos[ini].vpis = 0 then listaProdutos[ini].vCOFINS := 0;
-                    listaProdutos[ini].CST_PIS := CST_PIS;
-                  end;
-
                   CST_PIS := CALC_PISCOF1(TOT_ITEM, ISPIS, listaProdutos[ini].vPIS, listaProdutos[ini].vCOFINS, CST_PIS);
                   _CFOP := listaProdutos[ini].CFOP;
 
                   ALIQ_CFOP := LeftStr(CST_PIS, 2) + _CFOP; //(AACFOP - 2 DIGITOS PRA ALIQUOTA E 4 PRO CFOP)
 
                   //ACUMULA NOS TOTALIZADORES DE ALIQUOTA E CFOP
+
+
                   ACUMULA_ALIQCFOP(ALIQ_CFOP, listaProdutos[ini].total, listaProdutos[ini].vPIS, listaProdutos[ini].vCOFINS, 0);
 
-                  UNID := listaProdutos[ini].unid;
-
-                  VE_UNIDADE(UNID);
+                
+	                TOT_PIS    := TOT_PIS    + listaProdutos[ini].vPIS;
+                  TOT_COFINS := TOT_COFINS + listaProdutos[ini].vCOFINS;
 
                   //SE NAO TEM PIS/COFINS, ACUMULA NO TOTALIZADOR DE PIS/COFINS NAO TRIBUTADO PARA O RELATORIO DE APURACAO
                   _PISNT := _PISNT + IfThen((TOT_PIS + TOT_COFINS) = 0, listaProdutos[ini].total, 0);
                   //ACUMULA NOS TOTALIZADORES DE ALIQUOTA DE PIS/COFINS
 
-                   ACUM_PISCST1(listaProdutos.Items[ini], listaPIS, COD_ISPIS, LeftStr(CST_PIS, 2));
+
+                   ACUM_PISCST1(listaProdutos.Items[ini], listaPIS);
+                  //ACUM_PISCST(LeftStr(CST_PIS, 2) + 'P' + COD_ISPIS, listaProdutos[ini].total, listaProdutos[ini].vPIS, 0, listaProdutos[ini].descCom);
+                  //ACUM_PISCST(LeftStr(CST_PIS, 2) + 'C' + COD_ISPIS, listaProdutos[ini].total, listaProdutos[ini].vCOFINS, 0, listaProdutos[ini].descCom);
 
                 end; //FOR LISTA DE PRODUTOS
 
@@ -4121,35 +3276,8 @@ begin
               LIN := Le_Nodo('tpNF', DadosNfe.xml);
               IF not Contido(LIN, '0-1') then LIN := '1'; //PADRAO SAIDA, SE NAO ACHAR A INFORMACAO
 
-              fim := listaPIS.Count -1;
-
-              for ini := 0 to fim do
-                begin
-                  if (listaPIS[ini].CST = '01') and (listaPIS[ini].Base > 0) then begin
-                    listaPIS[ini].pis    := ArredondaFinanceiro(listaPIS[ini].total * (TRIB_ALIQ_PIS / 100), 2);
-                    listaPIS[ini].cofins := ArredondaFinanceiro(listaPIS[ini].total * (TRIB_ALIQ_COFINS / 100), 2);
-                  end;
-
-                  LINHA := '|C175|' + listaPIS[ini].CFOP + '|' + FORM_NUM1(listaPIS[ini].total) + '|' +
-                  FORM_NUM1(0) + '|' + listaPIS[ini].CST + '|' + FORM_NUM1(IfThen(listaPIS[ini].CST = '01', listaPIS[ini].total, 0)) + '|'  +
-                  FORM_NUM1(IfThen(listaPIS[ini].CST = '01', TRIB_ALIQ_PIS, 0 )) + '|||' +
-                  FORM_NUM1(listaPIS[ini].pis) + '|' + listaPIS[ini].CST + '|' +
-                  FORM_NUM1(IfThen(listaPIS[ini].CST = '01', listaPIS[ini].total, 0)) + '|' +
-                  FORM_NUM1(IfThen(listaPIS[ini].CST = '01', TRIB_ALIQ_COFINS, 0)) + '|||' +
-                  FORM_NUM1(listaPIS[ini].cofins) + '|'+codCTA+'||';
-                  MAT_NOTA.Add(LINHA);
-
-                  TOT_PIS    := TOT_PIS    + listaPIS[ini].pis;
-                  TOT_COFINS := TOT_COFINS + listaPIS[ini].cofins;
-
-                  if listaPIS[ini].CST = '01' then begin
-                    BASE_ICM := BASE_ICM + listaPIS[ini].Base;
-                  end;
-                    //end;
-                end;
-
-
               COD := '';
+
               LINHA := '|C100|' + LIN + '|0|' + COD + '|' + Le_Nodo('mod', DadosNfe.xml) + '|00|' +
               Le_Nodo('serie', DadosNfe.xml) + '|' + Le_Nodo('nNF', DadosNfe.xml) +  '|' + DadosNfe.chave + '|' +
               DATA_BRA_FULL(DATA_EMI) + '|' + DATA_BRA_FULL(DATA_EMI) + '|' +
@@ -4158,31 +3286,19 @@ begin
 
               GRAVA_SPED(ARQ_TMP, LINHA);
 
-              fim := MAT_NOTA.Count -1;
+              fim := listaPIS.Count -1;
               for ini := 0 to fim do
                 begin
-                  linha := MAT_NOTA[ini];
+                  LINHA := '|C175|' + listaPIS[ini].CFOP + '|' + FORM_NUM1(listaPIS[ini].total) + '|' +
+                   FORM_NUM1(0) + '|' + listaPIS[ini].CST + '|' + FORM_NUM1(listaPIS[ini].total) + '|'  +
+                   FORM_NUM1(IfThen(listaPIS[ini].CST = '01', TRIB_ALIQ_PIS, 0 )) + '|||' +
+                   FORM_NUM1(listaPIS[ini].pis) + '|' + listaPIS[ini].CST + '|' +
+                   FORM_NUM1(listaPIS[ini].total) + '|' +
+                   FORM_NUM1(IfThen(listaPIS[ini].CST = '01', TRIB_ALIQ_COFINS, 0 )) + '|||' +
+                   FORM_NUM1(listaPIS[ini].cofins) + '|||';
+
                   GRAVA_SPED(ARQ_TMP, LINHA);
                 end;
-
-              MAT_NOTA.Clear;  
-
-              {fim := listaPIS.Count -1;
-
-              for ini := 0 to fim do
-                begin
-                  //if listaPIS[ini].total > 0 then
-                    //begin
-                      LINHA := '|C175|' + listaPIS[ini].CFOP + '|' + FORM_NUM1(listaPIS[ini].total) + '|' +
-                      FORM_NUM1(0) + '|' + listaPIS[ini].CST + '|' + FORM_NUM1(listaPIS[ini].total) + '|'  +
-                      FORM_NUM1(IfThen(listaPIS[ini].CST = '01', TRIB_ALIQ_PIS, 0 )) + '|||' +
-                      FORM_NUM1(listaPIS[ini].pis) + '|' + listaPIS[ini].CST + '|' +
-                      FORM_NUM1(listaPIS[ini].total) + '|' +
-                      FORM_NUM1(IfThen(listaPIS[ini].CST = '01', TRIB_ALIQ_COFINS, 0 )) + '|||' +
-                      FORM_NUM1(listaPIS[ini].cofins) + '|||';
-                      GRAVA_SPED(ARQ_TMP, LINHA);
-                    //end;
-                end; }
 
               //TOTALIZA A NOTA COM VARIOS SUB-TOTAIS SEPARADOS POR ALIQUOTAS DIFERENTES
               {fim := MAT_ALIQCFOP.Count -1;
@@ -4200,12 +3316,12 @@ begin
                 end;}
 
             end;//if listaProdutos.Count > 0 then
-        //end;
+        end;
 
       dm.IBselect.Next;
     end;
 
-  //detalhamentoPIS.SaveToFile(caminhoEXE_com_barra_no_final + 'detalhamentoPIS.txt');
+  listaPIS.Free;  
   {DADOS DE NFCeS EMITIDAS}
 end;
 
@@ -4222,169 +3338,8 @@ end;
 
 function blocoM() : String;
 var
-  COD, COD_ISEN : String;
-  i3, cod_pis : integer;
-  blo : boolean;
-begin
-  if StrToDateTime(dataIni) >= StrToDateTime('01/01/2019') then begin
-    blocoM01012019;
-    exit;
-  end;
-
-
-
-  LINHA := '|M001|0|';
-  GRAVA_SPED(ARQ_TMP, LINHA);
-
-  //PIS TRIBUTADO - M200
-  REC_BRUTA := 0;  //TOTALIZADOR DE RECEITA BRUTA
-  _PIS := 0;
-  BC_PISTRIB := 0;
-  blo := false;
-
-  FOR ini := 0 TO listaTOT_PIS.Count -1 do
-    begin
-      COD := listaTOT_PIS[ini].CST;
-      IF (COD = '01') then
-        begin
-          //ACUMULA RECEITA BRUTA PARA CONTRIBUIÇÃO PREVIDENCIARIA
-	        REC_BRUTA  := REC_BRUTA + listaTOT_PIS[ini].total;
-//          _PIS       := _PIS + RoundTo1(listaTOT_PIS[ini].total * TRIB_ALIQ_PIS / 100);
-          _PIS       := _PIS + listaTOT_PIS[ini].pis;
-          if listaTOT_PIS[ini].pis > 0 then BC_PISTRIB := BC_PISTRIB + listaTOT_PIS[ini].total;
-        end;
-    end;
-
-  //DETALHAMENTO PIS TRIBUTADO
-  //IF (_PIS > 0)   then begin
-    blo := true;
-    LINHA := '|M200|0|0|0|0|0|0|0|' + FORM_NUM1(_PIS) + '|0|0|' +
-    FORM_NUM1(_PIS) + '|' + FORM_NUM1(_PIS) + '|';
-    GRAVA_SPED(ARQ_TMP, LINHA);
-    LINHA := '|M205|' + '12' + '|810902|' + FORM_NUM1(_PIS) + '|';
-    GRAVA_SPED(ARQ_TMP, LINHA);
-    LINHA := '|M210|' + '51' + '|' + FORM_NUM1(BC_PISTRIB) + '|' + FORM_NUM1(BC_PISTRIB) + '|' +
-    FORM_NUM1(TRIB_ALIQ_PIS) + '|||' + FORM_NUM1(_PIS) + '|0|0|0|0|' + FORM_NUM1(_PIS) + '|' + IfThen(StrToDateTime(dataIni) >= StrToDateTime('01/01/2019'),'0|0|0|', '') ;
-    GRAVA_SPED(ARQ_TMP, LINHA);
-  //end;
-
-   if blo = false then begin
-     LINHA := '|M200|0|0|0|0|0|0|0|' + FORM_NUM1(_PIS) + '|0|0|' +
-     FORM_NUM1(_PIS) + '|' + FORM_NUM1(_PIS) + '|';
-     GRAVA_SPED(ARQ_TMP, LINHA);
-   end;
-
-  //PIS NÃO TRUBUTADO - M400
-  MAT_CST_PIS.Clear;
-  MAT_NOTA.Clear;
-
-  MAT_CST_PIS.Add('04');
-  MAT_CST_PIS.Add('05');
-  MAT_CST_PIS.Add('06');
-  MAT_CST_PIS.Add('07');
-  MAT_CST_PIS.Add('08');
-  MAT_CST_PIS.Add('09');
-  MAT_CST_PIS.Add('99');
-
-  FOR i3 := 0 TO MAT_CST_PIS.Count -1 do
-    begin
-      TOT_APUR_CST  := 0;
-      FOR INI := 0 TO listaTOT_PIS.Count -1 do begin
-        COD := listaTOT_PIS[ini].CST;
-
-        IF (((listaTOT_PIS[ini].pis + listaTOT_PIS[ini].cofins > 0) AND (COD = MAT_CST_PIS[i3]))) or (cod = '01') then begin
-          TOT_APUR_CST := TOT_APUR_CST + listaTOT_PIS[ini].total;
-          LINHA := '|M410|' + RightStr(listaTOT_PIS[ini].cod, 3) + '|' + FORM_NUM1(listaTOT_PIS[ini].total) + '|'+codCTA+'||'; //PROVISORIO - COD. 301 - PRECISA SRE INFORMADO NO CAD. DO PRODUTO
-          MAT_NOTA.Add(LINHA);
-        end;
-      end;
-
-      IF TOT_APUR_CST > 0 then begin
-        LINHA := '|M400|' + MAT_CST_PIS[i3] + '|' + FORM_NUM1(TOT_APUR_CST) + '|'+codCTA+'||';
-        GRAVA_SPED(ARQ_TMP, LINHA);
-        //ASORT(MAT_NOTA) ordenar a matriz, ainda nao fiz
-
-        FOR INI := 0 TO MAT_NOTA.Count -1 do begin
-          GRAVA_SPED(ARQ_TMP, MAT_NOTA[INI]);
-        end;
-
-        MAT_NOTA.Clear;
-      end;
-    end;
-
-  //COFINS TRIBUTADA - M600
-  _PIS := 0;
-  BC_PISTRIB := 0;
-  FOR INI := 0 TO listaTOT_PIS.Count -1 do
-    begin
-      COD := listaTOT_PIS[ini].CST;
-      IF (COD = '01') then
-        begin
-          //ACUMULA RECEITA BRUTA PARA CONTRIBUIÇÃO PREVIDENCIARIA
-          _PIS       := _PIS + listaTOT_PIS[ini].cofins;
-          if listaTOT_PIS[ini].cofins > 0 then BC_PISTRIB := BC_PISTRIB + listaTOT_PIS[ini].total;
-
-        end;
-    end;
-
-  //DETALHAMENTO COFINS TRIBUTADA
-//  IF _PIS > 0 then
-  if True then
-    begin
-      LINHA := '|M600|0|0|0|0|0|0|0|' + FORM_NUM1(_PIS) + '|0|0|' +
-      FORM_NUM1(_PIS) + '|' + FORM_NUM1(_PIS) + '|';
-      GRAVA_SPED(ARQ_TMP, LINHA);
-      LINHA := '|M605|' + '12' + '|217201|' + FORM_NUM1(_PIS) + '|';
-      GRAVA_SPED(ARQ_TMP, LINHA);
-      LINHA := '|M610|' + '51' + '|' + FORM_NUM1(BC_PISTRIB) + '|' + FORM_NUM1(BC_PISTRIB) + '|' +
-      FORM_NUM1(TRIB_ALIQ_COFINS) + '|||' + FORM_NUM1(_PIS) + '|0|0|0|0|' + FORM_NUM1(_PIS) + '|' + IfThen(StrToDateTime(dataIni) >= StrToDateTime('01/01/2019'),'0|0|0|', '') ;
-      GRAVA_SPED(ARQ_TMP, LINHA);
-    end
-  else
-    begin
-      LINHA := '|M600|0|0|0|0|0|0|0|' + FORM_NUM1(_PIS) + '|0|0|' +
-      FORM_NUM1(_PIS) + '|' + FORM_NUM1(_PIS) + '|';
-      GRAVA_SPED(ARQ_TMP, LINHA);
-    end;
-
-  //COFINS NÃO TRIBUTADO - M800
-  MAT_NOTA.Clear;
-  FOR i3 := 0 TO MAT_CST_PIS.Count -1 do
-    begin
-      TOT_APUR_CST  := 0;
-      FOR INI := 0 TO listaTOT_PIS.Count -1 do
-        begin
-          COD := listaTOT_PIS[ini].CST;
-          IF ((listaTOT_PIS[ini].cofins > 0) AND (COD = MAT_CST_PIS[i3])) or (cod = '01') then
-            begin
-              TOT_APUR_CST := TOT_APUR_CST + listaTOT_PIS[ini].total;
-              LINHA := '|M810|' + RightStr(listaTOT_PIS[ini].cod, 3) + '|' + FORM_NUM1(listaTOT_PIS[ini].total) + '|'+codCTA+'||'; //PROVISORIO - COD. 301 - PRECISA SRE INFORMADO NO CAD. DO PRODUTO
-       		    MAT_NOTA.Add(LINHA);
-            end;
-        end;
-
-      IF TOT_APUR_CST > 0 then
-        begin
-          LINHA := '|M800|' + MAT_CST_PIS[i3] + '|' + FORM_NUM1(TOT_APUR_CST) + '|'+codCTA+'||';
-          GRAVA_SPED(ARQ_TMP, LINHA);
-          //ASORT(MAT_NOTA)
-          FOR INI := 0 TO MAT_NOTA.Count -1 do
-            begin
-              GRAVA_SPED(ARQ_TMP, MAT_NOTA[INI]);
-            end;
-
-          MAT_NOTA.Clear;
-        end;
-    end;
-
-  TOTAL_REG(ARQ_TMP, 'M');
-end;
-
-
-function blocoM01012019() : String;
-var
-  COD, COD_ISEN : String;
-  i3, cod_pis : integer;
+  COD : String;
+  i3 : integer;
   blo : boolean;
 begin
   LINHA := '|M001|0|';
@@ -4396,50 +3351,30 @@ begin
   BC_PISTRIB := 0;
   blo := false;
 
-  //ShowMessage(listaTOT_PIS.getText + #13+'-----------' + #13 +MAT_CST_PIS.GetText);
-
-  i3 := -1;
-  FOR ini := 0 TO listaTOT_PIS.Count -1 do
+  FOR ini := 0 TO MAT_ALIQPIS.Count -1 do
     begin
-      COD := LeftStr(listaTOT_PIS[ini].CST, 2);
-      if cod = '02' then i3 := ini;
-
-      IF ((StrToIntDef(COD, 2) <= 1)) then
+      COD := LeftStr(MAT_ALIQPIS.Names[INI], 2);
+      IF ((copy(MAT_ALIQPIS.Names[INI], 3, 1) = 'P') AND (COD = '01')) then
         begin
           //ACUMULA RECEITA BRUTA PARA CONTRIBUIÇÃO PREVIDENCIARIA
-	        REC_BRUTA  := REC_BRUTA + listaTOT_PIS[ini].total;
-          //_PIS       := _PIS + RoundTo1(listaTOT_PIS[ini].total * TRIB_ALIQ_PIS / 100);
-          _PIS       := _PIS + listaTOT_PIS[ini].pis;
-          BC_PISTRIB := BC_PISTRIB + listaTOT_PIS[ini].Base;
+	        REC_BRUTA := REC_BRUTA + StrToCurrDef(BAS_ALIQPIS.Values[MAT_ALIQPIS.Names[INI]], 0);
+          _PIS := _PIS + RoundTo1(StrToCurrDef(BAS_ALIQPIS.Values[MAT_ALIQPIS.Names[INI]], 0) * TRIB_ALIQ_PIS / 100);
+	        BC_PISTRIB := BC_PISTRIB + StrToCurrDef(BAS_ALIQPIS.Values[MAT_ALIQPIS.Names[INI]], 0);
         end;
     end;
 
   //DETALHAMENTO PIS TRIBUTADO
-  //IF (_PIS > 0)  then
-  if true then
-
+  IF _PIS > 0 then
     begin
       blo := true;
       LINHA := '|M200|0|0|0|0|0|0|0|' + FORM_NUM1(_PIS) + '|0|0|' +
       FORM_NUM1(_PIS) + '|' + FORM_NUM1(_PIS) + '|';
       GRAVA_SPED(ARQ_TMP, LINHA);
-      IF (_PIS > 0)  then begin
-        LINHA := '|M205|' + '12' + '|810902|' + FORM_NUM1(_PIS) + '|';
-        GRAVA_SPED(ARQ_TMP, LINHA);
-      end;
-
-      if REC_BRUTA > 0 then begin
-        LINHA := '|M210|' + '51' + '|' + FORM_NUM1(REC_BRUTA) + '|' + FORM_NUM1(BC_PISTRIB) + '|' +
-        '0|0|' + FORM_NUM1(BC_PISTRIB) + '|' + FORM_NUM1(TRIB_ALIQ_PIS) + '|0||'+ FORM_NUM1(_PIS) +'|0|0|' + IfThen(StrToDateTime(dataIni) >= StrToDateTime('01/01/2019'),'0|0|'+ FORM_NUM1(_PIS) +'|', '') ;
-        GRAVA_SPED(ARQ_TMP, LINHA);
-      end;
-
-      if i3 > -1 then begin
-        LINHA := '|M210|' + '52' + '|' + FORM_NUM1(listaTOT_PIS[i3].total) + '|' + FORM_NUM1(listaTOT_PIS[i3].total) + '|' +
-        '0|0|' + FORM_NUM1(listaTOT_PIS[i3].total) + '|' + FORM_NUM1(0) + '|0||'+ FORM_NUM1(listaTOT_PIS[i3].pis) +'|0|0|' + IfThen(StrToDateTime(dataIni) >= StrToDateTime('01/01/2019'),'0|0|'+ FORM_NUM1(listaTOT_PIS[i3].pis) +'|', '') ;
-        GRAVA_SPED(ARQ_TMP, LINHA);
-      end;
-
+      LINHA := '|M205|' + '12' + '|810902|' + FORM_NUM1(_PIS) + '|';
+      GRAVA_SPED(ARQ_TMP, LINHA);
+      LINHA := '|M210|' + '51' + '|' + FORM_NUM1(BC_PISTRIB) + '|' + FORM_NUM1(BC_PISTRIB) + '|' +
+      FORM_NUM1(TRIB_ALIQ_PIS) + '|||' + FORM_NUM1(_PIS) + '|0|0|0|0|' + FORM_NUM1(_PIS) + '|';
+      GRAVA_SPED(ARQ_TMP, LINHA);
     end;
 
    if blo = false then
@@ -4452,7 +3387,6 @@ begin
   //PIS NÃO TRUBUTADO - M400
   MAT_CST_PIS.Clear;
   MAT_NOTA.Clear;
-
   MAT_CST_PIS.Add('04');
   MAT_CST_PIS.Add('05');
   MAT_CST_PIS.Add('06');
@@ -4464,75 +3398,58 @@ begin
   FOR i3 := 0 TO MAT_CST_PIS.Count -1 do
     begin
       TOT_APUR_CST  := 0;
-      FOR INI := 0 TO listaTOT_PIS.Count -1 do begin
-        COD := listaTOT_PIS[ini].CST;
-
-        IF ((COD = MAT_CST_PIS[i3])) then begin
-          TOT_APUR_CST := TOT_APUR_CST + listaTOT_PIS[ini].total;
-          LINHA := '|M410|' + RightStr(listaTOT_PIS[ini].cod, 3) + '|' + FORM_NUM1(listaTOT_PIS[ini].total) + '|'+codCTA+'||'; //PROVISORIO - COD. 301 - PRECISA SRE INFORMADO NO CAD. DO PRODUTO
-          MAT_NOTA.Add(LINHA);
-        end;
-      end;
-
-      IF TOT_APUR_CST > 0 then begin
-        LINHA := '|M400|' + MAT_CST_PIS[i3] + '|' + FORM_NUM1(TOT_APUR_CST) + '|'+codCTA+'||';
-        GRAVA_SPED(ARQ_TMP, LINHA);
-        //ASORT(MAT_NOTA) ordenar a matriz, ainda nao fiz
-
-        FOR INI := 0 TO MAT_NOTA.Count -1 do begin
-          GRAVA_SPED(ARQ_TMP, MAT_NOTA[INI]);
+      FOR INI := 0 TO MAT_ALIQPIS.Count -1 do
+        begin
+          COD := LeftStr(MAT_ALIQPIS[INI], 2);
+          IF ((copy(MAT_ALIQPIS.Names[INI], 3, 1) = 'P') AND (COD = MAT_CST_PIS[i3])) then
+            begin
+              TOT_APUR_CST := TOT_APUR_CST + StrToCurrDef(BAS_ALIQPIS.Values[MAT_ALIQPIS.Names[INI]], 0);
+	            LINHA := '|M410|' + RightStr(MAT_ALIQPIS.Names[INI], 3) + '|' + FORM_NUM1(StrToCurrDef(BAS_ALIQPIS.Values[MAT_ALIQPIS.Names[INI]], 0)) + '|||'; //PROVISORIO - COD. 301 - PRECISA SRE INFORMADO NO CAD. DO PRODUTO
+		          MAT_NOTA.Add(LINHA);
+            end;
         end;
 
-        MAT_NOTA.Clear;
-      end;
+      IF TOT_APUR_CST > 0 then
+        begin
+          LINHA := '|M400|' + MAT_CST_PIS[i3] + '|' + FORM_NUM1(TOT_APUR_CST) + '|||';
+          GRAVA_SPED(ARQ_TMP, LINHA);
+          //ASORT(MAT_NOTA) ordenar a matriz, ainda nao fiz
+
+          FOR INI := 0 TO MAT_NOTA.Count -1 do
+            begin
+              GRAVA_SPED(ARQ_TMP, MAT_NOTA[INI]);
+            end;
+
+           MAT_NOTA.Clear;
+        end;
     end;
 
   //COFINS TRIBUTADA - M600
   _PIS := 0;
   BC_PISTRIB := 0;
-  REC_BRUTA := 0;
-  FOR INI := 0 TO listaTOT_PIS.Count -1 do
+  FOR INI := 0 TO MAT_ALIQPIS.Count -1 do
     begin
-      COD := LeftStr(listaTOT_PIS[ini].CST, 2);
-      if cod = '02' then i3 := ini;
-
-      IF ((StrToIntDef(COD, 2) <= 1)) then
+      COD := LeftStr(MAT_ALIQPIS.Names[INI], 2);
+      IF ((copy(MAT_ALIQPIS.Names[INI], 3, 1) = 'C') AND (COD = '01')) then
         begin
-         
           //ACUMULA RECEITA BRUTA PARA CONTRIBUIÇÃO PREVIDENCIARIA
-          REC_BRUTA  := REC_BRUTA + listaTOT_PIS[ini].total;
-
-          _PIS := _PIS + listaTOT_PIS[ini].cofins;
-
-            BC_PISTRIB := BC_PISTRIB + listaTOT_PIS[ini].Base;
+          _PIS := _PIS + RoundTo1(StrToCurrDef(BAS_ALIQPIS.ValueFromIndex[INI], 0) * TRIB_ALIQ_COFINS / 100);
+          //_PIS := _PIS + RoundTo1(StrToCurrDef(BAS_ALIQPIS.Values[MAT_ALIQPIS[INI]], 0) * TRIB_ALIQ_COFINS / 100);
+          BC_PISTRIB := BC_PISTRIB + StrToCurrDef(BAS_ALIQPIS.ValueFromIndex[INI], 0);
         end;
-      end;
-  
+    end;
+
   //DETALHAMENTO COFINS TRIBUTADA
-  //IF _PIS > 0 then
-  if true then
-  
+  IF _PIS > 0 then
     begin
       LINHA := '|M600|0|0|0|0|0|0|0|' + FORM_NUM1(_PIS) + '|0|0|' +
       FORM_NUM1(_PIS) + '|' + FORM_NUM1(_PIS) + '|';
       GRAVA_SPED(ARQ_TMP, LINHA);
-
-      IF (_PIS > 0)  then begin
-        LINHA := '|M605|' + '12' + '|217201|' + FORM_NUM1(_PIS) + '|';
-        GRAVA_SPED(ARQ_TMP, LINHA);
-      end;
-
-      if REC_BRUTA > 0 then begin
-        LINHA := '|M610|' + '51' + '|' + FORM_NUM1(REC_BRUTA) + '|' + FORM_NUM1(BC_PISTRIB) + '|' +
-        '0|0|' + FORM_NUM1(BC_PISTRIB) + '|' + FORM_NUM1(TRIB_ALIQ_COFINS) + '|0||'+ FORM_NUM1(_PIS) +'|0|0|0|0|'+ FORM_NUM1(_PIS) +'|';
-        GRAVA_SPED(ARQ_TMP, LINHA);
-      end;
-
-      if i3 > -1 then begin
-        LINHA := '|M610|' + '52' + '|' + FORM_NUM1(listaTOT_PIS[i3].total) + '|' + FORM_NUM1(listaTOT_PIS[i3].total) + '|' +
-        '0|0|' + FORM_NUM1(listaTOT_PIS[i3].total) + '|0|0||'+ FORM_NUM1(listaTOT_PIS[i3].cofins) +'|0|0|' + IfThen(StrToDateTime(dataIni) >= StrToDateTime('01/01/2019'),'0|0|'+ FORM_NUM1(listaTOT_PIS[i3].cofins) +'|', '') ;
-        GRAVA_SPED(ARQ_TMP, LINHA);
-      end;
+      LINHA := '|M605|' + '12' + '|217201|' + FORM_NUM1(_PIS) + '|';
+      GRAVA_SPED(ARQ_TMP, LINHA);
+      LINHA := '|M610|' + '51' + '|' + FORM_NUM1(BC_PISTRIB) + '|' + FORM_NUM1(BC_PISTRIB) + '|' +
+      FORM_NUM1(TRIB_ALIQ_COFINS) + '|||' + FORM_NUM1(_PIS) + '|0|0|0|0|' + FORM_NUM1(_PIS) + '|';
+      GRAVA_SPED(ARQ_TMP, LINHA);
     end
   else
     begin
@@ -4546,20 +3463,20 @@ begin
   FOR i3 := 0 TO MAT_CST_PIS.Count -1 do
     begin
       TOT_APUR_CST  := 0;
-      FOR INI := 0 TO listaTOT_PIS.Count -1 do
+      FOR INI := 0 TO MAT_ALIQPIS.Count -1 do
         begin
-          COD := listaTOT_PIS[ini].CST;
-          IF ((COD = MAT_CST_PIS[i3])) then
+          COD := LeftStr(MAT_ALIQPIS.Names[INI], 2);
+          IF ((copy(MAT_ALIQPIS.Names[INI], 3, 1) = 'C') AND (COD = MAT_CST_PIS[i3])) then
             begin
-              TOT_APUR_CST := TOT_APUR_CST + listaTOT_PIS[ini].total;
-              LINHA := '|M810|' + RightStr(listaTOT_PIS[ini].cod, 3) + '|' + FORM_NUM1(listaTOT_PIS[ini].total) + '|'+codCTA+'||'; //PROVISORIO - COD. 301 - PRECISA SRE INFORMADO NO CAD. DO PRODUTO
+              TOT_APUR_CST := TOT_APUR_CST + StrToCurrDef(BAS_ALIQPIS.Values[MAT_ALIQPIS.Names[INI]], 0);
+              LINHA := '|M810|' + RightStr(MAT_ALIQPIS.Names[INI], 3) + '|' + FORM_NUM1(StrToCurrDef(BAS_ALIQPIS.Values[MAT_ALIQPIS.Names[INI]], 0)) + '|||'; //PROVISORIO - COD. 301 - PRECISA SRE INFORMADO NO CAD. DO PRODUTO
        		    MAT_NOTA.Add(LINHA);
             end;
         end;
 
       IF TOT_APUR_CST > 0 then
         begin
-          LINHA := '|M800|' + MAT_CST_PIS[i3] + '|' + FORM_NUM1(TOT_APUR_CST) + '|'+codCTA+'||';
+          LINHA := '|M800|' + MAT_CST_PIS[i3] + '|' + FORM_NUM1(TOT_APUR_CST) + '|||';
           GRAVA_SPED(ARQ_TMP, LINHA);
           //ASORT(MAT_NOTA)
           FOR INI := 0 TO MAT_NOTA.Count -1 do
@@ -4576,9 +3493,8 @@ end;
 
 function leSaidas_Contribuicoes() : Smallint;
 var
-  listaReg_Cod_CST : TItensProduto;
   mat      : TStringList;
-  CODNOTA, LIN, desti, crc, UF  : String;
+  CODNOTA, LIN, desti, crc  : String;
   TOTX : currency;
   DATA_EMI : TDate;
   DadosNfe : TDadosNFe;
@@ -4606,12 +3522,10 @@ begin
   {DADOS DE NFES EMITIDAS}
   TIPO := '90';
   dm.IBselect.Close;
-  dm.IBselect.SQL.Text := 'select * from nfe f where substring(chave from 3 for 4) = :ini and estado = ''E'' and ((tipo <> ''2'') or (tipo is null)) ';
-  dm.IBselect.ParamByName('ini').AsString  := chaveAnoMes;
-  {dm.IBselect.SQL.Text := 'select item from fvmt f where (substring(f.item from 21 for 2) = :tipo) and (data >= :ini) and (data <= :fim) and (estado = ''E'')';
+  dm.IBselect.SQL.Text := 'select item from fvmt f where (substring(f.item from 21 for 2) = :tipo) and (data >= :ini) and (data <= :fim)';
   dm.IBselect.ParamByName('tipo').AsString := TIPO;
   dm.IBselect.ParamByName('ini').AsDate  := StrToDate(dataIni);
-  dm.IBselect.ParamByName('fim').AsDate  := StrToDate(DataFim);}
+  dm.IBselect.ParamByName('fim').AsDate  := StrToDate(DataFim);
   dm.IBselect.Open;
   dm.IBselect.FetchAll;
   fa := dm.IBselect.RecordCount;
@@ -4621,64 +3535,36 @@ begin
 
 
   informacao(0, fa, 'Verificando Vendas...', true, false, 2);
-  lista0500.Add('01');
   while not dm.IBselect.Eof do
     begin
       fu := fu + 1;
       informacao(fu, fa, 'Verificando Vendas...', false, false, 2);
-      {linha := dm.IBselect.fieldbyname('item').AsString;
-      DECOMP_MOV(linha, mat);}
+      linha := dm.IBselect.fieldbyname('item').AsString;
+      DECOMP_MOV(linha, mat);
       TOTDESC := 0;
       TOT     := 0;
 
       zerarArrayProduto();
-      NOTA := dm.IBselect.FieldByName('nota').AsInteger;
+      NOTA := StrToIntDef(mat[2], 0);
 
-      //if not Contido(IntToStr(nota), CODNOTA) then
-        //begin
-        CHAVENF := dm.IBselect.FieldByName('chave').AsString;
-        nota    := StrToIntDef(copy(chaveNF, 26, 9), 0);
 
-        CODNOTA := CODNOTA + IntToStr(NOTA) + '-';
-          //DATA_EMI := converteDataYYMMDDParaTdate(mat[0]);
-
+      if not Contido(IntToStr(nota), CODNOTA) then
+        begin
+          CODNOTA := CODNOTA + IntToStr(NOTA) + '-';
+          DATA_EMI := converteDataYYMMDDParaTdate(mat[0]);
 
           MAT_NOTA.Clear;
-
-          LE_XMLNFE(IntToStr(nota), listaProdutos, dm.IBQuery4, DadosNfe, dm.IBselect.FieldByName('chave').AsString);
-
-          listaPIS.Clear;
-          DATA_EMI := DadosNfe.data;
+          LE_XMLNFE(mat[2], listaProdutos, dm.IBQuery4, DadosNfe);
 
           if listaProdutos.Count > 0 then
             begin
-              DESC := Le_Nodo('dest', DadosNfe.xml);
-              UF   := Le_Nodo('UF', DESC);
-
+              mat.Text := DadosNfe.xml;
               //mat.SaveToFile(caminhoEXE_com_barra_no_final + 'arqNFE.xml');
-              IF Le_Nodo('idEstrangeiro', DadosNfe.xml) <> '' then
-                begin
-                  COD_ALIQ := Le_Nodo('cPais', DESC);
-                  DESC := Le_Nodo('idEstrangeiro', DESC);
-                  COD  := DESC;
-                  DESC := ACHA_CODCLI(DESC, UF, Le_Nodo('dest', DadosNfe.xml));
-                  codigosClientesExterior.Values[DESC] := COD_ALIQ;
-                  //ShowMessage(DESC+ '=' + COD_ALIQ+#13+
-                  //'-----------------'+#13+codigosClientesExterior.GetText)
-                  //adicionei em uma variavel somente os codigos dos clientes do exterior para
-                  //descarregar no registro 0150
-                end
-              else begin
-                COD_ALIQ := '1058';
-                DESC := IfThen(Contido('<CPF>', DESC), Le_Nodo('CPF', DESC), Le_Nodo('CNPJ', DESC));
-                COD  := DESC;
-
-                DESC := ACHA_CODCLI(DESC, UF, Le_Nodo('dest', DadosNfe.xml));
-              end;
-
-              if not Contido('-'+ desc + '-', CODCLI) then CODCLI := CODCLI + desc + '-';
-
+              DESC := Le_Nodo('dest', DadosNfe.xml);
+              DESC := IfThen(Contido('<CPF>', DESC), Le_Nodo('CPF', DESC), Le_Nodo('CNPJ', DESC));
+              DESC := ACHA_CODCLI(DESC, '');
               COD  := DESC;
+              if not Contido('-'+ desc + '-', CODCLI) then CODCLI := CODCLI + desc + '-';
 
               _SER := Le_Nodo('serie', DadosNfe.xml);
               fim  := listaProdutos.Count -1;
@@ -4690,10 +3576,11 @@ begin
               TOT_PIS    := 0;
               TOT_COFINS := 0;
               _CFOP      := Le_Nodo('CFOP', DadosNfe.xml);
-              if _CFOP    = '' then _CFOP := '5102';
+              if _CFOP = '' then _CFOP := '5102';
               CSTPIS_CFOP := VE_CSTPISCFOP(_CFOP);
 
-              if StrToIntDef(LeftStr(_CFOP, 1), 0) >= 5 then begin
+              if StrToIntDef(LeftStr(_CFOP, 1), 0) >= 5 then
+              begin
 
               for ini := 0 to fim do
                 begin
@@ -4701,28 +3588,13 @@ begin
 
                   DADOS_PROD(IntToStr(listaProdutos[ini].cod) , DESC, UNID, COD_ALIQ, TRIB, ISPIS, COD_ISPIS, PERC_ICMS, BASE_ICM);
 
-                  if funcoes.Contido(CSTPIS_CFOP, 'IRXDN') then
+                  if funcoes.Contido(CSTPIS_CFOP, 'IRMXDN') then
                     begin
                       ISPIS     := CSTPIS_CFOP;
                       COD_ISPIS := '999';
                     end;
 
-                  checaISPIS_CODISPIS(listaProdutos[ini].CST_PIS, COD_ISPIS, listaProdutos[ini].cod);
-
-                  if (listaProdutos[ini].CST_PIS = '01') and (listaProdutos[ini].vPIS = 0) then begin
-                    listaProdutos[ini].BASE_PIS := 0;
-                  end;
-
-                  if listaProdutos[ini].CST_PIS = '02' then begin
-                    listaProdutos[ini].BASE_PIS := 0;
-                  end;
-
-                 { if ChecaIsencaoPis_Cst_49_Devoluções(listaProdutos[ini].CFOP) then begin
-                    listaProdutos[ini].CST_PIS := '49';
-                    COD_ISPIS   := '';
-                    CSTPIS_CFOP := '';
-                    ISPIS       := '';
-                  end;   }
+                  //if COD_ISPIS
 
                   TOT_ITEM := listaProdutos[ini].total;  
 
@@ -4737,9 +3609,6 @@ begin
                   TRIB := Trim(listaProdutos[ini].CST);
                   TRIB := IfThen(Length(TRIB) = 2, trib, '41');  //CST - VERIFICA SE O CST DA NF-E   VALIDO, SEN? PEGA 41-N? TRIBUTADO
 
-                  if ((TRIB = '60') and (listaProdutos[ini].CFOP = '5102')) then listaProdutos[ini].CFOP := '5405';
-                  if ((TRIB = '60') and (listaProdutos[ini].CFOP = '6102')) then listaProdutos[ini].CFOP := '6404';
-
                   //CALCULA O VALOR DO CREDITO DE ICMS, SE TIVER
                   //BASE_ICM := IfThen(TRIB = '00', TOT_ITEM - dsProduto.fieldbyname('descCom').AsCurrency, 0);//MAT_ITENS[INI, 4] - MAT_ITENS[INI, 6], 0) //TIRANDO APENAS DESCONTO COMERCIAL DA BASE DE CALCULO
                   BASE_ICM := IfThen(TRIB = '00', listaProdutos[ini].total, 0);//MAT_ITENS[INI, 4] - MAT_ITENS[INI, 6], 0) //TIRANDO APENAS DESCONTO COMERCIAL DA BASE DE CALCULO
@@ -4752,7 +3621,6 @@ begin
 
                   _CFOP := listaProdutos[ini].CFOP;
                   ALIQ_CFOP := TRIB + '|' +  _CFOP + '|' + FORM_NUM1(ALIQ);
-
                   //ACUMULA_ALIQCFOP(ALIQ_CFOP, listaProdutos[ini].total, BASE_ICM, TOT_ICM, 0);
 
                   //ACUMULA CFOP
@@ -4762,57 +3630,26 @@ begin
 
                   //ACUMULA VALORES DE PIS/COFINS DA NF-e
                   CST_PIS := listaProdutos[ini].CST_PIS;
+                  ISPIS   := '';
 
-                {  if CST_PIS = '02' then begin
-                    CST_PIS := '01';
-                    listaProdutos[ini].CST_PIS := CST_PIS;
-                  end;
-
-                  if trim(listaProdutos[ini].CST_PIS) = '01' then begin
-                    if listaProdutos[ini].vPIS    = 0 then listaProdutos[ini].vPIS    := ArredondaFinanceiro((listaProdutos[ini].total) * (TRIB_ALIQ_PIS / 100), 2);
-                    if listaProdutos[ini].vCOFINS = 0 then listaProdutos[ini].vCOFINS := ArredondaFinanceiro((listaProdutos[ini].total) * (TRIB_ALIQ_COFINS / 100), 2);
-                  end;}
-
-                  if Contido('|' + listaProdutos[ini].CST_PIS + '|' , '|06|07|') then
-                    begin
-                      if trim(COD_ISPIS) = '' then COD_ISPIS := '999';
-                    end;
-
-                  ACUM_PISCST1(listaProdutos.Items[ini], listaPIS, COD_ISPIS, CST_PIS);
-                  ISPIS := '';
                   CST_PIS := CALC_PISCOF1(TOT_ITEM, ISPIS, listaProdutos[ini].vPIS, listaProdutos[ini].vCOFINS, CST_PIS);
 
-
-                
                   TOT_PIS    := TOT_PIS    + listaProdutos[ini].vPIS;
                   TOT_COFINS := TOT_COFINS + listaProdutos[ini].vCOFINS;
-
-                  ALIQ_CFOP := LeftStr(CST_PIS, 2) + _CFOP;
-                  //ACUMULA NOS TOTALIZADORES DE ALIQUOTA E CFOP
-                  ACUMULA_ALIQCFOP(ALIQ_CFOP, listaProdutos[ini].total, listaProdutos[ini].vPIS, listaProdutos[ini].vCOFINS, 0);
-
-                  UNID := listaProdutos[ini].unid;
-                  VE_UNIDADE(UNID);
-
-                  if Contido('|' + listaProdutos[ini].CST_PIS + '|' , '|06|07|') then
-                    begin
-                      if trim(COD_ISPIS) = '' then COD_ISPIS := '999';
-                    end;
-
+                  
                   //SE NAO TEM PIS/COFINS, ACUMULA NO TOTALIZADOR DE PIS/COFINS NAO TRIBUTADO PARA O RELATORIO DE APURACAO
                   _PISNT := _PISNT + IfThen((TOT_PIS + TOT_COFINS) = 0, listaProdutos[ini].total, 0);
 
-                  //c170 contribuiçoes
                   LINHA := '|C170|' + IntToStr(INI + 1) + '|' + strzero(listaProdutos[ini].cod, 6) + '|' + DESC + '|' +
                   FORM_NUM1(listaProdutos[ini].quant) + '|' + listaProdutos[ini].unid + '|' + FORM_NUM1(listaProdutos[ini].total) +
                   '|' + FORM_NUM1(listaProdutos[ini].descCom) + '|0|' + '0' + TRIB + '|' + _CFOP + '|' + _CFOP + '|' +
                   FORM_NUM1(BASE_ICM) + '|' + FORM_NUM1(ALIQ) + '|' + FORM_NUM1(TOT_ICM) + '|' + '0|0|0|0|' +
-                  IfThen(StrToIntDef(LeftStr(_CFOP, 1 ), 5) <= 3, '03', '53') + '||0|0|0|'  + CST_PIS + '|'+codCTA+'|';  //99|0|0|0|0|0|99|0|0|0|0|0
-
+                  IfThen(StrToIntDef(LeftStr(_CFOP, 1 ), 5) <= 3, '03', '53') + '||0|0|0|'  + CST_PIS + '||';  //99|0|0|0|0|0|99|0|0|0|0|0
                   MAT_NOTA.Add(LINHA);
 
                   if ((StrToIntDef(StrNum(trim(CST_PIS)), 0) > 0) and (StrNum(COD_ISPIS) = '0')) then
                     begin
+                      //COD_ISPIS := '999';
                       IF not Contido('-' + IntToStr(listaProdutos[ini].cod) +'-', prods) then
                         begin
                           if prods = '' then prods := prods + '-' + IntToStr(listaProdutos[ini].cod) + '-'
@@ -4820,11 +3657,10 @@ begin
                         end;
                     end;
 
-
                   //ACUMULA NOS TOTALIZADORES DE ALIQUOTA DE PIS/COFINS
-
+                  ACUM_PISCST(LeftStr(CST_PIS, 2) + 'P' + COD_ISPIS, listaProdutos[ini].total, listaProdutos[ini].vPIS, 0, listaProdutos[ini].descCom);
+                  ACUM_PISCST(LeftStr(CST_PIS, 2) + 'C' + COD_ISPIS, listaProdutos[ini].total, listaProdutos[ini].vCOFINS, 0, listaProdutos[ini].descCom);
                 end; //FOR LISTA DE PRODUTOS
-
 
               //REGISTRO C100 - CABECALHO DA NOTA FISCAL
               //VERIFICA SE A NF-e E DE ENTRADA OU SAIDA, PELO CFOP
@@ -4845,15 +3681,12 @@ begin
                   GRAVA_SPED(ARQ_TMP, MAT_NOTA[INI]);
                 end;
             end;//if listaProdutos.Count > 0 then
-    //    end;
+        end;
 
         end;//if StrToIntDef(LeftStr(_CFOP, 1), 0) > 5 then
 
       dm.IBselect.Next;
     end;
-
-   sleep(1);
-  //ShowMessage('tot_pis=' + CurrToStr(TOT_PIS) + #13 + 'tot_cofins=' + CurrToStr(TOT_COFINS));
 
   if prods <> '' then
     begin
@@ -4883,10 +3716,9 @@ begin
   TOT_ECF[i].totVendas := 0;
 
   dsAliq.First;
-  ini := 0;
-  while not dsAliq.Eof do begin
-    ini := ini + 1;
-    if ini = 4 then break;
+  for ini := 1 to 8 do
+    begin
+      dsAliq.RecNo := ini;
       num1 := dsAliq.fieldbyname('aliq').AsCurrency;
       if dsAliq.fieldbyname('reducao').AsCurrency <> 0 then
         begin
@@ -4901,7 +3733,6 @@ begin
       TOT_ECF[i].codAliq   := ini;
       TOT_ECF[i].totECF    := 0;
       TOT_ECF[i].totVendas := 0;
-      dsAliq.Next;
     end;
 
   i := TOT_ECF.Add(TaliqSped.Create);
@@ -4939,9 +3770,9 @@ begin
   COD   := '000';
 
   dm.IBselect.Close;
-  dm.IBselect.SQL.Text := 'select COD, DATA, ECF, CONT_REINICIO, CONT_REDUCAOZ, CONT_OP, '+
-  'TOT_GERAL, TOT_CANC, TOT_ALIQ01,TOT_ALIQ02, TOT_ALIQ03, TOT_DESC, TOT_FF, TOT_II, TOT_NN, '+
-  'VENDABRUTA from SPED_REDUCAOZ where (data >= :ini) and (data <= :fim) order by ecf';
+  dm.IBselect.SQL.Text := 'select distinct(CONT_REDUCAOZ), ecf, TOT_GERAL, data, CONT_REINICIO, CONT_OP, TOT_CANC, TOT_ALIQ01,TOT_ALIQ02, TOT_ALIQ03, TOT_ALIQ04, TOT_ALIQ05, TOT_ALIQ06, TOT_ALIQ07, TOT_ALIQ08, TOT_DESC'+
+  ', TOT_FF, TOT_II, TOT_NN, VENDABRUTA' +
+  ' from SPED_REDUCAOZ where (data >= :ini) and (data <= :fim) order by ecf';
   dm.IBselect.ParamByName('ini').AsDate  := StrToDate(dataIni);
   dm.IBselect.ParamByName('fim').AsDate  := StrToDate(DataFim);
   dm.IBselect.Open;
@@ -4949,29 +3780,28 @@ begin
   fa := dm.IBselect.RecordCount;
   fu := 0;
 
-  listaReg_Cod_CST := TItensProduto.Create;
-
+  informacao(0, fa, 'Verificando Vendas...', false, true, 2);
   informacao(0, fa, 'Lendo Movimento de ECFs...', true, false, 2);
-
-  //contribuições
   while not dm.IBselect.Eof do
     begin
       fu := fu + 1;
       informacao(fu, fa, 'Lendo Movimento de ECFs...', false, false, 2);
-
       listaProdutos.Clear;
       MAT_NOTA.Clear;
       lisTMP.Clear;
-      VAL_ALIQCFOP.Clear;
+
+      TOT_PIS    := 0;
+      TOT_COFINS := 0;
+      _PISNT     := 0;
 
       if cod <> dm.IBselect.fieldbyname('ecf').AsString then
         begin
           cod := dm.IBselect.fieldbyname('ecf').AsString;
-          //cod := strzero(cod, 3);
           LIN := VE_ECF(StrToInt(cod));
           GRAVA_SPED(ARQ_TMP, LIN);
         end;
 
+     TOTX := 0;
      TOTX := VE_VENDAECF(dm.ibselect, false);
 
      LINHA := '|C405|'+ FormatDateTime('ddmmyyyy', dm.IBselect.fieldbyname('DATA').AsDateTime) + '|' + STRZERO(dm.IBselect.fieldbyname('CONT_REINICIO').AsInteger, 3) + '|' +
@@ -4979,123 +3809,96 @@ begin
      FORM_NUM1(dm.IBselect.fieldbyname('TOT_GERAL').AsCurrency) + '|' + FORM_NUM1(TOTX) + '|';
      GRAVA_SPED(ARQ_TMP, LINHA);
 
-
-     FOR ini := 7 TO dm.IBselect.FieldDefs.Count - 2 do// IfThen(dm.IBselect.FieldDefs.Count = 22, 3, 2) do
-     //FOR ini := 0 TO TOT_ECF.Count -1 do
+     FOR ini := 8 TO dm.IBselect.FieldDefs.Count - IfThen(dm.IBselect.FieldDefs.Count = 22, 3, 2) do
        begin
-
-          TOT_ECF[ini - 7].totVendas := dm.IBselect.FieldByName(dm.IBselect.FieldDefs[ini].Name).AsCurrency;
-         //ShowMessage('cont=' + IntToStr(ini - 7) + #13 + 'tot=' + IntToStr(dm.IBselect.FieldDefs.Count -2) + #13 + #13 + TOT_ECF.GetText);
-         //TOT_ECF[ini - (indXNaoTrib -1)].totECF    := 0;
-         //TOT_ECF[ini - (indXNaoTrib -1)].totVendas := 0;
+         TOT_ECF[ini - 7].totECF    := 0;
+         TOT_ECF[ini - 7].totVendas := 0;
           //nao pode adicionar os descontos e nem cancelamentos aqui
-          //IF ((dm.IBselect.FieldByName(dm.IBselect.FieldDefs[ini].Name).AsCurrency <> 0) and ((ini - (indXNaoTrib -1)) <> 9)) then
-           //    TOT_ECF[ini - (indXNaoTrib -1)].totVendas := dm.IBselect.FieldByName(dm.IBselect.FieldDefs[ini].Name).AsCurrency;
+          IF ((dm.IBselect.FieldByName(dm.IBselect.FieldDefs[ini].Name).AsCurrency <> 0) and ((ini - 7) <> 9)) then
+               TOT_ECF[ini - 7].totVendas := dm.IBselect.FieldByName(dm.IBselect.FieldDefs[ini].Name).AsCurrency;
        end;
 
-     listaProdutos.Clear;  
+     MAT_NOTA.Clear;
+     MAT_NOTA1.Clear;  
 
      //GRAVA PRIMEIRO OS REGISTROS C420 DOS TOTALIZADORES QUE NAO TEM C425 (CANCELAMENTO E DESCONTOS)
      //LE OS TOTALIZADORES (A PARTIR DO 5. ELEMENTO) E VE OS QUE TEM MOVIMENTO
-     FOR i1 := 0 TO TOT_ECF.Count - 1 do
-       begin
-         if (TOT_ECF[i1].totVendas <> 0) then
+
+         if (TOTX > 0) then
            begin
+             listaProdutos.Clear;
              LIN := IfThen(copy(TOT_ECF[i1].leng, 3, 1) = 'T', trim(IntToStr(StrToInt(strnum(LeftStr(TOT_ECF[i1].leng, 2))))), '');
              if LIN = '0' then LIN := '';
 
-             TOT_ITEM := VE_MOVCUPOM(dm.IBselect.fieldbyname('data').AsDateTime, TOT_ECF[i1].codAliq, TOT_ECF[i1].totVendas, cod);
-           end;//if (TOT_ECF[i1].totVendas <> 0) then
-       end;//FOR i1 := 0 TO TOT_ECF.Count - 1 do
+             TOT_ITEM := VE_MOVCUPOM(dm.IBselect.fieldbyname('data').AsDateTime, 0, TOTX, cod);
 
-       for i3 := 0 to listaProdutos.Count -1 do
-         begin
-           //SE CHEGOU AQUI, ENT? ESTE ITEM E DA ALIQUOTA ATUAL
+             ret := 0;
+             for i3 := 0 to listaProdutos.Count -1 do
+               begin
+                 //SE CHEGOU AQUI, ENT? ESTE ITEM E DA ALIQUOTA ATUAL
+                 ret := ret + 1;
+                 DADOS_PROD(IntToStr(listaProdutos[i3].cod) , DESC, UNID, COD_ALIQ, TRIB, ISPIS, COD_ISPIS, PERC_ICMS, BASE_ICM);
 
-           DADOS_PROD(IntToStr(listaProdutos[i3].cod) , DESC, UNID, COD_ALIQ, TRIB, ISPIS, COD_ISPIS, PERC_ICMS, BASE_ICM, false);
+                 SOMA_MOV(listaProdutos[i3].cod, - listaProdutos[i3].quant);
 
-           SOMA_MOV(listaProdutos[i3].cod, - listaProdutos[i3].quant);
+                 //USAR A ALIQUOTA QUE ESTA NA VENDA, E NAO A BUSCADA EM DADOS_PROD, POIS A ATUAL PODE TER SIDO ALTERADA
+                 VALIDALIQ(listaProdutos[i3].aliq, num_aliq, ALIQ, TRIB, BASE_ICM);
 
-           //USAR A ALIQUOTA QUE ESTA NA VENDA, E NAO A BUSCADA EM DADOS_PROD, POIS A ATUAL PODE TER SIDO ALTERADA
-           VALIDALIQ(listaProdutos[i3].aliq, num_aliq, ALIQ, TRIB, BASE_ICM);
+                 //VALOR TOTAL DO ITEM
+                 TOT_ITEM := listaProdutos[i3].total;
+                 TOT      := TOT + listaProdutos[i3].total;
 
-           //VALOR TOTAL DO ITEM
-           TOT_ITEM := listaProdutos[i3].total;
-           TOT      := TOT + listaProdutos[i3].total;
+                 //CALCULA O VALOR DO ICMS, SE TIVER
+                 BASE_ICM := RoundTo1(TOT_ITEM * BASE_ICM / 100);
+                 TOT_ICM := IfThen(ALIQ > 0, RoundTo1(BASE_ICM * ALIQ / 100), 0);
 
-           UNID := listaProdutos[i3].unid;
-           VE_UNIDADE(UNID);
+                 //CALCULA PIS/COFINS
+                 CST_PIS := CALC_PISCOF(TOT_ITEM, ISPIS, _PIS, _COFINS, '');
+                 TOT_PIS    := TOT_PIS    + _PIS;
+                 TOT_COFINS := TOT_COFINS + _COFINS;
 
-           ACUMULA_COD(IntToStr(listaProdutos[i3].cod), UNID);
+			           //SE NAO TEM PIS/COFINS, ACUMULA NO TOTALIZADOR DE PIS/COFINS NAO TRIBUTADO PARA O RELATORIO DE APURACAO
+                 _PISNT := _PISNT + IfThen(_PIS + _COFINS = 0, TOT_ITEM, 0);
 
-           //CALCULA PIS/COFINS
-           CST_PIS := CALC_PISCOF(TOT_ITEM, ISPIS, _PIS, _COFINS, '');
-           TOT_PIS    := TOT_PIS    + _PIS;
-           TOT_COFINS := TOT_COFINS + _COFINS;
+                 LINHA := '|C481|' + LeftStr(CST_PIS, 2) + '|' + FORM_NUM1(TOT_ITEM) + '|' +
+			           FORM_NUM1(TOT_ITEM) + '|' + FORM_NUM1(TRIB_ALIQ_PIS) + '|||' +
+                 FORM_NUM1(_PIS) + '|' + strzero(IntToStr((listaProdutos[i3].cod)), 6) + '||';
+                 MAT_NOTA.Add(LINHA);
 
-           //SE NAO TEM PIS/COFINS, ACUMULA NO TOTALIZADOR DE PIS/COFINS NAO TRIBUTADO PARA O RELATORIO DE APURACAO
-           _PISNT := _PISNT + IfThen(_PIS + _COFINS = 0, TOT_ITEM, 0);
+                 LINHA := '|C485|' + LeftStr(CST_PIS, 2) + '|' + FORM_NUM1(TOT_ITEM) + '|' +
+                 FORM_NUM1(TOT_ITEM) + '|' + FORM_NUM1(TRIB_ALIQ_COFINS) + '|||' +
+                 FORM_NUM1(_COFINS) + '|' + strzero(IntToStr(listaProdutos[i3].cod), 6) + '||';
+                 MAT_NOTA1.Add(LINHA);
 
-           //ACUMULA NOS TOTALIZADORES DE ALIQUOTA E CFOP
-           ACUMULA_ALIQCFOP(ALIQ_CFOP, TOT_ITEM, BASE_ICM, TOT_ICM, 0);
+                 ACUM_PISCST(LeftStr(CST_PIS, 2) + 'P' + COD_ISPIS, TOT_ITEM, _PIS, 0, 0);
+                 ACUM_PISCST(LeftStr(CST_PIS, 2) + 'C' + COD_ISPIS, TOT_ITEM, _COFINS, 0, 0);
+               end;
 
-           LINHA := '|C481|' + LeftStr(CST_PIS, 2) + '|' + FORM_NUM1(TOT_ITEM) + '|' +
-           FORM_NUM1(TOT_ITEM) + '|' + FORM_NUM1(TRIB_ALIQ_PIS) + '|||' +
-           FORM_NUM1(_PIS) + '|' + strzero(IntToStr((listaProdutos[i3].cod)), 6) + '||';
-           MAT_NOTA.Add(LINHA);
+             FOR INI := 0 TO MAT_NOTA.Count -1 do
+               begin
+                 GRAVA_SPED(ARQ_TMP, MAT_NOTA[INI]);
+               end;
 
-           LINHA := '|C485|' + LeftStr(CST_PIS, 2) + '|' + FORM_NUM1(TOT_ITEM) + '|' +
-           FORM_NUM1(TOT_ITEM) + '|' + FORM_NUM1(TRIB_ALIQ_COFINS) + '|||' +
-           FORM_NUM1(_COFINS) + '|' + strzero(IntToStr(listaProdutos[i3].cod), 6) + '||';
-           MAT_NOTA1.Add(LINHA);
+             FOR INI := 0 TO MAT_NOTA1.Count -1 do
+               begin
+                GRAVA_SPED(ARQ_TMP, MAT_NOTA1[INI]);
+               end;
 
-           listaProdutos[i3].total   := TOT_ITEM;
-           listaProdutos[i3].vPIS    := _PIS;
-           listaProdutos[i3].vCOFINS := _COFINS;
-           listaProdutos[i3].CST_PIS := CST_PIS;
-           listaProdutos[i3].CFOP    := '5102';
+           //ZERA OS TOTALIZADORES DE ALIQUOTA PARA O PROXIMO DIA DE MOVIMENTO
+           ZERA_ALIQCFOP();
 
-           ACUM_PISCST1(listaProdutos[i3], listaPIS, COD_ISPIS, CST_PIS);
-
-         end;//for i3 := 0 to listaProdutos.Count -1 do
-
-      {for i3 := 0 to listaProdutos.Count -1 do
-        begin
-          LINHA := '|C481|' + LeftStr(CST_PIS, 2) + '|' + FORM_NUM1(TOT_ITEM) + '|' +
-          FORM_NUM1(TOT_ITEM) + '|' + FORM_NUM1(TRIB_ALIQ_PIS) + '|||' +
-          FORM_NUM1(_PIS) + '|' + strzero(IntToStr((listaProdutos[i3].cod)), 6) + '||';
-          MAT_NOTA.Add(LINHA);
-
-          LINHA := '|C485|' + LeftStr(CST_PIS, 2) + '|' + FORM_NUM1(TOT_ITEM) + '|' +
-          FORM_NUM1(TOT_ITEM) + '|' + FORM_NUM1(TRIB_ALIQ_COFINS) + '|||' +
-          FORM_NUM1(_COFINS) + '|' + strzero(IntToStr(listaProdutos[i3].cod), 6) + '||';
-          MAT_NOTA1.Add(LINHA);
-        end;  }
-
-      FOR INI := 0 TO MAT_NOTA.Count -1 do GRAVA_SPED(ARQ_TMP, MAT_NOTA[INI]);
-      FOR INI := 0 TO MAT_NOTA1.Count -1 do GRAVA_SPED(ARQ_TMP, MAT_NOTA1[INI]);
-
-      //ZERA OS TOTALIZADORES DE ALIQUOTA PARA O PROXIMO DIA DE MOVIMENTO
-      ZERA_ALIQCFOP();
-
-      //ZERA TOTALIZADORES DE PIS/COFINS
-      MAT_NOTA.Clear;
-      MAT_NOTA1.Clear;
-
+           //ZERA TOTALIZADORES DE PIS/COFINS
+           MAT_NOTA.Clear;
+           MAT_NOTA1.Clear;
+         end;
+      
       for ini2 := 0 to TOT_ECF.Count -1 do
         begin
           TOT_ECF[ini2].totECF    := 0;
           TOT_ECF[ini2].totVendas := 0;
         end;
-
-      //ZERA TOTALIZADORES DE PIS/COFINS
-      TOT_PIS    := 0;
-      TOT_COFINS := 0;
-      _PISNT     := 0;
-
       dm.IBselect.Next;
     end;
-
   {DADOS DE CUPOM FISCAIS}
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   {FIM SAIDAS}
@@ -5105,7 +3908,6 @@ FUNCTION ACUM_PISCST(ALIQ_PIS : String; TOT_ITEM, VLR_PIS, CRED_PIS, DESC : curr
 var
  POSX : String;
 begin
-  Result := 0;
   POSX := MAT_ALIQPIS.Values[ALIQ_PIS];
   IF POSX = '' then
     begin
@@ -5200,164 +4002,10 @@ begin
 end;
 
 function blocoA() : String;
-var
-  ini, fim, ini1  : integer;
-  item      : Item_venda;
-  nota, uf_dest : String;
-  desconto : currency;
-  NOTAS    : TItensAcumProd;
 begin
-
-  query1.Close;
-  query1.SQL.Text := 'select * from SPED_MOVFISCAIS where data >= :ini and data <= :fim';
-  query1.ParamByName('ini').AsDate := StrToDate(dataIni);
-  query1.ParamByName('fim').AsDate := StrToDate(DataFim);
-  query1.Open;
-
-  if query1.IsEmpty then begin
-    LINHA := '|A001|1|';
-    GRAVA_SPED(ARQ_TMP, LINHA);
-    TOTAL_REG(ARQ_TMP, 'A');
-    query1.Close;
-    exit;
-  end;
-
-  NOTAS := TItensAcumProd.Create;
-
-  while not query1.Eof do begin
-    fim := notas.Add(TacumProd.Create);
-    notas[fim].cod        := query1.FieldByName('pedido').AsInteger;
-    notas[fim].notaFiscal := query1.FieldByName('nota').AsInteger;
-    notas[fim].data       := query1.FieldByName('data').AsDateTime;
-    query1.Next;
-  end;
-
-  query1.Close;
-  query1.SQL.Text := 'select cnpj from registro where cnpj <> ''''';
-  query1.Open;
-
-  _CNPJ := strnum(query1.FieldByName('cnpj').AsString);
-
-  LINHA := '|A001|0|';
+  LINHA := '|A001|1|';
   GRAVA_SPED(ARQ_TMP, LINHA);
-  LINHA := '|A010|' + _CNPJ + '|';
-  GRAVA_SPED(ARQ_TMP, LINHA);
-  if not assigned(lista) then lista := TList.Create;
-
-  venda := Tvenda.Create;
-
-
-  for ini := 0 to notas.Count -1 do begin
-    lista.Clear;
-    nota := IntToStr(notas[ini].cod);
-    lerItensDaVenda(lista, nota);
-    fim      := lista.Count -1;
-
-    query1.Close;
-    query1.SQL.Text := 'select est from cliente where cod = :cod';
-    query1.ParamByName('cod').AsInteger := venda.cliente;
-    query1.Open;
-
-    uf_dest := trim(query1.FieldByName('est').AsString);
-    if uf_dest = '' then uf_dest := 'RR';
-    query1.Close;
-
-    CODCLI := IntToStr(venda.cliente) + '-';
-    ALIQ   := ALIQ_INTEREST(uf_dest);
-
-    //ZERA TOTAIS DE PIS/COFINS DA NOTA ATUAL
-    TOT_PIS    := 0;
-    TOT_COFINS := 0;
-    _PISNT     := 0;
-
-    //SOMA O TOTAL DE DESCONTOS E TOTAL DA NOTA
-    TOTDESC := 0;
-    TOT     := 0;
-    //PEGA CADA UM DOS ITENS VENDIDOS E MONTA O REGISTRO C170
-
-    MAT_NOTA.Clear;
-    fim      := lista.Count -1;
-    for ini1 := 0 to fim do begin
-      ret  := ret + 1;
-      item := lista[ini1];
-      COD  := IntToStr(item.cod);
-      DADOS_PROD(COD , DESC, UNID, COD_ALIQ, TRIB, ISPIS, COD_ISPIS, PERC_ICMS, BASE_ICM, false);
-
-      SOMA_MOV(item.cod, - item.quant);
-
-      //USAR A ALIQUOTA QUE ESTA NA VENDA, E NAO A BUSCADA EM DADOS_PROD, POIS A ATUAL PODE TER SIDO ALTERADA
-      VALIDALIQ(item.aliq, num_aliq, ALIQ, TRIB, BASE_ICM);
-
-      //VALOR TOTAL DO ITEM
-      TOT_ITEM := item.total;
-      TOT      := TOT + TOT_ITEM;
-
-      IF (TRIB = '00')  then begin
-	      BASE_ICM := 100;
-      END;
-
-      UNID := item.unid;
-      VE_UNIDADE(UNID);
-
-      ACUMULA_COD(IntToStr(item.cod), UNID);
-
-      //CALCULA PIS/COFINS
-      CALC_PISCOF(TOT_ITEM, ISPIS, _PIS, _COFINS, '');
-      TOT_PIS    := TOT_PIS    + _PIS;
-      TOT_COFINS := TOT_COFINS + _COFINS;
-
-      CST_PIS := buscaCST_PIS_Por_ISPIS(ISPIS, COD_ISPIS, item.vpis);
-      if item.vpis = 0 then item.vCOFINS := 0;
-      item.CST_PIS := CST_PIS;
-
-      //SE NAO TEM PIS/COFINS, ACUMULA NO TOTALIZADOR DE PIS/COFINS NAO TRIBUTADO PARA O RELATORIO DE APURACAO
-      _PISNT := _PISNT + IfThen(_PIS + _COFINS = 0, TOT_ITEM, 0);
-
-      //ACUMULA NOS TOTALIZADORES DE ALIQUOTA E CFOP
-      ACUMULA_ALIQCFOP(ALIQ_CFOP, TOT_ITEM, BASE_ICM, TOT_ICM, 0);
-
-      LINHA := '|A170|' + IntToStr(INI1 + 1) + '|' + strzero(IntToStr(item.cod), 6) + '|' + DESC + '|' +
-      FORM_NUM1(TOT_ITEM) + '|' + FORM_NUM1(item.Desconto) + '|||' + LeftStr(CST_PIS, 2) + '|' +
-      FORM_NUM1(TOT_ITEM) + '|' + FORM_NUM1(TRIB_ALIQ_PIS) + '|' + FORM_NUM1(_PIS) + '|' +
-      LeftStr(CST_PIS, 2) + '|' + FORM_NUM1(TOT_ITEM) + '|' + FORM_NUM1(TRIB_ALIQ_COFINS) + '|' +
-      FORM_NUM1(_COFINS) + '|||';
-      MAT_NOTA.Add(LINHA);
-
-      item.total   := TOT_ITEM;
-      item.vPIS    := _PIS;
-      item.vCOFINS := _COFINS;
-      item.CST_PIS := CST_PIS;
-      item.CFOP    := '5102';
-
-      ACUM_PISCST2(item.cfop, item.CST_PIS,item.vpis, item.vcofins, 0, item.total, listaPIS, COD_ISPIS, CST_PIS);
-    end;//for i3 := 0 to listaProdutos.Count -1 do
-
-    //ACUMULA TOTAL DE ICMS DE ENTRADA PARA INFORMAR NO REGISTRO E110 - CAMPO 6
-    //TOTDEBICM += TOTAL_MATRIZ(ICM_ALIQCFOP)
-
-    //REGISTRO A100 - CABECALHO DA NOTA FISCAL
-    LINHA := '|A100|1|0|2' + strzero(venda.cliente, 6) + '|00|1|0|' + STRNUM(nota) + '||' +
-    DATA_BRA_FULL(notas[ini].data) + '|' + DATA_BRA_FULL(notas[ini].data) + '|' +
-    FORM_NUM1(TOT) + '|0|' +  FORM_NUM1(TOTDESC) + '|' +
-	  FORM_NUM1(TOT) + '|' + FORM_NUM1(TOT_PIS) + '|' +
-	  FORM_NUM1(TOT) + '|' + FORM_NUM1(TOT_COFINS) + '||||';
-    GRAVA_SPED(ARQ_TMP, LINHA);
-
-    if not Contido('-' + IntToStr(venda.cliente) + '-', CODCLI) then begin
-      CODCLI := CODCLI + IntToStr(venda.cliente) + '-';
-    end;
-
-
-    FOR INI1 := 0 TO MAT_NOTA.Count -1 do begin
-      GRAVA_SPED(ARQ_TMP, MAT_NOTA[INI1]);
-    end;
-
-  end;
-
-  //GRAVA_SPED(ARQ_TMP, LINHA);
-
   TOTAL_REG(ARQ_TMP, 'A');
-
 end;
 
 
@@ -5366,33 +4014,19 @@ begin
   Result := '1';
   Result := copy(chave, 23, 3);
   Result := IntToStr(StrToIntDef(StrNum(Result), 1));
-  if Result = '' then Result := '0';
+  if Result = '0' then Result := '1';
 end;
 
 
-FUNCTION ACUM_PISCST1(produto : TregProd; var listPis : TItensPISCOFINS; cod_ispis1, cstpis : String) : currency;
+FUNCTION ACUM_PISCST1(produto : TregProd; var listPis : TItensPISCOFINS) : currency;
 var
   fi : integer;
 begin
-  Result := 0;
-
-  if (trim(cod_ispis1) = '') and (trim(produto.CST_PIS) <> '04') then cod_ispis1      := '999';
-  if (trim(cod_ispis1) = '') and (trim(produto.CST_PIS) =  '04') then produto.CST_PIS := '01';
-  if  (StrToIntDef(trim(produto.CST_PIS), 6) <= 1) and ((produto.vPIS) = 0) and (produto.BASE_PIS > 0) then begin
-    produto.vCOFINS := ArredondaFinanceiro(produto.total * TRIB_ALIQ_COFINS / 100, 2);
-    produto.vPIS    := ArredondaFinanceiro(produto.total * TRIB_ALIQ_PIS / 100, 2);
-  end;
-
-  //ShowMessage(IntToStr(produto.cod) + #13 + CurrToStr(produto.vPIS) + #13 + CurrToStr(produto.BASE_PIS) + #13 + produto.CST_PIS);
-
-
   fi := listPis.Find(produto.CFOP + produto.CST_PIS);
   if fi > -1 then
     begin
       listPis[fi].pis    := listPis[fi].pis    + produto.vPIS;
       listPis[fi].cofins := listPis[fi].cofins + produto.vCOFINS;
-      listPis[fi].icms   := listPis[fi].icms   + produto.TOT_ICM;
-      listPis[fi].total  := listPis[fi].total  + produto.total;
     end
   else
     begin
@@ -5404,572 +4038,6 @@ begin
       listPis[fi].CST    := produto.CST_PIS;
       listPis[fi].CFOP   := produto.CFOP;
     end;
-
-  {fi := listaTOT_PIS.Find(produto.CST_PIS + cod_ispis1);
-  if fi > -1 then
-    begin
-      listaTOT_PIS[fi].pis    := listaTOT_PIS[fi].pis    + ArredondaFinanceiro(produto.total * (TRIB_ALIQ_PIS / 100)   , 2);
-      listaTOT_PIS[fi].cofins := listaTOT_PIS[fi].cofins + ArredondaFinanceiro(produto.total * (TRIB_ALIQ_COFINS / 100), 2);
-      listaTOT_PIS[fi].total  := listaTOT_PIS[fi].total  + produto.total;
-    end
-  else
-    begin
-      fi := listaTOT_PIS.Add(TacumPis.Create);
-      listaTOT_PIS[fi].cod    := produto.CST_PIS + cod_ispis1;
-      listaTOT_PIS[fi].pis    := ArredondaFinanceiro(produto.total * (TRIB_ALIQ_PIS / 100)   , 2);
-      listaTOT_PIS[fi].cofins := ArredondaFinanceiro(produto.total * (TRIB_ALIQ_COFINS / 100), 2);
-      listaTOT_PIS[fi].total  := produto.total;
-      listaTOT_PIS[fi].CST    := produto.CST_PIS;
-      listaTOT_PIS[fi].CFOP   := produto.CFOP;
-    end;   }
-
-
-    fi := listaTOT_PIS.Find(produto.CST_PIS + cod_ispis1);
-    if fi > -1 then
-    begin
-      listaTOT_PIS[fi].pis    := listaTOT_PIS[fi].pis    + produto.vPIS;
-      listaTOT_PIS[fi].cofins := listaTOT_PIS[fi].cofins + produto.vCOFINS;
-      listaTOT_PIS[fi].total  := listaTOT_PIS[fi].total  + produto.total;
-      //if (StrToIntDef(trim(produto.CST_PIS), 2) <= 2) and (produto.BASE_PIS > 0) then begin
-        listaTOT_PIS[fi].Base := listaTOT_PIS[fi].Base + produto.BASE_PIS;
-      //end;
-    end
-  else
-    begin
-      fi := listaTOT_PIS.Add(TacumPis.Create);
-      listaTOT_PIS[fi].cod    := produto.CST_PIS + cod_ispis1;
-      listaTOT_PIS[fi].pis    := produto.vPIS;
-      listaTOT_PIS[fi].cofins := produto.vCOFINS;
-      //if (StrToIntDef(trim(produto.CST_PIS), 2) <= 2) and (produto.BASE_PIS > 0) then
-      listaTOT_PIS[fi].Base := produto.BASE_PIS;
-      listaTOT_PIS[fi].total  := produto.total;
-      listaTOT_PIS[fi].CST    := produto.CST_PIS;
-      listaTOT_PIS[fi].CFOP   := produto.CFOP;
-    end;
-
-   //ShowMessage(IntToStr(produto.cod) + #13 + CurrToStr(produto.vPIS) + #13 + CurrToStr(produto.BASE_PIS) + #13 + produto.CST_PIS + #13+'-----------'+#13 +listaTOT_PIS.getText);
-//    ShowMessage(CurrToStr(listaTOT_PIS[fi].Base));
-
-  //ShowMessage(IntToStr(produto.cod) + #13 + #13 + listaTOT_PIS.getText);
-end;
-
-FUNCTION ACUM_PISCST2(prod_CFOP, prod_CST_PIS : String;vpis, vcofins, icms, total : currency; var listPis : TItensPISCOFINS; cod_ispis1, cstpis : String) : currency;
-var
-  fi : integer;
-begin
-  Result := 0;
-
-  fi := listPis.Find(prod_CFOP + prod_CST_PIS);
-  if fi > -1 then
-    begin
-      listPis[fi].pis    := listPis[fi].pis    + vPIS;
-      listPis[fi].cofins := listPis[fi].cofins + vCOFINS;
-      listPis[fi].icms   := listPis[fi].icms   + TOT_ICM;
-      listPis[fi].total  := listPis[fi].total  + total;
-    end
-  else
-    begin
-      fi := listPis.Add(TacumPis.Create);
-      listPis[fi].cod    := prod_CFOP + prod_CST_PIS;
-      listPis[fi].pis    := vPIS;
-      listPis[fi].total  := total;
-      listPis[fi].cofins := vCOFINS;
-      listPis[fi].CST    := prod_CST_PIS;
-      listPis[fi].CFOP   := prod_CFOP;
-    end;
-
-  fi := listaTOT_PIS.Find(prod_CST_PIS + cod_ispis1);
-  if fi > -1 then
-    begin
-      listaTOT_PIS[fi].pis    := listaTOT_PIS[fi].pis    + ArredondaFinanceiro(total * (TRIB_ALIQ_PIS / 100)   , 2);
-      listaTOT_PIS[fi].cofins := listaTOT_PIS[fi].cofins + ArredondaFinanceiro(total * (TRIB_ALIQ_COFINS / 100), 2);
-      listaTOT_PIS[fi].total  := listaTOT_PIS[fi].total  + total;
-    end
-  else
-    begin
-      fi := listaTOT_PIS.Add(TacumPis.Create);
-      listaTOT_PIS[fi].cod    := prod_CST_PIS + cod_ispis1;
-      listaTOT_PIS[fi].pis    := ArredondaFinanceiro(total * (TRIB_ALIQ_PIS / 100)   , 2);
-      listaTOT_PIS[fi].cofins := ArredondaFinanceiro(total * (TRIB_ALIQ_COFINS / 100), 2);
-      listaTOT_PIS[fi].total  := total;
-      listaTOT_PIS[fi].CST    := prod_CST_PIS;
-      listaTOT_PIS[fi].CFOP   := prod_CFOP;
-    end;
-end;
-
-function blocoK() : String;
-begin
-  IF StrToInt(FormatDateTime('yyyy', StrToDate(dataIni))) < 2016 then exit;
-  LINHA := '|K001|1|';
-  GRAVA_SPED(ARQ_TMP, LINHA);
-
-  TOTAL_REG(ARQ_TMP, 'K');
-end;
-
-FUNCTION ACUM_IcmsCstCFOP(produto : TregProd; var listPis : TItensPISCOFINS; var base_calcICMS : currency) : currency;
-var
-  fi : integer;
-begin
-  Result := 0;
-
-  fi := listPis.Find(produto.CFOP + produto.CST + CurrToStr(produto.PERC_ICM));
-  if fi > -1 then
-    begin
-      listPis[fi].icms    := listPis[fi].icms  + produto.TOT_ICM;
-      listPis[fi].total   := listPis[fi].total + produto.total;
-      if produto.TOT_ICM > 0 then begin
-        listPis[fi].base  := listPis[fi].base  + produto.BASE_ICM;
-        base_calcICMS     := base_calcICMS     + produto.BASE_ICM;
-      end;  
-    end
-  else
-    begin
-      fi := listPis.Add(TacumPis.Create);
-      listPis[fi].cod      := produto.CFOP + produto.CST + CurrToStr(produto.PERC_ICM);
-      listPis[fi].total    := produto.total;
-      listPis[fi].CST      := produto.CST;
-      listPis[fi].aliquota := produto.PERC_ICM;
-      listPis[fi].CFOP     := produto.CFOP;
-      listPis[fi].icms     := produto.TOT_ICM;
-      if produto.TOT_ICM > 0 then begin
-        listPis[fi].base     := produto.BASE_ICM;
-        base_calcICMS        := base_calcICMS + produto.BASE_ICM;
-      end;
-    end;
-end;
-
-function buscaCST_PIS_Por_ISPIS(ispis1, codispis1 : String; var pis : currency) : string;
-begin
-  Result := '01';
-  if Contido('|' + (ispis1) + '|', '|I|M|R|X|D|') then begin
-    codispis1 := StrNum(codispis1);
-    if length(codispis1) = 3 then begin
-      Result := '06';
-      if      ISPIS = 'R' then Result := '06'
-      else if ISPIS = 'M' then Result := '04'
-      else if ISPIS = 'I' then Result := '07'
-      else if ISPIS = 'X' then Result := '08';
-      pis := 0;
-    end;
-  end;
-end;
-
-procedure rateioCredICMS();
-begin
-  fim := listaProdutos.Count -1;
-  TOT  := 0;
-  QTD1 := DADOS_ADIC[11];
-  for ini := 0 to fim do begin
-    if listaProdutos[ini].cod_aliq < 10 then begin
-      TOT := TOT + listaProdutos[ini].total;
-    end;
-  end;
-
-  POS1 := DADOS_ADIC[11];
-  for ini := 0 to fim do begin
-    if listaProdutos[ini].cod_aliq < 10 then begin
-      ret := ini;
-      LIDO := (listaProdutos[ini].total / TOT) * DADOS_ADIC[11];
-
-      //ShowMessage(IntToStr(listaProdutos[ini].cod) + #13 +
-      //CurrToStr(lido));
-
-      IF LIDO <= POS1 then begin
-        listaProdutos[ini].TOT_ICM := listaProdutos[ini].TOT_ICM + LIDO;
-        POS1 := POS1 - LIDO;
-      end
-      ELSE begin
-        listaProdutos[ini].TOT_ICM  := listaProdutos[ini].TOT_ICM + POS1;
-        POS1 := 0;
-      end;
-    end;
-  end;
-
-  if POS1 > 0 then begin
-    listaProdutos[ret].TOT_ICM  := listaProdutos[ret].TOT_ICM + POS1;
-  end;
-
-  for ini := 0 to fim do begin
-    if listaProdutos[ini].cod_aliq < 10 then begin
-      listaProdutos[ini].PERC_ICM := Arredonda(listaProdutos[ini].TOT_ICM / listaProdutos[ini].total * 100, 2);
-    end;
-  end;
-end;
-
-procedure insereInutilizacoesFiscal();
-var
-  valor : integer;
-begin
-  if funcoes.verSeExisteTabela('INUTILIZACAO') = false then exit;
-
-
-  query1.Close;
-  query1.SQL.Text := 'select inicio, fim, serie, tipo, data from INUTILIZACAO where data >= :ini and data <= :fim';
-  query1.ParamByName('ini').AsDate := StrToDateTime(dataIni);
-  query1.ParamByName('fim').AsDate := StrToDateTime(DataFim);
-  query1.Open;
-
-  if query1.IsEmpty then begin
-    query1.Close;
-    exit;
-  end;
-
-  while not query1.Eof do begin
-    valor := query1.FieldByName('inicio').AsInteger;
-    while true do begin
-      if valor > query1.FieldByName('fim').AsInteger then break;
-
-      LINHA := '|C100|1|0||'+query1.FieldByName('tipo').AsString+'|05|' + query1.FieldByName('serie').AsString + '|' + strnum(IntToStr(valor)) +
-      '||||||||||||||||||||||';
-
-      GRAVA_SPED(ARQ_TMP, LINHA);
-      valor := valor + 1;
-    end;
-
-    query1.Next;
-  end;
-end;
-
-procedure restauraCadastroProduto(cod2 : String; msg : boolean);
-begin
-  query1.Close;
-  query1.SQL.Text := 'select * from PRODUTO_DELETED where cod = ' + StrNum(cod2);
-  query1.Open;
-
-  if query1.IsEmpty then begin
-    if msg then ShowMessage('Produto '+ cod2 +' Não Encontrado!');
-    query1.Close;
-    exit;
-  end;
-
-  query2.Close;
-  query2.SQL.Text := 'insert into produto(cod, nome, codbar, p_venda, p_compra, unid, fornec, fabric, aliquota,classif, grupo, quant, estoque)' +
-  'values(:cod, :nome, :codbar, :p_venda, :p_compra, :unid, :fornec, :fabric, :aliquota,:classif, :grupo, :quant, :estoque)' ;
-  query2.ParamByName('cod').AsString        := cod2;
-  query2.ParamByName('nome').AsString       := query1.FieldByName('nome').AsString;
-  query2.ParamByName('codbar').AsString     := query1.FieldByName('codbar').AsString;
-  query2.ParamByName('p_venda').AsCurrency  := query1.FieldByName('p_venda').AsCurrency;
-  query2.ParamByName('p_compra').AsCurrency := query1.FieldByName('p_compra').AsCurrency;
-  query2.ParamByName('fornec').AsString     := query1.FieldByName('fornec').AsString;
-  query2.ParamByName('fabric').AsString      := query1.FieldByName('fabric').AsString;
-  query2.ParamByName('aliquota').AsString   := query1.FieldByName('aliquota').AsString;
-  query2.ParamByName('classif').AsString    := query1.FieldByName('classif').AsString;
-  query2.ParamByName('classif').AsString    := query1.FieldByName('grupo').AsString;
-  query2.ParamByName('quant').AsCurrency    := query1.FieldByName('quant').AsCurrency;
-  query2.ParamByName('estoque').AsCurrency  := query1.FieldByName('estoque').AsCurrency;
-
-  try
-    query2.ExecSQL;
-    query2.Transaction.Commit;
-  except
-    on e:exception do begin
-      if msg then begin
-        ShowMessage('Ocorreu um Erro-5096: ' + e.Message);
-        exit;
-      end;
-    end;
-  end;
-
-  if msg then begin
-    ShowMessage('PRODUTO: ' + #13 + 'COD: ' + COD2 + #13 +
-    'NOME:   ' + query1.FieldByName('nome').AsString + #13 +
-    'CODBAR: ' + query1.FieldByName('codbar').AsString + #13 +
-    'PREÇO:  ' + formataCurrency(query1.FieldByName('p_venda').AsCurrency) + #13 + #13 +
-    'Cadastrado Com Sucesso!');
-  end;
-
-  query1.Close;
-end;
-
-
-procedure leNfesImportadasDeOutroSistema();
-var
-  acc, cont : integer;
-  DATA_EMI : TDateTime;
-  DadosNfe : TDadosNFe;
-  LIN, UF  : string;
-begin
-  dm.IBselect.SQL.Text := 'select * from nfe f where substring(chave from 3 for 4) = :ini and estado = ''S''  and ((tipo <> ''2'') or (tipo is null)) ';
-  dm.IBselect.ParamByName('ini').AsString  := chaveAnoMes;
-  dm.IBselect.Open;
-  dm.IBselect.FetchAll;
-
-  if dm.IBselect.IsEmpty then exit;
-
-  acc := 0;
-  fim := dm.IBselect.RecordCount;
-  informacao(0, fim, 'Verificando Vendas...', true, false, 2);
-  while not dm.IBselect.Eof do
-    begin
-      BASE_ICM := 0;
-      TOT_ICM  := 0;
-      acc := acc + 1;
-      informacao(acc, fim, 'Verificando Vendas...', false, false, 2);
-      //linha := dm.IBselect.fieldbyname('item').AsString;
-      //DECOMP_MOV(linha, mat);
-      TOTDESC := 0;
-      TOT     := 0;
-      listaPIS.Clear;
-
-      zerarArrayProduto();
-      //NOTA := StrToIntDef(mat[2], 0);
-      NOTA := dm.IBselect.FieldByName('nota').AsInteger ;
-
-      //if not Contido(IntToStr(nota), CODNOTA) then
-        //begin
-          //CODNOTA := CODNOTA + IntToStr(NOTA) + '-';
-          //DATA_EMI := converteDataYYMMDDParaTdate(mat[0]);
-          DATA_EMI := dm.IBselect.FieldByName('data').AsDateTime;
-
-          LE_XMLNFE('', listaProdutos, dm.IBQuery4, DadosNfe, dm.IBselect.FieldByName('chave').AsString);
-
-          if listaProdutos.Count > 0 then
-            begin
-              DATA_EMI := DadosNfe.data;
-              //mat.Text := DadosNfe.xml;
-              //mat.SaveToFile(caminhoEXE_com_barra_no_final + 'arqNFE.xml');
-              DESC := Le_Nodo('dest', DadosNfe.xml);
-              UF   := Le_Nodo('UF', DESC);
-
-              //if Contido('<idEstrangeiro>', DadosNfe.xml) then
-              IF Le_Nodo('idEstrangeiro', DadosNfe.xml) <> '' then
-                begin
-                  COD_ALIQ := Le_Nodo('cPais', DESC);
-                  DESC := Le_Nodo('idEstrangeiro', DESC);
-                  COD  := DESC;
-                  DESC := ACHA_CODCLI(DESC, UF, Le_Nodo('dest', DadosNfe.xml));
-                  codigosClientesExterior.Values[DESC] := COD_ALIQ;
-                  //ShowMessage(DESC+ '=' + COD_ALIQ+#13+
-                  //'-----------------'+#13+codigosClientesExterior.GetText)
-                  //adicionei em uma variavel somente os codigos dos clientes do exterior para
-                  //descarregar no registro 0150
-                end
-              else begin
-                DESC := IfThen(Contido('<CPF>', DESC), Le_Nodo('CPF', DESC), Le_Nodo('CNPJ', DESC));
-                COD  := DESC;
-
-                DESC := ACHA_CODCLI(DESC, UF, Le_Nodo('dest', DadosNfe.xml));
-              end;
-
-              COD  := DESC;
-              if not Contido('-'+ desc + '-', CODCLI) then CODCLI := CODCLI + IntToStr(StrToIntDef(desc, 0)) + '-';
-
-
-              _SER := Le_Nodo('serie', DadosNfe.xml);
-              fim  := listaProdutos.Count -1;
-              ret := 0;
-              ZERA_ALIQCFOP();
-              TOT_ITEM := 0;
-
-              for ini := 0 to fim do
-                begin
-                  ret  := ret + 1;
-                  UNID := listaProdutos[ini].unid;
-                  DESC := listaProdutos[ini].nome;
-                  PERC_ICMS := listaProdutos[ini].PERC_ICM;
-                  listaProdutos[ini].codStr := listaProdutos[ini].codStr + 'S';
-
-                  cont := Lista0200Importados.FindCodSTR(listaProdutos[ini].codStr);
-                  if cont = -1  then begin
-                    cont := Lista0200Importados.Add(listaProdutos.Items[ini]);
-                  end
-                  else begin
-                    Lista0200Importados[cont].quant := Lista0200Importados[cont].quant + listaProdutos[ini].quant;
-                  end;
-
-
-                  //DADOS_PROD(IntToStr(listaProdutos[ini].cod) , DESC, UNID, COD_ALIQ, TRIB, ISPIS, COD_ISPIS, PERC_ICMS, BASE_PIS_RD, false);
-                  //SOMA_MOV(listaProdutos[ini].cod, - listaProdutos[ini].quant);
-
-                  //VALOR TOTAL DO ITEM - DESCONTO
-                  TOT_ITEM := listaProdutos[ini].total;
-
-                  if funcoes.buscaParamGeral(10, '') = '1' then begin
-                    listaProdutos[ini].TOT_ICM := 0;
-                  end;
-
-                  TOT      := TOT + listaProdutos[ini].total;
-                  TOTDESC  := TOTDESC + listaProdutos[ini].descCom;
-
-                  TRIB := Trim(listaProdutos[ini].CST);
-                  TRIB := IfThen(Length(TRIB) = 2, trib, '41');  //CST - VERIFICA SE O CST DA NF-E   VALIDO, SEN? PEGA 41-N? TRIBUTADO
-
-                  TOT_ICM  := TOT_ICM  + listaProdutos[ini].TOT_ICM;
-                  ACUM_IcmsCstCFOP(listaProdutos.Items[ini], listaPIS, BASE_ICM);
-
-                  //ACUMULA VALORES DE PIS/COFINS DA NF-e
-                  CALC_PISCOF(TOT_ITEM, ISPIS, listaProdutos[ini].vPIS, listaProdutos[ini].vCOFINS, '');
-
-	                TOT_PIS    := listaProdutos[ini].vPIS;
-                  TOT_COFINS := listaProdutos[ini].vCOFINS;
-
-                  //SE NAO TEM PIS/COFINS, ACUMULA NO TOTALIZADOR DE PIS/COFINS NAO TRIBUTADO PARA O RELATORIO DE APURACAO
-                  _PISNT := _PISNT + IfThen((TOT_PIS + TOT_COFINS) = 0, listaProdutos[ini].total, 0);
-                end; //FOR LISTA DE PRODUTOS
-
-              //REGISTRO C100 - CABECALHO DA NOTA FISCAL
-              //VERIFICA SE A NF-e E DE ENTRADA OU SAIDA, PELO CFOP
-              LIN := Le_Nodo('tpNF', DadosNfe.xml);
-              IF not Contido(LIN, '0-1') then LIN := '1'; //PADRAO SAIDA, SE NAO ACHAR A INFORMACAO
-
-              LINHA := '|C100|' + LIN + '|0|2' + strzero(COD, 6) + '|55|00|' + _SER + '|' + strnum(IntToStr(NOTA)) +
-              '|' + DadosNfe.chave + '|' +
-              DATA_BRA_FULL(DATA_EMI) + '|' + DATA_BRA_FULL(DATA_EMI) + '|' +
-              FORM_NUM1(TOT) + '|0|' +  FORM_NUM1(TOTDESC) + '|0|' + FORM_NUM1(TOT) + '|9|0|0|0|' +
-              FORM_NUM1(BASE_ICM) + '|' + FORM_NUM1(TOT_ICM) +
-              '|0|0|0|' + FORM_NUM1(TOT_PIS) + '|' + FORM_NUM1(TOT_COFINS) + '|0|0|';
-
-              GRAVA_SPED(ARQ_TMP, LINHA);
-
-              fim := listaPIS.Count -1;
-              for ini := 0 to fim do
-                begin
-                  if StrToIntDef(LeftStr(listaPIS[ini].CFOP, 1), 5) >= 5 then TOTDEBICM := TOTDEBICM + listaPIS[ini].icms
-                   else TOTCREDICM := TOTCREDICM + (listaPIS[ini].icms);
-                  LINHA := '|C190|0' + listaPIS[ini].CST + '|' + listaPIS[ini].CFOP + '|' + FORM_NUM1(listaPIS[ini].aliquota) + '|'  +
-                  FORM_NUM1(listaPIS[ini].total) + '|'  + FORM_NUM1(listaPIS[ini].Base) + '|'  + FORM_NUM1(listaPIS[ini].icms) + '|0|0|0|0||';
-
-                  GRAVA_SPED(ARQ_TMP, LINHA);
-                end;
-
-            end;//if listaProdutos.Count > 0 then
-        //end;
-
-      dm.IBselect.Next;
-    end;
-end;
-
-
-function insereClientePeloNodo(nodo_dest : String) : String;
-var
-  codTemp : String;
-  arq : TStringList;
-begin
-  arq := TStringList.Create;
-  if contido('idEstrangeiro', nodo_dest) then begin
-    arq.Values['TIPO'] := '7';
-    arq.Values['IES']  := Le_Nodo('idEstrangeiro', nodo_dest);
-  end
-  else begin
-    if contido('CPF', nodo_dest) then begin
-      arq.Values['CNPJ']  := formataCPF(Le_Nodo('CPF', nodo_dest));
-      arq.Values['TIPO'] := '1';
-    end
-    else begin
-      arq.Values['CNPJ']  := formataCNPJ(Le_Nodo('CNPJ', nodo_dest));
-      arq.Values['TIPO'] := '2';
-    end;
-
-    arq.Values['IES']  := Le_Nodo('IE', nodo_dest);
-  end;
-
-  Result := Incrementa_Generator('cliente', 1);
-  dm.IBQuery1.Close;
-  dm.IBQuery1.SQL.Text := 'insert into cliente(cod, nome, cnpj, ende, bairro, cod_mun, cep,' +
-  'cid, est, telres, ies, tipo) values(:cod, :nome, :cnpj, :ende, :bairro, :cod_mun, :cep,' +
-  ':cid, :est, :telres, :ies, :tipo)';
-  dm.IBQuery1.ParamByName('cod').AsString  := Result;
-  dm.IBQuery1.ParamByName('nome').AsString := LeftStr(Le_Nodo('xNome', nodo_dest), 40);
-  dm.IBQuery1.ParamByName('cnpj').AsString := arq.Values['CNPJ'];
-  dm.IBQuery1.ParamByName('ende').AsString := LeftStr(Le_Nodo('xLgr', nodo_dest) + ', ' + Le_Nodo('nro', nodo_dest), 40);
-  dm.IBQuery1.ParamByName('bairro').AsString  := LeftStr(Le_Nodo('xBairro', nodo_dest), 18);
-  dm.IBQuery1.ParamByName('cod_mun').AsString := Le_Nodo('cMun', nodo_dest);
-  dm.IBQuery1.ParamByName('cep').AsString     := Le_Nodo('CEP', nodo_dest);
-  dm.IBQuery1.ParamByName('cid').AsString     := Le_Nodo('xMun', nodo_dest);
-  dm.IBQuery1.ParamByName('est').AsString     := Le_Nodo('UF', nodo_dest);
-  dm.IBQuery1.ParamByName('telres').AsString  := Le_Nodo('fone', nodo_dest);
-  dm.IBQuery1.ParamByName('ies').AsString     := arq.Values['IES'];
-  dm.IBQuery1.ParamByName('tipo').AsString    := arq.Values['TIPO'];
-
-  try
-    dm.IBQuery1.ExecSQL;
-    dm.IBQuery1.Transaction.Commit;
-  except
-    on e: exception do begin
-      ShowMessage('Ocorreu um erro 5318: ' + E.Message);
-    end;
-
-  end;
-  arq.free;
-end;
-
-FUNCTION BLOCO0500() : string;
-var
-  ini : integer;
-begin
-  Result := '';
-  IF StrToDate(dataIni) < StrToDate('01/10/2017') then begin
-    exit;
-  end;
-
-  //Result := '|0500|01112017|01|S|1++|1|ESTOQUE DE MERCADORIAS|||';
-  Result := '|0500|01112017|04|A|1|'+codCTA+'|VENDA DE MERCADORIA|||';
-  //if lista0500.Count > 0 then LINHA := '|0500|0|'
-    //else LINHA := '|0500|1|';
-
-  {for ini := 0 to lista0500.Count -1 do begin
-    linha := '|0500|01112017|01|';
-    GRAVA_SPED(ARQ_TMP, LINHA);
-  end;}
-
-  //TOTAL_REG(ARQ_TMP, '0500');
-end;
-
-procedure checaISPIS_CODISPIS(var ispis1, codPIS1 : String; codProduto : integer);
-begin
-  if ispis1 = '49' then exit;
-  if StrToIntDef(ispis1, 5) <= 2 then begin
-   exit;
-  end;
-
-
-  if (trim(ispis1)  = '') then begin
-    ispis1  := '01';
-    codPIS1 := '';
-    exit;
-  end;
-
-  if      ispis1 = 'M' then ispis1 := '04'
-  else if ispis1 = 'R' then ispis1 := '06'
-  else if ispis1 = 'I' then ispis1 := '07'
-  else if ispis1 = 'D' then ispis1 := '02'
-  else if ispis1 = 'X' then ispis1 := '08';
-
-  if not Contido(codPIS1, listaChecaPIS.Values[ispis1]) then begin
-    pisInvalido := pisInvalido + IntToStr(codProduto) + '-';
-    ispis1  := '01';
-    codPIS1 := '';
-    exit;
-  end;
-end;
-
-function ChecaIsencaoPis_Cst_49_Devoluções(CFOP : String) : boolean;
-var
-  arq : TStringList;
-begin
-  Result := false;
-  if length(trim(cfop)) <> 4 then exit;
-
-  if trim(Arquivo_CFOP_ISENTOS) = '' then begin
-    arq := TStringList.Create;
-    arq.LoadFromFile(caminhoEXE_com_barra_no_final + 'CFOP_ISENTOS.DAT');
-    Arquivo_CFOP_ISENTOS := arq.Text;
-    arq.Free;
-  end;
-
-  if Contido(cfop, Arquivo_CFOP_ISENTOS) then begin
-    Result := true;
-  end;
-end;
-
-function blocoB() : String;
-begin
-  IF StrToDateTime(dataIni) < StrToDateTime('01/01/2019') THEN exit;
-
-  LINHA := '|B001|1|';
-  GRAVA_SPED(ARQ_TMP, LINHA);
-
-  TOTAL_REG(ARQ_TMP, 'B');
 end;
 
 

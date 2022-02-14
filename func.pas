@@ -17930,6 +17930,7 @@ begin
   if trunc(posicao / (total / 100)) >= form23.vezes then begin
     form23.ProgressBar1.Position := trunc(posicao / (total / 100));
     form23.vezes := form23.vezes + valorprogressao;
+    form23.label1.caption := informacao;
   end;
   // form23.Update;
   // form23.Refresh;
@@ -22997,7 +22998,7 @@ begin
   begin
     i := i + 1;
 
-    funcoes.informacao(i, fi, 'Aguarde, Gerando Relatório...', False, False, 5);
+    funcoes.informacao(i, fi, 'Aguarde, Gerando Relatório...', false, False, 5);
 
     if serie <> dm.IBselect.FieldByName('serie').AsInteger then
     begin
@@ -23033,18 +23034,24 @@ begin
     while true do
     begin
       sleep(1);
+      Application.ProcessMessages;
+
       {if cont = 159200 then ShowMessage(IntToStr(cont) + #13 + dm.IBselect.FieldByName('nnf').AsString)
       else if cont = 159400 then ShowMessage(IntToStr(cont) + #13 + dm.IBselect.FieldByName('nnf').AsString)
       else if cont = 159600 then ShowMessage(IntToStr(cont) + #13 + dm.IBselect.FieldByName('nnf').AsString)
       else if cont = 159800 then ShowMessage(IntToStr(cont) + #13 + dm.IBselect.FieldByName('nnf').AsString);
 
-      if cont > 160130 then
+      if cont > 160130 then }
 
-      ShowMessage(IntToStr(cont) + #13 + dm.IBselect.FieldByName('nnf').AsString);}
+
       if dm.IBselect.Eof then
         break;
       if cont <> dm.IBselect.FieldByName('nnf').AsInteger then
       begin
+        funcoes.informacao(i, fi, 'Analisando Avanço ' + IntToStr(cont) + ' <> ' + dm.IBselect.FieldByName('nnf').AsString, false, False, 5);
+
+//        ShowMessage(IntToStr(cont) + #13 + dm.IBselect.FieldByName('nnf').AsString);
+
         erro := '';
 
         dm.IBQuery2.Close;

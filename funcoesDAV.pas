@@ -815,8 +815,10 @@ begin
            lista[item].unid      := Le_Nodo('uTrib', txt1);
            lista[item].CST       := strzero(strnum(copy(Le_Nodo('CST', ICMS), 1, 2)), 2);
            lista[item].CST_PIS   := copy(Le_Nodo('CST', Le_Nodo('PIS', txt1)), 1, 2);
+           lista[item].BASE_PIS  := StrToCurrDef(StringReplace(Le_Nodo('vBC', Le_Nodo('PIS', txt1)), '.', ',', [rfReplaceAll, rfIgnoreCase]), 0);
 
-           {if lista[item].CST_PIS = '02' then begin
+           {if lista[item].CST_PIS = '02'
+            then begin
              ShowMessage(chave);
 
            end;}
@@ -911,6 +913,7 @@ begin
            lista[item].unid      := Le_Nodo('uTrib', txt1);
            lista[item].CST       := copy(Le_Nodo('CST', ICMS), 1, 2);
            lista[item].CST_PIS   := copy(Le_Nodo('CST', Le_Nodo('PIS', txt1)), 1, 2);
+           lista[item].BASE_PIS  := StrToCurrDef(StringReplace(Le_Nodo('vBC', Le_Nodo('PIS', txt1)), '.', ',', [rfReplaceAll, rfIgnoreCase]), 0);
            lista[item].descCom   := StrToCurrDef(StringReplace(Le_Nodo('vDesc', txt1), '.', ',', [rfReplaceAll, rfIgnoreCase]), 0);
            lista[item].total     := lista[item].total - lista[item].descCom;
            lista[item].BASE_ICM  := StrToCurrDef(StringReplace(Le_Nodo('vBC', ICMS), '.', ',', [rfReplaceAll, rfIgnoreCase]), 0);

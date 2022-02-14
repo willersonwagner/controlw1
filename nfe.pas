@@ -680,7 +680,7 @@ begin
       infEvento.tpEvento   := teCCe;
       infEvento.nSeqEvento := StrToInt(nSeqEvento);
       infEvento.detEvento.xCorrecao := xCorrecao;
-      InfEvento.detEvento.xCondUso  := xCondUso;
+      //InfEvento.detEvento.xCondUso  := xCondUso;
     end;
 
     funcoes.Mensagem(Application.Title ,'Aguarde, Enviando CCE...',15,'Courier New',false,0,clred, false);
@@ -2684,7 +2684,7 @@ begin
     exit;
   end;
 
-  if ChecaIsencaoPis_Cst_49_Devoluções(cfop) then begin
+ { if ChecaIsencaoPis_Cst_49_Devoluções(cfop) then begin
     PIS_NT := PIS_NT + TOT;
     Result := '<PIS>' + '<PISNT><CST>49</CST></PISNT></PIS>' +
     '<COFINS>' + '<COFINSNT><CST>49</CST></COFINSNT></COFINS>';
@@ -2695,7 +2695,7 @@ begin
   PIS_ALIQ := '<PISAliq><CST>02</CST><vBC>' + FORMAT_NUM(TOT) + '</vBC><pPIS>0.00</pPIS>' +
   '<vPIS>0.00</vPIS></PISAliq>';
   COF_ALIQ := '<COFINSAliq><CST>02</CST><vBC>' + FORMAT_NUM(TOT) + '</vBC>' +
-  '<pCOFINS>0.00</pCOFINS><vCOFINS>0.00</vCOFINS></COFINSAliq>';
+  '<pCOFINS>0.00</pCOFINS><vCOFINS>0.00</vCOFINS></COFINSAliq>';     }
 
   //SE O CFOP E ISENTO DE PIS/COFINS
   IF CSTPIS_CFOP = 'I' then
