@@ -3556,10 +3556,12 @@ begin
   leConhecimentos_de_frete_Bloco_D_SF(0);
   TOTAL_REG(ARQ_TMP, 'D');
 
+ 
   //daqui pra baixo ja o TOTAL_REG ja esta dentro da função
   blocoF(0);
   blocoI;
   blocoM();
+
 
   blocoP_vazio();
   bloco0_Sped_Contribuicoes();
@@ -4414,6 +4416,7 @@ begin
         end;
     end;
 
+
   //DETALHAMENTO PIS TRIBUTADO
   //IF (_PIS > 0)  then
   if true then
@@ -4441,6 +4444,7 @@ begin
       end;
 
     end;
+
 
    if blo = false then
      begin
@@ -4491,6 +4495,8 @@ begin
   _PIS := 0;
   BC_PISTRIB := 0;
   REC_BRUTA := 0;
+
+  i3 := -1;
   FOR INI := 0 TO listaTOT_PIS.Count -1 do
     begin
       COD := LeftStr(listaTOT_PIS[ini].CST, 2);
@@ -4507,7 +4513,9 @@ begin
             BC_PISTRIB := BC_PISTRIB + listaTOT_PIS[ini].Base;
         end;
       end;
-  
+
+
+ 
   //DETALHAMENTO COFINS TRIBUTADA
   //IF _PIS > 0 then
   if true then
@@ -4570,6 +4578,7 @@ begin
           MAT_NOTA.Clear;
         end;
     end;
+
 
   TOTAL_REG(ARQ_TMP, 'M');
 end;
@@ -4860,12 +4869,15 @@ begin
       MessageDlg('Os produtos abaixo estão sem código de isenção de PIS válidos:'  + #13 + prods, mtInformation, [mbOK], 1);
     end;
 
+ //howMessage('1');
+
   {DADOS DE NFES EMITIDAS}
 
   {nfces}
 
 
   leCFEsCONTRIBUICOES;
+
 
   {nfces}
 

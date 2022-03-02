@@ -549,8 +549,8 @@ end;
 procedure TForm17.abreDataSet;
 begin
   IBQuery1.Close;
-  IBQuery1.SQL.Text := ('select p.codbar, a.cod,  a.nota, p.nome as descricao, a.destino, a.quant, case when (a.unid = '''') then ''UN'' else a.UNID '+
-  'end as unidade, a.CRED_ICMS, a.p_compra, a.total, c.nome as usuario,' +
+  IBQuery1.SQL.Text := ('select p.codbar, a.cod,  a.nota, p.nome as descricao, a.destino, a.quant, a.UNID '+
+  ' as unidade, a.CRED_ICMS, a.p_compra, a.total, c.nome as usuario,' +
   ' a.codentrada, iif(a.validade < ''01.01.2000'', null, a.validade) as validade from ITEM_ENTRADA a ' +
   ' left join produto p on (a.cod = p.cod) ' +
   ' left join usuario c on (a.usuario = c.cod) ' +

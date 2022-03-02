@@ -100,6 +100,7 @@ type
     function sincronizaEstoque(): boolean;
     function sincronizaUsuarios(): boolean;
     function sincronizaRegistro(): boolean;
+    function sincronizaFormPagto(): boolean;
     function sincronizaCEST(): boolean;
     function sincronizaNFCe(): boolean;
     function sincronizaPromoc(): boolean;
@@ -528,6 +529,15 @@ begin
         on e: exception do
           begin
             RichEdit1.Lines.Add('ERRO sincronizaRegistro: ' + e.Message + ' linha 530');
+          end;
+        end;
+
+        try
+          sincronizaFormPagto;
+        except
+        on e: exception do
+          begin
+            RichEdit1.Lines.Add('ERRO sincronizaFormPagto: ' + e.Message + ' linha 540');
           end;
         end;
 
@@ -1108,6 +1118,102 @@ begin
   BD_Servidor.Connected := false;
 end;
 
+function TForm1.sincronizaFormPagto(): boolean;
+var
+  ini, fim, atu: integer;
+  vende : String;
+begin
+  RichEdit1.Lines.Add('Atualizando Formas de Pagamento...');
+  if bdPronto = false then begin
+    RichEdit1.Lines.Add('bdPronto = false');
+    exit;
+  end;
+
+  if conectaBD_Servidor = false then begin
+    RichEdit1.Lines.Add('conectaBD_Servidor = false');
+    exit;
+  end;
+
+  RichEdit1.Lines.Add('Atualizando Formas de Pagamento...');
+
+  IBQueryServer1.Close;
+  IBQueryServer1.SQL.Text := 'select cod, nome, dinheiro, codgru, cod||nome||dinheiro||codgru as forma from FORMPAGTO';
+  try
+    IBQueryServer1.Open;
+  except
+    on e: exception do
+    begin
+      RichEdit1.Lines.Add('Erro: lin 680' + e.Message);
+      exit;
+    end;
+  end;
+  IBQueryServer1.FetchAll;
+
+  IBQuery1.Close;
+  IBQuery1.SQL.Text := 'select cod, nome, dinheiro, codgru, cod||nome||dinheiro||codgru as forma from FORMPAGTO';
+  IBQuery1.Open;
+  IBQuery1.FetchAll;
+  vende := '-';
+
+
+  while not IBQueryServer1.Eof do begin
+    vende := vende + IBQueryServer1.FieldByName('cod').AsString + '-';
+
+    if IBQuery1.Locate('cod', IBQueryServer1.FieldByName('cod').AsString, []) then begin
+      if IBQuery1.FieldByName('forma').AsString <> IBQueryServer1.FieldByName('forma').AsString then begin
+        IBQuery2.Close;
+        IBQuery2.SQL.Text := 'update formpagto set nome = :nome, dinheiro = :dinheiro, codgru = :codgru where cod = :cod';
+        IBQuery2.ParamByName('nome').AsString     := IBQueryServer1.FieldByName('nome').AsString;
+        IBQuery2.ParamByName('dinheiro').AsString := IBQueryServer1.FieldByName('dinheiro').AsString;
+        IBQuery2.ParamByName('codgru').AsString   := IBQueryServer1.FieldByName('codgru').AsString;
+        IBQuery2.ParamByName('cod').AsString      := IBQueryServer1.FieldByName('cod').AsString;
+        try
+          IBQuery2.ExecSQL;
+          IBQuery2.Transaction.Commit;
+        except
+          on e:exception do begin
+            RichEdit1.Lines.Add('ERRO COMMIT 1175');
+          end;
+        end;
+
+        RichEdit1.Lines.Add('Forma de Pagamento ' + IBQueryServer1.FieldByName('forma').AsString + ' Atualizada!' )  ;
+      end;
+
+    end
+    else begin
+      IBQuery2.Close;
+        IBQuery2.SQL.Text := 'insert into formpagto(cod, nome, dinheiro, codgru) values(:cod, :nome, :dinheiro, :codgru)';
+        IBQuery2.ParamByName('cod').AsString      := IBQueryServer1.FieldByName('cod').AsString;
+        IBQuery2.ParamByName('nome').AsString     := IBQueryServer1.FieldByName('nome').AsString;
+        IBQuery2.ParamByName('dinheiro').AsString := IBQueryServer1.FieldByName('dinheiro').AsString;
+        IBQuery2.ParamByName('codgru').AsString   := IBQueryServer1.FieldByName('codgru').AsString;
+        try
+          IBQuery2.ExecSQL;
+          IBQuery2.Transaction.Commit;
+        except
+          on e:exception do begin
+            RichEdit1.Lines.Add('ERRO COMMIT 1187');
+          end;
+        end;
+
+        RichEdit1.Lines.Add('Forma de Pagamento ' + IBQueryServer1.FieldByName('forma').AsString + ' Inserida!' )  ;
+    end;
+
+
+    IBQueryServer1.Next;
+  end;
+
+  IBQuery1.Close;
+  IBQuery1.SQL.Text := 'delete from formpagto where not('+QuotedStr(vende)+' like ''%-''||cod||''-%'')';
+  IBQuery1.ExecSQL;
+  IBQuery1.Transaction.Commit;
+
+  RichEdit1.Lines.Add('Formas de Pagamento Sincronizadas!' )  ;
+
+  IBQueryServer1.Close;
+  BD_Servidor.Connected := false;
+end;
+
 function TForm1.sincronizaRegistro(): boolean;
 var
   ini, fim, atu: integer;
@@ -1172,9 +1278,6 @@ begin
 
     RichEdit1.Lines.Add('O Registro Está OK!');
   end;
-
-
-
 
   IBQueryServer1.Close;
   BD_Servidor.Connected := false;

@@ -174,7 +174,7 @@ object Form83: TForm83
       Top = 162
       Width = 286
       Height = 16
-      Caption = 'Cobrar Taxa(N-N'#227'o/C-5 Reais/D-10 Reais) ?'
+      Caption = 'Cobrar Taxa(N-N'#227'o/C-7 Reais/D-10 Reais) ?'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -13

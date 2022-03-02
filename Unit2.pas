@@ -9851,6 +9851,14 @@ begin
   end;
 
   tipo := form22.Pgerais.Values['nota'];
+  //if (tipo = 'B') and (tab = '3') then begin
+
+  //ShowMessage(form22.Pgerais.Values['empresa']);
+  if(tab = '3') and (Contido('CAMALEAO', form22.Pgerais.Values['empresa']) = false) then begin
+    funcoes.imprimeCompraFortesA4(nota, 3);
+    exit;
+  end;
+
   if ((tipo = 'B') and ((tab = '1')or (tab = '2'))) then begin
     funcoes.imprimeVendaFortesA4(nota, strtoint(tab));
     exit;
@@ -11234,7 +11242,7 @@ end;
 
 procedure TForm2.relClienteNota(cliente : String = '');
 var
-  ini, fim, h1, ee, clix, ordem, agrup, orde: string;
+  ini, fim, h1, ee, clix, ordem, agrup, orde, nfes1: string;
   totalgeral, quantGeral: currency;
   i: integer;
   lista : TItensProduto;
@@ -11285,24 +11293,24 @@ begin
 
   form19.RichEdit1.Clear;
   form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-    Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10))));
+    Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 86) + #13 + #10))));
   form19.RichEdit1.Perform(EM_REPLACESEL, 1,
     Longint(PChar((funcoes.CompletaOuRepete(funcoes.LerValorPGerais('empresa',
     form22.Pgerais), 'DATA: ' + FormatDateTime('dd/mm/yy', now) + '|', ' ',
-    80) + #13 + #10))));
+    86) + #13 + #10))));
   form19.RichEdit1.Perform(EM_REPLACESEL, 1,
     Longint(PChar((funcoes.CompletaOuRepete('VENDAS POR CLIENTE DE: ' +
     FormatDateTime('dd/mm/yy', StrToDate(ini)) + ' A ' +
     FormatDateTime('dd/mm/yy', StrToDate(fim)), 'HORA: ' + FormatDateTime('tt',
-    now) + '|', ' ', 80) + #13 + #10))));
+    now) + '|', ' ', 86) + #13 + #10))));
   form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-    Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10))));
+    Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 86) + #13 + #10))));
   form19.RichEdit1.Perform(EM_REPLACESEL, 1,
     Longint(PChar
-    (('  DATA    COD   DESCRICAO                            QUANT        TOTAL     NOTA'
+    (('  DATA    COD   DESCRICAO                            QUANT        TOTAL     NOTA   NFe'
     + #13 + #10))));
   form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-    Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10))));
+    Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 86) + #13 + #10))));
   dm.ibselect.Close;
   dm.ibselect.SQL.Clear;
   dm.ibselect.SQL.Add('select v.cliente, v.nota,v.data,i.cod,p.nome,i.quant,i.total from venda v,item_venda i,produto p where (v.nota = i.nota) and (v.cancelado = 0) and (i.cod = p.cod) and ((v.data >= :v1) and (v.data<=:v2)) '+ h1 + ' order by ' + ordem);
@@ -11394,7 +11402,7 @@ begin
         funcoes.BuscaNomeBD(dm.IBQuery1, 'nome', 'cliente',
         'where cod=' + lista[i].temp) + ' ' +
         dm.IBQuery2.FieldByName('telres').AsString + ' ' +
-        dm.IBQuery2.FieldByName('telcom').AsString, 78), '', ' ', 80) + #13
+        dm.IBQuery2.FieldByName('telcom').AsString, 78), '', ' ', 86) + #13
         + #10);
        addRelatorioForm19(CRLF);
       clix := lista[i].temp;
@@ -11403,18 +11411,36 @@ begin
     totalgeral := totalgeral + lista[i].total;
     quantGeral := quantGeral + lista[i].quant;
 
+    dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := 'select substring(n.chave from 26 for 9) as nfe from nfe n where (substring(n.chave from 37 for 7) = lpad('+QuotedStr(CurrToStr(lista[i].aliqCred))+',7, ''0'')) ';
+      //dm.IBQuery1.ParamByName('nota').AsString := ;
+      dm.IBQuery1.Open;
+      dm.IBQuery1.FetchAll;
+
+      nfes1 := iif(IntToStr(strtointdef(dm.IBQuery1.FieldByName('nfe').AsString, 0)) = '0', '', IntToStr(strtointdef(dm.IBQuery1.FieldByName('nfe').AsString, 0)));
+
+     if dm.IBQuery1.RecordCount > 1 then begin
+        nfes1 := '';
+        while not dm.IBQuery1.Eof  do begin
+
+          nfes1 := nfes1 + iif(IntToStr(strtointdef(dm.IBQuery1.FieldByName('nfe').AsString, 0)) = '0', '', IntToStr(strtointdef(dm.IBQuery1.FieldByName('nfe').AsString, 0)));
+          if dm.IBQuery1.RecordCount <> dm.IBQuery1.RecNo then nfes1 := nfes1 + ',';
+          dm.IBQuery1.Next;
+        end;
+      end;
+
     addRelatorioForm19(funcoes.CompletaOuRepete(IfThen(agrup = 'S', '', FormatDateTime('dd/mm/yy',lista[i].data)), '', ' ',8) + funcoes.CompletaOuRepete('', IntToStr(lista[i].cod),' ', 6) + '-' +
     funcoes.CompletaOuRepete(copy(lista[i].nome, 1, 30), '', ' ', 30) + funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00', lista[i].quant),
-    ' ', 13) + funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00',lista[i].total), ' ', 13) + funcoes.CompletaOuRepete('', IfThen(agrup = 'S', '',CurrToStr(lista[i].aliqCred)), ' ', 9) + #13 + #10);
+    ' ', 13) + funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00',lista[i].total), ' ', 13) + funcoes.CompletaOuRepete('', IfThen(agrup = 'S', '',CurrToStr(lista[i].aliqCred)), ' ', 9)+ '  ' + nfes1 + #13 + #10);
   end;
 
 
   dm.ibselect.Close;
   form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-    Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10))));
+    Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 86) + #13 + #10))));
   addRelatorioForm19('TOTAL GERAL =>' +funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00', quantGeral), ' ', 44) + funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00', totalgeral), ' ', 13) + #13 + #10);
   form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-    Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10))));
+    Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 86) + #13 + #10))));
   form19.showmodal;
 
 end;

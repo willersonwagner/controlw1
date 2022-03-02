@@ -82,7 +82,7 @@ begin
   teclaEsc(key);
   proximo(key);
 
-  if not(funcoes.Contido(UpCase(key), 'NCD'))  then key := #0
+  if not(funcoes.Contido(UpCase(key), 'NCDS'))  then key := #0
   else begin
     tedit(sender).Text := UpCase(key);
     key := #0;
@@ -175,7 +175,7 @@ begin
   '(:TAXA, :COD, :CLIENTE, :TELEFONE, :ENDERECO, :OBS )';
   //dm.IBQuery1.ParamByName('TAXA').AsCurrency   := StrToInt(codEntrega);
   dm.IBQuery1.ParamByName('TAXA').AsCurrency   := 0;
-  if TAXA.Text = 'C' then dm.IBQuery1.ParamByName('TAXA').AsCurrency   := 5;
+  if TAXA.Text = 'C' then dm.IBQuery1.ParamByName('TAXA').AsCurrency   := 7;
   if TAXA.Text = 'D' then dm.IBQuery1.ParamByName('TAXA').AsCurrency   := 10;
   if TAXA.Text = 'S' then dm.IBQuery1.ParamByName('TAXA').AsCurrency   := StrToCurr(funcoes.buscaParamGeral(124, '5'));
 

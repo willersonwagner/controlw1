@@ -150,6 +150,7 @@ type
     procedure enviaArquivoGdrive(arq : string);
     function ver_limites(CodUsu: string;AserAdicionadoNaContaDoClitente: currency): currency;
     procedure imprimeVendaFortesA4(numVenda1 : String;venda : SmallInt = 1);
+    procedure imprimeCompraFortesA4(numVenda1 : String;venda : SmallInt = 1);
     procedure DownloadSincronizacaoDeEstoqueOnline;
     procedure sincronizacaoDeEstoqueOnline;
     procedure imprimeEnderecoEntregaCodEndereco(nota : String; codEndeEntrega : String);
@@ -26725,6 +26726,9 @@ begin
   if imp = '' then
     imp := 'LPT1';
 
+
+
+
   posi := trunc(StrToIntDef(qtd, 3) / 3);
   if (StrToCurrDef(qtd, 0) / 3) <> Int(StrToCurrDef(qtd, 0) / 3) then
     posi := posi + 1;
@@ -29527,6 +29531,251 @@ begin
     '###,##0.00';
 
   imprime1.imprime.RLLabel38.Caption := form22.Pgerais.Values['empresa'];
+  imprime1.imprime.RLLabel36.Caption := FormatDateTime('dd/mm/yy',dm.ProdutoQY.FieldByName('data').AsDateTime);
+
+  imprime1.imprime.RLLabel37.Caption := FormatDateTime('hh:mm:ss', dm.ProdutoQY.FieldByName('hora').AsDateTime);
+  //if venda = 1 then imprime1.imprime.RLLabel37.Caption := FormatDateTime('hh:mm:ss', dm.ProdutoQY.FieldByName('hora').AsDateTime)
+  //else if venda = 2 then imprime1.imprime.RLLabel37.Caption := FormatDateTime('hh:mm:ss', now);
+
+  form19.RichEdit1.Clear;
+  if ExisteParcelamento(numVenda1) then begin
+    funcoes.ImprimeParcelamento('','',entrada, numVenda1);
+    imprime1.imprime.RLMemo6.Lines := form19.RichEdit1.Lines;
+
+    fontHeight := Abs(imprime1.imprime.RLMemo6.Font.Height);
+
+    imprime1.imprime.RLBand19.Height :=  (fontHeight * imprime1.imprime.RLMemo6.Lines.Count) + (fontHeight * 1);
+
+    //ShowMessage(IntToStr(imprime1.imprime.RLBand19.Height));
+  end
+  else begin
+    imprime1.imprime.rlband19.Visible := false;
+  end;
+
+  imprime1.imprime.DataSource1.DataSet := dm.ProdutoQY;
+
+  try
+    nomeImp := funcoes.LerConfig(form22.Pgerais.Values['imp'], 15);
+    //printer.PrinterIndex := StrToIntDef(funcoes.LerConfig(form22.Pgerais.Values['imp'], 0), 0);
+    setPrinterNOME(StrToIntDef(funcoes.LerConfig(form22.Pgerais.Values['imp'], 0), 0), nomeImp);
+    //setPrinter(StrToIntDef(funcoes.LerConfig(form22.Pgerais.Values['imp'], 0), 0), nomeImp);
+  except
+
+  end;
+
+  // imprime1.imprime.RLReport2.PrintDialog := false;
+  if preview = 'S' then begin
+    imprime1.imprime.pedidoVendaA4.PreviewModal;
+    //imprime1.imprime.pedidoVendaA4.Preview;
+  end
+  else imprime1.imprime.pedidoVendaA4.Print;
+end;
+
+procedure Tfuncoes.imprimeCompraFortesA4(numVenda1 : String;venda : SmallInt = 1);
+var
+  cliente, preview, nomevol, vendedor, entrada, nomeImp : String;
+  arq : TStringList;
+  fracao, sub : Double;
+  fontHeight : integer;
+  printDialog : boolean;
+begin
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select * from registro';
+  dm.IBselect.Open;
+
+  imprime1.imprime.RLLabel38.Caption := UpperCase(dm.IBselect.FieldByName('nome').AsString);
+  imprime1.imprime.RLLabel39.Caption := dm.IBselect.FieldByName('ende').AsString + ' - ' + dm.IBselect.FieldByName('bairro').AsString + ' ' + dm.IBselect.FieldByName('cid').AsString + ' / ' +dm.IBselect.FieldByName('est').AsString;
+  imprime1.imprime.RLLabel43.Caption := 'Fone: ' + dm.IBselect.FieldByName('telres').AsString + ' Cel: ' + dm.IBselect.FieldByName('telcom').AsString ;
+  imprime1.imprime.RLLabel44.Caption := 'Obs: ' + dm.IBselect.FieldByName('OBS').AsString;
+  imprime1.imprime.RLLabel40.Caption := 'CNPJ: ' + dm.IBselect.FieldByName('CNPJ').AsString;
+  imprime1.imprime.RLLabel41.Caption := 'IE: ' + dm.IBselect.FieldByName('ies').AsString;
+
+  if venda = 1 then begin
+    imprime1.imprime.RLLabel34.Caption := 'Pedido Nr: ' + numVenda1;
+    imprime1.imprime.RLLabel35.Caption := 'PEDIDO DE VENDA';
+  end
+  else if venda = 2 then begin
+    imprime1.imprime.RLLabel34.Caption := 'Orçamento Nr: ' + numVenda1;
+    imprime1.imprime.RLLabel35.Caption := 'PEDIDO DE ORÇAMENTO';
+  end
+  else begin
+    imprime1.imprime.RLLabel34.Caption := 'Compra Nr: ' + numVenda1;
+    imprime1.imprime.RLLabel35.Caption := 'PEDIDO DE COMPRA';
+  end;
+
+  if venda = 1 then begin
+    dm.IBselect.Close;
+    dm.IBselect.SQL.Text := 'select v.codhis, v.entrada, p.nome, v.total, v.desconto, v.cliente, v.vendedor, ve.nome as vendedornome from venda v ' +
+    ' left join formpagto p on (p.cod = v.codhis)left join vendedor ve on (v.vendedor = ve.cod) where nota = ' + numVenda1;
+    dm.IBselect.Open;
+
+    entrada := formataCurrency(dm.IBselect.FieldByName('entrada').AsCurrency);
+  end
+  else if venda = 2 then begin
+    dm.IBselect.Close;
+    dm.IBselect.SQL.Text := 'select v.codhis, p.nome, v.total, v.desconto, v.cliente, v.vendedor, ve.nome as vendedornome from orcamento v ' +
+    ' left join formpagto p on (p.cod = v.codhis)left join vendedor ve on (v.vendedor = ve.cod) where v.nota = ' + numVenda1;
+    dm.IBselect.Open;
+  end
+  else begin
+    dm.IBselect.Close;
+    dm.IBselect.SQL.Text := 'select v.codhis, p.nome, v.total, v.desconto, v.cliente, v.vendedor, ve.nome as vendedornome from compra v ' +
+    ' left join formpagto p on (p.cod = v.codhis)left join vendedor ve on (v.vendedor = ve.cod) where v.nota = ' + numVenda1;
+    dm.IBselect.Open;
+  end;
+
+
+  vendedor := 'Vendedor: '+ StrNum(dm.IBselect.FieldByName('vendedor').AsString) + '-' +dm.IBselect.FieldByName('vendedornome').AsString;
+  cliente := StrNum(dm.IBselect.FieldByName('cliente').AsString);
+
+  imprime1.imprime.rlsubtotal.Caption := formataCurrency(dm.IBselect.FieldByName('total').AsCurrency - dm.IBselect.FieldByName('desconto').AsCurrency);
+  imprime1.imprime.rldesconto.Caption := formataCurrency(dm.IBselect.FieldByName('desconto').AsCurrency);
+  imprime1.imprime.rltotal.Caption    := formataCurrency(dm.IBselect.FieldByName('total').AsCurrency);
+
+  if venda = 3 then begin
+    imprime1.imprime.rlsubtotal.Caption := '  ____________';
+    imprime1.imprime.rldesconto.Caption := '  ____________';
+    imprime1.imprime.rltotal.Caption    := '  ____________';
+  end;
+
+  imprime1.imprime.RLLabel42.Caption := 'Form. Pagto: ' + dm.IBselect.FieldByName('codhis').AsString + '-' + dm.IBselect.FieldByName('nome').AsString;
+
+  cliente := '0';
+
+  if cliente = '0' then begin
+    imprime1.imprime.RLBand18.Visible := false;
+  end
+  else begin
+    imprime1.imprime.RLBand18.Visible := true;
+    dm.IBselect.Close;
+    dm.IBselect.SQL.Text := 'select cod, nome, cnpj, ies, ende, bairro, tipo, cid, est, obs, telres, telcom from cliente where cod = ' + cliente;
+    dm.IBselect.Open;
+                                                           //Ende...:  RUA APOCALIPSE, 35, CINTURAO VERDE
+    imprime1.imprime.rlcliente.Caption := 'Cliente: ' + dm.IBselect.FieldByName('cod').AsString +'-'+ dm.IBselect.FieldByName('nome').AsString;
+    imprime1.imprime.rlende.Caption    := 'Ende...: ' + dm.IBselect.FieldByName('ende').AsString + ', ' + dm.IBselect.FieldByName('bairro').AsString + '  ' + dm.IBselect.FieldByName('cid').AsString + '-' + dm.IBselect.FieldByName('est').AsString;
+
+    imprime1.imprime.rlcpf.Caption         := 'CPF/CNPJ....: ' + dm.IBselect.FieldByName('cnpj').AsString;
+    imprime1.imprime.rlinsc.Caption        := 'RG/Insc. Est: ' + dm.IBselect.FieldByName('ies').AsString;
+    imprime1.imprime.rlOBS_Cliente.Caption := 'Obs: ' + dm.IBselect.FieldByName('obs').AsString;
+    imprime1.imprime.rlFoneCel.Caption := 'Fone: ' + dm.IBselect.FieldByName('telres').AsString + ' Cel: ' + dm.IBselect.FieldByName('telcom').AsString;
+  end;
+
+  if FileExists(caminhoEXE_com_barra_no_final + 'logoMed.bmp') then begin
+    imprime1.imprime.RLImage1.Picture.LoadFromFile(caminhoEXE_com_barra_no_final + 'logoMed.bmp');
+  end
+  else begin
+    imprime1.imprime.RLImage1.Visible := false;
+    //imprime1.imprime.RLImage1.Width   := 745;
+  end;
+
+  printDialog := true;
+
+  if FileExists(caminhoEXE_com_barra_no_final + 'configPed.dat') then begin
+    arq := TStringList.Create;
+    arq.LoadFromFile(caminhoEXE_com_barra_no_final + 'configPed.dat');
+    preview := arq.Values['p'];
+    if arq.Values['pd'] = 'N' then printDialog := false;
+    if trim(preview) = '' then preview := 'S';
+
+    imprime1.imprime.pedidoVendaA4.Margins.LeftMargin := StrToIntDef(arq.Values['l'], 2);
+    imprime1.imprime.pedidoVendaA4.Margins.TopMargin  := StrToIntDef(arq.Values['t'], 10);
+  end
+  else begin
+    preview := 'S';
+  end;
+
+  imprime1.imprime.pedidoVendaA4.PrintDialog := printDialog;
+
+  if venda = 1 then begin
+    dm.IBQuery2.close;
+    dm.IBQuery2.sql.Text := 'select * from item_venda where nota = '+ numVenda1;
+    dm.IBQuery2.Open;
+  end
+  else if venda = 2 then begin
+    dm.IBQuery2.close;
+    dm.IBQuery2.sql.Text := 'select * from item_orcamento where nota = '+ numVenda1;
+    dm.IBQuery2.Open;
+  end
+  else if venda = 3 then begin
+    dm.IBQuery2.close;
+    dm.IBQuery2.sql.Text := 'select cod,nota, quant, p_compra as p_venda, 0 as vendedor from item_compra where nota = '+ numVenda1;
+    dm.IBQuery2.Open;
+  end;
+
+  while not dm.IBQuery2.Eof do begin
+    dm.IBQuery1.Close;
+    dm.IBQuery1.SQL.Text := ('select unid, P_VENDA, P_COMPRA,  codbar, nome, localiza, refori, fracao from produto where cod='+ dm.IBQuery2.FieldByName('cod').AsString);
+    dm.IBQuery1.Open;
+
+    if funcoes.buscaParamGeral(109, 'N') = 'S' then begin
+      nomevol := 'Total M3: ';
+      fracao := dm.IBQuery1.FieldByName('fracao').AsCurrency;
+      if fracao > 0 then begin
+        sub := sub + (dm.IBQuery2.FieldByName('quant').AsCurrency * fracao);
+      end;
+    end
+    else begin
+        nomevol := 'Volumes: ';
+        if contido('|' + dm.IBQuery1.FieldByName('unid').AsString + '|', form22.UnidInteiro) then
+          sub := sub + 1
+        else
+          sub := sub + dm.IBQuery2.FieldByName('quant').AsCurrency;
+      end;
+
+      dm.IBQuery2.Next;
+    end;
+
+  if funcoes.buscaParamGeral(109, 'N') = 'S' then imprime1.imprime.RLLabel45.Caption := nomevol + FormatFloat('###,##0.0000000', sub)
+    else imprime1.imprime.RLLabel45.Caption := nomevol + FormatFloat('###,##0.00', sub);
+
+  imprime1.imprime.RLLabel46.Caption := vendedor;
+
+  if venda = 1 then begin
+    dm.ProdutoQY.Close;
+    dm.ProdutoQY.SQL.Clear;
+    dm.ProdutoQY.SQL.Add('select i.cod, v.codhis, v.hora, i.data, i.quant, i.total, p.nome, p.unid, i.p_venda, v.total, v.desconto from item_venda i ' +
+    ' left join produto p on (p.cod = i.cod) left join venda v on (i.nota = v.nota) where i.nota = :nota' );
+    dm.ProdutoQY.ParamByName('nota').AsString := numVenda1;
+    dm.ProdutoQY.Open;
+  end
+  else if venda = 2 then begin
+    dm.ProdutoQY.Close;
+    dm.ProdutoQY.SQL.Clear;
+    dm.ProdutoQY.SQL.Add('select i.cod, v.codhis, current_time as hora, v.data, i.quant, i.total, p.nome, p.unid, i.p_venda, v.total, v.desconto from item_orcamento i ' +
+    ' left join produto p on (p.cod = i.cod) left join orcamento v on (i.nota = v.nota) where i.nota = :nota' );
+    dm.ProdutoQY.ParamByName('nota').AsString := numVenda1;
+    dm.ProdutoQY.Open;
+  end
+  else if venda = 3 then begin
+    dm.ProdutoQY.Close;
+    dm.ProdutoQY.SQL.Clear;
+    dm.ProdutoQY.SQL.Add('select i.cod, v.codhis, current_time as hora, v.data, i.quant, (i.quant * i.p_compra) as total, p.nome, p.unid, i.p_compra as p_venda, v.total, v.desconto from item_compra i ' +
+    ' left join produto p on (p.cod = i.cod) left join compra v on (i.nota = v.nota) where i.nota = :nota' );
+    dm.ProdutoQY.ParamByName('nota').AsString := numVenda1;
+    dm.ProdutoQY.Open;
+  end;
+
+    dm.ProdutoQY.FetchAll;
+
+    TcurrencyField(dm.ProdutoQY.FieldByName('quant')).DisplayFormat :=
+      '###,##0.000';
+
+  TcurrencyField(dm.ProdutoQY.FieldByName('p_venda')).DisplayFormat :=
+    '###,##0.00';
+
+    TcurrencyField(dm.ProdutoQY.FieldByName('total')).DisplayFormat :=
+    '###,##0.00';
+
+ if venda = 3 then begin
+   TcurrencyField(dm.ProdutoQY.FieldByName('p_venda')).DisplayFormat :=
+    '__________';
+
+    TcurrencyField(dm.ProdutoQY.FieldByName('total')).DisplayFormat :=
+    ' _________';
+
+ end;
+
+  imprime1.imprime.RLLabel38.Caption := form22.Pgerais.Values['razaoS'];
   imprime1.imprime.RLLabel36.Caption := FormatDateTime('dd/mm/yy',dm.ProdutoQY.FieldByName('data').AsDateTime);
 
   imprime1.imprime.RLLabel37.Caption := FormatDateTime('hh:mm:ss', dm.ProdutoQY.FieldByName('hora').AsDateTime);

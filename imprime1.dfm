@@ -1426,8 +1426,8 @@ object imprime: Timprime
     end
   end
   object pedidoVendaA4: TRLReport
-    Left = 24
-    Top = 31
+    Left = 48
+    Top = 232
     Width = 794
     Height = 1123
     Margins.LeftMargin = 2.000000000000000000

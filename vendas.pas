@@ -2326,6 +2326,12 @@ begin
 
   if tipo = 'COM' then
   begin
+    //if form22.Pgerais.Values['nota'] = 'B' then begin
+    if true then begin
+      funcoes.imprimeCompraFortesA4(novocod, 3);
+      exit;
+    end;
+
 
     tipo := funcoes.dialogo('generico', 0, 'SN', 0, false, 'S',
       'Control for Windows:', 'Imprime os Preços das Mercadorias? S/N', 'N');
@@ -4701,7 +4707,7 @@ begin
 
     if fim = 'S' then test := 1
     else test := 0; }
-
+ ShowMessage('1');
   ImprimeNota;
   // funcoes.GeraNota(novocod,form22.Pgerais.Values['nota'],'S',false);
   limpatela;
@@ -5461,11 +5467,11 @@ begin
       qery.FieldByName('cod').AsString;
     ClientDataSet1.FieldByName('descricao').AsString := nome1;
     ClientDataSet1m2.AsInteger := m2;
-    try
+    {try
       ClientDataSet1unid.AsString := qery.FieldByName('unid').AsString;
     except
       ClientDataSet1unid.AsString := 'UN';
-    end;
+    end; }
     ClientDataSet1.FieldByName('quant').AsCurrency := qtd;
     ClientDataSet1.FieldByName('preco').AsCurrency := Preco;
     ClientDataSet1Refori.AsString := qery.FieldByName('codbar').AsString;

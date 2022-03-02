@@ -11255,7 +11255,7 @@ object Form2: TForm2
     object Label1: TLabel
       Left = 1
       Top = 24
-      Width = 29
+      Width = 111
       Height = 24
       Align = alBottom
       Alignment = taCenter
@@ -11267,11 +11267,12 @@ object Form2: TForm2
       Font.Style = [fsBold]
       ParentFont = False
       Layout = tlCenter
+      ExplicitWidth = 29
     end
     object Label2: TLabel
       Left = 1
       Top = 1
-      Width = 109
+      Width = 111
       Height = 16
       Align = alTop
       Caption = 'Enviando NFCe'
@@ -11281,6 +11282,7 @@ object Form2: TForm2
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsBold]
       ParentFont = False
+      ExplicitWidth = 109
     end
   end
   object Button2: TButton
