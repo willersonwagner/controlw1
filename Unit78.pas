@@ -100,8 +100,10 @@ begin
         Application.ProcessMessages;
         F_Carregando.Update;
         F_Carregando.Panel1.Update;
+
+
         try
-          ACBrNFe.DistribuicaoDFePorNSU(CODestado, StrNum(form22.Pgerais.Values['cnpj']), nsu);
+          ACBrNFe.DistribuicaoDFePorUltNSU(CODestado, StrNum(form22.Pgerais.Values['cnpj']), nsu);
           ret := '';
           break;
         except
@@ -116,7 +118,10 @@ begin
         F_Carregando.Update;
         F_Carregando.Panel1.Update;
         try
-          ACBrNFe.DistribuicaoDFePorChaveNFe(CODestado, StrNum(form22.Pgerais.Values['cnpj']), EditChave.Text);
+          //esse metodo parou de funcionar em 03/2022
+          //ACBrNFe.DistribuicaoDFePorChaveNFe(CODestado, StrNum(form22.Pgerais.Values['cnpj']), EditChave.Text);
+
+          ACBrNFe.DistribuicaoDFePorUltNSU(CODestado, StrNum(form22.Pgerais.Values['cnpj']), nsu);
           ret := '';
           if ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.cStat = 138 then break;
         except

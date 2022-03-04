@@ -542,7 +542,7 @@ begin
       exit;
     end;}
 
-  if uni = '' then uni := 'UN';  
+  if uni = '' then uni := 'UN';
   ret1 := mat_uniok.Find(uni);
 
   if ret1 = -1 then
@@ -1478,6 +1478,7 @@ begin
 
        if  (Pos('-' +_CFOP + '-', CODCFOP) = 0) then CODCFOP := CODCFOP + _CFOP + '-';
 
+       //sped fiscal
        LINHA := '|C170|' + IntToStr(ini + 1) + '|' + strzero(listaProdutos[ini].cod, 6) + '|' + trim(DESC) + '|' +
        FORM_NUM1(listaProdutos[ini].quant) + '|' + UNID + '|' + FORM_NUM1(TOT_ITEM) + '|' + FORM_NUM1(listaProdutos[ini].descCom) + '|' +
         IfThen( leftt(DESC, 1) = '_', '1', '0') + '|' + '0' + TRIB + '|' + _CFOP + '|' + _CFOP + '|' +
@@ -1487,6 +1488,12 @@ begin
        //ITENS DE MATERIAL DE CONSUMO DEVEM COMECAR COM O CARACTERE "_"
 
        ACUMULA_COD(IntToStr(listaProdutos[ini].cod), UNID);
+
+
+       if listaProdutos[ini].cod = 3127 then begin
+         ShowMessage(codProd.getText);
+       end;
+
 
       { if listaProdutos[ini].cod = 2109 then BEGIN
 
@@ -2161,9 +2168,16 @@ begin
 
          unid := codProd[idx].unid;
 
+
+
+
+
+        _SUFRAMA := '-';
+
          if contido('*', codProd[idx].unid) then begin
            LE_CAMPOS(lista0220,'*'+ codProd[idx].unid + '*', '*', true);
            for ini := 0 to lista0220.Count -1 do begin
+             _SUFRAMA := _SUFRAMA + TRIM(lista0220.ValueFromIndex[ini]) + '-';
              unid := TRIM(lista0220.ValueFromIndex[ini]);
              VE_UNIDADE(UNID);
            end;
@@ -2171,7 +2185,15 @@ begin
            VE_UNIDADE(UNID);
          end;
 
+
+         if codProd[idx].cod = 3127 then begin
+           ShowMessage(_SUFRAMA);
+         end;
+
          if unid = '' then UNID := TRIM(dm.IBselect.fieldbyname('unid').AsString);
+
+         if Contido('-'+TRIM(dm.IBselect.fieldbyname('unid').AsString)+'-', _SUFRAMA) then UNID := TRIM(dm.IBselect.fieldbyname('unid').AsString);
+
 
          try
            cb  := checaCodbar(strnum(dm.IBselect.fieldbyname('codbar').AsString));
@@ -2226,7 +2248,8 @@ begin
              end;
          end;
 
-         if StrToCurr(strnum1(codProd[idx].unid)) > 1 then
+         if true then
+         //if StrToCurr(strnum1(codProd[idx].unid)) > 1 then
          //if StrToCurrDef(strnum1(unid), 1) > 1 then
            begin
              if Contido('-' + codProd[idx].unid + '-', '-M2-M3-') = false then begin
@@ -2236,11 +2259,12 @@ begin
                     LINHA := '|0220|' + TRIM(lista0220.ValueFromIndex[ini]) + '|' + iif(strnum1(TRIM(lista0220.ValueFromIndex[ini])) = '0', '1', strnum1(TRIM(lista0220.ValueFromIndex[ini])) ) + '|' + IfThen(StrToDateTime(dataIni) >= StrToDateTime('01/01/2022'), '|', '');
                     if TRIM(lista0220.ValueFromIndex[ini]) <> '' then mat0200.Add(linha);
                  end;
-               end
+               end;
+               {end
                else begin
                  LINHA := '|0220|' + TRIM(codProd[idx].unid) + '|' + strnum1(codProd[idx].unid) + '|' + IfThen(StrToDateTime(dataIni) >= StrToDateTime('01/01/2022'), '|', '');
                  mat0200.Add(linha);
-               end;
+               end; }
              end;
              //GRAVA_SPED(ARQ_SPED, LINHA);
            end;

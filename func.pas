@@ -11160,7 +11160,7 @@ begin
       ' valor = 0; ' +
       ' if (new.codhis = 1) then begin '+
       ' valor = new.total; end ' +
-      ' select codmov from caixa where (historico = ''VENDAS DO DIA A VISTA'') and (cast(data as date) = new.data) into :codmov; ' +
+      ' select first 1 codmov from caixa where (historico = ''VENDAS DO DIA A VISTA'') and (cast(data as date) = new.data) into :codmov; ' +
 
       ' if (valor > 0) then BEGIN if (codmov > 0) then begin  ' +
       ' update caixa set entrada = entrada + :valor where codmov = :codmov; end else begin ' +
@@ -11174,6 +11174,41 @@ begin
         end;
       end;
       //dm.IBQuery1.Transaction.Commit;
+    end;
+
+    if VerSeExisteTRIGGERPeloNome('ALTERA_CAIXA_VENDA_AVISTA') then begin
+      //dm.IBScript1.Close;
+      dm.IBScript1.Script.Text := (
+      'DROP TRIGGER ALTERA_CAIXA_VENDA_AVISTA');
+      try
+        dm.IBScript1.ExecuteScript;
+      except
+        on e:exception do begin
+          ShowMessage('Erro 11146: ' + e.Message);
+        end;
+      end;
+    end;
+
+    if not VerSeExisteTRIGGERPeloNome('ALTERA_CAIXA_VENDA_AVIST1') then begin
+      //dm.IBScript1.Close;
+      dm.IBScript1.Script.Text := (
+      'CREATE TRIGGER altera_caixa_venda_avist1 FOR venda ACTIVE after INSERT POSITION 0 AS declare variable valor numeric(10, 2); declare variable codmov integer; begin ' +
+      ' valor = 0; ' +
+      ' if (new.codhis = 1) then begin '+
+      ' valor = new.total; end ' +
+      ' select first 1 codmov from caixa where (historico = ''VENDAS DO DIA A VISTA'') and (cast(data as date) = new.data) into :codmov; ' +
+
+      ' if (valor > 0) then BEGIN if (codmov > 0) then begin  ' +
+      ' update caixa set entrada = entrada + :valor where codmov = :codmov; end else begin ' +
+      ' insert into caixa(formpagto,codgru,codmov,codhis,data,datamov,historico,entrada) values(new.codhis ,1, gen_id(movcaixa, 1) ,1,cast(new.data as date) + cast(current_time as time),new.data,''VENDAS DO DIA A VISTA'',:valor); '+
+      ' END end end;');
+      try
+        dm.IBScript1.ExecuteScript;
+      except
+        on e:exception do begin
+          ShowMessage('Erro 11146: ' + e.Message);
+        end;
+      end;
     end;
 
     if not VerificaCampoTabela('ult_usu_alterado', 'CONTASRECEBER') then

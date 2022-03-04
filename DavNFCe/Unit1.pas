@@ -1147,6 +1147,8 @@ begin
       exit;
     end;
   end;
+
+
   IBQueryServer1.FetchAll;
 
   IBQuery1.Close;
