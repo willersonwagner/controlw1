@@ -3358,6 +3358,22 @@ begin
 
       ACBrNFe.WebServices.enviar.Clear;
 
+
+
+      if ACBrNFe.Configuracoes.Geral.FormaEmissao = teNormal then begin
+        ACBrNFe.NotasFiscais[0].NFe.Ide.dhCont := 0;
+        ACBrNFe.NotasFiscais[0].NFe.Ide.tpEmis := TpcnTipoEmissao.teNormal;
+        ACBrNFe.NotasFiscais[0].NFe.Ide.xJust  := '';
+      end
+      else begin
+        ACBrNFe.NotasFiscais[0].NFe.Ide.dhCont := now;
+        ACBrNFe.NotasFiscais[0].NFe.Ide.tpEmis := TpcnTipoEmissao.teOffLine;
+        ACBrNFe.NotasFiscais[0].NFe.Ide.xJust  := 'PROBLEMA DE CONEXAO COM INTERNET';
+      end;
+
+
+
+
       // tenta enviar 2 vezes em intervalo de 10s de espera, caso venha retorno entao sai do while
       while true do begin
         a := a + 1;
@@ -3483,7 +3499,7 @@ begin
             gravaERRO_LOG1('', e.Message,
               'if Contido(Duplicidade, e.Message) = false then');
             Status := e.Message;
-            MessageDlg('E3286: ' + e.Message, mtError, [mbOK], 1);
+            MessageDlg('E3286: ' + e.Message+ #13 + 'cStat: ' + IntToStr(csta), mtError , [mbOK], 1);
             Result := false;
             csta := 999;
             // exit;

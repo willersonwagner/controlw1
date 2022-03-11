@@ -88,7 +88,7 @@ begin
 
 
   for i := 0 to arq.Count -1 do begin
-    if pos('Taxa de boleto', arq[i]) > 0 then begin
+    if (pos('Taxa de boleto', arq[i]) > 0)or (pos('Taxa do Pix', arq[i]) > 0) then begin
       if pos('; -', arq[i]) = 0 then arq2.Add(arq[i]);
     end;
   end;

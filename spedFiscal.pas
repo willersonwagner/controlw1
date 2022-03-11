@@ -570,6 +570,7 @@ var
   i : integer;
 begin
   i := codProd.Find(StrToInt(strnum(cod)));
+
   if i = -1 then
     begin
       i := codProd.Add(TacumProd.Create);
@@ -577,8 +578,10 @@ begin
       codProd[i].unid := unid;
     end
   else begin
-    if ((contido(unid, codProd[i].unid) = false) and (unid <> '')) then begin
+
+    if ((contido('*'+unid+'*', '*'+codProd[i].unid+'*') = false) and (unid <> '')) then begin
       codProd[i].unid := codProd[i].unid + '*' + unid;
+
     end;
   end;
 
@@ -2186,10 +2189,6 @@ begin
          end;
 
 
-         if codProd[idx].cod = 3127 then begin
-           ShowMessage(_SUFRAMA);
-         end;
-
          if unid = '' then UNID := TRIM(dm.IBselect.fieldbyname('unid').AsString);
 
          if Contido('-'+TRIM(dm.IBselect.fieldbyname('unid').AsString)+'-', _SUFRAMA) then UNID := TRIM(dm.IBselect.fieldbyname('unid').AsString);
@@ -3723,7 +3722,9 @@ begin
                 end;
 
               try
+
                 ACUMULA_COD((mat12.Values['1']), UNID);
+
               except
                 on e:exception do
                   begin
@@ -3988,12 +3989,15 @@ end;
 
 procedure leCFEsCONTRIBUICOES();
 var
-  mat      : TStringList;
+  mat, codCSTCOD_ISPIS      : TStringList;
   CODNOTA, LIN, desti, crc, sim  : String;
   DATA_EMI : TDate;
   DadosNfe : TDadosNFe;
   ini2, fim2, i3, f3, i1, acc, xx, ui : integer;
 begin
+  codCSTCOD_ISPIS := TStringList.Create;
+  codCSTCOD_ISPIS.Clear;
+
   sim := 'N';
   sim := dialogo('generico', 20, 'SN', 20, true, 'S', Application.Title,'Usar Códigos de inseção de PIS e COFINS do Estoque ? ' , sim);
   if sim = '*' then sim := 'N';
@@ -4036,6 +4040,7 @@ begin
           listaProdutos.Clear;
           LE_XMLNFCE(dm.IBselect.fieldbyname('chave').AsString, listaProdutos, dm.IBQuery4, DadosNfe, TRIB_ALIQ_PIS, TRIB_ALIQ_COFINS);
 
+          CHAVENF  := dm.IBselect.fieldbyname('chave').AsString;
           DATA_EMI := DadosNfe.data;
           BASE_ICM := 0;
           MAT_NOTA.Clear;
@@ -4071,7 +4076,23 @@ begin
                   if _CFOP = '0' then _CFOP := '5102';
                   CSTPIS_CFOP := VE_CSTPISCFOP(_CFOP);
 
-                  if funcoes.Contido(CSTPIS_CFOP, 'IRXDN') then
+                  ACUM_PISCST1(listaProdutos.Items[ini], listaPIS, COD_ISPIS, listaProdutos[ini].CST_PIS);
+
+
+
+                  listaProdutos[ini].COD_ISPIS := COD_ISPIS;
+
+                  //004 nao existe mais, muda pra cst 06 segundo nos termos do art. 28 da Lei 13.097/2015, deve ser escriturada com o código 918 da Tabela 4.3.13
+                  if listaProdutos[ini].COD_ISPIS = '004' then begin
+                    listaProdutos[ini].CST_PIS    := '06';
+                    listaProdutos[ini].COD_ISPIS  := '918';
+                    listaProdutos[ini].vPIS       := 0;
+                    listaProdutos[ini].vCOFINS    := 0;
+                    listaProdutos[ini].BASE_PIS   := 0;
+                    COD_ISPIS := '918';
+                  end;
+
+                 { if funcoes.Contido(CSTPIS_CFOP, 'IRXDN') then
                     begin
                       ISPIS     := CSTPIS_CFOP;
                       COD_ISPIS := '999';
@@ -4080,6 +4101,12 @@ begin
 
 
                   checaISPIS_CODISPIS(listaProdutos[ini].CST_PIS, COD_ISPIS, listaProdutos[ini].cod);
+
+                   if listaProdutos[ini].cod =  48 then begin
+                    ShowMessage(IntToStr(listaProdutos[ini].cod) + #13 + listaProdutos[ini].CST_PIS + #13 + listaProdutos[ini].COD_ISPIS);
+                  end; }
+
+
 
                   SOMA_MOV(listaProdutos[ini].cod, - listaProdutos[ini].quant);
                   //ALIQUOTA DE ICMS (PEGA A ALIQUOTA INTERESTADUAL)
@@ -4112,18 +4139,17 @@ begin
                   //ACUMULA VALORES DE PIS/COFINS DA NF-e
                   CST_PIS := listaProdutos[ini].CST_PIS;
 
-                  
 
-
-                  if sim = 'S' then begin
+                 { if sim = 'S' then begin
                     ISPIS   := trim(ISPIS);
                     CST_PIS := buscaCST_PIS_Por_ISPIS(ISPIS, COD_ISPIS, listaProdutos[ini].vpis);
                     if listaProdutos[ini].vpis = 0 then listaProdutos[ini].vCOFINS := 0;
                     listaProdutos[ini].CST_PIS := CST_PIS;
-                  end;
+                  end;   }
 
                   CST_PIS := CALC_PISCOF1(TOT_ITEM, ISPIS, listaProdutos[ini].vPIS, listaProdutos[ini].vCOFINS, CST_PIS);
                   _CFOP := listaProdutos[ini].CFOP;
+
 
                   ALIQ_CFOP := LeftStr(CST_PIS, 2) + _CFOP; //(AACFOP - 2 DIGITOS PRA ALIQUOTA E 4 PRO CFOP)
 
@@ -4138,8 +4164,9 @@ begin
                   _PISNT := _PISNT + IfThen((TOT_PIS + TOT_COFINS) = 0, listaProdutos[ini].total, 0);
                   //ACUMULA NOS TOTALIZADORES DE ALIQUOTA DE PIS/COFINS
 
-                   ACUM_PISCST1(listaProdutos.Items[ini], listaPIS, COD_ISPIS, LeftStr(CST_PIS, 2));
-
+                  if listaProdutos[ini].CST_PIS <> '01' then begin
+                    codCSTCOD_ISPIS.Add(IntToStr(listaProdutos[ini].cod) + '=' +  listaProdutos[ini].CST_PIS + listaProdutos[ini].COD_ISPIS);
+                  end;
                 end; //FOR LISTA DE PRODUTOS
 
               //REGISTRO C100 - CABECALHO DA NOTA FISCAL
@@ -4191,7 +4218,9 @@ begin
                   GRAVA_SPED(ARQ_TMP, LINHA);
                 end;
 
-              MAT_NOTA.Clear;  
+              MAT_NOTA.Clear;
+
+              codCSTCOD_ISPIS.SaveToFile(caminhoEXE_com_barra_no_final + 'SPED\PRODUTOS_CST_CODISPIS.txt');
 
               {fim := listaPIS.Count -1;
 
@@ -5413,10 +5442,19 @@ begin
   Result := 0;
 
   if (trim(cod_ispis1) = '') and (trim(produto.CST_PIS) <> '04') then cod_ispis1      := '999';
-  if (trim(cod_ispis1) = '') and (trim(produto.CST_PIS) =  '04') then produto.CST_PIS := '01';
+  if (trim(cod_ispis1) = '') and (trim(produto.CST_PIS) =  '04') then begin
+     produto.CST_PIS  := '01';
+     produto.BASE_PIS := produto.total;
+     produto.vCOFINS  := ArredondaFinanceiro(produto.total * TRIB_ALIQ_COFINS / 100, 2);
+    produto.vPIS      := ArredondaFinanceiro(produto.total * TRIB_ALIQ_PIS / 100, 2);
+  end;
   if  (StrToIntDef(trim(produto.CST_PIS), 6) <= 1) and ((produto.vPIS) = 0) and (produto.BASE_PIS > 0) then begin
     produto.vCOFINS := ArredondaFinanceiro(produto.total * TRIB_ALIQ_COFINS / 100, 2);
     produto.vPIS    := ArredondaFinanceiro(produto.total * TRIB_ALIQ_PIS / 100, 2);
+  end;
+
+  if (trim(cod_ispis1) = '999') and (trim(produto.CST_PIS) =  '04') then begin
+    produto.CST_PIS := '06';
   end;
 
   //ShowMessage(IntToStr(produto.cod) + #13 + CurrToStr(produto.vPIS) + #13 + CurrToStr(produto.BASE_PIS) + #13 + produto.CST_PIS);

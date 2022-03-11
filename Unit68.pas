@@ -161,11 +161,11 @@ begin
   dm.IBselect.Open; }
 
   dm.IBselect.Close;
-  dm.IBselect.SQL.Text := 'select NOME, CNPJ, DATA,cast(substring(chave from 26 for 9) as integer) as nnf, CHAVE, VALOR, IE, IIF(TPNF = ''S'', ''SAIDA'', ''ENTRADA'' ) AS TIPO,' +
+  dm.IBselect.SQL.Text := 'select NOME, CNPJ, DATA,substring(chave from 26 for 9) as nnf, CHAVE, VALOR, IE, IIF(TPNF = ''S'', ''SAIDA'', ''ENTRADA'' ) AS TIPO,' +
   ' CASE SIT when ''A'' then ''AUTORIZADA'' when ''D'' then ''DENEGADA'' when ''C'' then ''CANCELADA'' end as SITUACAO, ' +
   ' CASE MANIFESTADA when ''0'' then ''Confirmação da operação'' when ''1'' then ''Ciência da emissão'' when ' +
   ' ''2'' then ''Operação não realizada'' when ''3'' then ''Desconhecimento da operação'' end as MANIFESTACAO,  MANIFESTADA, nsu '+
-  ' FROM nfedistribuicao order by cast(nsu as integer) desc';
+  ' FROM nfedistribuicao where chave <> '''' order by cast(nsu as integer) desc';
   dm.IBselect.Open;
 
   DataSource1.DataSet := dm.IBselect;
@@ -209,12 +209,12 @@ begin
   end;
 
   dm.IBQuery1.Close;
-  dm.IBQuery1.SQL.Text := 'select NOME, CNPJ, DATA,cast(substring(chave from 26 for 9) as integer) as nnf, CHAVE, VALOR, IE, IIF(TPNF = ''S'', ''SAIDA'', ''ENTRADA'' ) AS TIPO,' +
+  dm.IBQuery1.SQL.Text := 'select NOME, CNPJ, DATA, substring(chave from 26 for 9) as nnf, CHAVE, VALOR, IE, IIF(TPNF = ''S'', ''SAIDA'', ''ENTRADA'' ) AS TIPO,' +
   ' CASE SIT when ''A'' then ''AUTORIZADA'' when ''D'' then ''DENEGADA'' when ''C'' then ''CANCELADA'' end as SITUACAO, ' +
   ' CASE MANIFESTADA when ''0'' then ''Confirmação da operação'' when ''1'' then ''Ciência da emissão'' when ' +
   ' ''2'' then ''Operação não realizada'' when ''3'' then ''Desconhecimento da operação'' end as MANIFESTACAO,  MANIFESTADA '+
-  ' FROM nfedistribuicao where cast(substring(chave from 26 for 9) as integer) = :nota  order by data desc';
-  dm.IBQuery1.ParamByName('nota').AsString := nnf;
+  ' FROM nfedistribuicao where substring(chave from 26 for 9) = :nota  order by data desc';
+  dm.IBQuery1.ParamByName('nota').AsString := CompletaOuRepete('',nnf, '0', 9);
   dm.IBQuery1.Open;
 
 

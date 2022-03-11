@@ -2575,7 +2575,7 @@ begin
   dm.ibselect.Close;
   dm.ibselect.SQL.Clear;
   dm.ibselect.SQL.Add
-    ('select codgru, codhis, entrada, saida, formpagto from caixa where (cast(data as date) >= :dini) and ( cast(data as date) <= :dfim) and (not historico like '
+    ('select codgru, codhis, entrada, saida, formpagto from caixa where (tipo <> ''E'') and (cast(data as date) >= :dini) and ( cast(data as date) <= :dfim) and (not historico like '
     + QuotedStr('%VENDAS DO%') + ')');
   dm.ibselect.ParamByName('dini').AsDateTime :=
     StrToDateTimeDef(ini, form22.datamov);
@@ -2617,7 +2617,7 @@ begin
 
   form19.RichEdit1.Clear;
   addRelatorioForm19(funcoes.RelatorioCabecalho(form22.Pgerais.Values
-    ['empresa'], 'RESUMO MENSAL DE: ' + ini + ' A ' + fim, 80));
+    ['empresa'], 'RESUMO MENSAL DE: ' + ini + ' A ' + fim, 75));
   addRelatorioForm19('  ' + #13 + #10);
 
   fi := formas.Count - 1;
@@ -2889,7 +2889,7 @@ begin
     ('TOTAL    LIQUIDO VENDA            => ', FormatCurr('#,###,###0.00',
     dm.ibselect.FieldByName('quant_venda').AsCurrency + dm.ibselect.FieldByName
     ('dep_venda').AsCurrency), ' ', 60) + #13 + #10);
-  addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10);
+  addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 75) + #13 + #10);
 
   funcoes.informacao(0, fi, 'Aguarde, Gerando Relatório...', false, true, 5);
   caixaEnt.Free;
@@ -9854,10 +9854,11 @@ begin
   //if (tipo = 'B') and (tab = '3') then begin
 
   //ShowMessage(form22.Pgerais.Values['empresa']);
-  if(tab = '3') and (Contido('CAMALEAO', form22.Pgerais.Values['empresa']) = false) then begin
+  //if(tab = '3') and (Contido('CAMALEAO', form22.Pgerais.Values['empresa']) = false) then begin
+  {if(tab = '3') then begin
     funcoes.imprimeCompraFortesA4(nota, 3);
     exit;
-  end;
+  end; }
 
   if ((tipo = 'B') and ((tab = '1')or (tab = '2'))) then begin
     funcoes.imprimeVendaFortesA4(nota, strtoint(tab));
@@ -10286,7 +10287,7 @@ var
     tipoRegCaixa: string;
   sepUsu, codigoUsu, h4, h5, usuario: String;
   totais, caixa: TStringList;
-  totalgeral, pendentes, ent, sai, TotalGeralFormas, totEntradaCaixaNaVenda, TOTCANCELADAS: currency;
+  totalgeral, pendentes, ent, sai, caiEnt, caiSAI, TotalGeralFormas, totEntradaCaixaNaVenda, TOTCANCELADAS: currency;
   b, ContaNota, i, tam, fi: integer;
 begin
   ini := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,
@@ -10663,6 +10664,9 @@ begin
           if dm.ibselect.FieldByName('codhis').AsInteger = 2 then begin
             totais.Values[dm.ibselect.FieldByName('codhis').AsString] :=
             CurrToStr(StrToCurrDef(totais.Values[dm.ibselect.FieldByName('codhis').AsString], 0) + (dm.ibselect.FieldByName('total').AsCurrency - dm.ibselect.FieldByName('entrada').AsCurrency));
+
+       //     totais.Values['1'] := CurrToStr(StrToCurrDef(totais.Values['1'], 0) +
+         //   dm.ibselect.FieldByName('entrada').AsCurrency);
           end
           else begin //se for outro tipo de forma de pagamento com entrada entao tira a entrada e soma o avista
             totais.Values['1'] := CurrToStr(StrToCurrDef(totais.Values['1'], 0) +
@@ -10802,8 +10806,15 @@ begin
   ent := 0;
   sai := 0;
 
+  caiEnt := 0;
+  caiSAI := 0;
+
+
   caixa := TStringList.Create;
   while not dm.ibselect.Eof do begin
+
+
+
     if dm.ibselect.FieldByName('tipo').AsString = 'E' then begin
       totais.Values['1'] := CurrToStr(StrToCurrDef(totais.Values['1'], 0) + dm.ibselect.FieldByName('entrada').AsCurrency);
 
@@ -10848,6 +10859,8 @@ begin
         funcoes.CompletaOuRepete('', FormatCurr('0.00', VLR_ICM) + IfThen(b = 1,
         '-', '+'), ' ', 12) + IfThen(true, ' ' + strzero(dm.ibselect.FieldByName('formpagto')
         .AsInteger, 3), ''));
+        caiEnt := caiEnt + dm.ibselect.FieldByName('entrada').AsCurrency;
+        caiSAI := caiSAI + dm.ibselect.FieldByName('saida').AsCurrency;
       end;
     end
     else
@@ -10858,6 +10871,9 @@ begin
         funcoes.CompletaOuRepete('', FormatCurr('0.00', VLR_ICM) + IfThen(b = 1,
         '-', '+'), ' ', 12) + IfThen(true, ' ' + strzero(dm.ibselect.FieldByName('formpagto')
         .AsInteger, 3), ''));
+
+        caiEnt := caiEnt + dm.ibselect.FieldByName('entrada').AsCurrency;
+        caiSAI := caiSAI + dm.ibselect.FieldByName('saida').AsCurrency;
       end;
 
     dm.ibselect.Next;
@@ -10926,6 +10942,9 @@ begin
     addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', tam) + #13 + #10);
   end
   else
+    addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', tam) + #13 + #10);
+     addRelatorioForm19(funcoes.CompletaOuRepete('TOTAL ENTRADA:', formataCurrency(caiEnt), '.', tam) + #13 + #10);
+     addRelatorioForm19(funcoes.CompletaOuRepete('TOTAL   SAIDA:', formataCurrency(caiSAI), '.', tam) + #13 + #10);
     addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', tam) + #13 + #10);
 
 
@@ -21536,7 +21555,7 @@ begin
 
     vendAnt := dm.ibselect.FieldByName('vendedor').AsString;
     tmp := listpag.Find(dm.ibselect.FieldByName('codhis').AsInteger);
-    desc := desc + dm.ibselect.FieldByName('desconto').AsCurrency;
+    //desc := desc + dm.ibselect.FieldByName('desconto').AsCurrency;
 
     if tmp = -1 then
     begin
@@ -21556,8 +21575,7 @@ begin
         ('total').AsCurrency;
     end;
 
-    listpag[INDDESC].total := listpag[INDDESC].total + dm.ibselect.FieldByName
-      ('desconto').AsCurrency;
+    //listpag[INDDESC].total := listpag[INDDESC].total + dm.ibselect.FieldByName('desconto').AsCurrency;
     dm.ibselect.Next;
   end;
 

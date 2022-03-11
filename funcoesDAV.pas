@@ -980,9 +980,6 @@ begin
              end;
            end;
 
-
-
-
            {if dadosNfe.chave = '14151005518176000153650010000000231000352150' then
              begin
                ShowMessage('cod=' +IntToStr(lista[item].cod)+' cst=' +lista[item].CST);

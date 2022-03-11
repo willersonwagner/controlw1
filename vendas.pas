@@ -2327,10 +2327,10 @@ begin
   if tipo = 'COM' then
   begin
     //if form22.Pgerais.Values['nota'] = 'B' then begin
-    if true then begin
+    {if true then begin
       funcoes.imprimeCompraFortesA4(novocod, 3);
       exit;
-    end;
+    end; }
 
 
     tipo := funcoes.dialogo('generico', 0, 'SN', 0, false, 'S',

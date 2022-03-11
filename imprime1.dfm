@@ -2056,8 +2056,8 @@ object imprime: Timprime
         Transparent = False
       end
       object RLLabel31: TRLLabel
-        Left = 66
-        Top = 2
+        Left = 431
+        Top = 3
         Width = 48
         Height = 16
         Caption = 'Unid.'
@@ -2112,8 +2112,9 @@ object imprime: Timprime
         Transparent = False
       end
       object RLLabel52: TRLLabel
-        Left = 117
-        Top = 2
+        AlignWithMargins = True
+        Left = 80
+        Top = 3
         Width = 80
         Height = 16
         Caption = 'Descri'#231#227'o'
@@ -2145,7 +2146,7 @@ object imprime: Timprime
       ParentFont = False
       BeforePrint = RLBand7BeforePrint
       object RLDBText12: TRLDBText
-        Left = 14
+        Left = 3
         Top = 3
         Width = 32
         Height = 16
@@ -2155,7 +2156,8 @@ object imprime: Timprime
         Text = ''
       end
       object RLDBText13: TRLDBText
-        Left = 117
+        AlignWithMargins = True
+        Left = 80
         Top = 3
         Width = 35
         Height = 14
@@ -2192,7 +2194,7 @@ object imprime: Timprime
         Text = ''
       end
       object RLDBText16: TRLDBText
-        Left = 66
+        Left = 435
         Top = 3
         Width = 40
         Height = 16
@@ -2467,7 +2469,7 @@ object imprime: Timprime
     Top = 304
   end
   object RLPreviewSetup1: TRLPreviewSetup
-    Left = 512
-    Top = 404
+    Left = 448
+    Top = 332
   end
 end

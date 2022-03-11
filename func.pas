@@ -18,7 +18,7 @@ uses
   pcnConversao, System.Zip, ACBrMail
   , IdMultipartFormData, cadClicompleto, IBX.IBServices, mmsystem,
   FMX.TMSCloudBase, FMX.TMSCloudBaseFMX, FMX.TMSCloudCustomGDrive,
-  FMX.TMSCloudGDrive, ACBrUtil;
+  FMX.TMSCloudGDrive, ACBrUtil, RLReport;
 
 const
   OffsetMemoryStream: Int64 = 0;
@@ -11276,6 +11276,8 @@ begin
       dm.IBQuery1.SQL.Add
         ('ALTER TABLE nfce ADD sinc VARCHAR(1)');
       if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+
 
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Text := ('update nfce set sinc = ''1'' where data <= dateadd(month,-3, current_date)');
@@ -25066,7 +25068,7 @@ begin
     h3 := ' and (p.fornec = ' + StrNum(fornecNFe) + ') ';
 
   if vend <> '' then
-    h1 := ' and (i.vendedor =' + vend + ')';
+    h1 := ' and (iif(i.vendedor = '''', v.vendedor, i.vendedor) =' + QuotedStr(vend) + ')';
   i := 55;
 
   { dm.IBselect.SQL.Clear;
@@ -25081,19 +25083,19 @@ begin
   begin
     dm.IBselect.Close;
     dm.IBselect.SQL.text :=
-      ('select p.nome,i.quant, i.cod, i.p_venda, i.total, i.vendedor, i.cod || i.vendedor as teste ' +
+      ('select p.nome,i.quant, i.cod, i.p_venda, i.total, iif(i.vendedor = '''', v.vendedor, i.vendedor) as vendedor, v.vendedor as vendavendedor, i.cod || iif(i.vendedor = '''', v.vendedor, i.vendedor) as teste ' +
       '  from item_venda i left join venda v on (i.nota = v.nota)  left join produto p on (p.cod = i.cod) '
       + ' where (v.cancelado = 0) and ((i.data >= :dini) and (i.data <= :dfim)) '
-      + h1 + h2 + h3 + ' order by  cast(iif(i.vendedor = '''', 0, i.vendedor) as integer), i.cod');
+      + h1 + h2 + h3 + ' order by iif(i.vendedor = '''', v.vendedor, i.vendedor), i.cod');
   end
   else
   begin
     dm.IBselect.Close;
     dm.IBselect.SQL.text :=
-      ('select p.nome,i.quant, i.cod, i.p_venda, i.total, i.vendedor, i.cod || i.vendedor as teste' +
+      ('select p.nome,i.quant, i.cod, i.p_venda, i.total, iif(i.vendedor = '''', v.vendedor, i.vendedor) as vendedor, v.vendedor as vendavendedor, i.cod || iif(i.vendedor = '''', v.vendedor, i.vendedor) as teste ' +
       ' from item_venda i left join venda v on (i.nota = v.nota)  left join produto p on (p.cod = i.cod) '
       + ' where (v.cancelado = 0) and ((i.data >= :dini) and (i.data <= :dfim)) '
-      + h1 + h2 + h3 + ' order by cast(iif(i.vendedor = '''', 0, i.vendedor) as integer), i.cod');
+      + h1 + h2 + h3 + ' order by iif(i.vendedor = '''', v.vendedor, i.vendedor), i.cod');
   end;
 
   dm.IBselect.ParamByName('dini').AsDateTime :=
@@ -25754,19 +25756,17 @@ begin
   //ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.LerXMLFromFile('F:\clientes\agropesca\Distri_nfes.xml');
   //ShowMessage('1');
 
-  //ShowMessage(UltNSU);
-
   while true do begin
     Inc(i);
     if i = 7 then break;
     Application.ProcessMessages;
     try
-      if StrToIntDef(UltNSU, 0) > 0 then begin
+     // if StrToIntDef(UltNSU, 0) > 0 then begin
         ACBrNFe.DistribuicaoDFePorUltNSU(StrToInt(CODestado), cnpj, UltNSU);
-      end
+     { end
       else begin
         ACBrNFe.DistribuicaoDFe(StrToInt(CODestado), cnpj, UltNSU, '');
-      end;
+      end;      }
       msgERRO := 'OK';
       funcoes.Mensagem(Application.Title, '', 15, '',False, 0, clBlack, true);
       break;
@@ -25776,7 +25776,7 @@ begin
       end;
     end;
 
-    if (Contido('Rejeicao:', msgERRO)) then begin
+    if (Contido('Rejeicao:', msgERRO)) or (ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.cStat > 150) then begin
       GravarTexto(caminhoEXE_com_barra_no_final + 'Distri_nfes.xml', ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.XML);
       funcoes.Mensagem(Application.Title, '', 15, '',False, 0, clBlack, true);
       MessageDlg('Atenção! '+#13+#13+'Ocorreu uma Rejeição: ' + #13 +
@@ -25789,7 +25789,8 @@ begin
     if sStat = '137' then begin
       funcoes.Mensagem(Application.Title, '', 15, '',False, 0, clBlack, true);
       MessageDlg('Retorno 137: ' + #13 +
-      #13 + ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.xMotivo + #13 + 'Cstat: ' + IntToStr(ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.cStat), mtError, [mbok], 1);
+      #13 + ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.xMotivo + #13 + 'Cstat: ' + IntToStr(ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.cStat)+ #13 +
+      'MaxNSU: ' + ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.maxNSU, mtError, [mbok], 1);
       exit;
     end;
 
@@ -25814,7 +25815,8 @@ begin
   if sStat = '137' then begin
     //funcoes.Mensagem(Application.Title, '', 15, '',False, 0, clBlack, true);
     MessageDlg('Retorno 137: ' + #13 +
-      #13 + ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.xMotivo + #13 + 'Cstat: ' + IntToStr(ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.cStat), mtError, [mbok], 1);
+      #13 + ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.xMotivo + #13 + 'Cstat: ' + IntToStr(ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.cStat) + #13 + 'NSU: ' + ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.ultNSU + #13 +
+      'MaxNSU: ' + ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.maxNSU, mtError, [mbok], 1);
     exit;
   end;
 
@@ -25864,7 +25866,6 @@ begin
     else begin
       inc(xmlsEventos);
     end;
-
 
     if ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[i].resDFe.chDFe <> '' then begin
 
@@ -25961,6 +25962,8 @@ begin
 
   //ShowMessage('2');
   //funcoes.Mensagem(Application.Title, '', 15, '',False, 0, clBlack, true);
+
+  UltNSU := ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.maxNSU;
 
   if sStat = '138' then begin
     dm.IBQuery1.Close;
@@ -26993,6 +26996,7 @@ begin
 
   NfeVenda := tnfevenda.Create(self);
   arquivs := arquivs + NfeVenda.ExportarNotasEmitidas1('', true, ini, fim);
+
   NfeVenda.Free;
 
   configuraMail(dm.ACBrMail1);
@@ -27014,6 +27018,8 @@ begin
     end;
   end;
 
+
+
   dm.IBselect.Close;
   dm.IBselect.SQL.text := 'select nome, cnpj from registro';
   dm.IBselect.Open;
@@ -27029,6 +27035,19 @@ begin
   dm.ACBrMail1.IsHTML := false;
   dm.ACBrMail1.Body.Assign(mbody.Lines);
   dm.ACBrMail1.Body.text := texto;
+
+  dm.ACBrMail1.AltBody.Text := texto;
+
+  if dm.ACBrMail1.Attachments.Count = 0 then begin
+    dm.ACBrMail1.Body.Add('Sem documentos Fiscais no periodo!');
+    dm.ACBrMail1.AltBody.Text := 'Sem documentos Fiscais no periodo!';
+    dm.ACBrMail1.AltBody.Add('');
+
+    dm.ACBrMail1.AltBody.Add('Email Automático, Favor não Responda.');
+    dm.ACBrMail1.AltBody.Add('');
+    dm.ACBrMail1.AltBody.Add('');
+    dm.ACBrMail1.AltBody.Add('ControlW Sistemas');
+  end;
 
   dm.ACBrMail1.Subject := 'XMLs ' + FormatDateTime('mm-yyyy', StrToDate(ini)) +
     ' ' + dm.IBselect.FieldByName('nome').AsString;
@@ -29673,6 +29692,20 @@ begin
     imprime1.imprime.rltotal.Caption    := '  ____________';
   end;
 
+
+  if funcoes.buscaParamGeral(5, 'N') = 'S' then begin
+    imprime.RLLabel30.Caption := 'Referência';
+    imprime.RLLabel52.Left    := 140;
+    imprime.RLDBText12.Left   := 140;
+    imprime.RLLabel52.Realign;
+    imprime.RLDBText12.Realign;
+
+    imprime.RLDBText12.Font.Size := 6;
+    imprime.RLDBText12.DataField := 'codbar';
+    imprime.RLDBText12.Left      := imprime.RLLabel30.Left;
+    imprime.RLDBText12.Alignment := taLeftJustify;
+  end;
+
   imprime1.imprime.RLLabel42.Caption := 'Form. Pagto: ' + dm.IBselect.FieldByName('codhis').AsString + '-' + dm.IBselect.FieldByName('nome').AsString;
 
   cliente := '0';
@@ -29784,7 +29817,7 @@ begin
   else if venda = 3 then begin
     dm.ProdutoQY.Close;
     dm.ProdutoQY.SQL.Clear;
-    dm.ProdutoQY.SQL.Add('select i.cod, v.codhis, current_time as hora, v.data, i.quant, (i.quant * i.p_compra) as total, p.nome, p.unid, i.p_compra as p_venda, v.total, v.desconto from item_compra i ' +
+    dm.ProdutoQY.SQL.Add('select i.cod, p.codbar, v.codhis, current_time as hora, v.data, i.quant, (i.quant * i.p_compra) as total, p.nome, p.unid, i.p_compra as p_venda, v.total, v.desconto from item_compra i ' +
     ' left join produto p on (p.cod = i.cod) left join compra v on (i.nota = v.nota) where i.nota = :nota' );
     dm.ProdutoQY.ParamByName('nota').AsString := numVenda1;
     dm.ProdutoQY.Open;

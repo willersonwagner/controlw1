@@ -140,6 +140,10 @@ begin
        exit;
     end;
 
+    ShowMessage('cStat: ' + IntToStr(ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.cStat) + #13 +
+                ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.xMotivo);
+
+
 
     fim := ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.count - 1;
     camArq := caminhoEXE_com_barra_no_final + 'ENTRADAXML\';
