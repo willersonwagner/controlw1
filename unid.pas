@@ -50,8 +50,8 @@ procedure TForm47.exclui(const cod1 : String);
 begin
   dm.IBQuery2.Close;
   dm.IBQuery2.SQL.Clear;
-  dm.IBQuery2.SQL.Add('delete from unid where nome = :nome');
-  dm.IBQuery2.ParamByName('nome').AsString := cod1;
+  dm.IBQuery2.SQL.Add('delete from unid where trim(nome) = :nome');
+  dm.IBQuery2.ParamByName('nome').AsString := unid_ent.Text + unid_sai.Text;
   dm.IBQuery2.ExecSQL;
 
   dm.IBQuery2.Transaction.Commit;
@@ -66,9 +66,16 @@ procedure TForm47.buscar(const cod1 : String);
 begin
   dm.IBQuery2.Close;
   dm.IBQuery2.SQL.Clear;
-  dm.IBQuery2.SQL.Add('select * from unid where unid_ent = :nome');
-  dm.IBQuery2.ParamByName('nome').AsString := cod1;
+  dm.IBQuery2.SQL.Add('select unid_ent, unid_sai from unid where trim(unid_ent) = :nome');
+  dm.IBQuery2.ParamByName('nome').AsString := unid_ent.Text;
   dm.IBQuery2.Open;
+
+  dm.IBQuery2.FetchAll;
+
+  if dm.IBQuery2.RecordCount > 1 then begin
+    unid_sai.Text := funcoes.busca(dm.IBQuery2,'unid_sai','unid_ent', 'unid_sai', 'unid_sai');
+    exit;
+  end;
 
   if dm.IBQuery2.IsEmpty then
     begin
@@ -77,7 +84,7 @@ begin
       exit;
     end;
 
-  unid_sai.Text := dm.IBQuery2.fieldbyname('multiplo').AsString;
+  unid_sai.Text := dm.IBQuery2.fieldbyname('unid_sai').AsString;
   dm.IBselect.Close;
 end;
 
@@ -93,6 +100,12 @@ begin
   dm.IBQuery2.ExecSQL;
 
   dm.IBQuery2.Transaction.Commit;
+
+  {dm.IBQuery2.Close;
+  dm.IBQuery2.SQL.Clear;
+  dm.IBQuery2.SQL.Add('update unid set nome = unid_ent || unid_sai');
+  dm.IBQuery2.ExecSQL;
+  dm.IBQuery2.Transaction.Commit;}
 end;
 
 procedure TForm47.FormShow(Sender: TObject);
@@ -103,6 +116,18 @@ end;
 
 procedure TForm47.JsBotao1Click(Sender: TObject);
 begin
+  if unid_ent.Text = '' then begin
+    ShowMessage('Unidade de ENTRADA Vazio!');
+    unid_ent.SetFocus;
+    exit;
+  end;
+
+  if unid_sai.Text = '' then begin
+    ShowMessage('Unidade de SAIDA Vazio!');
+    unid_sai.SetFocus;
+    exit;
+  end;
+
   if testaPodeInserirMenor144 = false then begin
     MessageDlg('Valor Multiplicativo Inválido!' + #13 + 'Unidade Máxima: ' + IntToStr(unidadeMaxima), mtError, [mbOK], 1);
     unid_ent.SetFocus;

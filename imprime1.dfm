@@ -1568,7 +1568,7 @@ object imprime: Timprime
         Transparent = False
       end
       object RLLabel40: TRLLabel
-        Left = 530
+        Left = 510
         Top = 3
         Width = 200
         Height = 16
@@ -1582,7 +1582,7 @@ object imprime: Timprime
         Transparent = False
       end
       object RLLabel41: TRLLabel
-        Left = 530
+        Left = 550
         Top = 33
         Width = 120
         Height = 16
@@ -1949,7 +1949,7 @@ object imprime: Timprime
         Transparent = False
       end
       object rlcpf: TRLLabel
-        Left = 500
+        Left = 485
         Top = 5
         Width = 240
         Height = 16
@@ -2005,7 +2005,7 @@ object imprime: Timprime
         Transparent = False
       end
       object rlFoneCel: TRLLabel
-        Left = 485
+        Left = 460
         Top = 37
         Width = 252
         Height = 16
@@ -2043,7 +2043,7 @@ object imprime: Timprime
       Transparent = False
       object RLLabel30: TRLLabel
         Left = 3
-        Top = 2
+        Top = 3
         Width = 40
         Height = 16
         Caption = 'C'#243'd.'
@@ -2071,7 +2071,7 @@ object imprime: Timprime
       end
       object RLLabel32: TRLLabel
         Left = 564
-        Top = 2
+        Top = 3
         Width = 96
         Height = 16
         Caption = 'Pre'#231'o Unit.'
@@ -2085,7 +2085,7 @@ object imprime: Timprime
       end
       object RLLabel33: TRLLabel
         Left = 691
-        Top = 2
+        Top = 3
         Width = 48
         Height = 16
         Caption = 'Total'
@@ -2099,7 +2099,7 @@ object imprime: Timprime
       end
       object RLLabel51: TRLLabel
         Left = 499
-        Top = 2
+        Top = 3
         Width = 56
         Height = 16
         Caption = 'Quant.'
@@ -2113,7 +2113,7 @@ object imprime: Timprime
       end
       object RLLabel52: TRLLabel
         AlignWithMargins = True
-        Left = 80
+        Left = 68
         Top = 3
         Width = 80
         Height = 16
@@ -2157,7 +2157,7 @@ object imprime: Timprime
       end
       object RLDBText13: TRLDBText
         AlignWithMargins = True
-        Left = 80
+        Left = 68
         Top = 3
         Width = 35
         Height = 14
@@ -2457,16 +2457,16 @@ object imprime: Timprime
     Top = 32
   end
   object DataSource1: TDataSource
-    Left = 704
-    Top = 328
+    Left = 696
+    Top = 160
   end
   object RLPDFFilter1: TRLPDFFilter
     DocumentInfo.Creator = 
       'FortesReport Community Edition v4.0 \251 Copyright '#169' 1999-2016 F' +
       'ortes Inform'#225'tica'
     DisplayName = 'Documento PDF'
-    Left = 656
-    Top = 304
+    Left = 648
+    Top = 184
   end
   object RLPreviewSetup1: TRLPreviewSetup
     Left = 448

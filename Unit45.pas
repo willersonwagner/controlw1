@@ -274,8 +274,11 @@ begin
 if (key = #13) then
  begin
    form39 := tform39.Create(self);
-   form39.ListBox1.Items.Add('1 - Emitente');
-   form39.ListBox1.Items.Add('2 - Destinatário');
+   form39.ListBox1.Items.Add('0 - Frete por conta do Remetente (CIF);');
+   form39.ListBox1.Items.Add('1 - Frete por conta do Destinatário (FOB)');
+   form39.ListBox1.Items.Add('2 - Frete por conta de Terceiros');
+   form39.ListBox1.Items.Add('3 - Transporte Próprio por conta do Remetente');
+   form39.ListBox1.Items.Add('4 - Transporte Próprio por conta do Destinatário');
    form39.ListBox1.Items.Add('9 - Sem Frete');
 
    form39.buscaListaBox(tedit(sender).Text);

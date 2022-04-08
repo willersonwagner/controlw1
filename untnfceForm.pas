@@ -413,9 +413,7 @@ begin
   venda.codFormaNFCE := query1.fieldbyname('codform').AsString;
   venda.codFormaNFCE := strnum(venda.codFormaNFCE);
 
-  if Contido('|' + venda.codFormaNFCE + '|', '|01|02|03|04|05|10|11|12|13|99|')
-    = false then
-    venda.codFormaNFCE := '01';
+  if Contido('|' + venda.codFormaNFCE + '|', '|01|02|03|04|05|10|11|12|13|14|15|16|17|18|19|90|99|') = false then venda.codFormaNFCE := '01';
 
   entrada := query1.fieldbyname('entrada').AsCurrency;
   query1.Close;
@@ -4644,6 +4642,7 @@ begin
   if POS('-' + IntToStr(cstat) + '-', '-101-135-151-573-') > 0 then
   // if (cstat in [101, 135, 151, 573]) then
   begin
+
     query1.Close;
     query1.SQL.text :=
       'update nfce set adic = ''CANC'', exportado = 0 where chave = :chave';
@@ -4662,7 +4661,7 @@ begin
 
     query1.Transaction.Commit;
 
-    if cstat = 135 then begin
+    if POS('-' + IntToStr(cstat) + '-', '-101-135-') > 0 then begin
       criaPasta(pastaControlW + 'NFCE\EVENTO\CANC\' + copy(chave, 3, 4) + '\');
       GravarTexto(pastaControlW + 'NFCE\EVENTO\CANC\'+ copy(chave, 3, 4) + '\'+ chave + '_CANC_nfe.xml', ACBrNFe.WebServices.EnvEvento.EventoRetorno.retEvento.Items[0].RetInfEvento.XML);
     end;

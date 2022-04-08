@@ -10,7 +10,7 @@ uses
   XPStyleActnCtrls, jsedit1, funcoesdav, func, TLHelp32, PsAPI,
 
   {Biblioteca P4InfoVarejo!!}
-  untnfceForm, System.Actions;
+  untnfceForm, System.Actions, DB;
 
 type
   TfrmMain = class(TForm)
@@ -132,7 +132,7 @@ implementation
 uses untDtmMain, untCupomFiscalSAT, untConfiguracoesNFCe,
   untCancelaNFCe, untVendaPDV, configImp,
   cadFormaPagto, identifica, ACBrECF, ACBrECFClass, frmStatus, login,
-  cadecf1, StrUtils, importapedido;
+  cadecf1, StrUtils, importapedido, buscaSelecao, Unit14;
 
 {$R *.dfm}
 { ===============================
@@ -822,7 +822,7 @@ end;
 function TfrmMain.geraRelFechamento(opcao: integer = 1): Smallint;
 var
   total, desconto, SEMCRC, totvenda: currency;
-  data, fim, vend, h1, USU, formpagto, nomPagto: String;
+  data, fim, vend, h1, USU, formpagto, nomPagto, confCaixa : String;
   datarel: TDate;
   CONT: Char;
   lista, forma: TStringList;
@@ -863,6 +863,16 @@ begin
       vend := localizar1('Localizar Usuario','usuario','cod,nome','cod','','nome','nome',false,false,false,'', '', 300, nil);
       //if vend = '' then exit;
       end; }
+
+    confCaixa := dialogo('generico', 0, 'SN' + #8, 0, false, 'S',
+      'Control for Windows:', 'Deseja fazer a Conferência de Caixa (Informar os Recebimentos) ?', 'N');
+    if confCaixa = '*' then exit;
+
+    if confCaixa = 'S' then begin
+        if FORM14.ClientDataSet1.Active then FORM14.ClientDataSet1.Close;
+
+        FORM14.ClientDataSet1.CreateDataSet;
+    end;
 
     h1 := '';
 
@@ -1048,9 +1058,9 @@ begin
         ('nome').AsString, '', ' ', 15),
         formataCurrency(dtmMain.IBQuery1.fieldbyname('valor').AsCurrency),
         ' ', 39));
+
       total := total + dtmMain.IBQuery1.fieldbyname('valor').AsCurrency;
-      desconto := desconto + dtmMain.IBQuery1.fieldbyname('desconto')
-        .AsCurrency;
+      desconto := desconto + dtmMain.IBQuery1.fieldbyname('desconto').AsCurrency;
       dtmMain.IBQuery1.Next;
     end;
   end
@@ -1068,11 +1078,30 @@ begin
       mfd.RichEdit1.Lines.Add(CompletaOuRepete(CompletaOuRepete(LeftStr(strzero(forma.Names[i], 2) + '-' + nomPagto, 17),
         '', ' ', 17), formataCurrency(StrToCurr(forma.ValueFromIndex[i])),
         ' ', 39));
+
+      if confCaixa = 'S' then begin
+        form14.ClientDataSet1.Append;
+        form14.ClientDataSet1CODIGO.AsString  := forma.Names[i];
+        form14.ClientDataSet1PAG.AsString     := nomPagto;
+        form14.ClientDataSet1VALOR.AsCurrency := StrToCurr(forma.ValueFromIndex[i]);
+        form14.ClientDataSet1.Post;
+      end;
+
     end;
   end;
 
   lista.Free;
-  forma.Free;
+  //forma.Free;
+
+  if confCaixa = 'S' then begin
+    form14.ClientDataSet1PAG.DisplayLabel       := 'Form. Pagto';
+    form14.ClientDataSet1VALOR.DisplayLabel     := 'Total';
+    form14.ClientDataSet1CONFERIDO.DisplayLabel := 'Valor Apurado';
+    form14.ShowModal;
+    //form14.Free;
+  end;
+
+
 
   if desconto <> 0 then
   begin
@@ -1139,8 +1168,34 @@ begin
     mfd.RichEdit1.Lines.Add(CompletaOuRepete('', '', '-', 39));
   end;
 
+
+  if confCaixa = 'S' then begin
+    //if form14.ClientDataSet1.State in [dsedit] then form14.ClientDataSet1.Post;
+    form14.ClientDataSet1.First;
+
+    mfd.RichEdit1.Lines.Add(CompletaOuRepete('', '', '=', 39));
+    mfd.RichEdit1.Lines.Add(CompletaOuRepete(centraliza('CONFERENCIA DE CAIXA ' , ' ', 39), '', ' ', 39));
+    mfd.RichEdit1.Lines.Add('COD-DESCRICAO         VALOR    APURADO');
+    mfd.RichEdit1.Lines.Add(CompletaOuRepete('', '', '=', 39));
+
+    while not form14.ClientDataSet1.Eof do begin
+      desconto := form14.ClientDataSet1CONFERIDO.AsCurrency - form14.ClientDataSet1VALOR.AsCurrency;
+
+      mfd.RichEdit1.Lines.Add(CompletaOuRepete(LeftStr(strzero(form14.ClientDataSet1CODIGO.AsString, 2) + '-' + form14.ClientDataSet1PAG.AsString, 17),
+        '', ' ', 17) + CompletaOuRepete('', formataCurrency(form14.ClientDataSet1VALOR.AsCurrency), ' ', 11) + CompletaOuRepete('', formataCurrency(form14.ClientDataSet1CONFERIDO.AsCurrency), ' ', 11));
+      mfd.RichEdit1.Lines.Add(CompletaOuRepete('    Diferenca >>>', IfThen(desconto > 0, '+', '') + formataCurrency( desconto), ' ', 39));
+
+
+      form14.ClientDataSet1.Next;
+    end;
+
+    mfd.RichEdit1.Lines.Add(CompletaOuRepete('', '', '=', 39));
+    //form14.Free;
+  end;
+
   mfd.ShowModal;
   mfd.Free;
+  forma.Free;
   exit;
   mfd.imprime;
   mfd.Free;

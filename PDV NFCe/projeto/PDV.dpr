@@ -38,7 +38,8 @@ uses
   UTraducao in '..\..\UTraducao.pas',
   sangria in 'sangria.pas' {Form13},
   gifAguarde in '..\..\gifAguarde.pas' {Form65},
-  untnfceForm in '..\..\untnfceForm.pas' {Form72};
+  untnfceForm in '..\..\untnfceForm.pas' {Form72},
+  Unit14 in 'Unit14.pas' {Form14};
 
 {$R *.res}
 var
@@ -62,6 +63,7 @@ begin
   Application.CreateForm(TcadECF, cadECF);
   Application.CreateForm(TForm33, Form33);
   Application.CreateForm(TForm72, Form72);
+  Application.CreateForm(TForm14, Form14);
   //Application.CreateForm(TForm65, Form65);
   //Application.CreateForm(TcadCliNFCe, cadCliNFCe);
   CtrlResize(tform(form33));

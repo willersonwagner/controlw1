@@ -79,6 +79,7 @@ type
     procedure BuscaCodBar_F6_AutoPecas1 ;
     procedure abreDataSetOrdenando();
     procedure abreDataSetOrdenandoPorDataEntrada;
+    procedure atualizaTabelaProduto;
        { Private declarations }
   public
     sqlVenda, ordem : String;
@@ -316,15 +317,18 @@ var
   teste, busca, metodo, campos :string;
   cont:integer;
 begin
-  if key = #13 then
-    begin
+  if key = #13 then begin
       if cosultaRetorna then
         begin
           retorno := dm.produto.fieldbyname('cod').AsString;
           codUlt  := retorno;
           close;
         end;
+    if DBGrid1.SelectedField.DisplayLabel = 'LOCALIZACAO' then begin
+      
     end;
+
+  end;
 
   if key = #27 then
     begin
@@ -472,8 +476,29 @@ end;
 
 procedure TForm24.DBGrid1KeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
-var cod:string;
+var
+  cod, busca, metodo:string;
+
 begin
+  if (ssShift in Shift) and (Key = 13) then begin
+    busca   := DBGrid1.DataSource.DataSet.FieldByName('cod').AsString;
+    metodo  := funcoes.dialogo('normal',3,'',60,true,'','ControlW','Qual a Localização ?', DBGrid1.DataSource.DataSet.FieldByName('localizacao').AsString );
+    if metodo = '*' then exit;
+
+    dm.IBQuery1.Close;
+    dm.IBQuery1.SQL.Text := 'update produto set localiza = :localiza where cod = :cod';
+    dm.IBQuery1.ParamByName('localiza').AsString := metodo;
+    dm.IBQuery1.ParamByName('cod').AsString      := busca;
+    dm.IBQuery1.ExecSQL;
+    dm.IBQuery1.Transaction.Commit;
+
+    atualizaTabelaProduto;
+
+    exit;
+  end;
+
+
+
   if (ssCtrl in Shift) and (chr(Key) in ['P', 'p']) then
     begin
       funcoes.IMP_CODBAR(DBGrid1.DataSource.DataSet.fieldbyname('cod').AsString);
@@ -660,6 +685,22 @@ begin
   //DBGrid1.SelectedIndex := funcoes.buscaFieldDBgrid1(campo, DBGrid1);
   DBGrid1.SetFocus;
 
+end;
+
+procedure TForm24.atualizaTabelaProduto;
+var
+  cod : String;
+  inde : integer;
+begin
+  cod  := dm.produto.fieldbyname('cod').AsString;
+  inde := DBGrid1.SelectedIndex;
+
+  dm.produto.close;
+  dm.produto.Open;
+  funcoes.fetchDataSet(dm.produto);
+  funcoes.FormataCampos(dm.produto,2,'ESTOQUE',3);
+  dm.produto.Locate('cod',cod,[]);
+  DBGrid1.SelectedIndex := inde ;
 end;
 
 end.

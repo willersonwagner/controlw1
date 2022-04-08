@@ -543,6 +543,7 @@ if (key = #13) and (tedit(sender).Text='') then
    form39.ListBox1.Width := 169;
    form39.Width := form39.ListBox1.Width + 15;
    tedit(sender).Text := funcoes.lista(Sender, false);
+   if tedit(sender).Text = '*' then tedit(sender).Text := '';
  end;
 
 if not(funcoes.Contido(UpCase(key), 'SN'+#8+#13+#27))  then key := #0;
@@ -681,6 +682,11 @@ begin
        nome.SetFocus;
        exit;
      end;
+
+
+  if trim(ativo.Text) = '' then begin
+    ativo.Text := 'N';
+  end;
 
   if funcoes.buscaParamGeral(76, 'S') = 'N' then begin
     Result := true;
@@ -913,4 +919,5 @@ begin
 end;
 
 end.
+
 

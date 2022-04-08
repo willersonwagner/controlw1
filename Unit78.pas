@@ -5,7 +5,7 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.Buttons, untnfceForm, pcnConversaoNFe,
-  pcnConversao, funcoesDAV;
+  pcnConversao, funcoesDAV, DateUtils;
 
 type
   TForm78 = class(TForm)
@@ -36,14 +36,27 @@ uses func, nfe, principal, U_Carregando, Unit1;
 
 procedure TForm78.ButBaixarClick(Sender: TObject);
 var
-  ret,camArq : String;
+  ret,camArq, acc : String;
   i, fim, CODestado : integer;
+  ultdownload : TDateTime;
 begin
   if Length(StrNum(EditChave.Text)) <> 44 then begin
     ShowMessage('Chave Inválida, Preencha Corretamente!');
     EditChave.SetFocus;
     exit;
   end;
+
+  dm.IBQuery1.Close;
+  dm.IBQuery1.SQL.Text := 'select * from NFEDISTRIBUICAO where nsu = ' + QuotedStr(nsu);
+  dm.IBQuery1.Open;
+
+  ultdownload := dm.IBQuery1.FieldByName('DH_ULT_DOWNLOAD').AsDateTime;
+
+  if MinutesBetween(now, ultdownload) < 4 then begin
+    MessageDlg('Tentativas de Download Esgotadas. Aguarde ' + IntToStr(4 - MinutesBetween(now, ultdownload)) + ' Minutos', mtError, [mbOK], 1);
+    exit;
+  end;
+
 
   EditChave.Text := StrNum(EditChave.Text);
   F_Carregando.Show;
@@ -103,12 +116,19 @@ begin
 
 
         try
+
           ACBrNFe.DistribuicaoDFePorUltNSU(CODestado, StrNum(form22.Pgerais.Values['cnpj']), nsu);
+
+          funcoes.atualizaDataHoraDownloadXML(nsu);
+
           ret := '';
           break;
         except
           on e:exception do begin
             ret := e.Message;
+            funcoes.atualizaDataHoraDownloadXML(nsu);
+            ShowMessage(ret);
+            exit;
           end;
         end;
       end
@@ -122,11 +142,15 @@ begin
           //ACBrNFe.DistribuicaoDFePorChaveNFe(CODestado, StrNum(form22.Pgerais.Values['cnpj']), EditChave.Text);
 
           ACBrNFe.DistribuicaoDFePorUltNSU(CODestado, StrNum(form22.Pgerais.Values['cnpj']), nsu);
+          funcoes.atualizaDataHoraDownloadXML(nsu);
           ret := '';
           if ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.cStat = 138 then break;
         except
           on e:exception do begin
             ret := e.Message;
+            funcoes.atualizaDataHoraDownloadXML(nsu);
+            ShowMessage(ret);
+            exit;
           end;
         end;
       end;
@@ -157,6 +181,7 @@ begin
       'Tenha menos de 90 dias então favor tente mais tarde. Obrigado!');
 
       GravarTexto(caminhoEXE_com_barra_no_final + 'retorno.xml', ACBrNFe.WebServices.DistribuicaoDFe.RetornoWS);
+      GravarTexto(caminhoEXE_com_barra_no_final + 'retorno1.xml', ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.XML);
       exit;
     end
     else begin
@@ -164,10 +189,12 @@ begin
         ShowMessage('Arquivos Baixados: ' + IntToStr(ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.count) + #13 + 'cStat: ' + IntToStr(ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.cStat) +
         #13 + 'xMotivo: ' +  ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.xMotivo);
         GravarTexto(caminhoEXE_com_barra_no_final + 'retorno.xml', ACBrNFe.WebServices.DistribuicaoDFe.RetornoWS);
+        GravarTexto(caminhoEXE_com_barra_no_final + 'retorno1.xml', ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.XML);
       end;
     end;
 
 
+    acc := '';
     for i := 0 to fim do begin
       if ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.cStat = 138 then begin
         GravarTexto(camArq + ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[i].resDFe.chDFe + '-nfe.xml',  ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[i].XML);
@@ -180,7 +207,8 @@ begin
         end;
 
         if imprimir = false then begin
-           ShowMessage('Download de XML ' +ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[i].resDFe.chDFe + ' Foi Concluído!');
+           acc := acc + ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[i].resDFe.chDFe + #13;
+           //ShowMessage('Download de XML ' +ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[i].resDFe.chDFe + ' Foi Concluído!');
         end
         else begin
           ret := DANFE_Rave.Logo;
@@ -195,6 +223,10 @@ begin
 
 
   finally
+    if acc <> '' then begin
+      ShowMessage('Download de XMLs ' + #13 + acc + #13 + 'Concluído com Sucesso!');
+    end;
+
     NfeVenda.Free;
     F_Carregando.Close;
   end;

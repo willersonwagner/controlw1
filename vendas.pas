@@ -2327,10 +2327,10 @@ begin
   if tipo = 'COM' then
   begin
     //if form22.Pgerais.Values['nota'] = 'B' then begin
-    {if true then begin
+    if funcoes.LerConfig(form22.Pgerais.Values['conf_ter'], 16) = 'S' then begin
       funcoes.imprimeCompraFortesA4(novocod, 3);
       exit;
-    end; }
+    end;
 
 
     tipo := funcoes.dialogo('generico', 0, 'SN', 0, false, 'S',
@@ -4707,7 +4707,6 @@ begin
 
     if fim = 'S' then test := 1
     else test := 0; }
- ShowMessage('1');
   ImprimeNota;
   // funcoes.GeraNota(novocod,form22.Pgerais.Values['nota'],'S',false);
   limpatela;

@@ -6,6 +6,7 @@ interface
 uses controls, Contnrs, dbGrids, Math;
 
 function OrdenaPorNomeTitensProduto(Item1, Item2: pointer): Integer;
+function OrdenaPorNomeTitensporQuant(Item1, Item2: pointer): Integer;
 function OrdenaPorCodigoTacumProdASC(Item1, Item2: pointer): Integer;
 function OrdenaPorUNIDTacumProdASC(Item1, Item2: pointer): Integer;
 function OrdenaPorCodigoTacumProdDESC(Item1, Item2: pointer): Integer;
@@ -200,6 +201,7 @@ type
       procedure SetItems(Index: Integer; const Value: TregProd);
     public
       procedure OrdenarPorNome();
+      procedure OrdenarPorquant();
       function GetText() : String;
       function GetText_COD_PISCST() : String;
       function Add(AObject: TregProd): Integer;
@@ -416,6 +418,12 @@ begin
   Sort(OrdenaPorNomeTitensProduto);
 end;
 
+procedure TItensProduto.OrdenarPorQuant();
+begin
+  Sort(OrdenaPorNomeTitensporQuant);
+end;
+
+
 function TItensProduto.GetText_COD_PISCST : String;
 var
   ini, fim : integer;
@@ -542,6 +550,11 @@ end;
 function OrdenaPorNomeTitensProduto(Item1, Item2: pointer): Integer;
 begin
   Result := CompareStr(TregProd(Item1).nome, TregProd(Item2).nome);
+end;
+
+function OrdenaPorNomeTitensporQuant(Item1, Item2: pointer): Integer;
+begin
+  Result := CompareValue(TregProd(Item1).quant, TregProd(Item2).quant);
 end;
 
 function OrdenaPorCodigoTacumProdDESC(Item1, Item2: pointer): Integer;

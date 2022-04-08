@@ -109,7 +109,6 @@ type
     procedure Timer1Timer(Sender: TObject);
     procedure Timer3Timer(Sender: TObject);
   private
-    retornobusca: string;
     texto: String;
     cdsEquiva: TClientDataSet;
     buscaTimer: String;
@@ -127,6 +126,7 @@ type
     function ReferenciaChavesObrigatoriasNFe(var info1 : string) : string;
     { Private declarations }
   public
+    retornobusca: string;
     inicio1: Smallint;
     cds1: TClientDataSet;
     botao: TsButton;
@@ -141,6 +141,8 @@ type
     enviandoCupom, enviandoBackup: boolean;
     fonteRelatorioForm19: integer;
     NegritoRelatorioForm19, saiComEnter: boolean;
+    procedure atualizaAtivoCliente;
+    procedure atualizaDataHoraDownloadXML(chave : String);
     procedure imprimeTranferencia(doc : String);
     procedure atualizaDataEntradaProduto;
     function ImpVendaExec(verifica: boolean) : boolean;
@@ -5221,7 +5223,8 @@ begin
 
 
         item1.unid := NfeVenda.Le_Nodo('uTrib', txt1);
-        item1.p_icms := StrToCurrDef(StringReplace(NfeVenda.Le_Nodo('pICMS',txt1), '.', ',', [rfReplaceAll, rfIgnoreCase]), 0);
+        item1.p_icms := StrToCurrDef(StringReplace(NfeVenda.Le_Nodo('pICMS', ICMS), '.', ',', [rfReplaceAll, rfIgnoreCase]), 0);
+
         item1.NCM := NfeVenda.Le_Nodo('NCM', txt1);
         item1.vDeson :=
           StrToCurrDef(StringReplace(NfeVenda.Le_Nodo('vICMSDeson', txt1), '.',
@@ -5419,7 +5422,14 @@ begin
     // E CHEGA PRA RR COMO SUBSTITUIÇÃO NA RETIFICA BV
     // FOI FEITO PRA CASA PARAIBA
 
-    //form48.ClientDataSet1.FieldByName('CRED_ICMS').AsCurrency := item1.p_icms;
+    //HABILITADO NOVAMENTE 06/04/2022 PRA CASA PARAIBA, VAMOS VER NO QUE VAI DAR KKK
+    //ADICIONEI A CONDIÇÃO SE FOR CST 00
+    if item1.CSTICMS = '00' then form48.ClientDataSet1.FieldByName('CRED_ICMS').AsCurrency := item1.p_icms;
+
+    //se for simples nacional nao tem direito a credito e nem debito de icms
+    if ((funcoes.buscaParamGeral(10,'') = '1') or (funcoes.buscaParamGeral(22,'') = '10')) then form48.ClientDataSet1.FieldByName('CRED_ICMS').AsCurrency := 0;
+
+
     //form48.ClientDataSet1.FieldByName('CRED_ICMS').AsCurrency := 0;
     // form48.ClientDataSet1.FieldByName('REF_NFE').AsString       := IntToStr(item1.cod) + '|' + item1.codbar;
     form48.ClientDataSet1.FieldByName('REF_NFE').AsString := LeftStr(item1.codigoFornecedor + '|' + form48.fornecedor, 25);
@@ -11320,6 +11330,42 @@ begin
       dm.IBQuery1.SQL.Add('ALTER TABLE ITEM_VENDA ADD CONSTRAINT UNQ1_ITEM_VENDA UNIQUE (RECNO) ');
       if execSqlMostraErro(dm.IBQuery1) = false then exit;
     end;
+
+    if not VerificaCampoTabela('DH_ULT_DOWNLOAD', 'NFEDISTRIBUICAO') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('ALTER TABLE NFEDISTRIBUICAO ADD DH_ULT_DOWNLOAD  TIMESTAMP DEFAULT ''01.01.1900'' ');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := ('update nfce set sinc = ''1'' where data <= dateadd(month,-3, current_date)');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+    end;
+
+    if funcoes.retornaTamanhoDoCampoBD('nome', 'unid') = 8 then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := ('ALTER TABLE UNID DROP CONSTRAINT PK_UNID');
+      execSqlMostraErro(dm.IBQuery1);
+      dm.IBQuery1.Transaction.Commit;
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := ('alter table unid alter nome type VARCHAR(20)');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := ('Alter table unid Add constraint PK_UNID primary key (nome)');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := ('update unid set nome = unid_ent || unid_sai');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
+    atualizaAtivoCliente;
 
     //VerificaVersao_do_bd
   end;
@@ -23435,28 +23481,50 @@ begin
       // ShowMessage(IntToStr(cont) + ' / ' + dm.IBselect.FieldByName('nnf').AsString);
       if dm.IBselect.Eof then
         break;
-      if cont <> dm.IBselect.FieldByName('nnf').AsInteger then
-      begin
+      if cont <> dm.IBselect.FieldByName('nnf').AsInteger then begin
 
         // pulos := pulos + IntToStr(dm.IBselect.FieldByName('nnf').AsInteger - 1) + ' - ';
-        pulos := pulos + IntToStr(cont) + ' - ';
-        acc := acc + IntToStr(cont) + ' - ';
+        //pulos := pulos + IntToStr(cont) + ' - ';
+        //acc := acc + IntToStr(cont) + ' - ';
 
         adicionaChavePeloNumero(IntToStr(cont));
 
-        { dm.IBQuery2.Close;
+          dm.IBQuery2.Close;
           dm.IBQuery2.SQL.Text := 'select chave, data from nfce where substring(chave from 23 for 3) = :serie and substring(chave from 26 for 9) = :nnf';
           dm.IBQuery2.ParamByName('serie').AsString := strzero(serie, 3);
           dm.IBQuery2.ParamByName('nnf').AsString   := strzero(cont, 9);
           dm.IBQuery2.Open;
 
+
+
           if dm.IBQuery2.IsEmpty then begin
-          erro := '1: Não Existe Essa Numeração No BD!';
+            if cont = 425 then begin
+              ShowMessage('ser=' +strzero(serie, 3) + #13 + 'nnf='+ strzero(cont, 9));
+            end;
+
+            erro := '1: Não Existe Essa Numeração No BD!';
+
+            dm.IBQuery2.Close;
+            dm.IBQuery2.SQL.text :=
+            'select cod from INUTILIZACAO where inicio <= '+IntToStr(cont)+' and'+
+            ' fim >= '+IntToStr(cont)+' and serie = '+IntToStr(serie);
+            dm.IBQuery2.Open;
+            dm.IBQuery2.FetchAll;
+
+            if dm.IBQuery2.IsEmpty = false then begin
+              erro            := '9:Essa Numeração já se Encontra Inutilizada No BD!';
+            end
+            else begin
+              acc := acc + IntToStr(cont) + ' - ';
+              pulos := pulos + IntToStr(cont) + ' - ';
+            end
           end
           else begin
-          erro := '2: NFCe Encontrada no dia ' + FormatDateTime('dd/mm/yy', dm.IBQuery2.fieldbyname('data').AsDateTime);
+            erro := '2: NFe Encontrada no dia ' + FormatDateTime('dd/mm/yy',
+            dm.IBQuery2.FieldByName('data').AsDateTime);
           end;
 
+         
           dm.IBQuery2.Close;
 
           if LeftStr(erro, 1) = '1' then begin
@@ -23467,7 +23535,7 @@ begin
           form33.ClientDataSet1.FieldByName('SERIE').AsInteger := serie;
           form33.ClientDataSet1.FieldByName('ok').AsInteger    := 0;
           form33.ClientDataSet1.Post;
-          end; }
+          end;
       end
       else
         break;
@@ -25773,6 +25841,8 @@ begin
     except
       on e: exception do begin
         msgERRO := e.Message;
+        ShowMessage('ERRO25789:' + msgERRO);
+        exit;
       end;
     end;
 
@@ -25869,8 +25939,6 @@ begin
 
     if ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[i].resDFe.chDFe <> '' then begin
 
-      //ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[i].
-
       dataset.Append;
       dataset.FieldByName('nome').AsString :=
         LeftStr(ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items
@@ -25960,8 +26028,6 @@ begin
     end;
   end;
 
-  //ShowMessage('2');
-  //funcoes.Mensagem(Application.Title, '', 15, '',False, 0, clBlack, true);
 
   UltNSU := ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.maxNSU;
 
@@ -29559,7 +29625,7 @@ begin
   if venda = 1 then begin
     dm.ProdutoQY.Close;
     dm.ProdutoQY.SQL.Clear;
-    dm.ProdutoQY.SQL.Add('select i.cod, v.codhis, v.hora, i.data, i.quant, i.total, p.nome, p.unid, i.p_venda, v.total, v.desconto from item_venda i ' +
+    dm.ProdutoQY.SQL.Add('select i.cod,p.codbar, v.codhis, v.hora, i.data, i.quant, i.total, p.nome, p.unid, i.p_venda, v.total, v.desconto from item_venda i ' +
     ' left join produto p on (p.cod = i.cod) left join venda v on (i.nota = v.nota) where i.nota = :nota' );
     dm.ProdutoQY.ParamByName('nota').AsString := numVenda1;
     dm.ProdutoQY.Open;
@@ -29567,7 +29633,7 @@ begin
   else if venda = 2 then begin
     dm.ProdutoQY.Close;
     dm.ProdutoQY.SQL.Clear;
-    dm.ProdutoQY.SQL.Add('select i.cod, v.codhis, current_time as hora, v.data, i.quant, i.total, p.nome, p.unid, i.p_venda, v.total, v.desconto from item_orcamento i ' +
+    dm.ProdutoQY.SQL.Add('select i.cod,p.codbar, v.codhis, current_time as hora, v.data, i.quant, i.total, p.nome, p.unid, i.p_venda, v.total, v.desconto from item_orcamento i ' +
     ' left join produto p on (p.cod = i.cod) left join orcamento v on (i.nota = v.nota) where i.nota = :nota' );
     dm.ProdutoQY.ParamByName('nota').AsString := numVenda1;
     dm.ProdutoQY.Open;
@@ -29616,6 +29682,20 @@ begin
   except
 
   end;
+
+  if funcoes.buscaParamGeral(5, 'N') = 'S' then begin
+    imprime.RLLabel30.Caption := 'Referência';
+    imprime.RLLabel52.Left    := 105;
+    imprime.RLDBText13.Left   := 105;
+    imprime.RLLabel52.Realign;
+    imprime.RLDBText13.Realign;
+
+    imprime.RLDBText12.Font.Size := 7;
+    imprime.RLDBText12.DataField := 'codbar';
+    imprime.RLDBText12.Left      := imprime.RLLabel30.Left;
+    imprime.RLDBText12.Alignment := taLeftJustify;
+  end;
+
 
   // imprime1.imprime.RLReport2.PrintDialog := false;
   if preview = 'S' then begin
@@ -29694,13 +29774,13 @@ begin
 
 
   if funcoes.buscaParamGeral(5, 'N') = 'S' then begin
-    imprime.RLLabel30.Caption := 'Referência';
-    imprime.RLLabel52.Left    := 140;
-    imprime.RLDBText12.Left   := 140;
+    imprime.RLLabel30.Caption := 'Ref.';
+    imprime.RLLabel52.Left    := 105;
+    imprime.RLDBText13.Left   := 105;
     imprime.RLLabel52.Realign;
-    imprime.RLDBText12.Realign;
+    imprime.RLDBText13.Realign;
 
-    imprime.RLDBText12.Font.Size := 6;
+    imprime.RLDBText12.Font.Size := 7;
     imprime.RLDBText12.DataField := 'codbar';
     imprime.RLDBText12.Left      := imprime.RLLabel30.Left;
     imprime.RLDBText12.Alignment := taLeftJustify;
@@ -29708,7 +29788,7 @@ begin
 
   imprime1.imprime.RLLabel42.Caption := 'Form. Pagto: ' + dm.IBselect.FieldByName('codhis').AsString + '-' + dm.IBselect.FieldByName('nome').AsString;
 
-  cliente := '0';
+  //cliente := '0';
 
   if cliente = '0' then begin
     imprime1.imprime.RLBand18.Visible := false;
@@ -29716,13 +29796,13 @@ begin
   else begin
     imprime1.imprime.RLBand18.Visible := true;
     dm.IBselect.Close;
-    dm.IBselect.SQL.Text := 'select cod, nome, cnpj, ies, ende, bairro, tipo, cid, est, obs, telres, telcom from cliente where cod = ' + cliente;
+    dm.IBselect.SQL.Text := 'select cod, nome, cnpj, ies, endereco as ende, bairro, tipo, cidade as cid, estado as est, obs, fone as telres, fax as telcom from fornecedor where cod = ' + cliente;
     dm.IBselect.Open;
                                                            //Ende...:  RUA APOCALIPSE, 35, CINTURAO VERDE
-    imprime1.imprime.rlcliente.Caption := 'Cliente: ' + dm.IBselect.FieldByName('cod').AsString +'-'+ dm.IBselect.FieldByName('nome').AsString;
+    imprime1.imprime.rlcliente.Caption := 'Fornece: ' + dm.IBselect.FieldByName('cod').AsString +'-'+ dm.IBselect.FieldByName('nome').AsString;
     imprime1.imprime.rlende.Caption    := 'Ende...: ' + dm.IBselect.FieldByName('ende').AsString + ', ' + dm.IBselect.FieldByName('bairro').AsString + '  ' + dm.IBselect.FieldByName('cid').AsString + '-' + dm.IBselect.FieldByName('est').AsString;
 
-    imprime1.imprime.rlcpf.Caption         := 'CPF/CNPJ....: ' + dm.IBselect.FieldByName('cnpj').AsString;
+    imprime1.imprime.rlcpf.Caption         := 'CPF/CNPJ: ' + dm.IBselect.FieldByName('cnpj').AsString;
     imprime1.imprime.rlinsc.Caption        := 'RG/Insc. Est: ' + dm.IBselect.FieldByName('ies').AsString;
     imprime1.imprime.rlOBS_Cliente.Caption := 'Obs: ' + dm.IBselect.FieldByName('obs').AsString;
     imprime1.imprime.rlFoneCel.Caption := 'Fone: ' + dm.IBselect.FieldByName('telres').AsString + ' Cel: ' + dm.IBselect.FieldByName('telcom').AsString;
@@ -30346,6 +30426,34 @@ begin
   form19.ShowModal;
 
 end;
+
+
+procedure Tfuncoes.atualizaDataHoraDownloadXML(chave : String);
+begin
+  dm.IBQuery1.Close;
+  dm.IBQuery1.SQL.Text := 'update nfedistribuicao set DH_ULT_DOWNLOAD = CURRENT_TIME  where nsu = ' + QuotedStr(chave);
+  dm.IBQuery1.ExecSQL;
+  dm.IBQuery1.Transaction.Commit;
+end;
+
+procedure Tfuncoes.atualizaAtivoCliente;
+begin
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select cod, ativo from cliente where not(''-S-N-'' like ''%-''||ativo||''-%'') ';
+  dm.IBselect.Open;
+  dm.IBselect.FetchAll;
+
+
+  if not(dm.IBselect.IsEmpty) then begin
+    dm.IBQuery1.Close;
+    dm.IBQuery1.SQL.Text := 'update cliente set ativo = ''N'' where trim(ativo) = '''' ';
+    dm.IBQuery1.ExecSQL;
+    dm.IBQuery1.Transaction.Commit;
+  end;
+
+end;
+
+
 
 
 

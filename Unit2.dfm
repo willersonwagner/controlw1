@@ -11306,6 +11306,7 @@ object Form2: TForm2
     OnClick = RequisioDepsito1Click
   end
   object MainMenu1: TMainMenu
+    Images = ImageList1
     OwnerDraw = True
     Left = 120
     Top = 200
@@ -11788,6 +11789,10 @@ object Form2: TForm2
         object Cdigo1: TMenuItem
           Caption = 'Por C'#243'digo'
           OnClick = Cdigo1Click
+        end
+        object ConfernciadePorduto1: TMenuItem
+          Caption = 'Confer'#234'ncia de Produto'
+          OnClick = ConfernciadePorduto1Click
         end
         object PorRota1: TMenuItem
           Caption = 'Por Rota'

@@ -4076,13 +4076,9 @@ begin
                   if _CFOP = '0' then _CFOP := '5102';
                   CSTPIS_CFOP := VE_CSTPISCFOP(_CFOP);
 
-                  ACUM_PISCST1(listaProdutos.Items[ini], listaPIS, COD_ISPIS, listaProdutos[ini].CST_PIS);
-
-
-
                   listaProdutos[ini].COD_ISPIS := COD_ISPIS;
 
-                  //004 nao existe mais, muda pra cst 06 segundo nos termos do art. 28 da Lei 13.097/2015, deve ser escriturada com o código 918 da Tabela 4.3.13
+              //004 nao existe mais, muda pra cst 06 segundo nos termos do art. 28 da Lei 13.097/2015, deve ser escriturada com o código 918 da Tabela 4.3.13
                   if listaProdutos[ini].COD_ISPIS = '004' then begin
                     listaProdutos[ini].CST_PIS    := '06';
                     listaProdutos[ini].COD_ISPIS  := '918';
@@ -4091,6 +4087,9 @@ begin
                     listaProdutos[ini].BASE_PIS   := 0;
                     COD_ISPIS := '918';
                   end;
+
+                  ACUM_PISCST1(listaProdutos.Items[ini], listaPIS, COD_ISPIS, listaProdutos[ini].CST_PIS);
+
 
                  { if funcoes.Contido(CSTPIS_CFOP, 'IRXDN') then
                     begin

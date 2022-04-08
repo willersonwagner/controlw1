@@ -227,7 +227,8 @@ implementation
 
 uses func, principal, Unit1, DB, Math, relatorio, dialog, imprime1,
   StrUtils, pcnEnvEventoNFe, ACBrNFeWebServices, pcnEventoNFe,
-  pcnRetEnvEventoNFe, pcnNFe, pcnProcNFe, Unit2, cadproduto, gifAguarde;
+  pcnRetEnvEventoNFe, pcnNFe, pcnProcNFe, Unit2, cadproduto, gifAguarde, Unit48,
+  buscaSelecao;
 
 {$R *.dfm}
 function TNfeVenda.verNCM11(const cod : integer) : String;
@@ -367,8 +368,9 @@ end;
 
 procedure TNfeVenda.ReimprimeCCECompleta();
 var
-  nf, te : string;
-  xml, cce : TStringList;
+  nf, te, acc : string;
+  xml, cce, lista : TStringList;
+  i : integer;
 begin
   te := Incrementa_Generator('nfe', 0);
   te := IntToStr(StrToIntDef(te, 1) -1);
@@ -376,7 +378,58 @@ begin
   te := nf;
   if nf = '*' then exit;
 
-  impremeCCE(nf);
+  lista := listaArquivos(caminhoEXE_com_barra_no_final + 'NFE\EVENTO\CCE\*.xml');
+  //ShowMessage(lista.Text);
+
+  form33 := tform33.Create(self);
+  form33.caption := 'Consulta de Carta de Correção';
+  form33.ClientDataSet1.FieldDefs.Clear;
+  form33.ClientDataSet1.FieldDefs.Add('arq', ftString, 70);
+  form33.ClientDataSet1.FieldDefs.Add('ARQUIVO', ftString, 70);
+  form33.ClientDataSet1.FieldDefs.Add('DATA', ftString, 30);
+  form33.ClientDataSet1.CreateDataSet;
+
+  form33.ClientDataSet1.FieldByName('arq').Visible := False;
+  form33.DataSource1.dataset := form33.ClientDataSet1;
+  form33.DBGrid1.DataSource := form33.DataSource1;
+  form33.campobusca := 'arq';
+
+  xml := TStringList.Create;
+  acc := '';
+  for I := 0 to lista.Count-1 do begin
+    if copy(LeftStr(lista[i], 44), 26, 9) = CompletaOuRepete('', te, '0',9) then begin
+      xml.LoadFromFile(caminhoEXE_com_barra_no_final + 'NFE\EVENTO\CCE\'+ lista[i]);
+
+      acc := acc + lista[i] + CRLF;
+
+      form33.ClientDataSet1.Insert;
+      form33.ClientDataSet1.FieldByName('arq').AsString := lista[i];
+      form33.ClientDataSet1.FieldByName('arquivo').AsString := lista[i];
+      form33.ClientDataSet1.FieldByName('data').AsString := Le_Nodo('dhEvento', xml.Text);
+      form33.ClientDataSet1.Post;
+    end;
+  end;
+
+  form33.ShowModal;
+
+  if funcoes.retornobusca = '*' then exit;
+
+  dm.ACBrNFe.NotasFiscais.Clear;
+  dm.ACBrNFe.NotasFiscais.LoadFromFile(caminhoEXE_com_barra_no_final +
+    'NFE\EMIT\' + LeftStr(funcoes.retornobusca, 44) + '-nfe.xml');
+
+  ACBrNFe.EventoNFe.Evento.Clear;
+  ACBrNFe.EventoNFe.LerXML(caminhoEXE_com_barra_no_final + 'NFE\EVENTO\CCE\' +funcoes.retornobusca);
+  ACBrNFe.DANFE := dm.ACBrNFeDANFeRL1;
+  ACBrNFe.ImprimirEvento;
+
+  //ACBrNFe.EventoNFe.Evento.Items[0].InfEvento ImprimirEvento;
+
+
+
+ // ShowMessage(funcoes.retornobusca);
+
+  //impremeCCE(nf);
 end;
 
 procedure TNfeVenda.impremeCCE(const nota : string);
@@ -701,9 +754,9 @@ begin
     cStat := '-'+IntToStr(ACBrNFe.WebServices.EnvEvento.EventoRetorno.retEvento.Items[0].RetInfEvento.cStat) + '-';
 
     if funcoes.Contido(cstat, '-101-135-151-573-155-') then begin
-      if funcoes.Contido(cstat, '101-135') then begin
-        criaPasta(pastaNFE_ControlW + 'NFE\EVENTO\CCE\' + copy(nf, 3, 4) + '\');
-        GravarTexto(pastaNFE_ControlW + 'NFE\EVENTO\CCE\'+ copy(nf, 3, 4) + '\'+ nf + '_CCE_nfe.xml', ACBrNFe.WebServices.EnvEvento.EventoRetorno.retEvento.Items[0].RetInfEvento.XML);
+      if funcoes.Contido(cstat, '-101-135-') then begin
+        criaPasta(pastaNFE_ControlW + 'NFE\EVENTO\CCE\');
+        GravarTexto(pastaNFE_ControlW + 'NFE\EVENTO\CCE\'+ nf +'_'+ nSeqEvento + '_CCE_nfe.xml', ACBrNFe.WebServices.EnvEvento.EventoRetorno.retEvento.Items[0].RetInfEvento.XML);
       end;
 
       cce := TStringList.Create;
@@ -2164,9 +2217,9 @@ begin
             else CopyFile(pchar(pastaNFE_ControlW + 'NFE\EMIT\' + nf + '-nfe.xml'),pchar(pastaNFE_ControlW + 'NFE\EMIT\' + nf + '-nfe.old1'), true);
 
 
-          if funcoes.Contido(cstat, '101-135') then begin
-            criaPasta(pastaNFE_ControlW + 'NFE\EVENTO\CANC\' + copy(nf, 3, 4) + '\');
-            GravarTexto(pastaNFE_ControlW + 'NFE\EVENTO\CANC\'+ copy(nf, 3, 4) + '\'+ nf + '_CANC_nfe.xml', ACBrNFe.WebServices.EnvEvento.EventoRetorno.retEvento.Items[0].RetInfEvento.XML);
+          if funcoes.Contido(cstat, '-101-135-') then begin
+            criaPasta(pastaNFE_ControlW + 'NFE\EVENTO\CANC\' );
+            GravarTexto(pastaNFE_ControlW + 'NFE\EVENTO\CANC\'+ nf + '_CANC_nfe.xml', ACBrNFe.WebServices.EnvEvento.EventoRetorno.retEvento.Items[0].RetInfEvento.XML);
           end;
 
           tmp   := ACBrNFe.WebServices.EnvEvento.EventoRetorno.retEvento.Items[0].RetInfEvento.xMotivo;
@@ -2356,6 +2409,11 @@ begin
   try
     ACBrNFe.NotasFiscais[0].GravarXML(pastaNFE_ControlW + 'NFE\EMIT\' + IfThen(Contido('-nfe', nf), nf, nf + '-nfe') + '.xml');
     ACBrNFe.Configuracoes.WebServices.Visualizar := false;
+
+    if acbrnfe.WebServices.Consulta.cStat = 613 then begin
+
+    end;
+
 
     {ShowMessage('Consulta de NFe ' + #13 +
     'Chave: ' + nf + #13 +

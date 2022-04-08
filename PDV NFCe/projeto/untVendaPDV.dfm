@@ -1658,7 +1658,7 @@ object Form3: TForm3
     Left = 16
     Top = 128
     Width = 353
-    Height = 58
+    Height = 19
     CharCase = ecUpperCase
     Color = 13758190
     Ctl3D = False
@@ -1684,7 +1684,7 @@ object Form3: TForm3
     Left = 16
     Top = 240
     Width = 353
-    Height = 58
+    Height = 19
     CharCase = ecUpperCase
     Color = 13758190
     Ctl3D = False
@@ -1710,7 +1710,7 @@ object Form3: TForm3
     Left = 16
     Top = 352
     Width = 353
-    Height = 58
+    Height = 19
     CharCase = ecUpperCase
     Color = 13758190
     Ctl3D = False
@@ -1735,7 +1735,7 @@ object Form3: TForm3
     Left = 16
     Top = 464
     Width = 353
-    Height = 58
+    Height = 19
     CharCase = ecUpperCase
     Color = 13758190
     Ctl3D = False
@@ -1778,12 +1778,10 @@ object Form3: TForm3
     object NomesAjuda: TLabel
       Left = 0
       Top = 0
-      Width = 1015
-      Height = 36
+      Width = 71
+      Height = 13
       Align = alClient
       Caption = 'NomesAjuda'
-      ExplicitWidth = 71
-      ExplicitHeight = 13
     end
   end
   object RichEdit1: TListBox

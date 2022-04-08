@@ -1047,9 +1047,6 @@ begin
     IBQuery1.Next;
   end;
 
-
-
-
   RichEdit1.Lines.Add('Usuários Importados: ' + IntToStr(ini));
 
   IBQueryServer1.Close;

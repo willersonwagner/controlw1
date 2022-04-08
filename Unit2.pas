@@ -411,6 +411,7 @@ type
     PorGrupo2: TMenuItem;
     abeladeFornecedoresCadastrados1: TMenuItem;
     ransferencias1: TMenuItem;
+    ConfernciadePorduto1: TMenuItem;
     procedure LimparBloqueios1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure CadastrarUsurio1Click(Sender: TObject);
@@ -708,6 +709,7 @@ type
     procedure PorGrupo2Click(Sender: TObject);
     procedure abeladeFornecedoresCadastrados1Click(Sender: TObject);
     procedure ransferencias1Click(Sender: TObject);
+    procedure ConfernciadePorduto1Click(Sender: TObject);
   private
     b, cont: integer;
     ini: Smallint;
@@ -1903,26 +1905,41 @@ end;
 
 procedure TForm2.NumricaPorCodBarras1Click(Sender: TObject);
 var
-  sim: string;
+  sim, h1: string;
 begin
   b := 56;
-  dm.ProdutoQY.SQL.Clear;
-  dm.ProdutoQY.SQL.Add
-    ('select cod,unid as UN,emb,codbar,nome as DESCRICAO, p_venda as Preco, quant as ESTOQUE,fabric,fornec,grupo from produto order by codbar asc');
-  dm.ProdutoQY.Open;
 
   form19.RichEdit1.Clear;
   funcoes.PerguntasRel(dm.ProdutoQY, '123', false, '', '');
 
-  dm.ProdutoQY.First;
+  if sim = '*' then exit;
+  if grupo = '*' then exit;
+  if fornec = '*' then exit;
+  if fabric = '*' then exit;
+
+  h1 := '';
+  if grupo <> '' then h1 := h1 + ' and (grupo = '+StrNum(grupo)+')';
+  if fornec <> '' then h1 := h1 + ' and (fornec = '+StrNum(fornec)+')';
+  if fabric <> '' then h1 := h1 + ' and (fabric = '+StrNum(fabric)+')';
+
+
+
   if not funcoes.Contido('*', grupo + fornec + fabric) then
   begin
     sim := funcoes.dialogo('generico', 0, 'SN' + #8, 0, false, 'S',
       'Control For Windows', 'Imprimir Quantidade em Estoque?S/N:', 'S');
   end;
 
-  if not funcoes.Contido('*', grupo + fornec + fabric + sim) then
-  begin
+
+
+  dm.ProdutoQY.SQL.Clear;
+  dm.ProdutoQY.SQL.Add
+    ('select cod,unid as UN,emb,codbar,nome as DESCRICAO, p_venda as Preco, quant as ESTOQUE,fabric,fornec,grupo from produto where (cod > 0) '+h1+' order by codbar asc');
+  dm.ProdutoQY.Open;
+  dm.ProdutoQY.FetchAll;
+
+
+
     funcoes.informacao(1, 2, 'AGUARDE... ', true, false, 2);
     form19.RichEdit1.Perform(EM_REPLACESEL, 1,
       Longint(PChar((funcoes.RelatorioCabecalho(funcoes.LerValorPGerais
@@ -1932,12 +1949,10 @@ begin
       Longint(PChar
       (('REFERENCIA    DESCRICAO DO PRODUTO                            QUANT        PRECO'
       + #13 + #10))));
+    addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + CRLF);
    // form19.RichEdit1.Perform(EM_REPLACESEL, 1,
      // Longint(PChar((funcoes.CompletaOuRepete('', #13 + #10, '-', 82)))));
-  end;
 
-  if (sim = 'S') and (sim <> '*') then
-  begin
     while not dm.ProdutoQY.Eof do
     begin
       if form19.RichEdit1.Lines.Count = b then
@@ -1958,20 +1973,16 @@ begin
          // Longint(PChar((funcoes.CompletaOuRepete('', #13 + #10, '-', 82)))));
       end;
       // ShowMessage('tentando '+IntToStr(dm.ProdutoQY.RecNo));
-      if dm.ProdutoQY.RecNo = dm.ProdutoQY.RecordCount then
-        addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13);
+
 
       if funcoes.PerguntasRel(dm.ProdutoQY, '123', true, '', '') then
       begin
-        form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-          Longint(PChar((funcoes.CompletaOuRepete(dm.ProdutoQY.FieldByName
-          ('CODbar').AsString, '', ' ', 15) + funcoes.CompletaOuRepete
-          (copy(dm.ProdutoQY.FieldByName('DESCRICAO').AsString, 1, 39),
-          FormatCurr('#,###,###0.00',
-          StrToCurr(dm.ProdutoQY.FieldByName('estoque').AsString)), ' ',
+        addRelatorioForm19(funcoes.CompletaOuRepete(dm.ProdutoQY.FieldByName('CODbar').AsString, '', ' ', 15) + funcoes.CompletaOuRepete
+        (copy(dm.ProdutoQY.FieldByName('DESCRICAO').AsString, 1, 39),
+          IfThen(sim = 'S', FormatCurr('#,###,###0.00',StrToCurr(dm.ProdutoQY.FieldByName('estoque').AsString)), ''), ' ',
           52) + funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00',
-          StrToCurr(dm.ProdutoQY.FieldByName('PRECO').AsString)), ' ', 13) + #13
-          + #10))));
+          StrToCurr(dm.ProdutoQY.FieldByName('PRECO').AsString)), ' ', 13) + CRLF);
+          addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + CRLF);
         dm.ProdutoQY.Next;
       end
       else
@@ -1983,64 +1994,12 @@ begin
       // fim do while not tabela.eof
     end;
     // fim do sim
-  end;
 
-  if (sim = 'N') and (sim <> '*') then
-  begin
-    while not dm.ProdutoQY.Eof do
-    begin
-      if form19.RichEdit1.Lines.Count = b then
-      begin
-        b := b + 56;
-        form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-          Longint(PChar((funcoes.CompletaOuRepete('-', #12 + #13 + #10,
-          '-', 83)))));
-        form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-          Longint(PChar((funcoes.RelatorioCabecalho(funcoes.LerValorPGerais
-          ('empresa', form22.Pgerais),
-          'TABELA DE PRECOS NUMERICA POR CODBARRAS', 80)))));
-        form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-          Longint(PChar
-          (('REFERENCIA    DESCRICAO DO PRODUTO                            QUANT        PRECO'
-          + #13 + #10))));
-        form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-          Longint(PChar((funcoes.CompletaOuRepete('', #13 + #10, '-', 82)))));
-      end;
-      if funcoes.PerguntasRel(dm.ProdutoQY, '123', true, '', '') then
-      begin
-        form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-          Longint(PChar((funcoes.CompletaOuRepete(dm.ProdutoQY.FieldByName
-          ('CODbar').AsString, '', ' ', 15) + funcoes.CompletaOuRepete
-          (copy(dm.ProdutoQY.FieldByName('DESCRICAO').AsString, 1, 39), '', ' ',
-          52) + funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00',
-          StrToCurr(dm.ProdutoQY.FieldByName('PRECO').AsString)), ' ', 13) + #13
-          + #10))));
-      end;
-
-      funcoes.informacao(dm.ProdutoQY.RecNo, dm.ProdutoQY.RecordCount,
-        'AGUARDE... ', false, false, 2);
-      if dm.ProdutoQY.RecNo = dm.ProdutoQY.RecordCount then
-        form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-          Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 80)))));
-      dm.ProdutoQY.Next;
-      // fim do while not tabela.eof
-    end;
-    // fim do sim
-  end;
-
-  if not funcoes.Contido('*', grupo + fornec + fabric + sim) then
-  begin
-    grupo := '';
-    fornec := '';
-    fabric := '';
 
     funcoes.informacao(dm.ProdutoQY.RecNo, dm.ProdutoQY.RecordCount,
-      'AGUARDE... ', false, true, 2);
-    form19.RichEdit1.SelStart := 1;
-    dm.ProdutoQY.Close;
-    form19.Show;
-  end;
+        'AGUARDE... ', false, true, 2);
 
+    form19.ShowModal;
 end;
 
 procedure TForm2.AlfabticaPFornecedor1Click(Sender: TObject);
@@ -9855,10 +9814,11 @@ begin
 
   //ShowMessage(form22.Pgerais.Values['empresa']);
   //if(tab = '3') and (Contido('CAMALEAO', form22.Pgerais.Values['empresa']) = false) then begin
-  {if(tab = '3') then begin
+
+  if(tab = '3') and (funcoes.LerConfig(form22.Pgerais.Values['conf_ter'], 16) = 'S') then begin
     funcoes.imprimeCompraFortesA4(nota, 3);
     exit;
-  end; }
+  end;
 
   if ((tipo = 'B') and ((tab = '1')or (tab = '2'))) then begin
     funcoes.imprimeVendaFortesA4(nota, strtoint(tab));
@@ -10055,6 +10015,7 @@ begin
     form39.ListBox1.Items.Add('13=Quantas Linhas para Completar a Impressao da ordem de Serviço M(Padrao 25) ?');
     form39.ListBox1.Items.Add('14=Imprimir Reimpressao em quantas vias ?');
     form39.ListBox1.Items.Add('15=Imprimir Entrega em quantas Vias ?');
+    form39.ListBox1.Items.Add('16=Imprimir Pedido de Compra Gráfico Fortes Reports ?');
 
     form39.substitui := TStringList.Create;
     form39.substitui.Add('S'); // 0
@@ -10073,6 +10034,7 @@ begin
     form39.substitui.Add(''); // 13
     form39.substitui.Add(''); // 14
     form39.substitui.Add(''); // 15
+    form39.substitui.Add('S'); // 16
 
     form39.teclas := TStringList.Create;
     form39.teclas.Add('TGMLADRFVXEB');
@@ -10091,6 +10053,7 @@ begin
     form39.teclas.Add('1234567890' + #8);
     form39.teclas.Add('1234567890' + #8);
     form39.teclas.Add('1234567890' + #8);
+    form39.teclas.Add('SN');//16
     form39.showmodal;
   end
   else if funcoes.lista1 = '2' then
@@ -10454,7 +10417,7 @@ begin
   dm.ibselect.Close;
   dm.ibselect.SQL.Clear;
   dm.ibselect.SQL.Add
-    ('select usulib,nota, vendedor, entrada, codhis, total, cancelado, ok, data, cliente, prazo from VENDA where '
+    ('select usulib,nota, vendedor, entrada, codhis, total, cancelado, ok, data, cliente, prazo, usuario from VENDA where '
     + ' ((data >= :v1) and (data<=:v2)) ' + h1 + h3 + h4 + ' order by nota');
   dm.ibselect.ParamByName('v1').AsDateTime := StrToDate(ini);
   dm.ibselect.ParamByName('v2').AsDateTime := StrToDate(fim);
@@ -10575,7 +10538,7 @@ begin
             dm.ibselect.FieldByName('entrada').AsCurrency), ' ', 10) +
             funcoes.CompletaOuRepete(IfThen(dm.ibselect.FieldByName('entrada').AsCurrency > 0, ' +' + FormatCurr('0.00',dm.ibselect.FieldByName('entrada').AsCurrency), ''), '', ' ', 11) +
 
-            funcoes.CompletaOuRepete(IfThen(trim(dm.ibselect.FieldByName('ok').AsString) = '', '*',LeftStr(dm.ibselect.FieldByName('ok').AsString, 1)), '', ' ', 2) +
+            funcoes.CompletaOuRepete(IfThen(trim(dm.ibselect.FieldByName('ok').AsString) = '', '*',CompletaOuRepete('',dm.ibselect.FieldByName('usuario').AsString, '0', 2)), '', ' ', 2) +
 
             IfThen(trim(dm.ibselect.FieldByName('usulib').AsString) = '', '',
 
@@ -10603,8 +10566,8 @@ begin
             dm.ibselect.FieldByName('total').AsCurrency - dm.ibselect.FieldByName('entrada').AsCurrency), ' ',10) +
             funcoes.CompletaOuRepete(IfThen(dm.ibselect.FieldByName('entrada').AsCurrency > 0, ' +' + FormatCurr('0.00',dm.ibselect.FieldByName('entrada').AsCurrency), ''), '', ' ',011) +
             funcoes.CompletaOuRepete('',
-            iif(trim(dm.ibselect.FieldByName('ok').AsString) = '', '*',
-            dm.ibselect.FieldByName('ok').AsString), ' ',
+            IfThen(trim(dm.ibselect.FieldByName('ok').AsString) = '', '*',
+            CompletaOuRepete('',dm.ibselect.FieldByName('usuario').AsString, '0', 2)), ' ',
             5) + funcoes.CompletaOuRepete(' ' + dm.ibselect.FieldByName('prazo')
             .AsString, '', ' ', 4)  +
 
@@ -20114,6 +20077,163 @@ begin
   form19.showmodal;
 end;
 
+procedure TForm2.ConfernciadePorduto1Click(Sender: TObject);
+var
+  ini, fim, ee, CODINI, CODFIM, orde, h1: string;
+  totalgeral, p_compra: currency;
+  i, fi: integer;
+  qtd, total: TStringList;
+  lista : TItensProduto;
+begin
+
+  ini := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,
+    'Qual a Data Inicial?', formataDataDDMMYY(StartOfTheMonth(form22.datamov)));
+  if ini = '*' then
+    exit;
+
+  fim := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,
+    'Qual a Data Final?', formataDataDDMMYY(endOfTheMonth(form22.datamov)));
+  if fim = '*' then
+    exit;
+
+  CODINI := funcoes.dialogo('generico', 90, '1234567890' + #8, 90, true, '',
+    'Control For Windows', 'Qual o Cód. Inicial?', '');
+  if CODINI = '*' then
+    exit;
+
+  CODFIM := funcoes.dialogo('generico', 90, '1234567890' + #8, 90, true, '',
+    'Control For Windows', 'Qual o Cód. Final?', '');
+  if CODFIM = '*' then
+    exit;
+
+  orde := funcoes.dialogo('generico', 90, '123', 90, true, 'S',
+    'Control For Windows', 'Qual a Ordem (1 - Cod, 2 - Nome, 3-Quant)?', '2');
+  if orde = '*' then
+    exit;
+
+  h1 := orde;
+
+  if orde = '2' then
+    orde := 'p.nome'
+  else
+    orde := 'i.cod';
+
+
+
+  qtd := TStringList.Create;
+  total := TStringList.Create;
+  lista := TItensProduto.Create;
+
+  form19.RichEdit1.Clear;
+  form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+    Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10))));
+  form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+    Longint(PChar((funcoes.CompletaOuRepete(funcoes.LerValorPGerais('empresa',
+    form22.Pgerais), 'DATA: ' + FormatDateTime('dd/mm/yy', now) + '|', ' ',
+    80) + #13 + #10))));
+  form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+    Longint(PChar((funcoes.CompletaOuRepete('VENDAS PARA CONFERENCIA: ' +
+    FormatDateTime('dd/mm/yy', StrToDate(ini)) + ' A ' +
+    FormatDateTime('dd/mm/yy', StrToDate(fim)), 'HORA: ' + FormatDateTime('tt',
+    now) + '|', ' ', 80) + #13 + #10))));
+  form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+    Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10))));
+  form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+    Longint(PChar
+    (('CODIGO DESCRICAO                          SALDO ANT.  QUANT VEND.    SALDO ATUAL'
+    + #13 + #10))));
+  form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+    Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10))));
+
+
+  //dm.ibselect.Close;
+  //dm.IBselect.Text := 'select cod from item_venda where (data >= :v1) and (data<=:v2) and cancelado = 0'
+
+
+  dm.ibselect.Close;
+  dm.ibselect.SQL.Clear;
+  dm.ibselect.SQL.Add
+    ('select v.nota,v.data,i.p_compra,i.cod,i.quant,i.total, p.p_compra as custo from venda v,item_venda i, produto p where (v.nota = i.nota) and (v.cancelado = 0) and ((i.cod >= :cini) and (i.cod <= :cfim))'
+    + ' and (p.cod = i.cod) and ((v.data >= :v1) and (v.data<=:v2)) order by ' +
+    orde);
+  dm.ibselect.ParamByName('cini').AsInteger := StrToIntDef(CODINI, 0);
+  dm.ibselect.ParamByName('cfim').AsInteger := StrToIntDef(CODFIM, 0);
+  dm.ibselect.ParamByName('v1').AsDateTime := StrToDate(ini);
+  dm.ibselect.ParamByName('v2').AsDateTime := StrToDate(fim);
+  dm.ibselect.Open;
+  dm.ibselect.First;
+  totalgeral := 0;
+
+
+
+  //ShowMessage('1');
+
+
+
+  while not dm.ibselect.Eof do begin
+    fi := lista.Find(dm.ibselect.FieldByName('cod').AsInteger);
+    if fi = -1 then begin
+      fi := lista.Add(TregProd.Create);
+      lista[fi].cod   := dm.ibselect.FieldByName('cod').AsInteger;
+      lista[fi].quant := 0;
+      lista[fi].PERC_ICM := 0;
+      lista[fi].total    := 0;
+    end;
+
+    p_compra := dm.ibselect.FieldByName('p_compra').AsCurrency;
+
+    if p_compra = 0 then p_compra := (dm.ibselect.FieldByName('quant').AsCurrency * dm.ibselect.FieldByName('custo').AsCurrency);
+
+    lista[fi].quant    := lista[fi].quant + dm.ibselect.FieldByName('quant').AsCurrency;
+    lista[fi].PERC_ICM := lista[fi].PERC_ICM + p_compra;
+    lista[fi].total    := lista[fi].total    + dm.ibselect.FieldByName('total').AsCurrency;
+
+    totalgeral := totalgeral + dm.ibselect.FieldByName('total').AsCurrency;
+    dm.ibselect.Next;
+  end;
+
+  //ShowMessage('2');
+
+  if h1 = '3' then begin
+    lista.OrdenarPorquant;
+  end;
+
+  //fi := qtd.Count - 1;
+  funcoes.iniciaDataset(dm.ibselect,
+    'select nome, quant from produto where cod = :cod');
+
+  fi := lista.Count - 1;
+  for i := 0 to fi do
+  begin
+    dm.ibselect.Close;
+    dm.ibselect.ParamByName('cod').AsInteger := lista[i].cod;
+    dm.ibselect.Open;
+
+    addRelatorioForm19(funcoes.CompletaOuRepete('', IntToStr(lista[i].cod), ' ', 6) + '-'
+      + funcoes.CompletaOuRepete(copy(dm.ibselect.FieldByName('nome').AsString,
+      1, 35), '', ' ', 35) + funcoes.CompletaOuRepete('',
+      formataCurrency(dm.ibselect.FieldByName('quant').AsCurrency - lista[i].quant), ' ', 10) + ' '
+      + funcoes.CompletaOuRepete('',
+      formataCurrency(lista[i].quant ), ' ', 12)
+      + ' ' + funcoes.CompletaOuRepete('',formataCurrency(dm.ibselect.FieldByName('quant').AsCurrency), ' ', 14) + CRLF);
+  end;
+
+  // form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete(FormatDateTime('dd/mm/yy',dm.IBselect.fieldbyname('data').AsDateTime),'',' ',8)+funcoes.CompletaOuRepete('',dm.IBselect.fieldbyname('cod').AsString,' ',6)+'-'+funcoes.CompletaOuRepete(copy(dm.IBselect.fieldbyname('nome').AsString,1,30),'',' ',30)+funcoes.CompletaOuRepete('',FormatCurr('#,###,###0.00',dm.IBselect.fieldbyname('quant').AsCurrency),' ',13)+funcoes.CompletaOuRepete('',FormatCurr('#,###,###0.00',dm.IBselect.fieldbyname('total').AsCurrency),' ',13)+funcoes.CompletaOuRepete('',dm.IBselect.fieldbyname('nota').AsString,' ',9)+#13+#10))));
+  dm.ibselect.Close;
+  qtd.Free;
+  total.Free;
+  lista.Free;
+
+  form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+    Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10))));
+  form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+    Longint(PChar((funcoes.CompletaOuRepete('TOTAL GERAL =>   ' +
+    FormatCurr('#,###,###0.00', totalgeral), '', ' ', 80) + #13 + #10))));
+  form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+    Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10))));
+  form19.showmodal;
+end;
+
 procedure TForm2.Configuraes1Click(Sender: TObject);
 begin
   Configuracoes_NFCe();
@@ -22122,6 +22242,7 @@ begin
     + 'NFE\PDF\';
   // dm.ACBrNFeDANFERaveCB1.PathPDF := caminhoEXE_com_barra_no_final + 'NFE\PDF\';
   // dm.ACBrNFeDANFERaveCB1.MostrarPreview := true;
+  ACBrNFe.DANFE := dm.ACBrNFeDANFeRL1;
   dm.ACBrNFe.ImprimirEvento;
 end;
 
