@@ -18039,7 +18039,7 @@ begin
 
   grupo := funcoes.dialogo('generico', 30, '1234567890' + #8, 70, false, '',
     application.Title, 'Qual o Código do Grupo ?', '');
-  if prodzero = '*' then
+  if grupo = '*' then
     exit;
 
   h1 := '';
@@ -20079,7 +20079,7 @@ end;
 
 procedure TForm2.ConfernciadePorduto1Click(Sender: TObject);
 var
-  ini, fim, ee, CODINI, CODFIM, orde, h1: string;
+  ini, fim, ee, CODINI, CODFIM, orde, h1, h2: string;
   totalgeral, p_compra: currency;
   i, fi: integer;
   qtd, total: TStringList;
@@ -20111,6 +20111,24 @@ begin
   if orde = '*' then
     exit;
 
+  grupo := funcoes.dialogo('generico', 30, '1234567890' + #8, 70, false, '',
+    application.Title, 'Qual o Código do Grupo ?', '');
+  if grupo = '*' then
+    exit;
+
+  h2 := '';
+  if grupo <> '' then begin
+    h2 := 'and (p.grupo = ' + strnum(grupo) + ')';
+    dm.IBselect.Close;
+    dm.IBselect.SQL.Text := 'select nome from grupoprod where cod = ' + StrNum(grupo);
+    dm.IBselect.Open;
+
+    grupo := grupo + '-' + dm.IBselect.FieldByName('nome').AsString;
+  end;
+
+
+
+
   h1 := orde;
 
   if orde = '2' then
@@ -20132,10 +20150,8 @@ begin
     form22.Pgerais), 'DATA: ' + FormatDateTime('dd/mm/yy', now) + '|', ' ',
     80) + #13 + #10))));
   form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-    Longint(PChar((funcoes.CompletaOuRepete('VENDAS PARA CONFERENCIA: ' +
-    FormatDateTime('dd/mm/yy', StrToDate(ini)) + ' A ' +
-    FormatDateTime('dd/mm/yy', StrToDate(fim)), 'HORA: ' + FormatDateTime('tt',
-    now) + '|', ' ', 80) + #13 + #10))));
+    Longint(PChar((funcoes.CompletaOuRepete('VENDAS PARA CONFERENCIA: ' + FormatDateTime('dd/mm/yy', StrToDate(ini)) + ' A ' + FormatDateTime('dd/mm/yy', StrToDate(fim)), 'HORA: ' + FormatDateTime('tt',now) + '|', ' ', 80) + #13 + #10))));
+  if grupo <> '' then addRelatorioForm19('GRUPO: ' + grupo + CRLF);
   form19.RichEdit1.Perform(EM_REPLACESEL, 1,
     Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10))));
   form19.RichEdit1.Perform(EM_REPLACESEL, 1,
@@ -20154,7 +20170,7 @@ begin
   dm.ibselect.SQL.Clear;
   dm.ibselect.SQL.Add
     ('select v.nota,v.data,i.p_compra,i.cod,i.quant,i.total, p.p_compra as custo from venda v,item_venda i, produto p where (v.nota = i.nota) and (v.cancelado = 0) and ((i.cod >= :cini) and (i.cod <= :cfim))'
-    + ' and (p.cod = i.cod) and ((v.data >= :v1) and (v.data<=:v2)) order by ' +
+    + ' and (p.cod = i.cod) and ((v.data >= :v1) and (v.data<=:v2)) '+h2+' order by ' +
     orde);
   dm.ibselect.ParamByName('cini').AsInteger := StrToIntDef(CODINI, 0);
   dm.ibselect.ParamByName('cfim').AsInteger := StrToIntDef(CODFIM, 0);
@@ -20163,12 +20179,6 @@ begin
   dm.ibselect.Open;
   dm.ibselect.First;
   totalgeral := 0;
-
-
-
-  //ShowMessage('1');
-
-
 
   while not dm.ibselect.Eof do begin
     fi := lista.Find(dm.ibselect.FieldByName('cod').AsInteger);
@@ -20212,7 +20222,7 @@ begin
     addRelatorioForm19(funcoes.CompletaOuRepete('', IntToStr(lista[i].cod), ' ', 6) + '-'
       + funcoes.CompletaOuRepete(copy(dm.ibselect.FieldByName('nome').AsString,
       1, 35), '', ' ', 35) + funcoes.CompletaOuRepete('',
-      formataCurrency(dm.ibselect.FieldByName('quant').AsCurrency - lista[i].quant), ' ', 10) + ' '
+      formataCurrency(dm.ibselect.FieldByName('quant').AsCurrency + lista[i].quant), ' ', 10) + ' '
       + funcoes.CompletaOuRepete('',
       formataCurrency(lista[i].quant ), ' ', 12)
       + ' ' + funcoes.CompletaOuRepete('',formataCurrency(dm.ibselect.FieldByName('quant').AsCurrency), ' ', 14) + CRLF);

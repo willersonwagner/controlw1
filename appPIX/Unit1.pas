@@ -1,0 +1,358 @@
+unit Unit1;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Data.Bind.EngExt, Vcl.Bind.DBEngExt,
+  System.Rtti, System.Bindings.Outputs, IPPeerClient, REST.Client,
+  Data.Bind.Components, Data.Bind.Grid, REST.Response.Adapter,
+  Data.Bind.ObjectScope, REST.Authenticator.OAuth, Data.Bind.DBScope,
+  Vcl.StdCtrls, FireDAC.Stan.StorageJSON, REST.Utils, Winapi.ShellAPI,
+  FireDAC.Stan.Intf, FireDAC.Stan.Option, FireDAC.Stan.Param,
+  FireDAC.Stan.Error, FireDAC.DatS, FireDAC.Phys.Intf, FireDAC.DApt.Intf,
+  Vcl.Grids, Vcl.DBGrids, Data.DB, FireDAC.Comp.DataSet, FireDAC.Comp.Client, REST.Types,
+  Vcl.FileCtrl, Vcl.ExtCtrls;
+
+type
+  TForm1 = class(TForm)
+    Button1: TButton;
+    BindSourceRESTResponse: TBindSourceDB;
+    OAuth2Authenticator: TOAuth2Authenticator;
+    RESTResponseDataSetAdapter: TRESTResponseDataSetAdapter;
+    BindingsList1: TBindingsList;
+    RESTResponse: TRESTResponse;
+    RESTClient: TRESTClient;
+    RESTRequest: TRESTRequest;
+    Memo1: TMemo;
+    Button2: TButton;
+    Button3: TButton;
+    FDStanStorageJSONLink1: TFDStanStorageJSONLink;
+    Button4: TButton;
+    FDMemTable1: TFDMemTable;
+    DataSource1: TDataSource;
+    DBGrid1: TDBGrid;
+    Button5: TButton;
+    ListBox1: TListBox;
+    Button6: TButton;
+    Timer1: TTimer;
+    Label5: TLabel;
+    Banco: TComboBox;
+    Label1: TLabel;
+    procedure Button1Click(Sender: TObject);
+    procedure Button3Click(Sender: TObject);
+    procedure Button2Click(Sender: TObject);
+    procedure Button4Click(Sender: TObject);
+    procedure Button5Click(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure Button6Click(Sender: TObject);
+    procedure Timer1Timer(Sender: TObject);
+  private
+    arq : TStringList;
+    procedure salvaConfig;
+    procedure carregaConfig;
+    procedure carregaListaItems;
+    procedure criarPasta(nome : String);
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  Form1: TForm1;
+
+const
+
+RSBytesOfDataReturnedAndTiming = '%d : %s - %d bytes of data returned. Timing: Pre: %dms - Exec: %dms - Post: %dms - Total: %dms';
+
+implementation
+
+{$R *.dfm}
+
+procedure TForm1.Button1Click(Sender: TObject);
+begin
+  Memo1.Lines.Clear;
+  {RESTRequest.ResetToDefaults;
+  RESTResponse.ResetToDefaults;
+  RESTResponseDataSetAdapter.FieldDefs.Clear;
+
+
+  OAuth2Authenticator.AuthCode     := '';
+  OAuth2Authenticator.ResponseType := TOAuth2ResponseType.rtTOKEN;
+   }
+ 
+
+  try
+    RESTRequest.Execute;
+  except
+    on E: TRESTResponseDataSetAdapter.EJSONValueError do
+    begin
+      // Ignore
+    end;
+    on E: TRESTResponse.EJSONValueError do
+    begin
+      // Ignore
+    end
+    else
+      raise;
+  end;
+
+  if (RESTResponse.StatusCode = 200) then begin
+      RESTResponse.RootElement := 'items';
+      RESTResponseDataSetAdapter.NestedElements := true;
+
+      carregaListaItems;
+  end;
+
+  //RESTResponse.GetSimpleValue('access_tokens', LValue) then
+
+
+  memo1.Lines.Add( StringReplace( RESTResponse.FullRequestURI, '&', '&&', [rfReplaceAll] ));
+  memo1.Lines.Add('');
+  memo1.Lines.Add('------------------------------------------------------------');
+  memo1.Lines.Add(
+    Format(RSBytesOfDataReturnedAndTiming,
+    [RESTResponse.StatusCode, RESTResponse.StatusText, RESTResponse.ContentLength,
+    RESTRequest.ExecutionPerformance.PreProcessingTime, RESTRequest.ExecutionPerformance.ExecutionTime,
+    RESTRequest.ExecutionPerformance.PostProcessingTime, RESTRequest.ExecutionPerformance.TotalExecutionTime]));
+
+end;
+
+procedure TForm1.Button2Click(Sender: TObject);
+begin
+  salvaConfig;
+end;
+
+procedure TForm1.Button3Click(Sender: TObject);
+begin
+  carregaConfig;
+end;
+
+procedure TForm1.Button4Click(Sender: TObject);
+var
+  LURL : String;
+begin
+  LURL := OAuth2Authenticator.AuthorizationEndpoint;
+  {LURL := LURL + '?client_id=' + Edit1.text;
+  LURL := LURL + '&response_type=code';
+  LURL := LURL + '&redirect_uri=' + URIEncode(OAuth2Authenticator.RedirectionEndpoint);
+  LURL := LURL + '&scope=' +URIEncode(OAuth2Authenticator.Scope);
+
+  ShellExecute(0, 'OPEN', PChar(LURL), '', '', SW_SHOWNORMAL);}
+end;
+
+procedure TForm1.Button5Click(Sender: TObject);
+var
+  LClient: TRESTClient;
+  LRequest: TRESTRequest;
+  LValue: string;
+begin
+
+  /// we need at least two things here:
+  /// (1) an token-endpoint
+  /// (2) a client-id
+  /// (3) a client-secret
+  /// (4) an auth-code (from step #1)
+
+  LClient := TRESTClient.Create(self);
+
+  LRequest := TRESTRequest.Create(self);
+  LRequest.Client := LClient;
+  LRequest.Method := TRESTRequestMethod.rmPOST;
+
+  TRY
+   { LClient.BaseURL := arq.Values['AccessTokenEndpoint'];
+    LRequest.AddParameter('code', edit2.Text);
+    LRequest.AddParameter('client_id', edit1.Text);
+    LRequest.AddParameter('client_secret', edit4.Text);
+    LRequest.AddParameter('grant_type', 'authorization_code');
+    LRequest.AddParameter('redirect_uri', arq.Values['RedirectionEndpoint']);
+     }
+
+    LRequest.Execute;
+    if (LRequest.Response.StatusCode = 200) then
+    begin
+      {edit2.Text := '';
+      if LRequest.Response.GetSimpleValue('access_token', LValue) then
+        edit3.Text := LValue;     }
+    end
+    else begin
+      Memo1.Text := LRequest.Response.Content;
+    end;
+
+  FINALLY
+    FreeAndNIL(LRequest);
+    FreeAndNIL(LClient);
+  END;
+end;
+
+procedure TForm1.Button6Click(Sender: TObject);
+begin
+  criarPasta('');
+end;
+
+procedure TForm1.salvaConfig;
+var
+  arq1 : TStringList;
+begin
+  arq1 := TStringList.Create;
+  {arq1.Add('AuthorizationEndpoint=' + 'https://accounts.google.com/o/oauth2/v2/auth');
+  arq1.Add('AccessTokenEndpoint='   + 'https://oauth2.googleapis.com/token');
+  arq1.Add('RedirectionEndpoint='   + 'urn:ietf:wg:oauth:2.0:oob');
+  arq1.Add('Scope='   + 'https://www.googleapis.com/auth/drive');
+  arq1.Add('BaseURL='   + 'https://www.googleapis.com/drive/v2/files');
+
+
+  arq1.Add('ClientID='              + Edit1.text);
+  arq1.Add('ClientSecret='          + Edit4.text);
+  arq1.Add('AccessToken='           + Edit3.text);
+  arq1.Add('RefreshToken='          + Edit2.text);
+  arq1.SaveToFile(ExtractFileDir(ParamStr(0)) + '\REST.DAT') ;
+  }arq1.Free;
+end;
+
+procedure TForm1.Timer1Timer(Sender: TObject);
+begin
+  Timer1.Enabled := false;
+  Label5.Visible := true;
+  Button3.Click;
+  Button1.Click;
+  Label5.Visible := false;
+end;
+
+procedure TForm1.carregaConfig;
+begin
+  arq.LoadFromFile(ExtractFileDir(ParamStr(0)) + '\REST.DAT') ;
+
+  RESTClient.AllowCookies := true;
+  RESTClient.BaseURL := arq.Values['BaseURL'];
+  OAuth2Authenticator.ClientID     := arq.Values['ClientID'];
+  OAuth2Authenticator.ClientSecret := arq.Values['ClientSecret'];
+  OAuth2Authenticator.AccessToken  := arq.Values['AccessToken'];
+  OAuth2Authenticator.RefreshToken := arq.Values['RefreshToken'];
+
+
+
+  banco.ItemIndex := StrToInt(arq.Values['tipo']);
+
+  if banco.ItemIndex = 0 then begin
+    RESTClient.ContentType := 'application/x-www-form-urlencoded';
+    RESTRequest.AddParameter('Authorization', 'Bearer ' + arq.Values['AccessToken'], TRESTRequestParameterKind.pkHTTPHEADER, [poDoNotEncode]);
+    RESTRequest.AddParameter('client_id', arq.Values['ClientID'], TRESTRequestParameterKind.pkREQUESTBODY, [poDoNotEncode]);
+    RESTRequest.AddParameter('client_secret', arq.Values['ClientSecret'], TRESTRequestParameterKind.pkREQUESTBODY, [poDoNotEncode]);
+  end;
+
+  if      arq.Values['tipoGET'] = 'PUT' then RESTRequest.Method    := rmPUT
+  else if arq.Values['tipoGET'] = 'POST' then RESTRequest.Method   := rmPOST
+  else if arq.Values['tipoGET'] = 'GET' then RESTRequest.Method    := rmGET
+  else if arq.Values['tipoGET'] = 'DELETE' then RESTRequest.Method := rmDELETE
+  else if arq.Values['tipoGET'] = 'PATCH' then RESTRequest.Method  := rmPATCH;
+
+
+
+
+
+
+  {OAuth2Authenticator.AuthorizationEndpoint := arq.Values['AuthorizationEndpoint'];
+  OAuth2Authenticator.AccessTokenEndpoint   := arq.Values['AccessTokenEndpoint'];
+  OAuth2Authenticator.RedirectionEndpoint   := arq.Values['RedirectionEndpoint'];
+  OAuth2Authenticator.Scope                 := arq.Values['Scope'];
+
+  RESTClient.AllowCookies := true;
+  RESTClient.BaseURL := arq.Values['BaseURL'];
+  Edit1.text := arq.Values['ClientID'];
+  Edit4.text := arq.Values['ClientSecret'];
+  Edit3.text := arq.Values['AccessToken'];
+  Edit2.text := arq.Values['RefreshToken']; }
+end;
+
+procedure TForm1.FormCreate(Sender: TObject);
+begin
+  arq := TStringList.Create;
+  //Timer1.Enabled := true;
+end;
+
+procedure TForm1.carregaListaItems;
+begin
+  ListBox1.Clear;
+  FDMemTable1.First;
+
+
+  while not FDMemTable1.Eof do begin
+    ListBox1.Items.Add(iif(pos('folder', FDMemTable1.FieldByName('mimetype').AsString) > 0, '/', '') + FDMemTable1.FieldByName('title').AsString);
+    FDMemTable1.Next;
+  end;
+end;
+
+
+procedure TForm1.criarPasta(nome : String);
+var
+  lresponse : TRESTResponse;
+  LClient: TRESTClient;
+  LRequest: TRESTRequest;
+  LValue: string;
+  fileDownload : TFileStream;
+  LURL : String;
+begin
+   /// we need at least two things here:
+  /// (1) an token-endpoint
+  /// (2) a client-id
+  /// (3) a client-secret
+  /// (4) an auth-code (from step #1)
+
+
+  {LURL := 'https://drive.google.com/uc?id='+FDMemTable1.FieldByName('id').AsString+'&export=download';
+  LURL := 'https://www.googleapis.com/drive/v2/files/'+FDMemTable1.FieldByName('id').AsString+'';
+  LURL := LURL + '?mimeType=JPEG' ;
+  LURL := LURL + '&access_token=' + edit3.Text;
+  LURL := LURL + '&client_id=' + edit1.Text;
+  //LURL := LURL + '&client_secret=' + edit4.Text;
+
+  ShellExecute(0, 'OPEN', PChar(LURL), '', '', SW_SHOWNORMAL);
+
+  exit;
+}  LClient  := TRESTClient.Create(self);
+  lresponse := TRESTResponse.Create(self);
+  LRequest  := TRESTRequest.Create(self);
+  LRequest.Client := LClient;
+  LRequest.Method := TRESTRequestMethod.rmGET;
+  LRequest.Response := lresponse;
+  RESTClient.Authenticator := OAuth2Authenticator;
+  //LRequest
+
+  TRY
+    LClient.BaseURL := 'https://www.googleapis.com/drive/v3/files/'+ FDMemTable1.FieldByName('id').AsString;
+    //LRequest.AddParameter('alt', 'media');
+    //LRequest.AddParameter('id', FDMemTable1.FieldByName('id').AsString);
+    //LRequest.AddParameter('access_token', edit3.Text);
+    //LRequest.AddParameter('client_id', edit1.Text);
+    //LRequest.AddParameter('client_secret', edit4.Text);
+    LRequest.AddParameter('alt', 'media');
+
+
+    LRequest.Execute;
+    if (LRequest.Response.StatusCode = 200) then
+    begin
+      fileDownload := TFileStream.Create(FDMemTable1.FieldByName('title').AsString, fmCreate);
+
+      Memo1.Lines.Add('');
+      Memo1.Lines.Add('');
+      Memo1.Lines.Add( LRequest.Response.Content);
+
+      LRequest.Response.Content
+    end
+    else begin
+      Memo1.Lines.Add(IntToStr(LRequest.Response.StatusCode) + ' '+ LRequest.Response.Content);
+      Memo1.Lines.Add('----------------------------------------------------------------------');
+      Memo1.Lines.Add(lresponse.FullRequestURI);
+    end;
+
+  FINALLY
+    FreeAndNIL(LRequest);
+    FreeAndNIL(LClient);
+  END;
+end;
+
+
+
+end.

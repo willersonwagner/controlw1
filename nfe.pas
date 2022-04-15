@@ -2246,7 +2246,7 @@ begin
 
           end;
 
-          ShowMessage('NF-e Cancelada com Sucesso. '+ #13 +'Protocolo '+ ACBrNFe.WebServices.Retorno.Protocolo + #13 + 'xMotivo:' + tmp);
+          ShowMessage('NF-e Cancelada com Sucesso. '+ #13 +'Protocolo '+ ACBrNFe.WebServices.Retorno.Protocolo + #13 + 'xMotivo:' + tmp + #13 + 'cStat:   ' + cstat);
         end
       else
         begin
@@ -3744,7 +3744,7 @@ begin
              p_venda := (IfThen(tipo = 'T', query2.fieldbyname('p_compra').AsFloat, query1.fieldbyname('p_venda').AsFloat));
              p_venda := abs(p_venda);
 
-             tem := ProcuraItemNaLista(lista, query1.fieldbyname('cod').AsInteger, p_venda);
+             tem := ProcuraItemNaLista1(lista, query1.fieldbyname('cod').AsInteger, p_venda);
              if tem <> -1 then
                begin
                  item := lista.Items[tem];

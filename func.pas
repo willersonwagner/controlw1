@@ -21135,7 +21135,7 @@ begin
         nCaixa := STRZERO(nCaixa, 3);
 
       //nota := funcoes.acha_vendaCCF(nCF + nCaixa);
-      if nota = '' then
+      if (nota = '') then
       begin
         nota := funcoes.buscaVendaNFCe(nCF, nCaixa, NFE_REF);
         if length(NFE_REF) = 44 then
@@ -21147,8 +21147,10 @@ begin
             'NF-e emitida de mercadorias que ja sairam do documento fiscal: ' +
             StrNum(NFE_REF) + ';';
         end;
-      end
-      else
+      end;
+
+     //if (nCF = '000000') and (nCaixa = '000') then
+     if false then
       begin
         coo := funcoes.dialogo('not', 0, '1234567890' + #8 + #32, 50, true, '',
           Application.Title, 'Qual o Número do Coo do Cupom ?', '');

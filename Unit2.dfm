@@ -11791,7 +11791,7 @@ object Form2: TForm2
           OnClick = Cdigo1Click
         end
         object ConfernciadePorduto1: TMenuItem
-          Caption = 'Confer'#234'ncia de Produto'
+          Caption = 'Confer'#234'ncia de Estoque'
           OnClick = ConfernciadePorduto1Click
         end
         object PorRota1: TMenuItem

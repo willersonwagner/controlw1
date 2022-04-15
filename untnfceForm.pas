@@ -185,7 +185,9 @@ FUNCTION NODO_EMIT(CNPJ, RAZAO, FANTASIA, ENDE, BAIRRO, COD_MUN, NOM_MUN, UF,
 function GeraXml: String;
 function insereNotaBD(var dados: Tvenda): boolean;
 Function ProcuraItemNaLista(var lista: TList; cod1: integer;
-  p_venda: currency = 0): integer;
+  p_venda: Double = 0): integer;
+Function ProcuraItemNaLista1(var lista: TList; cod1: integer;
+  p_venda: Double = 0): integer;
 function setPrinter(const indx: integer; ImpressoraNome: String = ''): String;
 procedure lerConfigBalanca();
 // FUNCTION CAMPO_VAZIO(ENT : STRING) : Smallint;
@@ -676,7 +678,7 @@ begin
 end;
 
 Function ProcuraItemNaLista(var lista: TList; cod1: integer;
-  p_venda: currency = 0): integer;
+  p_venda: Double = 0): integer;
 var
   fim, i: integer;
   item1: Item_venda;
@@ -690,6 +692,38 @@ begin
     if p_venda > 0 then
     begin
       if ((item1.cod = cod1) and (item1.p_venda = p_venda)) then
+      begin
+        Result := i;
+        break;
+      end;
+    end
+    else
+    begin
+      if item1.cod = cod1 then
+      begin
+        Result := i;
+        break;
+      end;
+    end;
+  end;
+end;
+
+
+Function ProcuraItemNaLista1(var lista: TList; cod1: integer;
+  p_venda: Double = 0): integer;
+var
+  fim, i: integer;
+  item1: Item_venda;
+begin
+  fim := lista.Count - 1;
+  Result := -1;
+
+  for i := 0 to fim do
+  begin
+    item1 := lista.Items[i];
+    if p_venda > 0 then
+    begin
+      if ((item1.cod = cod1) and (item1.p_venda = (p_venda))) then
       begin
         Result := i;
         break;
