@@ -12,10 +12,11 @@ object Form1: TForm1
   Font.Style = []
   OldCreateOrder = False
   OnCreate = FormCreate
+  OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
   object Label5: TLabel
-    Left = 84
+    Left = 16
     Top = 404
     Width = 230
     Height = 49
@@ -41,6 +42,27 @@ object Form1: TForm1
     Font.Style = [fsBold]
     ParentFont = False
   end
+  object Label2: TLabel
+    Left = 167
+    Top = 8
+    Width = 24
+    Height = 13
+    Caption = 'valor'
+  end
+  object Label3: TLabel
+    Left = 157
+    Top = 34
+    Width = 45
+    Height = 13
+    Caption = 'descri'#231#227'o'
+  end
+  object Label4: TLabel
+    Left = 19
+    Top = 59
+    Width = 18
+    Height = 13
+    Caption = 'txid'
+  end
   object Button1: TButton
     Left = 560
     Top = 22
@@ -52,9 +74,9 @@ object Form1: TForm1
   end
   object Memo1: TMemo
     Left = 16
-    Top = 53
+    Top = 84
     Width = 313
-    Height = 121
+    Height = 90
     TabOrder = 1
   end
   object Button2: TButton
@@ -62,7 +84,7 @@ object Form1: TForm1
     Top = 53
     Width = 81
     Height = 25
-    Caption = 'Salvar'
+    Caption = 'Gerar Token'
     TabOrder = 2
     OnClick = Button2Click
   end
@@ -76,11 +98,11 @@ object Form1: TForm1
     OnClick = Button3Click
   end
   object Button4: TButton
-    Left = 421
-    Top = 51
-    Width = 121
+    Left = 335
+    Top = 8
+    Width = 146
     Height = 25
-    Caption = '1)Autorizar'
+    Caption = 'Criar QRCODE'
     TabOrder = 4
     OnClick = Button4Click
   end
@@ -98,21 +120,13 @@ object Form1: TForm1
     TitleFont.Style = []
   end
   object Button5: TButton
-    Left = 421
-    Top = 82
-    Width = 121
+    Left = 335
+    Top = 39
+    Width = 146
     Height = 25
-    Caption = '2) Buscar AcessToken'
+    Caption = 'Estado QRCode'
     TabOrder = 6
     OnClick = Button5Click
-  end
-  object ListBox1: TListBox
-    Left = 421
-    Top = 136
-    Width = 220
-    Height = 233
-    ItemHeight = 13
-    TabOrder = 7
   end
   object Button6: TButton
     Left = 16
@@ -120,22 +134,60 @@ object Form1: TForm1
     Width = 81
     Height = 25
     Caption = 'Download'
-    TabOrder = 8
+    TabOrder = 7
     OnClick = Button6Click
   end
   object Banco: TComboBox
     Left = 16
     Top = 26
-    Width = 145
+    Width = 97
     Height = 21
-    ItemIndex = 0
-    TabOrder = 9
+    TabOrder = 8
     Text = 'Santander'
     Items.Strings = (
       'Santander'
-      'Banco do Brasil'#11
-      'Itau'#11
-      'Bradesco')
+      'Banco do Brasil'
+      'Itau'
+      'Bradesco'
+      'PagSeguro')
+  end
+  object RichEdit1: TRichEdit
+    Left = 335
+    Top = 113
+    Width = 449
+    Height = 340
+    Font.Charset = ANSI_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
+    ScrollBars = ssVertical
+    TabOrder = 9
+    Zoom = 100
+  end
+  object Edit1: TEdit
+    Left = 208
+    Top = 8
+    Width = 121
+    Height = 21
+    TabOrder = 10
+    Text = '1,00'
+  end
+  object Edit2: TEdit
+    Left = 208
+    Top = 32
+    Width = 121
+    Height = 21
+    TabOrder = 11
+    Text = 'PEDIDO 1'
+  end
+  object Edit3: TEdit
+    Left = 43
+    Top = 57
+    Width = 286
+    Height = 21
+    TabOrder = 12
   end
   object BindSourceRESTResponse: TBindSourceDB
     ScopeMappings = <>
@@ -143,7 +195,6 @@ object Form1: TForm1
     Top = 161
   end
   object OAuth2Authenticator: TOAuth2Authenticator
-    ResponseType = rtTOKEN
     TokenType = ttBEARER
     Left = 683
     Top = 185
@@ -183,6 +234,7 @@ object Form1: TForm1
     Params = <>
     Response = RESTResponse
     Timeout = 0
+    OnAfterExecute = RESTRequestAfterExecute
     SynchronizedEvents = False
     Left = 347
     Top = 209
@@ -211,5 +263,40 @@ object Form1: TForm1
     OnTimer = Timer1Timer
     Left = 704
     Top = 128
+  end
+  object DSCertFiles1: TDSCertFiles
+    CertFile = 'C:\Users\Wagner\Downloads\cert-chain.pem'
+    KeyFile = 'C:\Users\Wagner\Downloads\key-private.pem'
+    Left = 560
+    Top = 120
+  end
+  object HttpClient: TIdHTTP
+    IOHandler = IdSSLIOHandlerSocketOpenSSL1
+    AllowCookies = True
+    ProxyParams.BasicAuthentication = False
+    ProxyParams.ProxyPort = 0
+    Request.ContentLength = -1
+    Request.ContentRangeEnd = -1
+    Request.ContentRangeStart = -1
+    Request.ContentRangeInstanceLength = -1
+    Request.Accept = 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+    Request.AcceptEncoding = 'gzip, deflate, br'
+    Request.BasicAuthentication = False
+    Request.UserAgent = 'Mozilla/3.0 (compatible; Indy Library)'
+    Request.Ranges.Units = 'bytes'
+    Request.Ranges = <>
+    HTTPOptions = [hoForceEncodeParams]
+    Left = 712
+    Top = 8
+  end
+  object IdSSLIOHandlerSocketOpenSSL1: TIdSSLIOHandlerSocketOpenSSL
+    MaxLineAction = maException
+    Port = 0
+    DefaultPort = 0
+    SSLOptions.Mode = sslmUnassigned
+    SSLOptions.VerifyMode = []
+    SSLOptions.VerifyDepth = 0
+    Left = 712
+    Top = 56
   end
 end
