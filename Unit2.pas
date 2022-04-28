@@ -412,6 +412,7 @@ type
     abeladeFornecedoresCadastrados1: TMenuItem;
     ransferencias1: TMenuItem;
     ConfernciadePorduto1: TMenuItem;
+    NiveldeAcessoUsuario1: TMenuItem;
     procedure LimparBloqueios1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure CadastrarUsurio1Click(Sender: TObject);
@@ -710,6 +711,7 @@ type
     procedure abeladeFornecedoresCadastrados1Click(Sender: TObject);
     procedure ransferencias1Click(Sender: TObject);
     procedure ConfernciadePorduto1Click(Sender: TObject);
+    procedure NiveldeAcessoUsuario1Click(Sender: TObject);
   private
     b, cont: integer;
     ini: Smallint;
@@ -1093,10 +1095,20 @@ begin
   // dias := 20;
   // funcoes.adicionaRegistroDataBloqueio(true, false, dias);
 
-  if form22.usuario <> 'ADMIN' then
-    RestaurarBackup1.Visible := false
-  else
+  if form22.usuario <> 'ADMIN' then begin
+    RestaurarBackup1.Visible := false;
+    Manuteno1.Visible        := false;
+    AtualizarAliquotasSmallSoft2.Visible := false;
+    CriarSrie1.Visible       := false;
+    AdicionaExceoFireWall1.Visible := false;
+  end
+  else begin
     RestaurarBackup1.Visible := true;
+    Manuteno1.Visible        := true;
+    AtualizarAliquotasSmallSoft2.Visible := true;
+    CriarSrie1.Visible       := true;
+    AdicionaExceoFireWall1.Visible := true;
+  end;
 
   if funcoes.buscaParamGeral(10, '') <> '1' then
   begin
@@ -8732,8 +8744,7 @@ procedure TForm2.BloquearUsurio1Click(Sender: TObject);
 var
   usu, access: string;
 begin
-  usu := funcoes.dialogo('normal', 0, '', 0, false, '', application.Title,
-    'Qual o Usuário?', '');
+  usu := funcoes.dialogo('normal', 0, '', 0, false, '', application.Title,'Qual o Usuário?', '');
   if (usu <> '*') and (usu <> '') then
   begin
     dm.IBQuery2.Close;
@@ -9906,6 +9917,7 @@ begin
     form36.teclas.Add('SN'); // 15
     form36.teclas.Add('SN'); // 16
     form36.teclas.Add('1234567890' + #8); //17
+    form36.teclas.Add('SN'); // 18
 
     form36.tipo.Add('numero');
     form36.tipo.Add('generico');
@@ -9925,6 +9937,7 @@ begin
     form36.tipo.Add('generico'); // 15
     form36.tipo.Add('generico'); // 16
     form36.tipo.Add('generico');   //17
+    form36.tipo.Add('generico');   //18
 
 
     form36.troca.Add('');
@@ -9944,6 +9957,7 @@ begin
     form36.troca.Add('S'); // 14
     form36.troca.Add('S'); // 15
     form36.troca.Add('S'); // 16
+    form36.troca.Add('S');
     form36.troca.Add('S');
 
     form36.ListBox1.Items.Add
@@ -9971,6 +9985,8 @@ begin
     form36.ListBox1.Items.Add('15-Permitir uso da Rotina de Reimpressao ?');
     form36.ListBox1.Items.Add('16-Permitir uso da Rotina de Cancelamento de NFe ?');
     form36.ListBox1.Items.Add('17-Quantas Casas Decimais no Preço de Venda na Rotina de Vendas(Padrao 3) ?');
+    form36.ListBox1.Items.Add('18-Usar Nivel de Acesso Personalizado ?');
+
 
     form36.configu := dm.ibselect.FieldByName('configu').AsString;
     dm.ibselect.Close;
@@ -23577,6 +23593,21 @@ begin
   funcoes.emiteNfe('', true);
 end;
 
+procedure TForm2.NiveldeAcessoUsuario1Click(Sender: TObject);
+var
+  usu : String;
+begin
+  usu := funcoes.dialogo('normal', 0, '', 0, false, '', application.Title,'Qual o Usuário?', '');
+  if usu = '*' then exit;
+
+  form37 := tform37.Create(self);
+  form37.usuario := StrToInt(usu);
+
+  funcoes.CtrlResize(TForm(form37));
+  form37.showmodal;
+  form37.Free;
+end;
+
 procedure TForm2.ProdutosVencidos1Click(Sender: TObject);
 var
   sim, prec, data, h1, ordem: string;
@@ -23587,7 +23618,8 @@ begin
   form19.RichEdit1.Clear;
   tam := 80;
 
-  data := FormatDateTime('dd/mm/yy', IncMonth(form22.datamov));
+  //data := FormatDateTime('dd/mm/yy', IncMonth(form22.datamov));
+  data := FormatDateTime('dd/mm/yy', (form22.datamov));
 
   data := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,
     'Qual a Data de Vencimento ?', data);
@@ -23620,10 +23652,11 @@ begin
   dm.ibselect.Close;
   dm.ibselect.SQL.Text :=
     'select i.cod, i.quant, p.nome, i.validade, i.nota, (p.quant + p.deposito) as estoque from item_entrada i left join produto p on (p.cod = i.cod) '
-    + 'where i.validade <= :data and i.validade >= ''01.01.2014'' ' + h1 + ' order by ' + ordem +
+    //+ 'where (i.validade > ''01.01.2000'') ' + h1 + ' order by ' + ordem +
+    + 'where (i.validade >= ''01.01.2000'') ' + h1 + ' order by ' + ordem +
     ', i.validade desc'; // jss-acrescentei ordem e campo validade
   // 'where i.validade <= :data and i.validade >= ''01.01.2000'' order by i.cod, i.validade desc'; //jss-acrescentei ordem e campo validade
-   dm.IBselect.ParamByName('data').AsDate := dataDeVencimento;
+  // dm.IBselect.ParamByName('data').AsDate := dataDeVencimento;
   dm.ibselect.Open;
   dm.ibselect.FetchAll;
 
@@ -23653,18 +23686,19 @@ begin
       produtos[idx].total := dm.ibselect.FieldByName('estoque').AsCurrency;
       // inicializa unidades vencidas = estoque atual
       produtos[idx].codbar := dm.ibselect.FieldByName('nota').AsString;
+      produtos[idx].aliqCred := 0;
     end;
 
     // se essa entrada nÃ£o estÃ¡ vencida, subtrai da quantidade de vencidos
-    if dm.ibselect.FieldByName('validade').AsDateTime > dataDeVencimento then
-      produtos[idx].total := produtos[idx].total - dm.ibselect.FieldByName
-        ('quant').AsCurrency // quantidade de entrada
+    if (dm.ibselect.FieldByName('validade').AsDateTime > dataDeVencimento) or (dm.ibselect.FieldByName('validade').AsDateTime  < StrToDate('01/01/2005'))  then
+      produtos[idx].total := produtos[idx].total - dm.ibselect.FieldByName('quant').AsCurrency // quantidade de entrada
     else
     begin
       // se chegou aqui, econtrou a primeira entrada vencida, entÃ£o pega a nota
       produtos[idx].codbar := dm.ibselect.FieldByName('nota').AsString;
+      produtos[idx].aliqCred := produtos[idx].aliqCred + dm.ibselect.FieldByName('quant').AsCurrency;
 
-      // agora pula todos os demais registros desse produto
+      {// agora pula todos os demais registros desse produto
       while ((dm.ibselect.FieldByName('cod').AsInteger = atual) and
         (not dm.ibselect.Eof)) do
         dm.ibselect.Next;
@@ -23672,20 +23706,24 @@ begin
         break;
 
       // volta um registro atrÃ¡s
-      dm.ibselect.Prior;
+      dm.ibselect.Prior;}
     end;
 
     dm.ibselect.Next;
   end;
 
+
+
+  ///ShowMessage(produtos.GetText);
+
   for idx := 0 to produtos.Count - 1 do
   begin
     // pega sÃ³ os itens que tem quantidade no estoque e que tem produtos vencidos
-    if ((produtos[idx].quant > 0) and (produtos[idx].total > 0)) then
+    if ((produtos[idx].total > 0) and (produtos[idx].aliqCred > 0)) then
       addRelatorioForm19(CompletaOuRepete('', IntToStr(produtos[idx].cod), ' ',
         6) + ' ' + CompletaOuRepete(LeftStr(produtos[idx].nome, 35), '', ' ',
         35) + CompletaOuRepete('', FormatCurr('0.00', produtos[idx].quant), ' ',
-        14) + CompletaOuRepete('', FormatCurr('0.00', produtos[idx].total), ' ',
+        14) + CompletaOuRepete('', FormatCurr('0.00', produtos[idx].aliqCred), ' ',
         12) + CompletaOuRepete('', produtos[idx].codbar, ' ', 12) + CRLF);
   end;
 

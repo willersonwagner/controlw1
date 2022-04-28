@@ -42,6 +42,7 @@ type
     ClientDataSet1COOD: TIntegerField;
     ClientDataSet1NOME: TStringField;
     Button2: TButton;
+    Button3: TButton;
     procedure nomeKeyPress(Sender: TObject; var Key: Char);
     procedure senhaKeyPress(Sender: TObject; var Key: Char);
     procedure FormShow(Sender: TObject);
@@ -53,8 +54,10 @@ type
     procedure ApplicationEvents1Minimize(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
+    procedure Button3Click(Sender: TObject);
   private
     cont : integer;
+
     { Private declarations }
   public
     codusario, notaVenda, valorDeChecagem, nomeUsuario : string;
@@ -62,7 +65,7 @@ type
     Pgerais, nomesServico : TStringList;
     datamov: tdatetime;
     superUsu : integer;
-    UnidInteiro, qrcodePIX, beneNome, beneCNPJ, beneFone : string;
+    UnidInteiro, qrcodePIX,beneNome, beneCNPJ, beneFone : String;
     procedure TrimAppMemorySize;
     procedure EventoErro(Sender: TObject; E: Exception);
     function enviNFCe(const perg : String = ''; nnf : String = ''; recebido : currency = 0) : boolean;
@@ -79,6 +82,7 @@ var
   VersaoExe : string;
   caminhoEXE_com_barra_no_final : String;
   UsaSped : boolean;
+
 implementation
 
 uses Unit1,  func, Unit2, relatorio, minilocalizar, Math, Unit38,
@@ -86,7 +90,12 @@ uses Unit1,  func, Unit2, relatorio, minilocalizar, Math, Unit38,
   Unit49, Unit48, cadCli, untConfiguracoesNFCe, U_Principal, gifAguarde,
   pagamento, qrcodePIX;
 
-{$R *.dfm}                
+{$R *.dfm}
+
+//function gerarAcessToken : String; external 'PIX.dll';
+//function criarQrcode(valor :currency; descricao, chave : String) : string;external 'PIX.dll';
+//function consultarPIX(txid : String) : string;external 'PIX.dll';
+
 
 procedure Tform22.EventoErro(Sender: TObject; E: Exception);
 var
@@ -153,6 +162,7 @@ end;{procedure}
 procedure Tform22.nomeKeyPress(Sender: TObject; var Key: Char);
 var
   proc : TMailStatus;
+  acce : string;
 begin
   if (key = #13) then senha.SetFocus;
   if key= #27 then
@@ -190,7 +200,7 @@ if key=#27 then
         begin
           superUsu := 1;
           dm.IBQuery1.Close;
-          dm.IBQuery1.SQL.Text := ('select cod, nome from usuario');
+          dm.IBQuery1.SQL.Text := ('select * from usuario');
           dm.IBQuery1.Open;
 
           if dm.IBQuery1.IsEmpty then
@@ -207,8 +217,8 @@ if key=#27 then
           dm.IBQuery1.Close;
           dm.IBQuery1.SQL.Clear;
 
-          if VerificaCampoTabela('EXCLUIDO', 'USUARIO') then dm.IBQuery1.SQL.Add('select cod, nome from usuario where (usu = :nome) and (senha = :senha) and excluido = 0')
-            else dm.IBQuery1.SQL.Add('select cod, nome from usuario where (usu = :nome) and (senha = :senha)');
+          if VerificaCampoTabela('EXCLUIDO', 'USUARIO') then dm.IBQuery1.SQL.Add('select * from usuario where (usu = :nome) and (senha = :senha) and excluido = 0')
+            else dm.IBQuery1.SQL.Add('select * from usuario where (usu = :nome) and (senha = :senha)');
           dm.IBQuery1.ParamByName('nome').AsString  := funcoes.Criptografar(nome.Text);
           dm.IBQuery1.ParamByName('senha').AsString := funcoes.Criptografar(senha.Text);
           dm.IBQuery1.Open;
@@ -238,6 +248,7 @@ if key=#27 then
 
        codusario      := dm.IBQuery1.fieldbyname('cod').AsString ;
        USUARIO1       := dm.IBQuery1.fieldbyname('cod').AsInteger ;
+       acs           := dm.IBQuery1.fieldbyname('acesso_usu').AsString;
 
        if superUsu = 1 then
          begin
@@ -251,6 +262,11 @@ if key=#27 then
          Pgerais := funcoes.GerarPgeraisList(codusario); // gera os parametros gerais referente ao usuario
        except
        end;
+
+       if funcoes.LerConfig(form22.Pgerais.Values['configu'], 18) = 'S' then begin
+         Pgerais.Values['acesso'] := acs;
+       end;
+       
 
        try
          funcoes.lerConfigIMPRESSORA();
@@ -498,24 +514,85 @@ end;
 procedure Tform22.Button2Click(Sender: TObject);
 var
   //op : TOpenDialog;
-  codbar, cb1, nPAG : string;
+  codbar, cb1, nPAG, valor : string;
+  cont : integer;
+  arq : TStringList;
 begin
-  //op := TOpenDialog.Create(self);
-  //funcoes.enviaArquivoGdrive(op.FileName);
-  codbar := InputBox('','','');
-  nPAG := Le_Nodo('pag', codbar);
-  cb1 := copy(nPAG, 1, pos('</detPag>', nPAG) + 9);
-  ShowMessage('1='+cb1);
+  valor := InputBox('','','');
+ {
+  cont := 0;
+  while True do begin
+    inc(cont);
+    cb1 := criarQrcode(StrToCurr(valor), 'VENDA 10', 'CHAVE');
 
-  nPAG := copy(nPAG, pos('</detPag>', nPAG) + 9, length(nPAG));
-  cb1 := copy(nPAG, 1, pos('</detPag>', nPAG) + 9);
+    if Contido('|200|', cb1) then break;
 
-  ShowMessage('2='+cb1);
+    //gera um novo token
+    if Contido('|401|', cb1) then cb1 := gerarAcessToken;
+    if cont = 4 then break;
+  end;
+
+  if Contido('|-1|', cb1) then begin
+    ShowMessage('Retorno Inválido, Verifique a Internet!');
+    exit;
+  end;
 
 
 
-  //if EAN13Valido(codbar) then ShowMessage('valido')
-  //else ShowMessage('invalido');
+  LE_CAMPOS(arq, cb1,'|', true);
+
+
+
+  qrcodePIX := arq.Values['2'];
+  form84.Label2.Caption := arq.Values['4'];
+  form84.txid := arq.Values['0'];
+  form84.Label2.Caption := 'AGUARDANDO PAGAMENTO..';
+  //form84.Label3.Visible := false;
+
+
+
+  form84.cont := 3;
+  //form84.Show;
+
+  exit;       }
+
+  arq := TStringList.Create;
+  cont := 0;
+  while True do begin
+    inc(cont);
+
+    funcoes.PIXcriarCobranca(StrToCurr(valor), 'TESTE DE SISTEMA 1', 'a1f4102e-a446-4a57-bcce-6fa48899c1d1', arq);
+    qrcodePIX := arq.Values['qrcode'];
+    form84.Label2.Caption := 'Estado: ...' ;
+    form84.txid := arq.Values['txid'];
+
+    if (arq.Values['ret'] = '200') or (arq.Values['ret'] = '201') then break;
+    if cont = 3 then break;
+
+
+    if arq.Values['ret'] = '401' then begin
+      funcoes.PIXacessToken;
+      arq.Clear;
+    end;
+
+    sleep(1000);
+  end;
+
+  if qrcodePIX  = '' then begin
+    ShowMessage('sem informação de cobrança');
+    exit;
+  end;
+
+  form84.Label3.Caption := 'Aguardando Pagamento';
+  form84.cont := 3;
+  Form84.ShowModal;
+  arq.Free;
+end;
+
+procedure Tform22.Button3Click(Sender: TObject);
+begin
+  //beneNome := (consultarPIX(form84.txid));
+  //ShowMessage(beneNome);
 end;
 
 function Tform22.enviNFCe(const perg : String = ''; nnf : String = ''; recebido : currency = 0) : boolean;

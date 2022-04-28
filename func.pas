@@ -16,9 +16,7 @@ uses
   IdExplicitTLSClientServerBase, ACBrETQ, Vcl.FileCtrl,
   TLHelp32, PsAPI, ACBrCargaBal, pcnConversaoNFe,
   pcnConversao, System.Zip, ACBrMail
-  , IdMultipartFormData, cadClicompleto, IBX.IBServices, mmsystem,
-  FMX.TMSCloudBase, FMX.TMSCloudBaseFMX, FMX.TMSCloudCustomGDrive,
-  FMX.TMSCloudGDrive, ACBrUtil, RLReport;
+  , IdMultipartFormData, cadClicompleto, IBX.IBServices, mmsystem, ACBrUtil, RLReport;
 
 const
   OffsetMemoryStream: Int64 = 0;
@@ -126,6 +124,7 @@ type
     function ReferenciaChavesObrigatoriasNFe(var info1 : string) : string;
     { Private declarations }
   public
+    arqPIX : TStringList;
     retornobusca: string;
     inicio1: Smallint;
     cds1: TClientDataSet;
@@ -141,6 +140,9 @@ type
     enviandoCupom, enviandoBackup: boolean;
     fonteRelatorioForm19: integer;
     NegritoRelatorioForm19, saiComEnter: boolean;
+    function PIXConsulta(txid : String) : string;
+    function PIXacessToken : string;
+    procedure PIXcriarCobranca(valor : currency;desc, chave : String; var arq : TStringList);
     procedure atualizaAtivoCliente;
     procedure atualizaDataHoraDownloadXML(chave : String);
     procedure imprimeTranferencia(doc : String);
@@ -11365,6 +11367,14 @@ begin
       dm.IBQuery1.Transaction.Commit;
     end;
 
+    if not VerificaCampoTabela('ACESSO_USU', 'USUARIO') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('ALTER TABLE USUARIO ADD ACESSO_USU VARCHAR(300) DEFAULT '''' ');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+     end;
+
     atualizaAtivoCliente;
 
     //VerificaVersao_do_bd
@@ -18211,6 +18221,8 @@ end;
 
 procedure Tfuncoes.FormCreate(Sender: TObject);
 begin
+  arqPIX := TStringList.Create;
+
   saiComEnter := true;
   Simbolos[1] :=
     'ABCDEFGHIJLMNOPQRSTUVXZYWK abcdefghijlmnopqrstuvxzywk1234567890-+=_?/.,<>;:)(*&^%$#@!~בהא';
@@ -30211,8 +30223,6 @@ begin
 end;
 
 procedure Tfuncoes.enviaArquivoGdrive(arq : string);
-var
-  ci : TTMSFMXCloudItem;
 begin
 end;
 
@@ -30453,6 +30463,100 @@ begin
     dm.IBQuery1.Transaction.Commit;
   end;
 
+
+
+end;
+
+
+function Tfuncoes.PIXConsulta(txid : String) : string;
+var
+  cont : integer;
+begin
+  Result := '';
+  arqPIX.Clear;
+  arqPIX.Add('comando=consultarPIX');
+  arqPIX.Add('txid='+ txid);
+  arqPIX.SaveToFile(caminhoEXE_com_barra_no_final + 'PIXenv.dat');
+
+  cont := 0;
+  while true do begin
+    if FileExists(caminhoEXE_com_barra_no_final + 'PIXrec.dat') then begin
+      arqPIX.LoadFromFile(caminhoEXE_com_barra_no_final + 'PIXrec.dat');
+      DeleteFile(caminhoEXE_com_barra_no_final + 'PIXrec.dat');
+
+      Result := arqPIX.Values['estado'];
+      exit;
+    end;
+
+    cont := cont + 1;
+    if cont > 15 then begin
+      ShowMessage('Tempo esgotado sem resposta.');
+      exit;
+    end;
+
+    sleep(1000);
+  end;
+end;
+
+function Tfuncoes.PIXacessToken : string;
+var
+  cont : integer;
+begin
+  Result := '';
+  arqPIX.Clear;
+  arqPIX.Add('comando=gerarAcessToken');
+  arqPIX.SaveToFile(caminhoEXE_com_barra_no_final + 'PIXenv.dat');
+
+  cont := 0;
+  while true do begin
+    if FileExists(caminhoEXE_com_barra_no_final + 'PIXrec.dat') then begin
+      arqPIX.LoadFromFile(caminhoEXE_com_barra_no_final + 'PIXrec.dat');
+      DeleteFile(caminhoEXE_com_barra_no_final + 'PIXrec.dat');
+
+      if arqPIX.Values['ok'] = '1' then Result := 'ok';
+      exit;
+    end;
+
+    cont := cont + 1;
+    if cont > 15 then begin
+      ShowMessage('Tempo esgotado sem resposta.');
+      exit;
+    end;
+
+    sleep(1000);
+  end;
+end;
+
+procedure Tfuncoes.PIXcriarCobranca(valor : currency;desc, chave : String; var arq : TStringList);
+var
+  cont : integer;
+begin
+  arq.Clear;
+  arqPIX.Clear;
+  arqPIX.Add('comando=criarQrcode');
+  arqPIX.Add('valor='+ CurrToStr(valor));
+  arqPIX.Add('desc='+ desc);
+  arqPIX.Add('chave='+ chave);
+  arqPIX.SaveToFile(caminhoEXE_com_barra_no_final + 'PIXenv.dat');
+
+  cont := 0;
+  while true do begin
+    if FileExists(caminhoEXE_com_barra_no_final + 'PIXrec.dat') then begin
+      arqPIX.LoadFromFile(caminhoEXE_com_barra_no_final + 'PIXrec.dat');
+      arq.Text := arqPIX.Text;
+      arqPIX.Clear;
+      DeleteFile(caminhoEXE_com_barra_no_final + 'PIXrec.dat');
+      exit;
+    end;
+
+    cont := cont + 1;
+    if cont > 15 then begin
+      ShowMessage('Tempo esgotado sem resposta.');
+      exit;
+    end;
+
+    sleep(1000);
+  end;
 end;
 
 

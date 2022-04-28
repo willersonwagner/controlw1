@@ -6,7 +6,7 @@ uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Printers,
   StdCtrls, ExtCtrls, imprNovo, ComCtrls, Richedit, charprinter, unit1, ACBrETQ, ACBrDevice,
   RLReport, RLBarcode, funcoesdav, RLRichText, Data.DB, RLPreviewForm,
-  RLFilters, RLPDFFilter, Vcl.Imaging.pngimage;
+  RLFilters, RLPDFFilter, Vcl.Imaging.pngimage, ACBrETQClass;
 
 type
 

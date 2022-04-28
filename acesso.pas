@@ -18,11 +18,13 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure ListBox2KeyPress(Sender: TObject; var Key: Char);
     procedure ListBox2Enter(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     acesso,alterado : string;
     function lelista() : String;
     { Private declarations }
   public
+    usuario : integer;
     { Public declarations }
   end;
 
@@ -39,6 +41,11 @@ begin
 Label2.Caption := 'Use as setas para se movimentar entre'+#13+'as seções e pressione ENTER para entrar'+#13+'nas rotinas de cada seção. No quadro ao'+#13+'lado, pressione ENTER para modificar o'+#13+'de cada rotina';
 end;
 
+procedure TForm37.FormCreate(Sender: TObject);
+begin
+  usuario := 0;
+end;
+
 procedure TForm37.FormShow(Sender: TObject);
 var i:integer;
 begin
@@ -47,12 +54,28 @@ begin
   begin
     ListBox1.Items.Add(funcoes.DeletaChar('&',Form2.MainMenu1.Items.Items[i].Caption));
   end;
+
+  acesso := '';
+
+  if usuario > 0 then begin
+    dm.IBQuery2.Close;
+    dm.IBQuery2.SQL.Clear;
+    dm.IBQuery2.SQL.Add('select acesso_usu as acesso from usuario where cod = ' + IntToStr(usuario));
+    dm.IBQuery2.Open;
+    acesso := trim(dm.IBQuery2.FieldByName('acesso').AsString);
+  end;
+
+  if acesso = '' then begin
+    dm.IBQuery2.Close;
+    dm.IBQuery2.SQL.Clear;
+    dm.IBQuery2.SQL.Add('select acesso from acesso');
+    dm.IBQuery2.Open;
+    acesso := dm.IBQuery2.FieldByName('acesso').AsString;
+  end;
+
   dm.IBQuery2.Close;
-  dm.IBQuery2.SQL.Clear;
-  dm.IBQuery2.SQL.Add('select acesso from acesso');
-  dm.IBQuery2.Open;
-  acesso := dm.IBQuery2.FieldByName('acesso').AsString;
-  dm.IBQuery2.Close;
+
+
   alterado := acesso;
   ListBox1.Selected[0] := true;
 end;
@@ -95,7 +118,8 @@ ListBox2.Clear;
 end;
 
 procedure TForm37.ListBox2KeyPress(Sender: TObject; var Key: Char);
-var char1,sim: string;
+var
+  char1, sim, teclas : string;
 begin
  if key=#27 then
   begin
@@ -104,12 +128,21 @@ begin
      sim := funcoes.dialogo('generico',0,'SN',30,false,'S',Application.Title,'Deseja Salvar as Alterações?','S');
      if sim='S' then
       begin
-       dm.IBQuery2.Close;
-       dm.IBQuery2.SQL.Clear;
-       dm.IBQuery2.SQL.Add('update acesso set acesso='+QuotedStr(alterado) +' where substring(acesso from 1 for 1) = ''-''');
-       dm.IBQuery2.ExecSQL;
-       dm.IBQuery2.Transaction.Commit;
-       dm.IBQuery2.Close;
+       if usuario = 0 then begin
+         dm.IBQuery2.Close;
+         dm.IBQuery2.SQL.Text := ('update acesso set acesso='+QuotedStr(alterado) +' where substring(acesso from 1 for 1) = ''-''');
+         dm.IBQuery2.ExecSQL;
+         dm.IBQuery2.Transaction.Commit;
+         dm.IBQuery2.Close;
+       end
+       else begin
+         dm.IBQuery2.Close;
+         dm.IBQuery2.SQL.Text := ('update usuario set ACESSO_USU='+QuotedStr(alterado) +' where cod = ' + IntToStr(usuario));
+         dm.IBQuery2.ExecSQL;
+         dm.IBQuery2.Transaction.Commit;
+         dm.IBQuery2.Close;
+       end;
+
        ListBox2.Clear;
        ListBox1.SetFocus;
        acesso := alterado;
@@ -129,7 +162,10 @@ begin
   end;
  if (key=#13) and (ListBox2.ItemIndex>-1) then
   begin
-   char1 := funcoes.dialogo('generico',0,'1234567890'+#8+#32,30,false,'S',Application.Title,'Confirme o Nível de Acesso',ListBox2.Items.Strings[ListBox2.itemindex][1]);
+   teclas := '1234567890'+#8+#32;
+   //if usuario > 0 then teclas := 'SN'+#8+#32;
+   
+   char1 := funcoes.dialogo('generico',0,teclas,30,false,'S',Application.Title,'Confirme o Nível de Acesso',ListBox2.Items.Strings[ListBox2.itemindex][1]);
    if char1<>'*' then
     begin
      if char1='' then char1 := ' ';

@@ -1457,8 +1457,14 @@ begin
          BASE_ICM  := 0;
        end;
 
-       if ((_CFOP = '1102') AND (RightStr(TRIB, 2) = '60')) then _CFOP := '1403';
-       if ((_CFOP = '2102') AND (RightStr(TRIB, 2) = '60')) then _CFOP := '2403';
+       if (_CFOP = '1102') then begin
+         if (RightStr(TRIB, 2) = '60') then _CFOP := '1403';
+         if LeftStr(DESC, 1) = '_'     then _CFOP := '1556';
+       end
+       else if (_CFOP = '2102') then begin
+         if (RightStr(TRIB, 2) = '60') then _CFOP := '2403';
+         if LeftStr(DESC, 1) = '_'     then _CFOP := '2556';
+       end;
 
        //SE A ALIQUOTA S ECREDITO FOR IGUAL 0,01, ENTAO ZERA
        IF(PERC_ICMS = 0.01) then PERC_ICMS := 0;

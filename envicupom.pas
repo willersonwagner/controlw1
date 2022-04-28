@@ -27,10 +27,11 @@ type
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   private
     { Private declarations }
-    procedure abrePIX;
+
   public
     segundos, cont : integer;
     threadDesbloqueio : TTWThreadVerificaPagamento;
+    procedure abrePIX;
     { Public declarations }
   end;
 

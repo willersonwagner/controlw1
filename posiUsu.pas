@@ -57,7 +57,7 @@ procedure TForm41.FormShow(Sender: TObject);
 begin
  dm.IBselect.Close;
  dm.IBselect.SQL.Clear;
- dm.IBselect.SQL.Add('select cod,nome, case when (senha<>'') or (senha='')  then '+QuotedStr('********')+' end as usuario, case when (senha<>'') or (senha='')  then '+QuotedStr('********')+' end as senha,char_length(acesso) as nivel from usuario');
+ dm.IBselect.SQL.Add('select cod,nome, case when (senha<>'') or (senha='')  then '+QuotedStr('********')+' end as usuario, case when (senha<>'') or (senha='')  then '+QuotedStr('********')+' end as senha,char_length(acesso) as nivel, trim(iif(position(''18-'', configu) = 0, '''', substring(configu from position(''18-'', configu) + 3 for 3))) as personalizado from usuario');
  dm.IBselect.Open;
  DBGrid1.DataSource := dm.ds1;
 end;

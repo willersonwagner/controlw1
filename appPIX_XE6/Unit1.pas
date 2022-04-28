@@ -15,7 +15,7 @@ uses
   Vcl.FileCtrl, Vcl.ExtCtrls, Vcl.ComCtrls, IdCoderMIME,
   Datasnap.DSHTTP, IdIOHandler, IdIOHandlerSocket, IdIOHandlerStack, IdSSL,
   IdSSLOpenSSL, IdBaseComponent, IdComponent, IdTCPConnection, IdTCPClient,
-  IdHTTP;
+  IdHTTP, frxHTTPClient, ACBrBase, ACBrOpenSSLUtils;
 
 type
   TForm1 = class(TForm)
@@ -51,7 +51,6 @@ type
     Edit3: TEdit;
     HttpClient: TIdHTTP;
     IdSSLIOHandlerSocketOpenSSL1: TIdSSLIOHandlerSocketOpenSSL;
-    Timer2: TTimer;
     procedure Button1Click(Sender: TObject);
     procedure Button3Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
@@ -62,13 +61,11 @@ type
     procedure Timer1Timer(Sender: TObject);
     procedure RESTRequestAfterExecute(Sender: TCustomRESTRequest);
     procedure FormShow(Sender: TObject);
-    procedure Timer2Timer(Sender: TObject);
   private
     URLToken, URLQRcode :String;
     endPoint,caminhoPasta : String;
-    arq, arqtmp : TStringList;
+    arq : TStringList;
     bancoNUM : integer;
-    function buscaRequisicao : boolean;
     procedure salvaConfig;
     procedure carregaConfig;
     procedure carregaListaItems;
@@ -78,7 +75,6 @@ type
   public
     function criarQrcode(valor :currency; descricao, chave : String) : string;
     function consultarPIX(txid : String) : string;
-    function gerarAcessToken : boolean;
     { Public declarations }
   end;
 
@@ -104,7 +100,7 @@ begin
   OAuth2Authenticator.AuthCode     := '';
   OAuth2Authenticator.ResponseType := TOAuth2ResponseType.rtTOKEN;
    }
- 
+
 
   try
     RESTRequest.Execute;
@@ -144,8 +140,139 @@ begin
 end;
 
 procedure TForm1.Button2Click(Sender: TObject);
+var
+  b64 : TIdEncoderMIME;
+  body : String;
+  JsonToSend : TStringStream;
 begin
-  gerarAcessToken;
+  if bancoNUM = 6 then begin
+    //chave homologação testqrcode01@bb.com.br
+
+    HttpClient.Request.Clear;
+    HttpClient.Request.CustomHeaders.Clear;
+
+    HttpClient.Request.ContentType := 'application/json; charset=utf-8';
+    //HttpClient.Request.UserAgent := 'Mozilla/4.0 (compatível; MSIE 6.0; Windows NT 5.1; SV1; Maxthon)';
+    HttpClient.Request.AcceptEncoding := 'utf-8';
+    HttpClient.Request.Accept         := 'application/json';
+
+    with TIdSSLIOHandlerSocketOpenSSL(HttpClient.IOHandler).SSLOptions do
+    begin
+      RootCertFile := caminhoPasta + 'key-private.pem';
+      CertFile     := caminhoPasta + 'key-private.pem';   //mudar caminho certificado aqui
+      KeyFile      := caminhoPasta + 'key-private.pem';    //mudar caminho certificado aqui
+      Mode := sslmUnassigned;
+      //SSLVersions := [sslvTLSv1_2, sslvSSLv23];   //mudar protocolos de SSL aqui
+      //HttpClient.HTTPOptions := [hoKeepOrigProtocol, hoInProcessAuth, hoForceEncodeParams];
+      HttpClient.HTTPOptions := [hoKeepOrigProtocol];
+    end;
+
+    b64 := TIdEncoderMIME.Create(nil);
+    //ACBrOpenSSLUtils
+    //HttpClient.Request.CustomHeaders.AddValue('Authorization', 'Basic ' + b64.EncodeString(arq.Values['ClientID'] + ':' + arq.Values['ClientSecret']));
+
+    HttpClient.Request.Username := arq.Values['ClientID'];
+    HttpClient.Request.Password := arq.Values['ClientSecret'];
+    HttpClient.Request.BasicAuthentication := true;
+
+
+    HttpClient.ProtocolVersion := pv1_1;
+    body := '{"grant_type": "client_credentials"}';
+    JsonToSend := TStringStream.Create(body);
+
+    JsonToSend.Position := 0;
+
+    try
+      RichEdit1.Text := HttpClient.Post(endPoint +'/oauth/token/', JsonToSend);    //mudar URL aqui
+    except
+      RichEdit1.Lines.Add (HttpClient.ResponseText + #13 + #13 + HttpClient.Request.RawHeaders.Text);
+    end;
+
+    Memo1.Text := (HttpClient.Request.RawHeaders.Text);
+
+    if pos('"expires_in"', RichEdit1.Text) = 0 then exit;
+
+
+    arq.Values['AccessToken'] := le_campoJson('"access_token"', RichEdit1.Text);
+    arq.SaveToFile(ExtractFileDir(ParamStr(0)) + '\REST.DAT');
+  end
+  else if bancoNUM = 0 then begin
+    RESTClient.ResetToDefaults;
+    RESTRequest.ResetToDefaults;
+    //RESTClient.Authenticator := OAuth2Authenticator;
+    OAuth2Authenticator.TokenType := TOAuth2TokenType.ttBEARER;
+    RESTClient.BaseURL := 'https://pix.santander.com.br/sandbox/oauth/token?grant_type=client_credentials';
+    RESTRequest.Method := rmPOST;
+
+    RESTClient.ContentType := 'application/x-www-form-urlencoded';
+    RESTClient.AddParameter('client_id', arq.Values['ClientID'], TRESTRequestParameterKind.pkGETorPOST, [poDoNotEncode]);
+    RESTClient.AddParameter('client_secret', arq.Values['ClientSecret'], TRESTRequestParameterKind.pkGETorPOST, [poDoNotEncode]);
+    RESTClient.AutoCreateParams := true;
+
+    RESTRequest.AddParameter('client_id', arq.Values['ClientID'], TRESTRequestParameterKind.pkGETorPOST, [poDoNotEncode]);
+    RESTRequest.AddParameter('client_secret', arq.Values['ClientSecret'], TRESTRequestParameterKind.pkGETorPOST, [poDoNotEncode]);
+    RESTRequest.AutoCreateParams := true;
+
+    Button1.Click;
+
+    arq.Values['AccessToken'] := le_campoJson('"access_token"', RichEdit1.Text);
+    arq.SaveToFile(ExtractFileDir(ParamStr(0)) + '\REST.DAT');
+  end
+  else if bancoNUM = 1 then begin
+    //chave homologação testqrcode01@bb.com.br
+
+    HttpClient.Request.Clear;
+    HttpClient.Request.CustomHeaders.Clear;
+
+    HttpClient.ProtocolVersion := pv1_1;
+    HttpClient.HandleRedirects := True;
+
+    b64 := TIdEncoderMIME.Create(nil);
+    HttpClient.Request.CustomHeaders.AddValue('Authorization', 'Basic ' + b64.EncodeString(arq.Values['ClientID'] + ':' + arq.Values['ClientSecret']));
+
+    JsonToSend := TStringStream.Create(body);
+
+    JsonToSend.Position := 0;
+
+    try
+      RichEdit1.Text := HttpClient.Post(endPoint +'/oauth/token?grant_type=client_credentials', JsonToSend);    //mudar URL aqui
+    except
+      RichEdit1.Lines.Add (HttpClient.ResponseText + #13 + #13 + HttpClient.Request.RawHeaders.Text);
+    end;
+
+    if pos('"expires_in"', RichEdit1.Text) = 0 then exit;
+
+
+    arq.Values['AccessToken'] := le_campoJson('"access_token"', RichEdit1.Text);
+    arq.SaveToFile(ExtractFileDir(ParamStr(0)) + '\REST.DAT');
+ end
+ else if bancoNUM = 4 then begin
+    RESTClient.ResetToDefaults;
+    RESTRequest.ResetToDefaults;
+
+    OAuth2Authenticator.TokenType    := TOAuth2TokenType.ttBEARER;
+    OAuth2Authenticator.ClientID     := arq.Values['ClientID'];
+    OAuth2Authenticator.ClientSecret := arq.Values['ClientSecret'];
+    RESTClient.BaseURL := 'https://oauth.hm.bb.com.br/oauth/token?grant_type=client_credentials';
+    RESTRequest.Method := rmPOST;
+
+    RESTClient.Authenticator := nil;
+
+    RESTClient.ContentType := 'application/json';
+    RESTClient.AutoCreateParams := true;
+
+
+    RESTClient.AddParameter('scope', 'cob.read cob.write pix.read pix.write', TRESTRequestParameterKind.pkREQUESTBODY, [poAutoCreated]);
+
+    b64 := TIdEncoderMIME.Create(nil);
+   RESTRequest.AddParameter('Authorization', 'Basic ' + b64.EncodeString(arq.Values['ClientID'] + ':' + arq.Values['ClientSecret']), TRESTRequestParameterKind.pkHTTPHEADER, [poDoNotEncode]);
+   Button1.Click;
+
+   arq.Values['AccessToken'] := le_campoJson('"access_token"', RichEdit1.Text);
+   arq.Values['xsenc'] := b64.EncodeString(arq.Values['ClientID'] + ':' + arq.Values['ClientSecret']);
+   arq.SaveToFile(ExtractFileDir(ParamStr(0)) + '\REST.DAT');
+ end;
+
 end;
 
 procedure TForm1.Button3Click(Sender: TObject);
@@ -157,7 +284,7 @@ procedure TForm1.Button4Click(Sender: TObject);
 begin
   if bancoNUM = 0 then criarQrcode(StrToCurr(edit1.Text), edit2.Text, '7d9f0335-8dcc-4054-9bf9-0dbd61d36906')
    else if bancoNUM = 1 then criarQrcode(StrToCurr(edit1.Text), edit2.Text, 'testqrcode01@bb.com.br')
-   else if bancoNUM = 6 then criarQrcode(StrToCurr(edit1.Text), edit2.Text, arq.Values['chave']);
+   else if bancoNUM = 6 then criarQrcode(StrToCurr(edit1.Text), edit2.Text, 'a1f4102e-a446-4a57-bcce-6fa48899c1d1');
 end;
 
 procedure TForm1.Button5Click(Sender: TObject);
@@ -199,70 +326,9 @@ begin
   Label5.Visible := false;
 end;
 
-procedure TForm1.Timer2Timer(Sender: TObject);
-begin
-  Timer2.Enabled := false;
-  if buscaRequisicao = false then begin
-    Timer2.Enabled := true;
-    exit;
-  end;
-
-  if pos('gerarAcessToken', arqtmp.Text) > 0 then begin
-    gerarAcessToken;
-    arqtmp.Clear;
-    arqtmp.Add('ok=1');
-    arqtmp.Values['ret']  := IntToStr(HttpClient.ResponseCode);
-    arqtmp.SaveToFile(caminhoPasta+ 'PIXrec.dat');
-
-    Timer2.Enabled := true;
-    exit;
-  end;
-
-  if pos('criarQrcode', arqtmp.Text) > 0 then begin
-    criarQrcode(StrToCurr(arqtmp.Values['valor']), arqtmp.Values['desc'], arq.Values['chave']);
-    arqtmp.Clear;
-
-    if pos('Unauthorized', RichEdit1.Text) > 0  then begin
-      arqtmp.Add('ok=0');
-      arqtmp.Values['txid'] := 'Unauthorized';
-      arqtmp.Values['ret']  := IntToStr(HttpClient.ResponseCode);
-    end
-    else begin
-      arqtmp.Add('ok=1');
-      arqtmp.Values['txid'] := le_campoJson('"txid"', Memo1.Text);
-      arqtmp.Values['id']   := le_campoJson('"id"'  , Memo1.Text);
-      arqtmp.Values['qrcode']   := le_campoJson('"qrcode"'  , RichEdit1.Text);
-      arqtmp.Values['ret']  := IntToStr(HttpClient.ResponseCode);
-    end;
-
-    arqtmp.SaveToFile(caminhoPasta+ 'PIXrec.dat');
-
-    Timer2.Enabled := true;
-    exit;
-  end;
-
-  if pos('consultarPIX', arqtmp.Text) > 0 then begin
-    consultarPIX(arqtmp.Values['txid']);
-    arqtmp.Clear;
-    arqtmp.Add('ok=1');
-    arqtmp.Values['estado'] := le_campoJson('"status"', RichEdit1.Text);
-    arqtmp.Values['ret']  := IntToStr(HttpClient.ResponseCode);
-    arqtmp.SaveToFile(caminhoPasta+ 'PIXrec.dat');
-
-    Timer2.Enabled := true;
-    exit;
-  end;
-
-
-end;
-
 procedure TForm1.carregaConfig;
 begin
-  if arq.Count > 0 then exit;
-  
   arq.LoadFromFile(ExtractFileDir(ParamStr(0)) + '\REST.DAT') ;
-
-
 
   RESTClient.AllowCookies := true;
   RESTClient.BaseURL := arq.Values['BaseURL'];
@@ -304,10 +370,8 @@ end;
 
 procedure TForm1.FormCreate(Sender: TObject);
 begin
-  arq    := TStringList.Create;
-  arqtmp := TStringList.Create;
+  arq := TStringList.Create;
   caminhoPasta := ExtractFileDir(ParamStr(0)) + '\';
-  Timer2.Enabled := true;
 end;
 
 procedure TForm1.FormShow(Sender: TObject);
@@ -435,7 +499,12 @@ begin
     HttpClient.Request.CustomHeaders.Clear;
 
     HttpClient.HandleRedirects := True;HttpClient.ProtocolVersion := pv1_1;
-    HttpClient.HandleRedirects := True;
+    {HttpClient.Request.AcceptEncoding := 'application/json';
+    HttpClient.Request.ContentType := 'application/json';
+    HttpClient.Request.CharSet     := 'utf-8';
+    HttpClient.Request.UserAgent := 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0; Acoo Browser; GTB5; Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1) ; Maxthon; InfoPath.1; .NET CLR 3.5.30729; .NET CLR 3.0.30618)';
+    HttpClient.Response.ContentType := 'application/json';
+    }HttpClient.HandleRedirects := True;
 
     HttpClient.Request.BasicAuthentication := False;
 
@@ -462,10 +531,11 @@ begin
       exit;
     end;
 
-    if Pos('criacao', RichEdit1.Text) = 0 then begin
+    if Pos('"criacao"', RichEdit1.Text) = 0 then begin
       exit;
     end;
 
+    exit;
     id := le_campoJson('"id"', RichEdit1.Text);
 
     Memo1.Text := RichEdit1.Text;
@@ -481,7 +551,7 @@ begin
       exit;
     end;
 
-    exit;
+
   end
   else if bancoNUM = 5 then begin
     //chave homologação testqrcode01@bb.com.br
@@ -588,13 +658,15 @@ begin
     HttpClient.Request.CustomHeaders.Clear;
 
     //HttpClient.HandleRedirects := True;
-  {  //HttpClient.ProtocolVersion := pv1_1;
-    HttpClient.Request.AcceptEncoding := 'application/json';
-    HttpClient.Request.ContentType := 'application/json';
-    HttpClient.Request.CharSet     := 'utf-8';
-    HttpClient.Request.UserAgent := 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0; Acoo Browser; GTB5; Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1) ; Maxthon; InfoPath.1; .NET CLR 3.5.30729; .NET CLR 3.0.30618)';
+    //HttpClient.ProtocolVersion := pv1_1;
+    //HttpClient.Request.AcceptEncoding := 'application/json';
+    //HttpClient.Request.ContentType := 'application/json';
+    //HttpClient.Request.CharSet     := 'utf-8';
+    //HttpClient.Request.UserAgent := 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0; Acoo Browser; GTB5; Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1) ; Maxthon; InfoPath.1; .NET CLR 3.5.30729; .NET CLR 3.0.30618)';
     //HttpClient.HandleRedirects := True;
-   }
+
+    HttpClient.Request.BasicAuthentication := False;
+
     with TIdSSLIOHandlerSocketOpenSSL(HttpClient.IOHandler).SSLOptions do
     begin
       CertFile := 'key-private.pem';   //mudar caminho certificado aqui
@@ -606,14 +678,12 @@ begin
 
     HttpClient.Request.CustomHeaders.AddValue('Authorization', 'Bearer ' + arq.Values['AccessToken']);
 
-    body := '';
     JsonToSend := TStringStream.Create(body);
 
     JsonToSend.Position := 0;
 
-    RichEdit1.Clear;
     try
-      RichEdit1.Lines.Add(HttpClient.Get(endPoint +'/v2/cob/' + txid));    //mudar URL aqui
+      RichEdit1.Lines.Add(HttpClient.Get(endPoint +'/v2/cob/' + Edit3.Text));    //mudar URL aqui
       Result := RichEdit1.Text;
       //
     except
@@ -698,153 +768,6 @@ begin
     except
       RichEdit1.Lines.Add (HttpClient.ResponseText + #13 + #13 + HttpClient.Request.RawHeaders.Text);
     end;
-  end;
-end;
-
-function TForm1.gerarAcessToken : boolean;
-var
-  b64 : TIdEncoderMIME;
-  body : String;
-  JsonToSend : TStringStream;
-begin
-  if bancoNUM = 6 then begin
-    //chave homologação testqrcode01@bb.com.br
-
-    HttpClient.Request.Clear;
-    HttpClient.Request.CustomHeaders.Clear;
-
-    //HttpClient.ProtocolVersion := pv1_1;
-    HttpClient.Request.AcceptEncoding := 'application/json';
-    HttpClient.Request.ContentType := 'application/json';
-    HttpClient.Request.CharSet     := 'utf-8';
-    //HttpClient.Request.UserAgent := 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0; Acoo Browser; GTB5; Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1) ; Maxthon; InfoPath.1; .NET CLR 3.5.30729; .NET CLR 3.0.30618)';
-    HttpClient.HandleRedirects := True;
-
-    HttpClient.Request.BasicAuthentication := False;
-
-    with TIdSSLIOHandlerSocketOpenSSL(HttpClient.IOHandler).SSLOptions do
-    begin
-      CertFile := caminhoPasta + 'key-private.pem';   //mudar caminho certificado aqui
-      KeyFile  := caminhoPasta + 'key-private.pem';    //mudar caminho certificado aqui
-      Mode := sslmClient;
-      SSLVersions := [sslvTLSv1_2];   //mudar protocolos de SSL aqui
-      HttpClient.HTTPOptions := [hoKeepOrigProtocol, hoInProcessAuth];
-    end;
-
-    b64 := TIdEncoderMIME.Create(nil);
-    HttpClient.Request.CustomHeaders.AddValue('Authorization', 'Basic ' + b64.EncodeString(arq.Values['ClientID'] + ':' + arq.Values['ClientSecret']));
-
-    //HttpClient.Request.Username := arq.Values['ClientID'];
-    //HttpClient.Request.Password := arq.Values['ClientSecret'];
-    //HttpClient.Request.BasicAuthentication := true;
-
-    body := '{"grant_type": "client_credentials"}';
-    JsonToSend := TStringStream.Create(body);
-
-    JsonToSend.Position := 0;
-
-    try
-      RichEdit1.Text := HttpClient.Post(endPoint +'/oauth/token', JsonToSend);    //mudar URL aqui
-    except
-      RichEdit1.Lines.Add (HttpClient.ResponseText + #13 + #13 + HttpClient.Request.RawHeaders.Text);
-    end;
-
-    Memo1.Text := (HttpClient.Request.RawHeaders.Text);
-
-    if pos('"expires_in"', RichEdit1.Text) = 0 then exit;
-
-
-    arq.Values['AccessToken'] := le_campoJson('"access_token"', RichEdit1.Text);
-    arq.SaveToFile(ExtractFileDir(ParamStr(0)) + '\REST.DAT');
-
-    exit;
-    //carregaConfig;
-  end
-  else if bancoNUM = 0 then begin
-    RESTClient.ResetToDefaults;
-    RESTRequest.ResetToDefaults;
-    //RESTClient.Authenticator := OAuth2Authenticator;
-    OAuth2Authenticator.TokenType := TOAuth2TokenType.ttBEARER;
-    RESTClient.BaseURL := 'https://pix.santander.com.br/sandbox/oauth/token?grant_type=client_credentials';
-    RESTRequest.Method := rmPOST;
-
-    RESTClient.ContentType := 'application/x-www-form-urlencoded';
-    RESTClient.AddParameter('client_id', arq.Values['ClientID'], TRESTRequestParameterKind.pkGETorPOST, [poDoNotEncode]);
-    RESTClient.AddParameter('client_secret', arq.Values['ClientSecret'], TRESTRequestParameterKind.pkGETorPOST, [poDoNotEncode]);
-    RESTClient.AutoCreateParams := true;
-
-    RESTRequest.AddParameter('client_id', arq.Values['ClientID'], TRESTRequestParameterKind.pkGETorPOST, [poDoNotEncode]);
-    RESTRequest.AddParameter('client_secret', arq.Values['ClientSecret'], TRESTRequestParameterKind.pkGETorPOST, [poDoNotEncode]);
-    RESTRequest.AutoCreateParams := true;
-
-    Button1.Click;
-
-    arq.Values['AccessToken'] := le_campoJson('"access_token"', RichEdit1.Text);
-    arq.SaveToFile(ExtractFileDir(ParamStr(0)) + '\REST.DAT');
-  end
-  else if bancoNUM = 1 then begin
-    RESTClient.ResetToDefaults;
-    RESTRequest.ResetToDefaults;
-
-    OAuth2Authenticator.TokenType    := TOAuth2TokenType.ttBEARER;
-    OAuth2Authenticator.ClientID     := arq.Values['ClientID'];
-    OAuth2Authenticator.ClientSecret := arq.Values['ClientSecret'];
-    RESTClient.BaseURL := 'https://oauth.hm.bb.com.br/oauth/token?grant_type=client_credentials';
-    RESTRequest.Method := rmPOST;
-
-    RESTClient.Authenticator := nil;
-
-    RESTClient.ContentType := 'application/json';
-    RESTClient.AutoCreateParams := true;
-
-
-    RESTClient.AddParameter('scope', 'cob.read cob.write pix.read pix.write', TRESTRequestParameterKind.pkREQUESTBODY, [poAutoCreated]);
-
-    b64 := TIdEncoderMIME.Create(nil);
-   RESTRequest.AddParameter('Authorization', 'Basic ' + b64.EncodeString(arq.Values['ClientID'] + ':' + arq.Values['ClientSecret']), TRESTRequestParameterKind.pkHTTPHEADER, [poDoNotEncode]);
-   Button1.Click;
-
-   arq.Values['AccessToken'] := le_campoJson('"access_token"', RichEdit1.Text);
-   arq.Values['xsenc'] := b64.EncodeString(arq.Values['ClientID'] + ':' + arq.Values['ClientSecret']);
-   arq.SaveToFile(ExtractFileDir(ParamStr(0)) + '\REST.DAT');
- end
- else if bancoNUM = 4 then begin
-    RESTClient.ResetToDefaults;
-    RESTRequest.ResetToDefaults;
-
-    OAuth2Authenticator.TokenType    := TOAuth2TokenType.ttBEARER;
-    OAuth2Authenticator.ClientID     := arq.Values['ClientID'];
-    OAuth2Authenticator.ClientSecret := arq.Values['ClientSecret'];
-    RESTClient.BaseURL := 'https://oauth.hm.bb.com.br/oauth/token?grant_type=client_credentials';
-    RESTRequest.Method := rmPOST;
-
-    RESTClient.Authenticator := nil;
-
-    RESTClient.ContentType := 'application/json';
-    RESTClient.AutoCreateParams := true;
-
-
-    RESTClient.AddParameter('scope', 'cob.read cob.write pix.read pix.write', TRESTRequestParameterKind.pkREQUESTBODY, [poAutoCreated]);
-
-    b64 := TIdEncoderMIME.Create(nil);
-   RESTRequest.AddParameter('Authorization', 'Basic ' + b64.EncodeString(arq.Values['ClientID'] + ':' + arq.Values['ClientSecret']), TRESTRequestParameterKind.pkHTTPHEADER, [poDoNotEncode]);
-   Button1.Click;
-
-   arq.Values['AccessToken'] := le_campoJson('"access_token"', RichEdit1.Text);
-   arq.Values['xsenc'] := b64.EncodeString(arq.Values['ClientID'] + ':' + arq.Values['ClientSecret']);
-   arq.SaveToFile(ExtractFileDir(ParamStr(0)) + '\REST.DAT');
- end;
-
-
-end;
-
-function TForm1.buscaRequisicao : boolean;
-begin
-  Result := false;
-  if FileExists(caminhoPasta + 'PIXenv.dat') then begin
-    arqtmp.LoadFromFile(caminhoPasta + 'PIXenv.dat');
-    DeleteFile(caminhoPasta + 'PIXenv.dat');
-    Result := true;
   end;
 end;
 

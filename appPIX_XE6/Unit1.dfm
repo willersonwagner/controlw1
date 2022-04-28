@@ -64,8 +64,8 @@ object Form1: TForm1
     Caption = 'txid'
   end
   object Button1: TButton
-    Left = 703
-    Top = 8
+    Left = 560
+    Top = 22
     Width = 81
     Height = 25
     Caption = 'Conectar'
@@ -80,8 +80,8 @@ object Form1: TForm1
     TabOrder = 1
   end
   object Button2: TButton
-    Left = 703
-    Top = 39
+    Left = 560
+    Top = 53
     Width = 81
     Height = 25
     Caption = 'Gerar Token'
@@ -89,8 +89,8 @@ object Form1: TForm1
     OnClick = Button2Click
   end
   object Button3: TButton
-    Left = 703
-    Top = 70
+    Left = 560
+    Top = 84
     Width = 81
     Height = 25
     Caption = 'Carregar'
@@ -274,7 +274,9 @@ object Form1: TForm1
   end
   object HttpClient: TIdHTTP
     IOHandler = IdSSLIOHandlerSocketOpenSSL1
+    MaxAuthRetries = 10
     AllowCookies = True
+    HandleRedirects = True
     ProxyParams.BasicAuthentication = False
     ProxyParams.ProxyPort = 0
     Request.ContentLength = -1
@@ -289,23 +291,19 @@ object Form1: TForm1
     Request.Ranges.Units = 'bytes'
     Request.Ranges = <>
     HTTPOptions = [hoForceEncodeParams]
-    Left = 592
-    Top = 8
+    Left = 704
+    Top = 16
   end
   object IdSSLIOHandlerSocketOpenSSL1: TIdSSLIOHandlerSocketOpenSSL
     MaxLineAction = maException
     Port = 0
     DefaultPort = 0
+    SSLOptions.Method = sslvSSLv23
+    SSLOptions.SSLVersions = [sslvSSLv2, sslvSSLv3, sslvTLSv1, sslvTLSv1_1, sslvTLSv1_2]
     SSLOptions.Mode = sslmUnassigned
     SSLOptions.VerifyMode = []
     SSLOptions.VerifyDepth = 0
-    Left = 592
-    Top = 56
-  end
-  object Timer2: TTimer
-    Enabled = False
-    OnTimer = Timer2Timer
-    Left = 520
-    Top = 8
+    Left = 704
+    Top = 64
   end
 end

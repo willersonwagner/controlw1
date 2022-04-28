@@ -12021,6 +12021,16 @@ object form22: Tform22
       Visible = False
       OnClick = Button2Click
     end
+    object Button3: TButton
+      Left = 120
+      Top = 144
+      Width = 75
+      Height = 25
+      Caption = 'Button3'
+      TabOrder = 6
+      Visible = False
+      OnClick = Button3Click
+    end
   end
   object Timer1: TTimer
     Enabled = False

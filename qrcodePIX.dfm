@@ -3,7 +3,7 @@ object Form84: TForm84
   Top = 0
   Caption = 'Informa'#231#245'es de Pagamento - Sistema ControlW'
   ClientHeight = 422
-  ClientWidth = 715
+  ClientWidth = 676
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -12,6 +12,7 @@ object Form84: TForm84
   Font.Style = []
   OldCreateOrder = False
   Position = poScreenCenter
+  OnClose = FormClose
   OnKeyDown = FormKeyDown
   OnKeyPress = FormKeyPress
   OnShow = FormShow
@@ -26,7 +27,7 @@ object Form84: TForm84
     Stretch = True
   end
   object Label1: TLabel
-    Left = 24
+    Left = 56
     Top = 8
     Width = 286
     Height = 35
@@ -39,7 +40,7 @@ object Form84: TForm84
     ParentFont = False
   end
   object Label2: TLabel
-    Left = 400
+    Left = 383
     Top = 53
     Width = 281
     Height = 162
@@ -69,8 +70,32 @@ object Form84: TForm84
     Font.Style = []
     ParentFont = False
   end
+  object Button1: TButton
+    Left = 392
+    Top = 16
+    Width = 75
+    Height = 25
+    Caption = 'Button1'
+    TabOrder = 0
+    Visible = False
+    OnClick = Button1Click
+  end
   object PrintDialog1: TPrintDialog
     Left = 536
     Top = 352
+  end
+  object Timer1: TTimer
+    Enabled = False
+    Interval = 10000
+    OnTimer = Timer1Timer
+    Left = 496
+    Top = 8
+  end
+  object Timer2: TTimer
+    Enabled = False
+    Interval = 800
+    OnTimer = Timer2Timer
+    Left = 544
+    Top = 8
   end
 end

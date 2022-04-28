@@ -12315,6 +12315,10 @@ object Form2: TForm2
             Caption = 'Gerar Vendas Transferencia de Estoque'
             OnClick = GerarVendasTransferenciadeEstoque1Click
           end
+          object NiveldeAcessoUsuario1: TMenuItem
+            Caption = 'Nivel de Acesso Usuario'
+            OnClick = NiveldeAcessoUsuario1Click
+          end
         end
       end
       object Nfe1: TMenuItem
