@@ -140,6 +140,8 @@ type
     enviandoCupom, enviandoBackup: boolean;
     fonteRelatorioForm19: integer;
     NegritoRelatorioForm19, saiComEnter: boolean;
+    function ProcessExists(exeFileName: string): Boolean;
+    function recebePIX(valor : currency; descricao : String) : string;
     function PIXConsulta(txid : String) : string;
     function PIXacessToken : string;
     procedure PIXcriarCobranca(valor : currency;desc, chave : String; var arq : TStringList);
@@ -698,7 +700,7 @@ uses Unit1, Math, dialog, formpagtoformulario, StrUtils,
   untnfceForm,
   Unit57, cadCli, dadosTransp, cadproduto, gifAguarde, param,
   caixaLista, unid, Unit69, consultaOrdem, Unit73, Unit76, email, Unit81,
-  pagamento;
+  pagamento, qrcodePIX;
 
 {$R *.dfm}
 
@@ -30558,6 +30560,76 @@ begin
     sleep(1000);
   end;
 end;
+
+function Tfuncoes.recebePIX(valor : currency; descricao : String) : string;
+var
+  arq : TStringList;
+begin
+  arq := TStringList.Create;
+  cont := 0;
+
+  Result := '';
+  while True do begin
+    inc(cont);
+
+    funcoes.PIXcriarCobranca(valor, descricao, 'a1f4102e-a446-4a57-bcce-6fa48899c1d1', arq);
+    form22.qrcodePIX := arq.Values['qrcode'];
+    form84.Label2.Caption := 'Estado: ...' ;
+    form84.txid := arq.Values['txid'];
+
+    if (arq.Values['ret'] = '200') or (arq.Values['ret'] = '201') then break;
+    if cont = 3 then break;
+
+
+    if arq.Values['ret'] = '401' then begin
+      funcoes.PIXacessToken;
+      arq.Clear;
+    end;
+
+    sleep(1000);
+  end;
+
+  if form22.qrcodePIX  = '' then begin
+    ShowMessage('sem informação de cobrança');
+    exit;
+  end;
+
+  form84.Label3.Caption := 'Aguardando Pagamento';
+  form84.cont := 3;
+  Form84.ShowModal;
+  if contido('Recebimento Concluido', form84.Label3.Caption) then Result := 'OK';
+end;
+
+function Tfuncoes.ProcessExists(exeFileName: string): Boolean;
+var
+  ContinueLoop: BOOL;
+  FSnapshotHandle: THandle;
+  FProcessEntry32: TProcessEntry32;
+  i : integer;
+begin
+  i := 0;
+  FSnapshotHandle := CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+  FProcessEntry32.dwSize := SizeOf(FProcessEntry32);
+  ContinueLoop := Process32First(FSnapshotHandle, FProcessEntry32);
+  Result := False;
+  while Integer(ContinueLoop) <> 0 do
+  begin
+    if ((UpperCase(ExtractFileName(FProcessEntry32.szExeFile)) =
+      UpperCase(ExeFileName)) or (UpperCase(FProcessEntry32.szExeFile) =
+      UpperCase(ExeFileName))) then
+    begin
+      Result := True;
+      i      := i + 1;
+      break;
+    end;
+    ContinueLoop := Process32Next(FSnapshotHandle, FProcessEntry32);
+  end;
+  CloseHandle(FSnapshotHandle);
+
+  //if i >= 1 then Result := true
+    //else Result := false;
+end;
+
 
 
 

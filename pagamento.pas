@@ -6,7 +6,7 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Data.DB,
   Datasnap.DBClient, Vcl.Grids, Vcl.DBGrids, Vcl.ExtCtrls, Vcl.Buttons,
-  JsBotao1, JsEdit1, JsEditNumero1, func;
+  JsBotao1, JsEdit1, JsEditNumero1, func, ShellApi;
 
 type
   TForm82 = class(TForm)
@@ -44,6 +44,7 @@ type
     function buscaForma(cod : String) : boolean;
     procedure adicionaFormaDePagamento();
     procedure buscaPagamentos;
+    function checaPIX : Boolean;
     { Private declarations }
   public
     totalVenda : Currency;
@@ -115,7 +116,27 @@ begin
       if MessageDlg('O valor Pago é diferente do Valor Recebido, Deseja Finalizar Mesmo Assim ?', mtConfirmation, [mbyes, mbno], 1, mbno) = mrno then exit;
       finalizou := 'N';
     end
-    else finalizou := 'S';
+    else begin
+      if checaPIX then begin
+        if funcoes.ProcessExists('PIX.EXE') = false then begin
+          //ShowMessage('ini');
+          ShellExecute(handle, 'open', PChar(ExtractFileDir(ParamStr(0)) +'\PIX.exe'), '', '', SW_SHOWNORMAL);
+        end;
+
+        IF funcoes.recebePIX(ClientDataSet1valor.AsCurrency, 'VENDA '+ IntToStr(nota)) = 'OK' then begin
+          ShowMessage('PIX Recebido com Sucessso!');
+        end
+        else begin
+          ShowMessage('PIX Nao Confirmado!');
+          exit;
+        end;
+      end;
+
+
+      finalizou := 'S';
+
+
+    end;
     close;
   end;
 end;
@@ -262,6 +283,24 @@ begin
   end;
 
   somaTotal;
+end;
+
+
+function TForm82.checaPIX : Boolean;
+begin
+  Result := false;
+  ClientDataSet1.First;
+  while not ClientDataSet1.Eof do begin
+    if pos('PIX', UpperCase(ClientDataSet1nome.AsString)) > 0 then begin
+      Result := true;
+      break;
+    end;
+    ClientDataSet1.Next;
+  end;
+
+  if Result then begin
+    if FileExists(ExtractFileDir(ParamStr(0)) + '\PIX.exe') = false then Result := false;
+  end;
 end;
 
 end.

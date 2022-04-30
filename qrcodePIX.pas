@@ -126,6 +126,7 @@ begin
   if Label3.Caption = 'Recebimento Concluido com Sucesso!' then begin
     Timer2.Enabled := false;
     Timer1.Enabled := false;
+    close;
   end;
 
 

@@ -106,6 +106,7 @@ type
     usarOFFLINE : boolean;
     codCliente, valCert, qtdCupom : String;
     enviandoCupom, tecladoOK : boolean;
+    PIX_Val : currency;
     cupons : TTWtheadEnviaCupons1;
     procedure atualizaEntrada(nota, codhis : String; entrada : currency);
     procedure vendeVisualTodos();
@@ -148,6 +149,7 @@ type
     procedure criaDataSetFormas();
     procedure identificaCliente(var codcli : String);
     procedure escreveTotal;
+    function checaPIX : Boolean;
     { Private declarations }
   public
     acessoUsuVenda, configu, usaDLL, CodVendedorTemp, condicao : string;
@@ -171,7 +173,7 @@ implementation
 
 uses untDtmMain, ibquery, StrUtils, login1,
   MenuFiscal, consultaProduto, Math, dmecf, configImp, dialog, mens,
-  cadCli, importapedido, untConfiguracoesNFCe, untmain;
+  cadCli, importapedido, untConfiguracoesNFCe, untmain, qrcodePIX;
 
 {$R *.dfm}
 procedure TForm3.setaCoresPDV();
@@ -823,6 +825,19 @@ begin
   de pagamento e totais}
 
   lerFormasParaGravarAVendaPreencheEntrada;
+
+  //achou uma venda em PIX
+  if checaPIX then begin
+    IF qrcodePIX.Form84.recebePIX(PIX_Val, 'PDV CAIXA ' + getSerieNFCe) = 'OK' then begin
+      ShowMessage('PIX Recebido com Sucessso!');
+    end
+    else begin
+      ShowMessage('Erro no Recebimento do PIX');
+      exit;
+    end;
+
+  end;
+
 
   if formasPagamento.IsEmpty then exit;
 
@@ -3070,6 +3085,27 @@ begin
   query1.ExecSQL;
   query1.Transaction.Commit;
 end;
+
+function TForm3.checaPIX : Boolean;
+begin
+  Result := false;
+  formasPagamento.First;
+  PIX_Val := 0;
+  while not formasPagamento.Eof do begin
+    //ShowMessage(formasPagamento.FieldByName('indImp').AsString);
+
+    if formasPagamento.FieldByName('indImp').AsString = '17' then begin
+      Result := true;
+      PIX_Val := PIX_Val + formasPagamento.FieldByName('total').AsCurrency;
+    end;
+    formasPagamento.Next;
+  end;
+
+  if Result then begin
+    if FileExists(ExtractFileDir(ParamStr(0)) + '\PIX.exe') = false then Result := false;
+  end;
+end;
+
 
 end.
 

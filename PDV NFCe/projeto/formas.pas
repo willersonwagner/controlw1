@@ -34,7 +34,7 @@ begin
     begin
       form5 := TForm5.Create(Application);
       query.Close;
-      query.SQL.Text := 'select cod, nome, codhis from formpagto where codgru <> '''' order by cod';
+      query.SQL.Text := 'select cod, nome, codhis, codgru from formpagto where codgru <> '''' order by cod';
       query.Open;
 
       listaPAGTOIMPRESORA := TStringList.Create;
@@ -43,7 +43,7 @@ begin
       while not query.Eof do
         begin
           form5.ListBox1.Items.Add(query.fieldbyname('cod').AsString + ' - ' + query.fieldbyname('nome').AsString);
-          listaPAGTOIMPRESORA.Values[query.fieldbyname('cod').AsString] := query.fieldbyname('codhis').AsString;
+          listaPAGTOIMPRESORA.Values[query.fieldbyname('cod').AsString] := query.fieldbyname('codgru').AsString;
           query.Next;
         end;
 
@@ -55,12 +55,12 @@ begin
         begin
           listaPAGTOIMPRESORA := TStringList.Create;
           query.Close;
-          query.SQL.Text := 'select cod, codhis from formpagto where codhis <> '''' order by cod';
+          query.SQL.Text := 'select cod, codhis, codgru from formpagto where codhis <> '''' order by cod';
           query.Open;
 
           while not query.Eof do
             begin
-              listaPAGTOIMPRESORA.Values[query.fieldbyname('cod').AsString] := query.fieldbyname('codhis').AsString;
+              listaPAGTOIMPRESORA.Values[query.fieldbyname('cod').AsString] := query.fieldbyname('codgru').AsString;
               query.Next;
             end;
         end;

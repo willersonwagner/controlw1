@@ -703,6 +703,15 @@ object form1: Tform1
     OnClick = sBitBtn1Click
     SkinData.SkinSection = 'BUTTON'
   end
+  object Button1: TButton
+    Left = 33
+    Top = 88
+    Width = 75
+    Height = 25
+    Caption = 'Button1'
+    TabOrder = 4
+    OnClick = Button1Click
+  end
   object IdHTTP1: TIdHTTP
     AllowCookies = False
     ProxyParams.BasicAuthentication = False

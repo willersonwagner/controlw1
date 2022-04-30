@@ -1,10 +1,10 @@
 object Form5: TForm5
   Left = 192
   Top = 103
-  Width = 283
-  Height = 317
   BorderIcons = []
   Caption = 'Formas de Pagamento'
+  ClientHeight = 278
+  ClientWidth = 267
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText

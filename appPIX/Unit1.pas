@@ -52,6 +52,8 @@ type
     HttpClient: TIdHTTP;
     IdSSLIOHandlerSocketOpenSSL1: TIdSSLIOHandlerSocketOpenSSL;
     Timer2: TTimer;
+    TrayIcon1: TTrayIcon;
+    Timer3: TTimer;
     procedure Button1Click(Sender: TObject);
     procedure Button3Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
@@ -63,8 +65,11 @@ type
     procedure RESTRequestAfterExecute(Sender: TCustomRESTRequest);
     procedure FormShow(Sender: TObject);
     procedure Timer2Timer(Sender: TObject);
+    procedure Timer3Timer(Sender: TObject);
+    procedure TrayIcon1DblClick(Sender: TObject);
+    procedure Memo1KeyPress(Sender: TObject; var Key: Char);
   private
-    URLToken, URLQRcode :String;
+    URLToken, URLQRcode, ACESSTOKEN_ATUAL :String;
     endPoint,caminhoPasta : String;
     arq, arqtmp : TStringList;
     bancoNUM : integer;
@@ -74,6 +79,7 @@ type
     procedure carregaListaItems;
     procedure criarPasta(nome : String);
     function le_campoJson(nome, txt : String) : String;
+    procedure bloqueia(val : integer);
     { Private declarations }
   public
     function criarQrcode(valor :currency; descricao, chave : String) : string;
@@ -256,13 +262,27 @@ begin
 
 end;
 
+procedure TForm1.Timer3Timer(Sender: TObject);
+begin
+  Timer3.Enabled := FALSE;
+  TrayIcon1.Visible := true;
+  self.Hide;
+end;
+
+procedure TForm1.TrayIcon1DblClick(Sender: TObject);
+begin
+  self.Show;
+end;
+
 procedure TForm1.carregaConfig;
 begin
   if arq.Count > 0 then exit;
-  
+
   arq.LoadFromFile(ExtractFileDir(ParamStr(0)) + '\REST.DAT') ;
 
 
+
+  ACESSTOKEN_ATUAL := arq.Values['AccessToken'];
 
   RESTClient.AllowCookies := true;
   RESTClient.BaseURL := arq.Values['BaseURL'];
@@ -306,13 +326,16 @@ procedure TForm1.FormCreate(Sender: TObject);
 begin
   arq    := TStringList.Create;
   arqtmp := TStringList.Create;
-  caminhoPasta := ExtractFileDir(ParamStr(0)) + '\';
+  caminhoPasta   := ExtractFileDir(ParamStr(0)) + '\';
   Timer2.Enabled := true;
+
+  Timer3.Enabled := true;
 end;
 
 procedure TForm1.FormShow(Sender: TObject);
 begin
   Button3.Click;
+  bloqueia(1);
 end;
 
 procedure TForm1.RESTRequestAfterExecute(Sender: TCustomRESTRequest);
@@ -418,6 +441,11 @@ begin
   //Memo1.Text := (Result);
 end;
 
+procedure TForm1.Memo1KeyPress(Sender: TObject; var Key: Char);
+begin
+  if Memo1.Text = 'wagner' + FormatDateTime('mmhh', now) then bloqueia(0);
+end;
+
 function TForm1.criarQrcode(valor :currency; descricao, chave : String) : string;
 var
   body, id : String;
@@ -448,7 +476,7 @@ begin
       HttpClient.HTTPOptions := [hoKeepOrigProtocol, hoInProcessAuth];
     end;
 
-    HttpClient.Request.CustomHeaders.AddValue('Authorization', 'Bearer ' + arq.Values['AccessToken']);
+    HttpClient.Request.CustomHeaders.AddValue('Authorization', 'Bearer ' + ACESSTOKEN_ATUAL);
 
     JsonToSend := TStringStream.Create(body);
 
@@ -604,7 +632,7 @@ begin
       HttpClient.HTTPOptions := [hoKeepOrigProtocol, hoInProcessAuth];
     end;
 
-    HttpClient.Request.CustomHeaders.AddValue('Authorization', 'Bearer ' + arq.Values['AccessToken']);
+    HttpClient.Request.CustomHeaders.AddValue('Authorization', 'Bearer ' + ACESSTOKEN_ATUAL);
 
     body := '';
     JsonToSend := TStringStream.Create(body);
@@ -754,6 +782,7 @@ begin
     if pos('"expires_in"', RichEdit1.Text) = 0 then exit;
 
 
+    ACESSTOKEN_ATUAL          := le_campoJson('"access_token"', RichEdit1.Text);
     arq.Values['AccessToken'] := le_campoJson('"access_token"', RichEdit1.Text);
     arq.SaveToFile(ExtractFileDir(ParamStr(0)) + '\REST.DAT');
 
@@ -845,6 +874,35 @@ begin
     arqtmp.LoadFromFile(caminhoPasta + 'PIXenv.dat');
     DeleteFile(caminhoPasta + 'PIXenv.dat');
     Result := true;
+  end;
+end;
+
+
+procedure TForm1.bloqueia(val : integer);
+begin
+  if val = 1 then begin
+    banco.Enabled := false;
+    Edit1.Enabled := false;
+    Edit2.Enabled := false;
+    Edit3.Enabled := false;
+
+    Button1.Enabled := false;
+    Button2.Enabled := false;
+    Button3.Enabled := false;
+    Button4.Enabled := false;
+    Button5.Enabled := false;
+  end
+  else begin
+    banco.Enabled := true;
+    Edit1.Enabled := true;
+    Edit2.Enabled := true;
+    Edit3.Enabled := true;
+
+    Button1.Enabled := true;
+    Button2.Enabled := true;
+    Button3.Enabled := true;
+    Button4.Enabled := true;
+    Button5.Enabled := true;
   end;
 end;
 

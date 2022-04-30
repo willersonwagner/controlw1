@@ -1445,9 +1445,9 @@ begin
 
   // REGIME NORMAL - RECOLHIMENTO DE PIS E COFINS
   // CALCULA PIS/COFINS SOBRE O VALOR DO PRODUTO - DESCONTO
-  VLR_PIS := Arredonda(tot * TRIB_ALIQ_PIS / 100, 2);
+  VLR_PIS := ArredondaFinanceiro(tot * TRIB_ALIQ_PIS / 100, 2);
   TOT_PIS := TOT_PIS + VLR_PIS;
-  VLR_COFINS := Arredonda(tot * TRIB_ALIQ_COFINS / 100, 2);
+  VLR_COFINS := ArredondaFinanceiro(tot * TRIB_ALIQ_COFINS / 100, 2);
   TOT_COFINS := TOT_COFINS + VLR_COFINS;
 
   with ACBrNFe.NotasFiscais.Items[0].nfe.Det.Items[indx].Imposto do

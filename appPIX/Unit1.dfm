@@ -1,7 +1,7 @@
 object Form1: TForm1
   Left = 0
   Top = 0
-  Caption = 'Form1'
+  Caption = 'Sistema de Comunica'#231#227'o PIX'
   ClientHeight = 461
   ClientWidth = 792
   Color = clBtnFace
@@ -11,6 +11,7 @@ object Form1: TForm1
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
+  Position = poScreenCenter
   OnCreate = FormCreate
   OnShow = FormShow
   PixelsPerInch = 96
@@ -78,6 +79,7 @@ object Form1: TForm1
     Width = 313
     Height = 90
     TabOrder = 1
+    OnKeyPress = Memo1KeyPress
   end
   object Button2: TButton
     Left = 703
@@ -307,5 +309,17 @@ object Form1: TForm1
     OnTimer = Timer2Timer
     Left = 520
     Top = 8
+  end
+  object TrayIcon1: TTrayIcon
+    OnDblClick = TrayIcon1DblClick
+    Left = 440
+    Top = 72
+  end
+  object Timer3: TTimer
+    Enabled = False
+    Interval = 500
+    OnTimer = Timer3Timer
+    Left = 656
+    Top = 24
   end
 end

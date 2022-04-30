@@ -91,6 +91,7 @@ type matrizCurrency = array of currency;
      TOT_ECF         : TItensAliqSped;
      detalhamentoPIS : TStringList;
 
+procedure recalculalistaTOT_PIS;
 procedure checaISPIS_CODISPIS(var ispis1, codPIS1 : String; codProduto : integer);
 function ChecaIsencaoPis_Cst_49_Devoluções(CFOP : String) : boolean;
 function insereClientePeloNodo(nodo_dest : String) : String;
@@ -103,7 +104,7 @@ FUNCTION ACUM_PISCST2(prod_CFOP, prod_CST_PIS : String;vpis, vcofins, icms, tota
 function leSerieDaChaveNfe(const chave : String) : String;
 procedure leCFEsCONTRIBUICOES();
 FUNCTION ACUM_PISCST(ALIQ_PIS : String; TOT_ITEM, VLR_PIS, CRED_PIS, DESC : currency) : currency;
-FUNCTION ACUM_PISCST1(produto : TregProd; var listPis : TItensPISCOFINS; cod_ispis1, cstpis : String) : currency;
+FUNCTION ACUM_PISCST1(produto : TregProd; var listPis : TItensPISCOFINS; cod_ispis1, cstpis : String; somarlistaTOT_PIS : boolean = true;somarlistaPIS :boolean = true ) : currency;
 FUNCTION ACUM_IcmsCstCFOP(produto : TregProd; var listPis : TItensPISCOFINS; var base_calcICMS : currency) : currency;
 FUNCTION VE_CSTPISCFOP(_CFOP1 : String) : STRING;
 procedure iniciaContribuicoes();
@@ -3996,7 +3997,7 @@ end;
 procedure leCFEsCONTRIBUICOES();
 var
   mat, codCSTCOD_ISPIS      : TStringList;
-  CODNOTA, LIN, desti, crc, sim  : String;
+  CODNOTA, LIN, desti, crc, sim, tmep  : String;
   DATA_EMI : TDate;
   DadosNfe : TDadosNFe;
   ini2, fim2, i3, f3, i1, acc, xx, ui : integer;
@@ -4021,6 +4022,7 @@ begin
 
   acc := 0;
   ui  := 0;
+  tmep :='';
   xx  := 0;
   fim := dm.IBselect.RecordCount;
   informacao(0, fim, 'Verificando NFCe...', true, false, 2);
@@ -4081,6 +4083,13 @@ begin
                   _CFOP      := StrNum(listaProdutos[ini].CFOP);
                   if _CFOP = '0' then _CFOP := '5102';
                   CSTPIS_CFOP := VE_CSTPISCFOP(_CFOP);
+
+                  if sim = 'S' then begin
+                    ISPIS   := trim(ISPIS);
+                    CST_PIS := buscaCST_PIS_Por_ISPIS(ISPIS, COD_ISPIS, listaProdutos[ini].vpis);
+                    if listaProdutos[ini].vpis = 0 then listaProdutos[ini].vCOFINS := 0;
+                    listaProdutos[ini].CST_PIS := CST_PIS;
+                  end;
 
                   listaProdutos[ini].COD_ISPIS := COD_ISPIS;
 
@@ -4145,13 +4154,6 @@ begin
                   CST_PIS := listaProdutos[ini].CST_PIS;
 
 
-                 { if sim = 'S' then begin
-                    ISPIS   := trim(ISPIS);
-                    CST_PIS := buscaCST_PIS_Por_ISPIS(ISPIS, COD_ISPIS, listaProdutos[ini].vpis);
-                    if listaProdutos[ini].vpis = 0 then listaProdutos[ini].vCOFINS := 0;
-                    listaProdutos[ini].CST_PIS := CST_PIS;
-                  end;   }
-
                   CST_PIS := CALC_PISCOF1(TOT_ITEM, ISPIS, listaProdutos[ini].vPIS, listaProdutos[ini].vCOFINS, CST_PIS);
                   _CFOP := listaProdutos[ini].CFOP;
 
@@ -4184,8 +4186,8 @@ begin
               for ini := 0 to fim do
                 begin
                   if (listaPIS[ini].CST = '01') and (listaPIS[ini].Base > 0) then begin
-                    listaPIS[ini].pis    := ArredondaFinanceiro(listaPIS[ini].total * (TRIB_ALIQ_PIS / 100), 2);
-                    listaPIS[ini].cofins := ArredondaFinanceiro(listaPIS[ini].total * (TRIB_ALIQ_COFINS / 100), 2);
+                    listaPIS[ini].pis    := ArredondaFinanceiro(listaPIS[ini].Base * (TRIB_ALIQ_PIS / 100), 2);
+                    listaPIS[ini].cofins := ArredondaFinanceiro(listaPIS[ini].Base * (TRIB_ALIQ_COFINS / 100), 2);
                   end;
 
                   LINHA := '|C175|' + listaPIS[ini].CFOP + '|' + FORM_NUM1(listaPIS[ini].total) + '|' +
@@ -4196,6 +4198,11 @@ begin
                   FORM_NUM1(IfThen(listaPIS[ini].CST = '01', TRIB_ALIQ_COFINS, 0)) + '|||' +
                   FORM_NUM1(listaPIS[ini].cofins) + '|'+codCTA+'||';
                   MAT_NOTA.Add(LINHA);
+
+                  if (listaPIS[ini].CST = '01') and(ArredondaFinanceiro(listaPIS[ini].total * (TRIB_ALIQ_PIS / 100), 2) <> listaPIS[ini].pis) then begin
+                    tmep := tmep + DadosNfe.chave + #13 + CurrToStr(ArredondaFinanceiro(listaPIS[ini].total * (TRIB_ALIQ_PIS / 100), 2)) + ' ' + CurrToStr(listaPIS[ini].pis) + #13;
+                  end;
+
 
                   TOT_PIS    := TOT_PIS    + listaPIS[ini].pis;
                   TOT_COFINS := TOT_COFINS + listaPIS[ini].cofins;
@@ -4264,6 +4271,8 @@ begin
 
       dm.IBselect.Next;
     end;
+
+//   GravarTexto('notasnfceerro.txt',tmep);
 
   //detalhamentoPIS.SaveToFile(caminhoEXE_com_barra_no_final + 'detalhamentoPIS.txt');
   {DADOS DE NFCeS EMITIDAS}
@@ -4450,6 +4459,7 @@ begin
   LINHA := '|M001|0|';
   GRAVA_SPED(ARQ_TMP, LINHA);
 
+  recalculalistaTOT_PIS;
   //PIS TRIBUTADO - M200
   REC_BRUTA := 0;  //TOTALIZADOR DE RECEITA BRUTA
   _PIS := 0;
@@ -5440,7 +5450,7 @@ begin
 end;
 
 
-FUNCTION ACUM_PISCST1(produto : TregProd; var listPis : TItensPISCOFINS; cod_ispis1, cstpis : String) : currency;
+FUNCTION ACUM_PISCST1(produto : TregProd; var listPis : TItensPISCOFINS; cod_ispis1, cstpis : String; somarlistaTOT_PIS : boolean = true;somarlistaPIS :boolean = true ) : currency;
 var
   fi : integer;
 begin
@@ -5453,6 +5463,7 @@ begin
      produto.vCOFINS  := ArredondaFinanceiro(produto.total * TRIB_ALIQ_COFINS / 100, 2);
     produto.vPIS      := ArredondaFinanceiro(produto.total * TRIB_ALIQ_PIS / 100, 2);
   end;
+
   if  (StrToIntDef(trim(produto.CST_PIS), 6) <= 1) and ((produto.vPIS) = 0) and (produto.BASE_PIS > 0) then begin
     produto.vCOFINS := ArredondaFinanceiro(produto.total * TRIB_ALIQ_COFINS / 100, 2);
     produto.vPIS    := ArredondaFinanceiro(produto.total * TRIB_ALIQ_PIS / 100, 2);
@@ -5462,7 +5473,16 @@ begin
     produto.CST_PIS := '06';
   end;
 
+
+
+  {if (produto.CST_PIS = '01') and (produto.BASE_PIS > 0) then begin
+    produto.vPIS    := ArredondaFinanceiro(produto.total * (TRIB_ALIQ_PIS / 100), 2);
+    produto.vCOFINS := ArredondaFinanceiro(produto.total * (TRIB_ALIQ_COFINS / 100), 2);
+  end;}
+
   //ShowMessage(IntToStr(produto.cod) + #13 + CurrToStr(produto.vPIS) + #13 + CurrToStr(produto.BASE_PIS) + #13 + produto.CST_PIS);
+
+  if somarlistaPIS then begin
 
 
   fi := listPis.Find(produto.CFOP + produto.CST_PIS);
@@ -5472,6 +5492,7 @@ begin
       listPis[fi].cofins := listPis[fi].cofins + produto.vCOFINS;
       listPis[fi].icms   := listPis[fi].icms   + produto.TOT_ICM;
       listPis[fi].total  := listPis[fi].total  + produto.total;
+      listPis[fi].base   := listPis[fi].base  + produto.BASE_PIS;
     end
   else
     begin
@@ -5482,7 +5503,9 @@ begin
       listPis[fi].cofins := produto.vCOFINS;
       listPis[fi].CST    := produto.CST_PIS;
       listPis[fi].CFOP   := produto.CFOP;
+      listPis[fi].base   := produto.BASE_PIS;
     end;
+  end;
 
   {fi := listaTOT_PIS.Find(produto.CST_PIS + cod_ispis1);
   if fi > -1 then
@@ -5502,6 +5525,7 @@ begin
       listaTOT_PIS[fi].CFOP   := produto.CFOP;
     end;   }
 
+   if somarlistaTOT_PIS then begin
 
     fi := listaTOT_PIS.Find(produto.CST_PIS + cod_ispis1);
     if fi > -1 then
@@ -5525,6 +5549,7 @@ begin
       listaTOT_PIS[fi].CST    := produto.CST_PIS;
       listaTOT_PIS[fi].CFOP   := produto.CFOP;
     end;
+   end;
 
    //ShowMessage(IntToStr(produto.cod) + #13 + CurrToStr(produto.vPIS) + #13 + CurrToStr(produto.BASE_PIS) + #13 + produto.CST_PIS + #13+'-----------'+#13 +listaTOT_PIS.getText);
 //    ShowMessage(CurrToStr(listaTOT_PIS[fi].Base));
@@ -6049,6 +6074,17 @@ begin
   GRAVA_SPED(ARQ_TMP, LINHA);
 
   TOTAL_REG(ARQ_TMP, 'B');
+end;
+
+procedure recalculalistaTOT_PIS;
+begin
+  //GravarTexto('listaTOT_PIS.txt', listaTOT_PIS.getText);
+  for ini := 0 to listaTOT_PIS.Count -1 do begin
+    if (LeftStr(listaTOT_PIS[ini].COD,2) = '01') and (listaTOT_PIS[ini].Base > 0) then begin
+      listaTOT_PIS[ini].pis    := ArredondaFinanceiro(listaTOT_PIS[ini].Base * TRIB_ALIQ_PIS / 100, 2);
+      listaTOT_PIS[ini].cofins := ArredondaFinanceiro(listaTOT_PIS[ini].Base * TRIB_ALIQ_COFINS / 100, 2);
+    end;
+  end;
 end;
 
 

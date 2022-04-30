@@ -3435,27 +3435,36 @@ end;
 
 procedure TForm2.AliquotasdePISCOFINS1Click(Sender: TObject);
 var
-  COD_NAT, CST_PIS: String;
+  COD_NAT, CST_PIS, h1: String;
+  codNat_imp, CST_PIS_imp : String;
 begin
   CST_PIS := '';
-  CST_PIS := funcoes.dialogo('generico', 0, 'IMS' + #8, 50, false, 'S',
+  CST_PIS := funcoes.dialogo('generico', 0, 'IMSTR' + #8, 50, false, 'S',
     application.Title,
-    'Qual a aliquota de PIS/COFINS (I-Isento, M-Monofasico, S-Substituicao)?',
+    'Qual a aliquota de PIS/COFINS (I(07)-Isento, R(06)-Aliq Red Zero, M(04)-Monofasico, S(09)-Suspensao da contrib., T(01)-Tributado)?',
     CST_PIS);
   if CST_PIS = '*' then
     exit;
 
+  if CST_PIS = 'T' then CST_PIS := '';
+    
+
   COD_NAT := '';
   COD_NAT := funcoes.dialogo('generico', 0, '1234567890,.' + #8, 50, false, '',
-    application.Title, 'Qual o codigo da natureza da receita?', CST_PIS);
+    application.Title, 'Qual o codigo da natureza da receita?', '');
   if COD_NAT = '*' then
     exit;
 
+  h1 := '';
+  if COD_NAT <> '' then begin
+    h1 := ' and COD_ISPIS = ' + QuotedStr(COD_nat);
+  end;
+
   dm.ibselect.Close;
   dm.ibselect.SQL.Text :=
-    'select cod, codbar, nome, is_pis, COD_ISPIS from produto where is_pis = :is_pis and COD_ISPIS = :COD_ISPIS';
+    'select cod, codbar, nome, is_pis, COD_ISPIS from produto where trim(is_pis) = :is_pis ' + h1;
   dm.ibselect.ParamByName('is_pis').AsString := CST_PIS;
-  dm.ibselect.ParamByName('COD_ISPIS').AsString := COD_NAT;
+  //dm.ibselect.ParamByName('COD_ISPIS').AsString := COD_NAT;
   dm.ibselect.Open;
   dm.ibselect.FetchAll;
 
@@ -3480,13 +3489,20 @@ begin
 
   while not dm.ibselect.Eof do
   begin
+    codNat_imp  := trim(LeftStr(dm.ibselect.FieldByName('COD_ISPIS').AsString, 6));
+    if codNat_imp = '0' then codNat_imp := '';
+
+    CST_PIS_imp := trim(LeftStr(dm.ibselect.FieldByName('is_pis').AsString, 4));
+    if CST_PIS_imp = '0' then CST_PIS_imp := '';
+    if CST_PIS_imp = '' then CST_PIS_imp := '01';
+
     addRelatorioForm19(strzero(dm.ibselect.FieldByName('cod').AsString, 6) +
       '  ' + CompletaOuRepete(LeftStr(dm.ibselect.FieldByName('codbar')
       .AsString, 17), '', ' ', 17) + CompletaOuRepete
       (LeftStr(dm.ibselect.FieldByName('nome').AsString, 40), '', ' ', 40) + ' '
-      + CompletaOuRepete(LeftStr(dm.ibselect.FieldByName('is_pis').AsString, 4),
+      + CompletaOuRepete(CST_PIS_imp,
       '', ' ', 4) + ' ' + CompletaOuRepete
-      (LeftStr(dm.ibselect.FieldByName('COD_ISPIS').AsString, 6), '', ' ',
+      (codNat_imp, '', ' ',
       6) + CRLF);
     dm.ibselect.Next;
   end;

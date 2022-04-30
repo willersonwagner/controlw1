@@ -22,6 +22,7 @@ type
     Label1: TLabel;
     IdHTTP1: TIdHTTP;
     IdAntiFreeze1: TIdAntiFreeze;
+    Button1: TButton;
     procedure FormShow(Sender: TObject);
     procedure sBitBtn2Click(Sender: TObject);
     procedure nomeKeyPress(Sender: TObject; var Key: Char);
@@ -46,12 +47,16 @@ type
     { Public declarations }
   end;
 
+
+
 var
   form1: Tform1;
 
+
+
 implementation
 
-uses untMain, untdtmmain, dmecf, untCancelaNFCe, untConfiguracoesNFCe;
+uses untMain, untdtmmain, dmecf, untCancelaNFCe, untConfiguracoesNFCe, qrcodePIX;
 
 Procedure TForm1.TrataErros(Sender: TObject; E: Exception);
 var
@@ -239,7 +244,7 @@ end;
 
 procedure Tform1.Button1Click(Sender: TObject);
 begin
-  //ShowMessage(CurrToStr(Arredonda(StrToCurr(Edit1.Text), 2)));
+   qrcodePIX.Form84.Show; ///form82 := tform82.create(self);
 end;
 
 procedure Tform1.Button2Click(Sender: TObject);

@@ -39,7 +39,8 @@ uses
   sangria in 'sangria.pas' {Form13},
   gifAguarde in '..\..\gifAguarde.pas' {Form65},
   untnfceForm in '..\..\untnfceForm.pas' {Form72},
-  Unit14 in 'Unit14.pas' {Form14};
+  Unit14 in 'Unit14.pas' {Form14},
+  qrcodePIX in 'qrcodePIX.pas' {Form84};
 
 {$R *.res}
 var
@@ -64,6 +65,8 @@ begin
   Application.CreateForm(TForm33, Form33);
   Application.CreateForm(TForm72, Form72);
   Application.CreateForm(TForm14, Form14);
+  Application.CreateForm(TForm84, Form84);
+  Application.CreateForm(TForm84, Form84);
   //Application.CreateForm(TForm65, Form65);
   //Application.CreateForm(TcadCliNFCe, cadCliNFCe);
   CtrlResize(tform(form33));
