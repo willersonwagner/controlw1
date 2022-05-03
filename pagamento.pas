@@ -40,7 +40,7 @@ type
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormKeyPress(Sender: TObject; var Key: Char);
   private
-    function somaTotal : currency;
+
     function buscaForma(cod : String) : boolean;
     procedure adicionaFormaDePagamento();
     procedure buscaPagamentos;
@@ -50,6 +50,7 @@ type
     totalVenda : Currency;
     finalizou : Char;
     nota : integer;
+    function somaTotal : currency;
     { Public declarations }
   end;
 
@@ -118,6 +119,7 @@ begin
     end
     else begin
       if checaPIX then begin
+
         if funcoes.ProcessExists('PIX.EXE') = false then begin
           //ShowMessage('ini');
           ShellExecute(handle, 'open', PChar(ExtractFileDir(ParamStr(0)) +'\PIX.exe'), '', '', SW_SHOWNORMAL);
@@ -195,7 +197,6 @@ begin
   ClientDataSet1.First;
   p_pago.Caption     := formataCurrency(Result);
   p_restante.Caption := formataCurrency(totalVenda - Result);
-
 end;
 
 
@@ -289,6 +290,9 @@ end;
 function TForm82.checaPIX : Boolean;
 begin
   Result := false;
+
+  if FileExists(ExtractFileDir(ParamStr(0)) + '\PIX.exe') = false then exit;
+
   ClientDataSet1.First;
   while not ClientDataSet1.Eof do begin
     if pos('PIX', UpperCase(ClientDataSet1nome.AsString)) > 0 then begin
@@ -298,9 +302,6 @@ begin
     ClientDataSet1.Next;
   end;
 
-  if Result then begin
-    if FileExists(ExtractFileDir(ParamStr(0)) + '\PIX.exe') = false then Result := false;
-  end;
-end;
+ end;
 
 end.

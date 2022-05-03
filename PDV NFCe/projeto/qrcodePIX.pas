@@ -354,7 +354,7 @@ begin
     txid1 := arq.Values['txid'];
 
     if (arq.Values['ret'] = '200') or (arq.Values['ret'] = '201') then break;
-    if cont = 3 then break;
+    if cont = 5 then break;
 
 
     if arq.Values['ret'] = '401' then begin

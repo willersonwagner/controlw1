@@ -29183,6 +29183,18 @@ begin
   dm.IBQuery1.ExecSQL;
   dm.IBQuery1.Transaction.Commit;
 
+  form82.ClientDataSet1.First;
+
+  if form82.somatotal <> form82.totalVenda then begin
+    ShowMessage('A soma dos pagamentos difere do total da venda!');
+    //ShowMessage('Soma=' + CurrToStr(form82.somatotal) + #13 +
+   // 'totVenda=' + CurrToStr(form82.totalVenda));
+    exit;
+  end;
+ {
+  ShowMessage('Soma=' + CurrToStr(form82.somatotal) + #13 +
+    'totVenda=' + CurrToStr(form82.totalVenda));
+  }
   while not form82.ClientDataSet1.Eof do begin
     Result.Add(form82.ClientDataSet1.FieldByName('cod').AsString + '=' + form82.ClientDataSet1.FieldByName('valor').AsString);
 
@@ -30578,7 +30590,7 @@ begin
     form84.txid := arq.Values['txid'];
 
     if (arq.Values['ret'] = '200') or (arq.Values['ret'] = '201') then break;
-    if cont = 3 then break;
+    if cont = 5 then break;
 
 
     if arq.Values['ret'] = '401' then begin

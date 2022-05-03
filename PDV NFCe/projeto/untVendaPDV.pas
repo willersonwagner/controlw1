@@ -1741,7 +1741,7 @@ procedure TForm3.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   if not IBClientDataSet1.IsEmpty then
     begin
-      if MessageBox(Handle, 'Existe uma Venda Aberta, Deseja Cancelar esta Venda e Sair?', 'PDV - ControlW' ,MB_YESNO + MB_ICONQUESTION + MB_DEFBUTTON2 ) = idno then exit
+      if MessageBox(Handle, 'Existe uma Venda Aberta, Deseja Cancelar esta Venda e Sair?', 'PDV - ControlW' ,MB_YESNO + MB_ICONQUESTION + MB_DEFBUTTON2 ) = idno then abort
         else
           begin
 //            dtmMain.ACBrECF1.CancelaCupom;
