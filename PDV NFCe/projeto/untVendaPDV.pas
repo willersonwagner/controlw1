@@ -826,19 +826,6 @@ begin
 
   lerFormasParaGravarAVendaPreencheEntrada;
 
-  //achou uma venda em PIX
-  if checaPIX then begin
-    IF qrcodePIX.Form84.recebePIX(PIX_Val, 'PDV CAIXA ' + getSerieNFCe) = 'OK' then begin
-      ShowMessage('PIX Recebido com Sucessso!');
-    end
-    else begin
-      ShowMessage('Erro no Recebimento do PIX');
-      exit;
-    end;
-
-  end;
-
-
   if formasPagamento.IsEmpty then exit;
 
   cliente := dialogo('generico',0,'1234567890,.'+#8,50,false,'',Application.Title,'Qual o Código do Cliente?', codCliente);
@@ -855,6 +842,23 @@ begin
   cliente := codCliente;
 
   //obs := trim('Total Impostos Pagos R$' + formataCurrency(TotTributos) + '('+ formataCurrency((TotTributos / tot1) * 100) +'%)Fonte IBPT');
+
+  //achou uma venda em PIX
+  if checaPIX then begin
+    if PIX_Val > tot_ge then begin
+      PIX_Val := tot_ge;
+    end;
+
+    IF qrcodePIX.Form84.recebePIX(PIX_Val, 'PDV CAIXA ' + getSerieNFCe) = 'OK' then begin
+      ShowMessage('PIX Recebido com Sucessso!');
+    end
+    else begin
+      ShowMessage('Erro no Recebimento do PIX');
+      exit;
+    end;
+
+  end;
+
 
   mostraTroco();
   recebido1 := recebido;

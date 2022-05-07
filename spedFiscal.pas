@@ -1501,7 +1501,7 @@ begin
 
 
        if listaProdutos[ini].cod = 3127 then begin
-         ShowMessage(codProd.getText);
+         //ShowMessage(codProd.getText);
        end;
 
 
@@ -2245,14 +2245,14 @@ begin
          mat0200.Add(linha);
          //GRAVA_SPED(ARQ_SPED, LINHA);
 
-         try
+        { try
            StrToCurr(strnum1(codProd[idx].unid));
          except
            on e:exception do
              begin
                MessageDlg(e.Message + #13 + 'Cod: ' + IntToStr(codProd[idx].cod) + #13 + 'Unid: ' + codProd[idx].unid, mtError, [mbOK], 1);
              end;
-         end;
+         end; }
 
          if true then
          //if StrToCurr(strnum1(codProd[idx].unid)) > 1 then
@@ -3997,7 +3997,7 @@ end;
 procedure leCFEsCONTRIBUICOES();
 var
   mat, codCSTCOD_ISPIS      : TStringList;
-  CODNOTA, LIN, desti, crc, sim, tmep  : String;
+  CODNOTA, LIN, desti, crc, sim, tmep, orc   : String;
   DATA_EMI : TDate;
   DadosNfe : TDadosNFe;
   ini2, fim2, i3, f3, i1, acc, xx, ui : integer;
@@ -4092,9 +4092,16 @@ begin
                   end;
 
                   listaProdutos[ini].COD_ISPIS := COD_ISPIS;
+                 if (listaProdutos[ini].CST_PIS = '04') and (COD_ISPIS = '918') then begin
+                   listaProdutos[ini].CST_PIS := '06';
+                 end;
+
 
               //004 nao existe mais, muda pra cst 06 segundo nos termos do art. 28 da Lei 13.097/2015, deve ser escriturada com o código 918 da Tabela 4.3.13
-                  if listaProdutos[ini].COD_ISPIS = '004' then begin
+                if listaProdutos[ini].COD_ISPIS = '004' then begin
+                    CST_PIS := '06';
+                    orc     := '06-918';
+                    ISPIS   := 'R';
                     listaProdutos[ini].CST_PIS    := '06';
                     listaProdutos[ini].COD_ISPIS  := '918';
                     listaProdutos[ini].vPIS       := 0;
@@ -4130,7 +4137,7 @@ begin
                   //TOT_ITEM := dsProduto.fieldbyname('total').AsCurrency; //MAT_ITENS[INI, 4]  //- MAT_ITENS[INI, 6] - MAT_ITENS[INI, 8]
                   //VALOR TOTAL DO ITEM - DESCONTO
                   //TOT_ITEM := listaProdutos[ini].total;
-                  TOT      := TOT + listaProdutos[ini].total;
+                  TOT      := TOT     + listaProdutos[ini].total;
                   TOTDESC  := TOTDESC + listaProdutos[ini].descCom;
 
                   TRIB := Trim(listaProdutos[ini].CST);
@@ -4174,6 +4181,11 @@ begin
                   if listaProdutos[ini].CST_PIS <> '01' then begin
                     codCSTCOD_ISPIS.Add(IntToStr(listaProdutos[ini].cod) + '=' +  listaProdutos[ini].CST_PIS + listaProdutos[ini].COD_ISPIS);
                   end;
+
+                  if (orc = '06-918') and (orc <> listaProdutos[ini].CST_PIS + '-' + listaProdutos[ini].COD_ISPIS)  then begin
+                    //ShowMessage(CHAVENF + #13 + IntToStr(listaProdutos[ini].cod) + #13 + listaProdutos[ini].CST_PIS + #13 + listaProdutos[ini].COD_ISPIS);
+                  end;
+
                 end; //FOR LISTA DE PRODUTOS
 
               //REGISTRO C100 - CABECALHO DA NOTA FISCAL
@@ -4233,6 +4245,9 @@ begin
               MAT_NOTA.Clear;
 
               codCSTCOD_ISPIS.SaveToFile(caminhoEXE_com_barra_no_final + 'SPED\PRODUTOS_CST_CODISPIS.txt');
+
+
+
 
               {fim := listaPIS.Count -1;
 

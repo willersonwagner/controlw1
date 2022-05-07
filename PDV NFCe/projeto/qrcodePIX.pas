@@ -5,7 +5,7 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, ACBrDelphiZXingQRCode, RLReport,
-  Vcl.StdCtrls, Vcl.ExtCtrls, ACBrImage, TlHelp32, Vcl.Imaging.jpeg, ShellApi;
+  Vcl.StdCtrls, Vcl.ExtCtrls, ACBrImage, TlHelp32, Vcl.Imaging.jpeg, ShellApi, func;
 
 type
   TForm84 = class(TForm)
@@ -300,6 +300,8 @@ begin
     ShellExecute(handle, 'open', PChar(ExtractFileDir(ParamStr(0)) +'\PIX.exe'), '', '', SW_SHOWNORMAL);
   end;
 
+  DeleteFile(caminhoEXE_com_barra_no_final + 'PIXrec.dat');
+
 
   arq.Clear;
   arqPIX.Clear;
@@ -325,7 +327,7 @@ begin
     end;
 
     cont := cont + 1;
-    if cont > 15 then begin
+    if cont > 20 then begin
       ShowMessage('Tempo esgotado sem resposta.');
       exit;
     end;
@@ -336,15 +338,19 @@ end;
 
 function TForm84.recebePIX(valor : currency; descricao : String) : string;
 var
-  arq : TStringList;
+  arq, passos : TStringList;
 begin
   arq := TStringList.Create;
+  passos := TStringList.Create;
   cont := 0;
 
   Timer3.Enabled := true;
 
   Label4.Caption := 'Valor R$: ' + FormatCurr('#,###,###0.00', valor);
   Result := '';
+  //mensagemEnviandoNFCE('Aguarde...', true, false);
+
+
   while True do begin
     inc(cont);
 
@@ -353,12 +359,19 @@ begin
     form84.Label2.Caption := 'Estado: ...' ;
     txid1 := arq.Values['txid'];
 
-    if (arq.Values['ret'] = '200') or (arq.Values['ret'] = '201') then break;
+    passos.Add('**' + IntToStr(cont) + '**');
+    passos.Add(arq.GetText);
+
+    if ((arq.Values['ret'] = '200') or (arq.Values['ret'] = '201') and (Length(arq.Values['qrcode']) > 50)) then break;
     if cont = 5 then break;
 
 
     if arq.Values['ret'] = '401' then begin
       PIXacessToken;
+
+      passos.Add('PIXacessToken **' + IntToStr(cont) + '**');
+      passos.Add(arq.GetText);
+
       arq.Clear;
     end;
 
@@ -366,13 +379,18 @@ begin
   end;
 
   if qrcodePIX  = '' then begin
+    ///mensagemEnviandoNFCE('Aguarde, Enviando NFCe...', false, true);
     ShowMessage('sem informação de cobrança');
     exit;
   end;
 
+  //mensagemEnviandoNFCE('Aguarde, Enviando NFCe...', false, true);
+  passos.SaveToFile('passos.txt');
+
   form84.Label3.Caption := 'Aguardando Pagamento';
   form84.cont := 3;
   Form84.ShowModal;
+  arq.Free;
   if pos('Recebimento Concluido', form84.Label3.Caption) > 0 then Result := 'OK';
 end;
 

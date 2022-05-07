@@ -68,6 +68,7 @@ type
     procedure Timer3Timer(Sender: TObject);
     procedure TrayIcon1DblClick(Sender: TObject);
     procedure Memo1KeyPress(Sender: TObject; var Key: Char);
+    procedure FormDblClick(Sender: TObject);
   private
     URLToken, URLQRcode, ACESSTOKEN_ATUAL :String;
     endPoint,caminhoPasta : String;
@@ -228,18 +229,23 @@ begin
     criarQrcode(StrToCurr(arqtmp.Values['valor']), arqtmp.Values['desc'], arq.Values['chave']);
     arqtmp.Clear;
 
-    if pos('Unauthorized', RichEdit1.Text) > 0  then begin
+    //if pos('Unauthorized', RichEdit1.Text) > 0  then begin
+    if HttpClient.ResponseCode = 401 then begin
       arqtmp.Add('ok=0');
       arqtmp.Values['txid'] := 'Unauthorized';
-      arqtmp.Values['ret']  := IntToStr(HttpClient.ResponseCode);
     end
-    else begin
+    else if HttpClient.ResponseCode in [200, 201] then  begin
       arqtmp.Add('ok=1');
       arqtmp.Values['txid'] := le_campoJson('"txid"', Memo1.Text);
       arqtmp.Values['id']   := le_campoJson('"id"'  , Memo1.Text);
       arqtmp.Values['qrcode']   := le_campoJson('"qrcode"'  , RichEdit1.Text);
-      arqtmp.Values['ret']  := IntToStr(HttpClient.ResponseCode);
+    end
+    else begin
+      arqtmp.Add('ok=0');
+      arqtmp.Values['txid'] := 'Unauthorized1';
     end;
+
+    arqtmp.Add('ret=' + IntToStr(HttpClient.ResponseCode));
 
     arqtmp.SaveToFile(caminhoPasta+ 'PIXrec.dat');
 
@@ -252,7 +258,9 @@ begin
     arqtmp.Clear;
     arqtmp.Add('ok=1');
     arqtmp.Values['estado'] := le_campoJson('"status"', RichEdit1.Text);
-    arqtmp.Values['ret']  := IntToStr(HttpClient.ResponseCode);
+    if HttpClient.ResponseCode in [200, 201] = false then arqtmp.Values['estado'] := IntToStr(HttpClient.ResponseCode);
+
+    arqtmp.Add('ret=' + IntToStr(HttpClient.ResponseCode));
     arqtmp.SaveToFile(caminhoPasta+ 'PIXrec.dat');
 
     Timer2.Enabled := true;
@@ -330,6 +338,12 @@ begin
   Timer2.Enabled := true;
 
   Timer3.Enabled := true;
+end;
+
+procedure TForm1.FormDblClick(Sender: TObject);
+begin
+  TrayIcon1.Visible := true;
+  self.Hide;
 end;
 
 procedure TForm1.FormShow(Sender: TObject);
