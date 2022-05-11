@@ -71,7 +71,7 @@ type
     procedure FormDblClick(Sender: TObject);
   private
     URLToken, URLQRcode, ACESSTOKEN_ATUAL :String;
-    endPoint,caminhoPasta : String;
+    endPoint, cobendPoint, consultaEndPoint,caminhoPasta : String;
     arq, arqtmp : TStringList;
     bancoNUM : integer;
     function buscaRequisicao : boolean;
@@ -81,6 +81,8 @@ type
     procedure criarPasta(nome : String);
     function le_campoJson(nome, txt : String) : String;
     procedure bloqueia(val : integer);
+    procedure gravaLOG(txt : String);
+
     { Private declarations }
   public
     function criarQrcode(valor :currency; descricao, chave : String) : string;
@@ -163,7 +165,7 @@ end;
 procedure TForm1.Button4Click(Sender: TObject);
 begin
   if bancoNUM = 0 then criarQrcode(StrToCurr(edit1.Text), edit2.Text, '7d9f0335-8dcc-4054-9bf9-0dbd61d36906')
-   else if bancoNUM = 1 then criarQrcode(StrToCurr(edit1.Text), edit2.Text, 'testqrcode01@bb.com.br')
+   else if bancoNUM = 1 then criarQrcode(StrToCurr(edit1.Text), edit2.Text, Edit3.Text)
    else if bancoNUM = 6 then criarQrcode(StrToCurr(edit1.Text), edit2.Text, arq.Values['chave']);
 end;
 
@@ -236,9 +238,17 @@ begin
     end
     else if HttpClient.ResponseCode in [200, 201] then  begin
       arqtmp.Add('ok=1');
-      arqtmp.Values['txid'] := le_campoJson('"txid"', Memo1.Text);
-      arqtmp.Values['id']   := le_campoJson('"id"'  , Memo1.Text);
-      arqtmp.Values['qrcode']   := le_campoJson('"qrcode"'  , RichEdit1.Text);
+
+      if bancoNUM = 6 then begin
+        arqtmp.Values['qrcode']   := le_campoJson('"qrcode"'  , RichEdit1.Text);
+        arqtmp.Values['txid'] := le_campoJson('"txid"', Memo1.Text);
+        arqtmp.Values['id']   := le_campoJson('"id"'  , Memo1.Text);
+      end;
+      if bancoNUM = 1 then begin
+        arqtmp.Values['qrcode'] := le_campoJson('"textoImagemQRcode"'  , RichEdit1.Text);
+        arqtmp.Values['txid']   := le_campoJson('"txid"', RichEdit1.Text);
+        arqtmp.Values['id']     := '0';
+      end;
     end
     else begin
       arqtmp.Add('ok=0');
@@ -261,6 +271,11 @@ begin
     if HttpClient.ResponseCode in [200, 201] = false then arqtmp.Values['estado'] := IntToStr(HttpClient.ResponseCode);
 
     arqtmp.Add('ret=' + IntToStr(HttpClient.ResponseCode));
+    if (bancoNUM = 1) and (RichEdit1.Text <> '') then begin
+      arqtmp.Values['estado'] := le_campoJson('"status"', RichEdit1.Text);
+      arqtmp.Values['ret'] := '200';
+    end;
+
     arqtmp.SaveToFile(caminhoPasta+ 'PIXrec.dat');
 
     Timer2.Enabled := true;
@@ -299,6 +314,8 @@ begin
   OAuth2Authenticator.AccessToken  := arq.Values['AccessToken'];
   OAuth2Authenticator.RefreshToken := arq.Values['RefreshToken'];
   endPoint                         := arq.Values['endPoint'];
+  cobendPoint                      := arq.Values['cobendPoint'];
+  consultaEndPoint                 := arq.Values['consultaEndPoint'];
 
 
   banco.ItemIndex := StrToInt(arq.Values['tipo']);
@@ -317,7 +334,8 @@ begin
   else if arq.Values['tipoGET'] = 'DELETE' then RESTRequest.Method := rmDELETE
   else if arq.Values['tipoGET'] = 'PATCH' then RESTRequest.Method  := rmPATCH;
 
-  {OAuth2Authenticator.AuthorizationEndpoint := arq.Values['AuthorizationEndpoint'];
+  {OAuth2Authenticator.AuthorizationEndpoint :=
+   arq.Values['AuthorizationEndpoint'];
   OAuth2Authenticator.AccessTokenEndpoint   := arq.Values['AccessTokenEndpoint'];
   OAuth2Authenticator.RedirectionEndpoint   := arq.Values['RedirectionEndpoint'];
   OAuth2Authenticator.Scope                 := arq.Values['Scope'];
@@ -349,7 +367,7 @@ end;
 procedure TForm1.FormShow(Sender: TObject);
 begin
   Button3.Click;
-  bloqueia(1);
+  //bloqueia(1);
 end;
 
 procedure TForm1.RESTRequestAfterExecute(Sender: TCustomRESTRequest);
@@ -466,8 +484,10 @@ var
   JsonToSend : TStringStream;
   arqtemp : TStringList;
 begin
+  RichEdit1.Clear;
+
   if bancoNUM = 6 then begin
-    RichEdit1.Clear;
+
 
     //chave homologação testqrcode01@bb.com.br
 
@@ -499,8 +519,11 @@ begin
     try
       RichEdit1.Text := HttpClient.Post(endPoint + '/v2/cob',JsonToSend);    //mudar URL aqui
       Result := RichEdit1.Text;
+
+      gravaLOG('criarQrcode1:' + #13 + Result);
+
     except
-      RichEdit1.Lines.Add (HttpClient.ResponseText + #13 + #13 + HttpClient.Request.RawHeaders.Text);
+      //RichEdit1.Lines.Add (HttpClient.ResponseText + #13 + #13 + HttpClient.Request.RawHeaders.Text);
       exit;
     end;
 
@@ -517,9 +540,9 @@ begin
     try
       RichEdit1.Lines.Add(HttpClient.Get(endPoint +'/v2/loc/'+id+'/qrcode'));    //mudar URL aqui
       Result := RichEdit1.Text;
-      //RichEdit1.Text := HttpClient.Post('https://api-pix-h.gerencianet.com.br/v2/loc/:id/qrcode',JsonToSend);    //mudar URL aqui
+
+      gravaLOG('criarQrcode2:' + #13 +Result);
     except
-      RichEdit1.Lines.Add (HttpClient.ResponseText + #13 + #13 + HttpClient.Request.RawHeaders.Text);
       exit;
     end;
 
@@ -566,7 +589,7 @@ begin
     IdSSLIOHandlerSocketOpenSSL1.SSLOptions.Mode := sslmBoth;
     IdSSLIOHandlerSocketOpenSSL1.SSLOptions.SSLVersions := [sslvTLSv1_2];   //mudar protocolos de SSL aqui
 
-    HttpClient.Request.CustomHeaders.AddValue('Authorization', 'Bearer ' + arq.Values['AccessToken']);
+    HttpClient.Request.CustomHeaders.AddValue('Authorization', 'Bearer ' + ACESSTOKEN_ATUAL);
 
     JsonToSend := TStringStream.Create(body);
 
@@ -581,17 +604,18 @@ begin
    end
   else if bancoNUM = 1 then begin
     //chave homologação testqrcode01@bb.com.br
+    //chave homologação testqrcode01@bb.com.br
 
     body := '{"calendario": {"expiracao": 36000},"valor": {"original": "'+StringReplace(FormatCurr('0.00', valor), ',', '.', [rfReplaceAll])+'"},"chave": "'+chave+'","solicitacaoPagador": "'+descricao+'"}';
 
     HttpClient.Request.Clear;
     HttpClient.Request.CustomHeaders.Clear;
 
-    HttpClient.Request.ContentEncoding := 'utf-8';
-    HttpClient.Request.Accept := 'application/json';
+//    HttpClient.Request.ContentEncoding := 'utf-8';
+    //HttpClient.Request.Accept := 'application/json';
     HttpClient.Request.ContentType := 'application/json';
-    HttpClient.Request.CharSet     := 'utf-8';
-    HttpClient.Request.UserAgent := 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0; Acoo Browser; GTB5; Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1) ; Maxthon; InfoPath.1; .NET CLR 3.5.30729; .NET CLR 3.0.30618)';
+  //  HttpClient.Request.CharSet     := 'utf-8';
+   // HttpClient.Request.UserAgent := 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0; Acoo Browser; GTB5; Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1) ; Maxthon; InfoPath.1; .NET CLR 3.5.30729; .NET CLR 3.0.30618)';
     HttpClient.HandleRedirects := True;
     HttpClient.HTTPOptions := [hoKeepOrigProtocol, hoInProcessAuth];
 
@@ -599,7 +623,7 @@ begin
     IdSSLIOHandlerSocketOpenSSL1.SSLOptions.SSLVersions := [sslvTLSv1_2];   //mudar protocolos de SSL aqui
 
     HttpClient.Request.CustomHeaders.AddValue('Authorization', 'Bearer ' + arq.Values['AccessToken']);
-    HttpClient.Request.CustomHeaders.AddValue('X-Developer-Application-Key', arq.Values['RefreshToken']);
+    //HttpClient.Request.CustomHeaders.AddValue('X-Developer-Application-Key', arq.Values['RefreshToken']);
     HttpClient.Request.AcceptEncoding := 'gzip, deflate, br';
     HttpClient.Request.Connection     := 'keep-alive';
     HttpClient.Request.AcceptLanguage := 'en-US,en;q=0.8';
@@ -609,10 +633,62 @@ begin
     JsonToSend.Position := 0;
 
     try
-      RichEdit1.Text := HttpClient.Put('https://api.hm.bb.com.br/pix/v1/cobqrcode/',JsonToSend);    //mudar URL aqui
+      RichEdit1.Text := HttpClient.Put(cobendPoint+'?gw-dev-app-key=' + arq.Values['RefreshToken'],JsonToSend);    //mudar URL aqui
       Result := RichEdit1.Text;
     except
-      RichEdit1.Lines.Add (HttpClient.ResponseText + #13 + #13 + HttpClient.Request.RawHeaders.Text);
+      on e:exception do begin
+        RichEdit1.Lines.Add(e.Message);
+        RichEdit1.Lines.Add(cobendPoint);
+        RichEdit1.Lines.Add(body);
+        RichEdit1.Lines.Add('X-Developer-Application-Key=' + arq.Values['RefreshToken']);
+
+        Memo1.Text := HttpClient.Request.RawHeaders.Text;
+      end;
+
+
+      //RichEdit1.Lines.Add (HttpClient.ResponseText + #13 + #13 + HttpClient.Request.RawHeaders.Text);
+    end;
+
+
+    exit;
+
+    body := '{"calendario": {"expiracao": "36000"},"valor": {"original": "'+StringReplace(FormatCurr('0.00', valor), ',', '.', [rfReplaceAll])+'"},"chave": "'+chave+'","solicitacaoPagador": "'+descricao+'"}';
+
+    //ShowMessage(body);
+    HttpClient.Request.Clear;
+    HttpClient.Request.CustomHeaders.Clear;
+
+
+     HttpClient.Request.ContentEncoding := 'utf-8';
+    HttpClient.Request.Accept := 'application/json';
+    HttpClient.Request.ContentType := 'application/json';
+    HttpClient.Request.CharSet     := 'utf-8';
+    HttpClient.Request.UserAgent := 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0; Acoo Browser; GTB5; Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1) ; Maxthon; InfoPath.1; .NET CLR 3.5.30729; .NET CLR 3.0.30618)';
+    HttpClient.HandleRedirects := True;
+
+    IdSSLIOHandlerSocketOpenSSL1.SSLOptions.Mode := sslmClient;
+    IdSSLIOHandlerSocketOpenSSL1.SSLOptions.SSLVersions := [sslvTLSv1_2];   //mudar protocolos de SSL aqui
+
+    HttpClient.Request.CustomHeaders.AddValue('Authorization', 'Bearer ' + arq.Values['AccessToken']);
+
+    IdSSLIOHandlerSocketOpenSSL1.SSLOptions.SSLVersions := [sslvTLSv1_2];   //mudar protocolos de SSL aqui
+
+    //HttpClient.Request.CustomHeaders.AddValue('X-Developer-Application-Key', arq.Values['RefreshToken']);
+
+    JsonToSend := TStringStream.Create(body);
+
+    JsonToSend.Position := 0;
+
+    try
+      //chEdit1.Text := HttpClient.Put('https://api.hm.bb.com.br/pix/v1/cobqrcode/',JsonToSend);    //mudar URL aqui
+      RichEdit1.Text := HttpClient.Put(cobendPoint ,JsonToSend);    //mudar URL aqui
+      Result := RichEdit1.Text;
+    except
+        on e:exception do begin
+        RichEdit1.Lines.Add(e.Message);
+      end;
+
+     //ichEdit1.Lines.Add (HttpClient.ResponseText + #13 + #13 + HttpClient.Request.RawHeaders.Text);
     end;
   end;
 end;
@@ -623,6 +699,7 @@ var
   body : String;
   JsonToSend : TStringStream;
 begin
+  RichEdit1.Clear;
   if bancoNUM = 6 then begin
 
     //chave homologação testqrcode01@bb.com.br
@@ -657,6 +734,7 @@ begin
     try
       RichEdit1.Lines.Add(HttpClient.Get(endPoint +'/v2/cob/' + txid));    //mudar URL aqui
       Result := RichEdit1.Text;
+      gravaLOG('consultaPIX:' + #13 +RichEdit1.Text);
       //
     except
       RichEdit1.Lines.Add (HttpClient.ResponseText + #13 + #13 + HttpClient.Request.RawHeaders.Text);
@@ -714,31 +792,33 @@ begin
     HttpClient.Request.Clear;
     HttpClient.Request.CustomHeaders.Clear;
 
-    HttpClient.Request.ContentEncoding := 'utf-8';
+   { HttpClient.Request.ContentEncoding := 'utf-8';
     HttpClient.Request.Accept := 'application/json';
     HttpClient.Request.ContentType := 'application/json';
     HttpClient.Request.CharSet     := 'utf-8';
     HttpClient.Request.UserAgent := 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0; Acoo Browser; GTB5; Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1) ; Maxthon; InfoPath.1; .NET CLR 3.5.30729; .NET CLR 3.0.30618)';
-    HttpClient.HandleRedirects := True;
+    }HttpClient.HandleRedirects := True;
 
     IdSSLIOHandlerSocketOpenSSL1.SSLOptions.Mode := sslmClient;
     IdSSLIOHandlerSocketOpenSSL1.SSLOptions.SSLVersions := [sslvTLSv1_2];   //mudar protocolos de SSL aqui
 
-    HttpClient.Request.CustomHeaders.AddValue('Authorization', 'Bearer ' + arq.Values['AccessToken']);
+    HttpClient.Request.CustomHeaders.AddValue('Authorization', 'Bearer ' + ACESSTOKEN_ATUAL);
 
-    HttpClient.Request.AcceptEncoding := 'gzip, deflate, br';
+
+
+   { HttpClient.Request.AcceptEncoding := 'gzip, deflate, br';
     HttpClient.Request.Connection     := 'keep-alive';
     HttpClient.Request.AcceptLanguage := 'en-US,en;q=0.8';
-
+    }
     JsonToSend := TStringStream.Create(body);
 
     JsonToSend.Position := 0;
 
     try
-      RichEdit1.Text := HttpClient.Get('https://api.hm.bb.com.br/pix/v1/cob/'+TRIM(txid)+'?gw-dev-app-key=' + TRIM(arq.Values['RefreshToken']));    //mudar URL aqui
+      RichEdit1.Text := HttpClient.Get(consultaEndPoint+TRIM(txid)+'?gw-dev-app-key=' + TRIM(arq.Values['RefreshToken']));    //mudar URL aqui
       Result := RichEdit1.Text;
     except
-      RichEdit1.Lines.Add (HttpClient.ResponseText + #13 + #13 + HttpClient.Request.RawHeaders.Text);
+      //RichEdit1.Lines.Add (HttpClient.ResponseText + #13 + #13 + HttpClient.Request.RawHeaders.Text);
     end;
   end;
 end;
@@ -749,6 +829,7 @@ var
   body : String;
   JsonToSend : TStringStream;
 begin
+  RichEdit1.Clear;
   if bancoNUM = 6 then begin
     //chave homologação testqrcode01@bb.com.br
 
@@ -776,10 +857,6 @@ begin
     b64 := TIdEncoderMIME.Create(nil);
     HttpClient.Request.CustomHeaders.AddValue('Authorization', 'Basic ' + b64.EncodeString(arq.Values['ClientID'] + ':' + arq.Values['ClientSecret']));
 
-    //HttpClient.Request.Username := arq.Values['ClientID'];
-    //HttpClient.Request.Password := arq.Values['ClientSecret'];
-    //HttpClient.Request.BasicAuthentication := true;
-
     body := '{"grant_type": "client_credentials"}';
     JsonToSend := TStringStream.Create(body);
 
@@ -787,8 +864,9 @@ begin
 
     try
       RichEdit1.Text := HttpClient.Post(endPoint +'/oauth/token', JsonToSend);    //mudar URL aqui
+      gravaLOG('GerarToken:' + #13 +RichEdit1.Text);
     except
-      RichEdit1.Lines.Add (HttpClient.ResponseText + #13 + #13 + HttpClient.Request.RawHeaders.Text);
+      //RichEdit1.Lines.Add (HttpClient.ResponseText + #13 + #13 + HttpClient.Request.RawHeaders.Text);
     end;
 
     Memo1.Text := (HttpClient.Request.RawHeaders.Text);
@@ -826,6 +904,56 @@ begin
     arq.SaveToFile(ExtractFileDir(ParamStr(0)) + '\REST.DAT');
   end
   else if bancoNUM = 1 then begin
+    //chave homologação testqrcode01@bb.com.br
+
+
+    HttpClient.Request.Clear;
+    HttpClient.Request.CustomHeaders.Clear;
+
+    HttpClient.ProtocolVersion := pv1_1;
+    HttpClient.Request.CharSet     := 'utf-8';
+    HttpClient.HandleRedirects := True;
+
+    HttpClient.Request.BasicAuthentication := False;
+
+    IdSSLIOHandlerSocketOpenSSL1.SSLOptions.SSLVersions := [sslvTLSv1_2];
+
+    b64 := TIdEncoderMIME.Create(nil);
+    HttpClient.Request.CustomHeaders.AddValue('Authorization', 'Basic ' + b64.EncodeString(arq.Values['ClientID'] + ':' + arq.Values['ClientSecret']));
+
+    body := '{"scope": "cob.read cob.write pix.read pix.write"}';
+    JsonToSend := TStringStream.Create(body);
+
+    HttpClient.HTTPOptions := [hoKeepOrigProtocol, hoInProcessAuth];
+    JsonToSend.Position := 0;
+
+    try
+      RichEdit1.Text := HttpClient.Post(endPoint +'/oauth/token?grant_type=client_credentials', JsonToSend);    //mudar URL aqui
+      gravaLOG('GerarToken:' + #13 +RichEdit1.Text);
+    except
+      on e:exception do begin
+        //RichEdit1.Lines.Add(e.Message);
+      end;
+      //RichEdit1.Lines.Add (HttpClient.ResponseText + #13 + #13 + HttpClient.Request.RawHeaders.Text);
+    end;
+
+    //RichEdit1.Lines.Add(HttpClient.ResponseText);
+    //RichEdit1.Lines.Add(IntToStr(HttpClient.ResponseCode));
+
+    //Memo1.Text := (HttpClient.Request.RawHeaders.Text);
+
+    if pos('"expires_in"', RichEdit1.Text) = 0 then exit;
+
+
+
+    ACESSTOKEN_ATUAL          := le_campoJson('"access_token"', RichEdit1.Text);
+    arq.Values['AccessToken'] := le_campoJson('"access_token"', RichEdit1.Text);
+    arq.SaveToFile(ExtractFileDir(ParamStr(0)) + '\REST.DAT');
+
+    exit;
+    //carregaConfig;
+
+    {
     RESTClient.ResetToDefaults;
     RESTRequest.ResetToDefaults;
 
@@ -849,7 +977,7 @@ begin
 
    arq.Values['AccessToken'] := le_campoJson('"access_token"', RichEdit1.Text);
    arq.Values['xsenc'] := b64.EncodeString(arq.Values['ClientID'] + ':' + arq.Values['ClientSecret']);
-   arq.SaveToFile(ExtractFileDir(ParamStr(0)) + '\REST.DAT');
+   arq.SaveToFile(ExtractFileDir(ParamStr(0)) + '\REST.DAT');    }
  end
  else if bancoNUM = 4 then begin
     RESTClient.ResetToDefaults;
@@ -920,6 +1048,32 @@ begin
   end;
 end;
 
+
+procedure TForm1.gravaLOG(txt : String);
+var
+  F : TextFile;
+  S, temp, caminho : String;
+  I : Integer;
+begin
+  caminho := ExtractFileDir(ParamStr(0)) + '\PIX_LOG.txt';;
+  I := 0;
+  S := '';
+  temp := '';
+  AssignFile(F,(Caminho));
+
+  If FileExists((Caminho)) Then
+    Append(F)
+  Else Rewrite(F);
+
+  temp :=#13+'DATA: ' + FormatDateTime('c', Now)+#13+ txt;
+
+
+
+
+
+  Writeln(F,temp);
+  CloseFile(F);
+end;
 
 end.
 

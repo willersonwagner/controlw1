@@ -31,7 +31,6 @@ requires
   rtl,
   vcl,
   dbrtl,
-  ibxpress,
   designide,
   vclactnband,
   vclx,

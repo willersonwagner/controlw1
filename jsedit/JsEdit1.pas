@@ -31,7 +31,7 @@ type
   public
     func : boolean;
     num :integer;
-    form, tipoBancoDados : string;
+    form, tipoBancoDados,Ulterro : string;
     class function getCamposNomes(formi : string) : String;
     function ContaComponentesPorForm(form:string) : integer;
     constructor Create(AOwner:TComponent);override;
@@ -57,7 +57,7 @@ type
     class function GetPrimeiroCampo(formi:string) : JsEdit;
     class function GetPrimeiroBotao(form:string) : TBitBtn;
     class function GetUltimoBotao(form:string) : TBitBtn;
-    class function GravaNoBD(form:tform; usaGen : boolean = true; genName : string = '') : string;
+    class function GravaNoBD(form:tform; usaGen : boolean = true; genName : string = ''; msgErro : boolean = true) : string;
     class function SelecionaDoBD(formi:string; msg :boolean = true; condicao : String = '') : boolean;
     class function NovoCodigo(formi:string; genName : String = '') : integer;
     class function  AchaProximo(comp:TComponent) : TComponent;
@@ -86,7 +86,7 @@ procedure Register;
 
 implementation
 
-uses DB, StrUtils;
+uses DB, StrUtils, JsEditNumero1;
 //Uma variável qualquer declarada aqui é entendida como atributo da classe
 var lista,botoes : TObjectList;tabelas, primarykey:Tstringlist; primeiroBotao, ultimoBotao : TBitBtn;
 primeiroCampo : TObject; tabela,formulario : string; query : tibquery;conta,n:integer;
@@ -296,6 +296,8 @@ procedure JsEdit.KeyPress(var Key: Char);
 var ok : boolean;
 begin
 inherited KeyPress(Key);
+
+
 if self.func then
  begin
   ok := true;
@@ -350,8 +352,7 @@ begin
        if GetPrimeiroBotao(self.Owner.Name)<>nil then  GetPrimeiroBotao(self.Owner.Name).SetFocus;
      end;
     //seta acima - sobe até o primeiro componente
-    if (Key = 38) then
-       begin
+    if (Key = 38) then begin
          if TEdit(lista.Items[RetornaIndiceDoPrimeiroCampo(self.Owner.Name)]).Enabled then primeiroCampo := lista.Items[RetornaIndiceDoPrimeiroCampo(self.Owner.Name)] else
            primeiroCampo := lista.Items[Retorna_Indice_Do_PrimeiroCampo_Ativado(self.Owner.Name)];
          if (TComponent(self) <> TComponent(primeiroCampo)) then
@@ -384,21 +385,28 @@ begin
 end;
 
 class procedure JsEdit.LiberaMemoria(form : tform);
-var i : integer;
+var
+  i, a : integer;
+  listatemp  : TObjectList;
+  botoestemp : TObjectList;
 begin
-  if not Assigned(lista) then lista := TObjectList.Create;
+  if not Assigned(lista)  then  lista := TObjectList.Create;
   if not Assigned(botoes) then botoes := TObjectList.Create;
   //varre a lista de traz pra frente excluindo os componentes
 
+  a := 0;
   try
   if lista <> nil then
     begin
       for i := lista.Count-1 downto 0 do begin
         try
-          if tform(lista.Items[i]).Owner.Name = form.Name then begin
-            lista.Delete(i);
-          end;
+            if tform(lista.Items[i]).Owner.Name = form.Name then begin
+              lista.Delete(i);
+            end;
         except
+          on e:exception do begin
+              //ShowMessage('erro1:' + e.Message + #13 + 'idx=' + IntToStr(i));
+            end;
         end;
       end;
 
@@ -406,26 +414,16 @@ begin
       for i := botoes.Count-1 downto 0 do
         begin
           try
-          if assigned(botoes.Items[i]) then begin
             if TBitBtn(botoes.Items[i]).Owner.Name = form.Name then begin
               botoes.Delete(i);
             end;
-          end
-          else botoes.Delete(i);
-          finally
-
+          except
+            on e:exception do begin
+              //ShowMessage('erro2:' + e.Message);
+            end;
           end;
         end;
-
-      if botoes.Count = 0 then begin
-        botoes.Clear;
-      end;
   end;
-
-  if lista.Count = 0 then begin
-    lista.Clear;
-  end;
-
  end;
   finally
   end;
@@ -502,7 +500,14 @@ begin
        JsEdit(lista.Items[ini]).Text := '__.___.___/___-___';
       if tipo = 'JsEditNumero' then begin
         DECIMAIS    := '00';
-        IF POS(UpperCase(JsEdit(lista.Items[ini]).Name), 'P_COMPRA|P_VENDA|QUANT') > 0 THEN DECIMAIS := '000';
+        if JsEditNumero(lista.Items[ini]).decimal = 6 then DECIMAIS := '000000'
+        else if JsEditNumero(lista.Items[ini]).decimal = 5 then DECIMAIS := '00000'
+        else if JsEditNumero(lista.Items[ini]).decimal = 4 then DECIMAIS := '0000'
+        else if JsEditNumero(lista.Items[ini]).decimal = 3 then DECIMAIS := '000'
+        else if JsEditNumero(lista.Items[ini]).decimal = 2 then DECIMAIS := '00';
+
+        JsEditNumero(lista.Items[ini]).deci := false;
+        IF POS(UpperCase(JsEdit(lista.Items[ini]).Name), 'P_COMPRA|QUANT') > 0 THEN DECIMAIS := '000';
         JsEdit(lista.Items[ini]).Text := '0,' + decimais;
       end;
       finally
@@ -590,7 +595,7 @@ if lista <> nil then
  end;
 end;
 
-class function JsEdit.GravaNoBD(form:tform; usaGen : boolean = true; genName : string = '') : string;
+class function JsEdit.GravaNoBD(form:tform; usaGen : boolean = true; genName : string = ''; msgErro : boolean = true) : string;
 var
   ini, fim, ultCod, codAtual, tmp : integer; stringSql, PKTabela, 
   sqlUpdate, condicao : String;
@@ -684,7 +689,21 @@ begin
     arq.Free;
 
     if query.Transaction.InTransaction then query.Transaction.Commit;
-    query.ExecSQL;
+
+    if msgErro = false then begin
+      query.ExecSQL;
+    end
+    else begin
+      try
+        query.ExecSQL;
+      except
+        on e:exception do begin
+          MessageDlg(e.Message + #13 + #13 + stringSql, mtError, [mbOK], 1);
+          exit;
+        end;
+      end;
+    end;
+
     if query.Transaction.InTransaction then query.Transaction.Commit;
     LimpaCampos(form.Name);
 end;
@@ -918,6 +937,13 @@ begin
   if (nomeDaClasse = 'JsEditNumero') then
    begin
      nomeDoCampo := UpperCase(nomeDoCampo);
+
+     if JsEditNumero(campo).decimal = 6 then DECIMAIS := '000000'
+     else if JsEditNumero(campo).decimal = 5 then DECIMAIS := '00000'
+     else if JsEditNumero(campo).decimal = 4 then DECIMAIS := '0000'
+     else if JsEditNumero(campo).decimal = 3 then DECIMAIS := '000'
+     else if JsEditNumero(campo).decimal = 2 then DECIMAIS := '00';
+
 
      IF POS(nomeDoCampo, 'P_COMPRA|P_VENDA|QUANT') > 0 THEN DECIMAIS := '000';
      ret := FormatCurr('#,###,###0.' + DECIMAIS, query.FieldByName(nomeDoCampo).AsCurrency);

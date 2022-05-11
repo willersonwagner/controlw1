@@ -164,6 +164,11 @@ if decimal = 0 then decimal := 2;
 //se foi teclado ponto, troca por virgula
 if vkey='.' then vkey:=',';
 
+
+if ((vkey = ',') and (GetSelLength = Length(text))) then begin
+  novo;
+end;
+
 if vkey = #13 then
  begin
   if text='' then text := '0'+GeraDecimais
@@ -187,6 +192,7 @@ if vkey = #13 then
      end;
     if StrToCurr(ConverteNumerico(text))=0 then text := '0'+GeraDecimais;
  end;
+
 
 //Se for pressionado DELETE o texto do componente é igual a zero
 if (vkey=#46) or (vkey=#8) then

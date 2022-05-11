@@ -253,8 +253,8 @@ begin
     end;
 
     cont := cont + 1;
-    if cont > 15 then begin
-      ShowMessage('Tempo esgotado sem resposta.');
+    if cont > 20 then begin
+      Result := 'Sem Resp.';
       exit;
     end;
 
@@ -348,8 +348,9 @@ begin
 
   Label4.Caption := 'Valor R$: ' + FormatCurr('#,###,###0.00', valor);
   Result := '';
-  //mensagemEnviandoNFCE('Aguarde...', true, false);
+  mensagemEnviandoNFCE('Aguarde...', true, false);
 
+  DeleteFile(caminhoEXE_com_barra_no_final + 'PIXrec.dat');
 
   while True do begin
     inc(cont);
@@ -378,13 +379,15 @@ begin
     sleep(1000);
   end;
 
-  if qrcodePIX  = '' then begin
-    ///mensagemEnviandoNFCE('Aguarde, Enviando NFCe...', false, true);
+  if ((qrcodePIX  = '') or (Length(qrcodePIX) < 50)) then begin
+    mensagemEnviandoNFCE('Aguarde, Enviando NFCe...', false, true);
     ShowMessage('sem informação de cobrança');
     exit;
   end;
 
-  //mensagemEnviandoNFCE('Aguarde, Enviando NFCe...', false, true);
+
+
+  mensagemEnviandoNFCE('Aguarde, Enviando NFCe...', false, true);
   passos.SaveToFile('passos.txt');
 
   form84.Label3.Caption := 'Aguardando Pagamento';

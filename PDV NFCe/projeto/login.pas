@@ -8,7 +8,7 @@ uses
   sLabel, ExtCtrls, acPNG, func, untnfceForm, RLConsts, midaslib, IniFiles, acbrbal, funcoesdav,
   IdBaseComponent, IdComponent, IdTCPConnection, IdTCPClient, IdDayTime,
   IdUDPBase, IdUDPClient, IdSNTP, Vcl.Imaging.jpeg, frxClass, IdAntiFreezeBase,
-  Vcl.IdAntiFreeze, IdHTTP;
+  Vcl.IdAntiFreeze, IdHTTP, ShellApi;
 
 type
   Tform1 = class(TForm)
@@ -244,7 +244,11 @@ end;
 
 procedure Tform1.Button1Click(Sender: TObject);
 begin
-   qrcodePIX.Form84.Show; ///form82 := tform82.create(self);
+  if qrcodePIX.Form84.ProcessExists('PIX.EXE') = false then begin
+    ShellExecute(handle, 'open', PChar(ExtractFileDir(ParamStr(0)) +'\PIX.exe'), '', '', SW_SHOWNORMAL);
+  end;
+
+  // qrcodePIX.Form84.Show; ///form82 := tform82.create(self);
 end;
 
 procedure Tform1.Button2Click(Sender: TObject);

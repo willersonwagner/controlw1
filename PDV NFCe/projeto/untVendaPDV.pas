@@ -841,6 +841,8 @@ begin
 
   cliente := codCliente;
 
+  mostraTroco();
+
   //obs := trim('Total Impostos Pagos R$' + formataCurrency(TotTributos) + '('+ formataCurrency((TotTributos / tot1) * 100) +'%)Fonte IBPT');
 
   //achou uma venda em PIX
@@ -850,7 +852,7 @@ begin
     end;
 
     IF qrcodePIX.Form84.recebePIX(PIX_Val, 'PDV CAIXA ' + getSerieNFCe) = 'OK' then begin
-      ShowMessage('PIX Recebido com Sucessso!');
+      //ShowMessage('PIX Recebido com Sucessso!');
     end
     else begin
       ShowMessage('Erro no Recebimento do PIX');
@@ -859,8 +861,6 @@ begin
 
   end;
 
-
-  mostraTroco();
   recebido1 := recebido;
 
   try
