@@ -35,6 +35,7 @@ type
   public
     arqPIX : TStringList;
     txid1, qrcodePIX, caminhoEXE_com_barra_no_final : String;
+    valor_venda : currency;
     cont, cont1, cont2 : integer;
     function PIXConsulta(txid : String) : string;
     function recebePIX(valor : currency; descricao : String) : string;
@@ -50,6 +51,8 @@ var
 implementation
 
 {$R *.dfm}
+
+uses untVendaPDV;
 
 
 procedure TForm84.Button1Click(Sender: TObject);
@@ -136,6 +139,8 @@ end;
 procedure TForm84.Timer2Timer(Sender: TObject);
 begin
   if Label3.Caption = 'Recebimento Concluido com Sucesso!' then begin
+    form3.adicionaRegistroPagamentoBanco('1', valor_venda, 0, txid1);
+
     Timer2.Enabled := false;
     Timer1.Enabled := false;
 
@@ -344,6 +349,7 @@ begin
   passos := TStringList.Create;
   cont := 0;
 
+  valor_venda := valor;
   Timer3.Enabled := true;
 
   Label4.Caption := 'Valor R$: ' + FormatCurr('#,###,###0.00', valor);

@@ -140,6 +140,7 @@ type
     enviandoCupom, enviandoBackup: boolean;
     fonteRelatorioForm19: integer;
     NegritoRelatorioForm19, saiComEnter: boolean;
+    procedure adicionaRegistroPagamentoBanco(tipo :string; valor : currency; nota : integer; obs : String);
     function ProcessExists(exeFileName: string): Boolean;
     function recebePIX(valor : currency; descricao : String) : string;
     function PIXConsulta(txid : String) : string;
@@ -3400,8 +3401,7 @@ begin
   form22.Pgerais.Values['imp'] := tmp;
 
   try
-    dm.ACBrCargaBal1.modelo := TACBrCargaBalModelo
-      (StrToIntDef(LerConfig(form22.Pgerais.Values['imp'], 14), 0));
+    dm.ACBrCargaBal1.modelo := TACBrCargaBalModelo(StrToIntDef(LerConfig(form22.Pgerais.Values['imp'], 14), 0));
   except
   end;
 
@@ -11376,6 +11376,51 @@ begin
       if execSqlMostraErro(dm.IBQuery1) = false then exit;
       dm.IBQuery1.Transaction.Commit;
      end;
+
+    if not VerificaCampoTabela('infnutri', 'produto') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('ALTER TABLE produto ADD infnutri VARCHAR(200) DEFAULT '''' ');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+     end;
+
+     if NOT verSeExisteTabela('PAGTOBANCO') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.text := 'CREATE TABLE PAGTOBANCO (COD INTEGER NOT NULL, TIPO VARCHAR(1),' +
+        'VALOR NUMERIC(10,2),NOTA INTEGER,OBS VARCHAR(200))';
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.text := 'alter table PAGTOBANCO add constraint PK_PAGTOBANCO primary key (COD)';
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.text := 'create sequence PAGTOBANCO ';
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+    end;
+
+    if not VerificaCampoTabela('os', 'venda') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('ALTER TABLE venda ADD os numeric(1,0) DEFAULT 0 ');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+     end;
+
+
+     if not VerSeExisteTRIGGERPeloNome('INSERE_CAIXA_CONTAS_RECEBER1') then begin
+      dm.IBScript1.Script.Text := ('CREATE TRIGGER INSERE_CAIXA_CONTAS_RECEBER1 FOR CONTASRECEBER ' +
+      ' ACTIVE BEFORE UPDATE POSITION 0 AS declare variable valor numeric(10, 2); declare variable codmov integer; begin ' +
+      ' valor = 0; valor = old.valor - new.valor; '+
+      ' if (new.ULT_USU_ALTERADO > 0) then begin ' +
+      ' insert into caixa(formpagto,documento, codgru,codmov,codhis,data,datamov,historico,entrada,usuario, tipo, fornec, codentradasaida) ' +
+      ' values(new.codhis, new.documento ,1, gen_id(movcaixa, 1) ,1,cast(current_date as date) + cast(current_time as time),new.data,new.historico,:valor, new.ULT_USU_ALTERADO, ''R'', 1, new.cod); ' +
+      ' END '+
+      ' END;');
+      dm.IBScript1.ExecuteScript;
+    end;
 
     atualizaAtivoCliente;
 
@@ -23712,18 +23757,22 @@ end;
 
 function Tfuncoes.GeraCargaTXTBalanca(): boolean;
 var
-  ini, fim: integer;
+  ini, fim, contNutri, contTara: integer;
   balItem: TACBrCargaBalItem;
-  pasta: String;
+  nutri  : TACBrCargaBalNutricional;
+  pasta, infNutri: String;
+  arq : TStringList;
 begin
   dm.ACBrCargaBal1.Produtos.Clear;
   dm.IBselect.Close;
-  dm.IBselect.SQL.text :=
-    'select * from produto where left(codbar, 1) = ''2'' and char_length(codbar) <= 8 and char_length(codbar) >= 5';
+  dm.IBselect.SQL.text := 'select * from produto where left(codbar, 1) = ''2'' and char_length(codbar) <= 8 and char_length(codbar) >= 5';
   dm.IBselect.Open;
   dm.IBselect.FetchAll;
   fim := dm.IBselect.RecordCount;
   ini := 0;
+  arq := TStringList.Create;
+  contNutri := 0;
+  contTara  := 0;
 
   informacao(ini, fim, dm.ACBrCargaBal1.ModeloStr + ', Aguarde...', true,
     False, 5);
@@ -23748,20 +23797,45 @@ begin
     //balItem.Receita := dm.IBselect.FieldByName('nome').AsString;
     // Nutricional     := Format('Informação Nutricional do item %d', [I]);;
 
-    balItem.Nutricional.Codigo := StrToIntDef(copy(dm.IBselect.FieldByName('codbar').AsString, 2, 4), 0);
-    balItem.Nutricional.qtd := 1;
-    balItem.Nutricional.UndPorcao := tpGramas;
-    balItem.Nutricional.PartInteira := 1;
-    balItem.Nutricional.PartDecimal := tpPara12;
-    balItem.Nutricional.MedCaseira := tpColherSopa;
-    balItem.Nutricional.ValorEnergetico := 20;
-    balItem.Nutricional.Carboidrato := 2;
-    balItem.Nutricional.Proteina := 3;
-    balItem.Nutricional.GorduraTotal := 4;
-    balItem.Nutricional.GorduraSaturada := 5;
-    balItem.Nutricional.GorduraTrans := 6;
-    balItem.Nutricional.Fibra := 7;
-    balItem.Nutricional.Sodio := 8;
+    //balItem.Nutricional.Codigo := StrToIntDef(copy(dm.IBselect.FieldByName('codbar').AsString, 2, 4), 0);
+    infNutri := trim(dm.IBselect.FieldByName('infnutri').AsString);
+    if Length(infNutri) > 30 then begin
+      contNutri := contNutri + 1;
+      arq.Clear;
+      LE_CAMPOS(arq, infNutri, '|', false);
+
+      balItem.Nutricional.Codigo := contNutri;
+
+      balItem.Nutricional.qtd := StrToIntDef(arq.Values['0'], 0);
+       if UpperCase(arq.Values['1']) = 'G' then balItem.Nutricional.UndPorcao := tpGramas
+       else if UpperCase(arq.Values['1']) = 'ML' then balItem.Nutricional.UndPorcao := tpMililitros
+       else if UpperCase(arq.Values['1']) = 'UN' then balItem.Nutricional.UndPorcao := tpUnidades;
+
+      balItem.Nutricional.PartInteira := StrToIntDef(arq.Values['2'], 0);
+      if arq.Values['3'] = '1/2' then balItem.Nutricional.PartDecimal := tpPara12
+      else if arq.Values['3'] = '1/4' then balItem.Nutricional.PartDecimal := tpPara14
+      else if arq.Values['3'] = '1/3' then balItem.Nutricional.PartDecimal := tpPara13
+      else if arq.Values['3'] = '2/3' then balItem.Nutricional.PartDecimal := tpPara23
+      else if arq.Values['3'] = '3/4' then balItem.Nutricional.PartDecimal := tpPara34
+      else if arq.Values['3'] = '0' then balItem.Nutricional.PartDecimal := tpPara0;
+
+      balItem.Nutricional.MedCaseira := TACBrCargaBalNutriMedCaseira(StrToIntDef(arq.Values['4'], 0));
+      balItem.Nutricional.ValorEnergetico := StrToIntDef(arq.Values['5'], 0);
+      balItem.Nutricional.Carboidrato := StrToFloatDef(arq.Values['6'], 0);
+      balItem.Nutricional.Proteina := StrToFloatDef(arq.Values['7'], 0);
+      balItem.Nutricional.GorduraTotal := StrToFloatDef(arq.Values['8'], 0);
+      balItem.Nutricional.GorduraSaturada := StrToFloatDef(arq.Values['9'], 0);
+      balItem.Nutricional.GorduraTrans := StrToFloatDef(arq.Values['10'], 0);
+      balItem.Nutricional.Fibra := StrToFloatDef(arq.Values['11'], 0);
+      balItem.Nutricional.Sodio := StrToFloatDef(arq.Values['12'], 0);
+      balItem.CodigoTara := contNutri;
+
+
+      balItem.Tara.Codigo := contNutri;
+      balItem.Tara.Valor  := StrToFloatDef(arq.Values['13'], 0);
+
+      balItem.CodigoInfoNutr := contNutri;
+    end;
 
     balItem.Setor.Codigo := 1;
     balItem.Setor.descricao := 'GERAL';
@@ -30588,6 +30662,7 @@ begin
     form22.qrcodePIX := arq.Values['qrcode'];
     form84.Label2.Caption := 'Estado: ...' ;
     form84.txid := arq.Values['txid'];
+    form84.valor_venda := valor;
 
     if (arq.Values['ret'] = '200') or (arq.Values['ret'] = '201') then break;
     if cont = 5 then break;
@@ -30640,6 +30715,20 @@ begin
 
   //if i >= 1 then Result := true
     //else Result := false;
+end;
+
+procedure Tfuncoes.adicionaRegistroPagamentoBanco(tipo :string; valor : currency; nota : integer; obs : String);
+var
+  query : TIBQuery;
+begin
+  query := dm.IBQuery1;
+
+  query.Close;
+  query.SQL.Text := 'insert into PAGTOBANCO(cod,tipo,valor,nota,obs) values(gen_id(PAGTOBANCO, 1), '+tipo+', '+
+  ':valor, gen_id(venda, 0) + 1, '+QuotedStr(obs)+' )';
+  query.ParamByName('valor').AsCurrency := valor;
+  query.ExecSQL;
+  query.Transaction.Commit;
 end;
 
 

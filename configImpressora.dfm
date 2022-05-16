@@ -102,8 +102,6 @@ object Form52: TForm52
     TabOrder = 1
     object TabSheet1: TTabSheet
       Caption = 'Impressora'
-      ExplicitLeft = 148
-      ExplicitTop = 280
       object Label1: TLabel
         Left = 16
         Top = 3

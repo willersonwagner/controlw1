@@ -321,7 +321,7 @@ begin
 
 
         dm.IBQuery1.Close;
-        dm.IBQuery1.SQL.Text := 'update contasreceber set previsao = :data where cod = :cod';
+        dm.IBQuery1.SQL.Text := 'update contasreceber set previsao = :data, ult_usu_alterado = -1 where cod = :cod';
         dm.IBQuery1.ParamByName('data').AsDate   := StrToDate(data);
         dm.IBQuery1.ParamByName('cod').AsString  := cod;
         dm.IBQuery1.ExecSQL;
@@ -492,16 +492,18 @@ begin
 
   while ((not DBGrid1.DataSource.DataSet.Eof) or (valorb <= 0)) do begin
     if (valorb <= 0) then break;
+
     if valorb >= DBGrid1.DataSource.DataSet.FieldByName('valor').AsCurrency then begin
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Clear;
-      dm.IBQuery1.SQL.Add('update contasreceber set valor=0,pago=:valor where cod='+DBGrid1.DataSource.DataSet.FieldByName('cod').AsString);
+      dm.IBQuery1.SQL.Add('update contasreceber set valor=0,pago=:valor, ult_usu_alterado = :ult_usu_alterado where cod='+DBGrid1.DataSource.DataSet.FieldByName('cod').AsString);
       dm.IBQuery1.ParamByName('valor').AsCurrency := DBGrid1.DataSource.DataSet.FieldByName('valor').AsCurrency;
+      dm.IBQuery1.ParamByName('ult_usu_alterado').AsInteger   := StrToInt(StrNum(form22.codusario));
       dm.IBQuery1.ExecSQL;
 
       valorb := valorb - DBGrid1.DataSource.DataSet.FieldByName('valor').AsCurrency;
 
-      dm.IBQuery1.Close;
+      {dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Clear;
       dm.IBQuery1.SQL.Add('insert into caixa(formpagto,codgru,codmov,codentradasaida,data,documento,vencimento,codhis,historico,entrada,usuario, tipo, fornec)'+
       ' values (:pagto,'+StrNum(DBGrid1.DataSource.DataSet.FieldByName('codgru').AsString)+','+StrNum(funcoes.novocod('movcaixa'))+','+StrNum(DBGrid1.DataSource.DataSet.FieldByName('cod').AsString)+',:data,'+StrNum(DBGrid1.DataSource.DataSet.FieldByName('documento').AsString)+',:venc,2,'+QuotedStr(DBGrid1.DataSource.DataSet.FieldByName('historico').AsString)+',:pago,'+StrNum(form22.codusario)+', ''R'', 1)');
@@ -509,7 +511,7 @@ begin
       dm.IBQuery1.ParamByName('data').AsDateTime := DateOf(form22.datamov) + timeof(now);
       dm.IBQuery1.ParamByName('venc').AsDateTime:= DBGrid1.DataSource.DataSet.FieldByName('vencimento').AsDateTime;
       dm.IBQuery1.ParamByName('pago').AsCurrency:= DBGrid1.DataSource.DataSet.FieldByName('valor').AsCurrency;
-      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.ExecSQL; }
 
       i := lista.Add(TacumProd.Create);
       lista[i].cod   := DBGrid1.DataSource.DataSet.FieldByName('documento').AsInteger;
@@ -522,19 +524,20 @@ begin
 
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Clear;
-      dm.IBQuery1.SQL.Add('update contasreceber set valor = :valor, datamov = :data where cod='+DBGrid1.DataSource.DataSet.FieldByName('cod').AsString);
+      dm.IBQuery1.SQL.Add('update contasreceber set valor = :valor, datamov = :data, ult_usu_alterado = :ult_usu_alterado where cod='+DBGrid1.DataSource.DataSet.FieldByName('cod').AsString);
       dm.IBQuery1.ParamByName('valor').AsCurrency := DBGrid1.DataSource.DataSet.FieldByName('valor').AsCurrency - valorb;
       dm.IBQuery1.ParamByName('data').AsDate      := form22.datamov;
+      dm.IBQuery1.ParamByName('ult_usu_alterado').AsInteger   := StrToInt(StrNum(form22.codusario));
       dm.IBQuery1.ExecSQL;
 
-      dm.IBQuery1.Close;
+      {dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Text := ('insert into caixa(formpagto,codgru,codmov,codentradasaida,data,documento,vencimento,codhis,historico,entrada,usuario, tipo, fornec)'+
       ' values (:pagto,'+DBGrid1.DataSource.DataSet.FieldByName('CODGRU').AsString+','+funcoes.novocod('movcaixa')+','+DBGrid1.DataSource.DataSet.FieldByName('COD').AsString+',:data,'+DBGrid1.DataSource.DataSet.FieldByName('DOCUMENTO').AsString+',:venc,'+'2'+','+QuotedStr(DBGrid1.DataSource.DataSet.FieldByName('historico').AsString)+',:pago,'+StrNum(form22.codusario)+', ''R'', 1)');
       dm.IBQuery1.ParamByName('pagto').AsString  := strnum(formapagto);
       dm.IBQuery1.ParamByName('data').AsDateTime := DateOf(form22.datamov) + timeof(now);
       dm.IBQuery1.ParamByName('venc').AsDateTime:= DBGrid1.DataSource.DataSet.FieldByName('VENCIMENTO').AsDateTime;
       dm.IBQuery1.ParamByName('pago').AsCurrency:= valorb;
-      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.ExecSQL;   }
 
       i := lista.Add(TacumProd.Create);
       lista[i].cod   := DBGrid1.DataSource.DataSet.FieldByName('documento').AsInteger;
@@ -549,13 +552,13 @@ begin
   end;
 
   if valorb <> 0 then begin
-    dm.IBQuery1.SQL.Text := ('insert into caixa(formpagto,codgru,codmov,codentradasaida,data,documento,vencimento,codhis,historico,entrada,usuario, tipo, fornec)'+
+    {dm.IBQuery1.SQL.Text := ('insert into caixa(formpagto,codgru,codmov,codentradasaida,data,documento,vencimento,codhis,historico,entrada,usuario, tipo, fornec)'+
     ' values (:pagto,'+DBGrid1.DataSource.DataSet.FieldByName('CODGRU').AsString+','+funcoes.novocod('movcaixa')+','+DBGrid1.DataSource.DataSet.FieldByName('COD').AsString+',:data,'+DBGrid1.DataSource.DataSet.FieldByName('historico').AsString+',:venc,2,'+QuotedStr(copy(DBGrid1.DataSource.DataSet.FieldByName('historico').AsString,1,length(DBGrid1.DataSource.DataSet.FieldByName('historico').AsString) - 5))+',:pago,'+StrNum(form22.codusario)+', ''R'', 1)');
     dm.IBQuery1.ParamByName('pagto').AsString  := strnum(formapagto);
     dm.IBQuery1.ParamByName('data').AsDateTime := DateOf(form22.datamov) + TimeOf(now);
     dm.IBQuery1.ParamByName('venc').AsDateTime := form22.datamov;
     dm.IBQuery1.ParamByName('pago').AsCurrency:= valorb;
-    dm.IBQuery1.ExecSQL;
+    dm.IBQuery1.ExecSQL;  }
 
     i := lista.Add(TacumProd.Create);
     lista[i].cod   := DBGrid1.DataSource.DataSet.FieldByName('documento').AsInteger;
@@ -626,25 +629,31 @@ begin
   v1 := DBGrid1.DataSource.DataSet.FieldByName('valor').AsCurrency;
   lin := 0;
 
-  if valorb = v1 then begin
+  //if valorb = v1 then begin
     dm.IBQuery2.Close;
     dm.IBQuery2.SQL.Clear;
-    dm.IBQuery2.SQL.Add('update contasreceber set valor = :valor, pago = pago + :pago, datamov = :datamov, ult_usu_alterado = :ult_usu_alterado where cod='+cod);
-    dm.IBQuery2.ParamByName('valor').AsCurrency := DBGrid1.DataSource.DataSet.FieldByName('valor').AsCurrency - StrToCurr(funcoes.ConverteNumerico(valorBaixado));
-    dm.IBQuery2.ParamByName('pago').AsCurrency  := valorb;
+    dm.IBQuery2.SQL.Add('update contasreceber set FORMPAGTO = :FORMPAGTO, valor = valor - :valor, pago = pago + :pago, datamov = :datamov, ult_usu_alterado = :ult_usu_alterado where cod='+cod);
+    dm.IBQuery2.ParamByName('FORMPAGTO').AsString           := strnum(formapagto);
+    dm.IBQuery2.ParamByName('valor').AsCurrency := StrToCurr(funcoes.ConverteNumerico(valorBaixado));
+
+    if valorb < v1 then dm.IBQuery2.ParamByName('pago').AsCurrency  := 0
+    else dm.IBQuery2.ParamByName('pago').AsCurrency  := valorb;
     dm.IBQuery2.ParamByName('datamov').AsDate   := form22.datamov;
     dm.IBQuery2.ParamByName('ult_usu_alterado').AsInteger   := StrToInt(StrNum(form22.codusario));
     dm.IBQuery2.ExecSQL;
-  end
+  {end
   else if valorb < v1 then begin
     dm.IBQuery2.Close;
     dm.IBQuery2.SQL.Clear;
-    dm.IBQuery2.SQL.Add('update contasreceber set valor = :valor, datamov = :datamov, ult_usu_alterado = :ult_usu_alterado  where cod='+cod);
-    dm.IBQuery2.ParamByName('valor').AsCurrency := v1 - valorb;
-    dm.IBQuery2.ParamByName('datamov').AsDate   := form22.datamov;
+    dm.IBQuery2.SQL.Add('update contasreceber set FORMPAGTO = :FORMPAGTO, valor = valor - :valor, datamov = :datamov, ult_usu_alterado = :ult_usu_alterado  where cod='+cod);
+    dm.IBQuery2.ParamByName('FORMPAGTO').AsString           := strnum(formapagto);
+    dm.IBQuery2.ParamByName('valor').AsCurrency             := valorb;
+    dm.IBQuery2.ParamByName('datamov').AsDate               := form22.datamov;
     dm.IBQuery2.ParamByName('ult_usu_alterado').AsInteger   := StrToInt(StrNum(form22.codusario));
     dm.IBQuery2.ExecSQL;
-  end;
+  end;}
+
+  dm.IBQuery2.Transaction.Commit;
 
   i := lista.Add(TacumProd.Create);
   lista[i].cod   := DBGrid1.DataSource.DataSet.FieldByName('documento').AsInteger;
@@ -652,7 +661,7 @@ begin
   lista[i].quant := valorb;
   lista[i].data  := DBGrid1.DataSource.DataSet.FieldByName('vencimento').AsDateTime;
 
-  dm.IBQuery2.Close;
+ { dm.IBQuery2.Close;
   dm.IBQuery2.SQL.text :=('insert into caixa(formpagto,codgru,codmov,codentradasaida,data,documento,vencimento,codhis,historico'+
   ',entrada,usuario, tipo, fornec) values (:pagto,:codgru,:codmov,'+StrNum(cod)+',:data,'+StrNum(DBGrid1.DataSource.DataSet.FieldByName('documento').AsString)+',:venc,2,'+QuotedStr(DBGrid1.DataSource.DataSet.FieldByName('historico').AsString)+',:pago,'+StrNum(form22.codusario)+', ''R'', 1)');
   dm.IBQuery2.ParamByName('pagto').AsString  := strnum(formapagto);
@@ -662,7 +671,7 @@ begin
   dm.IBQuery2.ParamByName('venc').AsDateTime := DBGrid1.DataSource.DataSet.FieldByName('vencimento').AsDateTime;
   dm.IBQuery2.ParamByName('pago').AsCurrency := valorb;
   dm.IBQuery2.ExecSQL;
-  dm.IBQuery2.Transaction.Commit;
+  dm.IBQuery2.Transaction.Commit;    }
 
   copiaContasReceber(dm.IBselect);
 

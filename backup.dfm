@@ -15,6 +15,7 @@ object Form44: TForm44
   Position = poScreenCenter
   OnCreate = FormCreate
   OnKeyDown = FormKeyDown
+  OnKeyPress = FormKeyPress
   OnKeyUp = FormKeyUp
   OnShow = FormShow
   PixelsPerInch = 96
@@ -74,5 +75,12 @@ object Form44: TForm44
   object DataSource1: TDataSource
     Left = 264
     Top = 128
+  end
+  object Timer1: TTimer
+    Enabled = False
+    Interval = 2500
+    OnTimer = Timer1Timer
+    Left = 464
+    Top = 24
   end
 end

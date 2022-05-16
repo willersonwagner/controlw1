@@ -12546,6 +12546,10 @@ object Form2: TForm2
           Caption = 'Alterar Validades Produtos de Pesagem'
           OnClick = AlterarValidadesProdutosdePesagem1Click
         end
+        object CadastrodeInformaesNutricionais1: TMenuItem
+          Caption = 'Cadastro de Informa'#231#245'es Nutricionais'
+          OnClick = CadastrodeInformaesNutricionais1Click
+        end
         object ConsultarCNPJ1: TMenuItem
           Caption = 'Consultar CNPJ'
           OnClick = ConsultarCNPJ1Click

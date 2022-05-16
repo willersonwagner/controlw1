@@ -29,6 +29,8 @@ type
   public
 
     txid : String;
+    valor_venda : currency;
+
     cont : integer;
     { Public declarations }
   end;
@@ -124,6 +126,8 @@ end;
 procedure TForm84.Timer2Timer(Sender: TObject);
 begin
   if Label3.Caption = 'Recebimento Concluido com Sucesso!' then begin
+    funcoes.adicionaRegistroPagamentoBanco('1', valor_venda, 0, txid);
+
     Timer2.Enabled := false;
     Timer1.Enabled := false;
     close;

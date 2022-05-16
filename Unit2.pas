@@ -413,6 +413,7 @@ type
     ransferencias1: TMenuItem;
     ConfernciadePorduto1: TMenuItem;
     NiveldeAcessoUsuario1: TMenuItem;
+    CadastrodeInformaesNutricionais1: TMenuItem;
     procedure LimparBloqueios1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure CadastrarUsurio1Click(Sender: TObject);
@@ -712,6 +713,7 @@ type
     procedure ransferencias1Click(Sender: TObject);
     procedure ConfernciadePorduto1Click(Sender: TObject);
     procedure NiveldeAcessoUsuario1Click(Sender: TObject);
+    procedure CadastrodeInformaesNutricionais1Click(Sender: TObject);
   private
     b, cont: integer;
     ini: Smallint;
@@ -1161,6 +1163,14 @@ begin
     btnVendas.Enabled := false
   else
     btnVendas.Enabled := true;
+
+  //Habilitar conferência de entrega de mercadorias? rotina de Uso mano tintas
+  //12/05/2022
+  if funcoes.buscaParamGeral(131, 'N') = 'S' then begin
+    ControledeEntrada1.Caption := 'Conferêcia de Entrega';
+    ControledeEntrada1.Visible := true;
+    ControledeEntregaMademato.Visible        := false;
+  end;
 
   {if funcoes.buscaParamGeral(122, 'N') = 'S' then begin
     ControledeEntregaMademato.Visible := true;
@@ -3516,7 +3526,7 @@ end;
 procedure TForm2.AlterarValidadesProdutosdePesagem1Click(Sender: TObject);
 begin
   funcoes.localizar('Alterar Validades', 'produto',
-    'cod, nome, codbar, substring(codbar from 6 for 3) as  validade', '', '',
+    'cod, nome, codbar, substring(codbar from 6 for 3) as  validade, infnutri', '', '',
     '', '', false, false, false,' where left(codbar, 1) = ''2'' and char_length(codbar) <= 8 and char_length(codbar) >= 5',
     500, nil);
 end;
@@ -4335,6 +4345,7 @@ begin
   form40.tipo.Add('128=generico');
   form40.tipo.Add('129=generico');
   form40.tipo.Add('130=generico');
+  form40.tipo.Add('131=generico');
 
   form40.troca := TStringList.Create;
   form40.troca.Add('0=S');
@@ -4471,6 +4482,7 @@ begin
   form40.troca.Add('128=S');
   form40.troca.Add('129=S');
   form40.troca.Add('130=S');
+  form40.troca.Add('131=S');
 
   form40.teclas := TStringList.Create;
   form40.teclas.Add('0=FT');
@@ -4606,6 +4618,7 @@ begin
   form40.teclas.Add('128=SN');
   form40.teclas.Add('129=SN');
   form40.teclas.Add('130=SN');
+  form40.teclas.Add('131=SN');
 
   form40.ListBox1.Clear;
   form40.ListBox1.Items.Add
@@ -4815,6 +4828,7 @@ begin
   form40.ListBox1.Items.Add('128=Permitir Somente Uma Alteração em 1 produto na venda quando Pedir permissao de desconto ?');
   form40.ListBox1.Items.Add('129=Permitir Cadastro de Cliente com CPF/CNPJ Duplicado ?');
   form40.ListBox1.Items.Add('130=Buscar Somente Registros de Venda Não Recebido da Data Atual Na Rotina de Forma de Pagamento ?');
+  form40.ListBox1.Items.Add('131=Habilitar conferência de entrega de mercadorias ?');
 
 
   form40.ListBox1.Selected[0] := true;
@@ -5537,6 +5551,9 @@ begin
 
   form44 := TForm44.Create(self);
   form44.Label1.Caption := 'Produtos Entregues F4-Imprimir Entregues';
+  if funcoes.buscaParamGeral(131, 'N') = 'S' then begin
+    form44.Label1.Caption := 'Produtos Entregues';
+  end;
   form44.opcao := 2;
   form44.listaEntrega := TStringList.Create;
   form44.nota := nota;
@@ -10280,7 +10297,7 @@ procedure TForm2.PorNota1Click(Sender: TObject);
 var
   ini, fim, his, h1, imprimirtotaldia, notapul, grupo, imp_ent, h2, h3, data,
     tipoRegCaixa: string;
-  sepUsu, codigoUsu, h4, h5, usuario: String;
+  sepUsu, codigoUsu, h4, h5, usuario, tmp: String;
   totais, caixa: TStringList;
   totalgeral, pendentes, ent, sai, caiEnt, caiSAI, TotalGeralFormas, totEntradaCaixaNaVenda, TOTCANCELADAS: currency;
   b, ContaNota, i, tam, fi: integer;
@@ -10449,7 +10466,7 @@ begin
   dm.ibselect.Close;
   dm.ibselect.SQL.Clear;
   dm.ibselect.SQL.Add
-    ('select usulib,nota, vendedor, entrada, codhis, total, cancelado, ok, data, cliente, prazo, usuario from VENDA where '
+    ('select os,usulib,nota, vendedor, entrada, codhis, total, cancelado, ok, data, cliente, prazo, usuario from VENDA where '
     + ' ((data >= :v1) and (data<=:v2)) ' + h1 + h3 + h4 + ' order by nota');
   dm.ibselect.ParamByName('v1').AsDateTime := StrToDate(ini);
   dm.ibselect.ParamByName('v2').AsDateTime := StrToDate(fim);
@@ -10555,6 +10572,14 @@ begin
         begin
       }
 
+      tmp := '';
+      if funcoes.buscaParamGeral(131, 'N') = 'S' then begin
+        If (dm.ibselect.FieldByName('os').AsString <> '1') then begin
+          tmp := '!';
+        end;
+      end;
+
+
       if imprimirtotaldia = 'S' then
       begin
         if form22.Pgerais.Values['nota'] = 'T' then
@@ -10572,10 +10597,14 @@ begin
 
             funcoes.CompletaOuRepete(IfThen(trim(dm.ibselect.FieldByName('ok').AsString) = '', '*',CompletaOuRepete('',dm.ibselect.FieldByName('usuario').AsString, '0', 2)), '', ' ', 2) +
 
+            tmp +
+
             IfThen(trim(dm.ibselect.FieldByName('usulib').AsString) = '', '',
 
             funcoes.CompletaOuRepete('AUT.:' + copy(funcoes.BuscaNomeBD(dm.IBQuery1, 'nome', 'usuario',
             'where cod=' + strnum(dm.ibselect.FieldByName('usulib').AsString)), 1, 9),'', ' ', 14)) +
+
+
 
             #13 + #10);
         end
@@ -10600,7 +10629,11 @@ begin
             funcoes.CompletaOuRepete('',
             IfThen(trim(dm.ibselect.FieldByName('ok').AsString) = '', '*',
             CompletaOuRepete('',dm.ibselect.FieldByName('usuario').AsString, '0', 2)), ' ',
-            5) + funcoes.CompletaOuRepete(' ' + dm.ibselect.FieldByName('prazo')
+            5) +
+
+            tmp +
+
+            funcoes.CompletaOuRepete(' ' + dm.ibselect.FieldByName('prazo')
             .AsString, '', ' ', 4)  +
 
             IfThen(trim(dm.ibselect.FieldByName('usulib').AsString) = '', funcoes.CompletaOuRepete(' ' +copy(dm.IBQuery3.FieldByName('nome').AsString, 1, 25), '', ' ',27)
@@ -20544,6 +20577,15 @@ begin
   cadECF1.Free;
 end;
 
+procedure TForm2.CadastrodeInformaesNutricionais1Click(Sender: TObject);
+begin
+  funcoes.localizar('Alterar Validades', 'produto',
+    'cod, nome, codbar, infnutri', '', '',
+    '', '', false, false, false,' where left(codbar, 1) = ''2'' and char_length(codbar) <= 8 and char_length(codbar) >= 5',
+    500, nil);
+
+end;
+
 procedure TForm2.CadastrodeLeituraZECF1Click(Sender: TObject);
 begin
   cadReducao := tcadReducao.Create(self);
@@ -22080,7 +22122,7 @@ begin
 
   for i := 0 to lista.Count -1 do begin
     dm.IBQuery1.Close;
-    dm.IBQuery1.SQL.Text := 'update contasreceber set valor = :valor where cod = :cod';
+    dm.IBQuery1.SQL.Text := 'update contasreceber set valor = :valor, ult_usu_alterado = -1 where cod = :cod';
     dm.IBQuery1.ParamByName('valor').AsCurrency := StrToCurr(lista.ValueFromIndex[i]);
     dm.IBQuery1.ParamByName('cod').AsInteger    := StrToInt(lista.Names[i]);
     dm.IBQuery1.ExecSQL;

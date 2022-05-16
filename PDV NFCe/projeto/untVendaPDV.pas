@@ -155,6 +155,7 @@ type
     acessoUsuVenda, configu, usaDLL, CodVendedorTemp, condicao : string;
     balOnline, abreLocalizaPesagem, tabelaPROMOC_EXISTE : boolean;
     tot_ge, desconto, descontoItens, tot1 : currency;
+    procedure adicionaRegistroPagamentoBanco(tipo :string; valor : currency; nota : integer; obs : String);
     function buscaPreco(codigo : integer; quant1 : currency) : currency;
     procedure inicializarImpressora();
     procedure cancelaVenda(nota2 : string = ''; erro_nfce : boolean = false);
@@ -3108,6 +3109,21 @@ begin
   if Result then begin
     if FileExists(ExtractFileDir(ParamStr(0)) + '\PIX.exe') = false then Result := false;
   end;
+end;
+
+
+procedure TForm3.adicionaRegistroPagamentoBanco(tipo :string; valor : currency; nota : integer; obs : String);
+var
+  query : TIBQuery;
+begin
+  query := dtmMain.IBQuery1;
+
+  query.Close;
+  query.SQL.Text := 'insert into PAGTOBANCO(cod,tipo,valor,nota,obs) values(gen_id(PAGTOBANCO, 1), '+QuotedStr(tipo)+', '+
+  ':valor, gen_id(venda, 0) + 1, '+QuotedStr(obs)+' )';
+  query.ParamByName('valor').AsCurrency := valor;
+  query.ExecSQL;
+  query.Transaction.Commit;
 end;
 
 

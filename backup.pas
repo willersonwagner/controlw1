@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, Grids, DBGrids, Data.DB, Datasnap.DBClient, func,
-DateUtils;
+DateUtils, Vcl.ExtCtrls;
 
 type
   TForm44 = class(TForm)
@@ -14,6 +14,7 @@ type
     Label1: TLabel;
     ClientDataSet1: TClientDataSet;
     DataSource1: TDataSource;
+    Timer1: TTimer;
     procedure DBGrid1KeyPress(Sender: TObject; var Key: Char);
     procedure DBGrid1KeyUp(Sender: TObject; var Key: Word;
       Shift: TShiftState);
@@ -26,6 +27,8 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure Timer1Timer(Sender: TObject);
+    procedure FormKeyPress(Sender: TObject; var Key: Char);
   private
     function buscaVenda : String;
     function buscaEnrtada : String;
@@ -41,7 +44,7 @@ type
     entrada : boolean;
     listaEntrega : TStringList;
     opcao   : SmallInt;
-    nota    : String;
+    nota, procura    : String;
     function buscaVendaMADE : String;
     function getRetorno : TStringList;
     procedure abreDataSetEntrega(refresh1 : boolean = false);
@@ -97,8 +100,8 @@ end;
 function TForm44.buscaVendaMADE : String;
 begin
   dm.IBselect.Close;
-  dm.IBselect.SQL.Clear;
-  dm.IBselect.SQL.Add('select p.cod, c.nome, p.quant, p.p_venda, p.total from item_venda p, produto c where (c.cod = p.cod) and (p.nota = :nota)');
+  dm.IBselect.SQL.Text := ('select p.cod, p.codbar, c.nome, p.quant, p.p_venda, p.total from item_venda p, produto c where (c.cod = p.cod) and (p.nota = :nota)');
+  
   dm.IBselect.ParamByName('nota').AsString := DBGrid1.DataSource.DataSet.fieldbyname('NUMVENDA').AsString;
   dm.IBselect.Open;
   funcoes.FormataCampos(dm.ibselect, 2,'',2);
@@ -108,7 +111,7 @@ end;
 
 procedure TForm44.DBGrid1KeyPress(Sender: TObject; var Key: Char);
 var
-  nota1 : String;
+  nota1, codbar : String;
   kay1 : char;
 begin
   if entrada then begin
@@ -149,7 +152,44 @@ begin
   end;
 
   if opcao = 2 then begin //entrega de produtos
+
+     if key = #32 then begin
+       if funcoes.buscaParamGeral(131, 'N') = 'S' then begin
+         codbar := funcoes.dialogo('generico', 100, '1234567890' + #8, 100, false, '',application.Title, 'Qual o Cód. de Barras ?', '');
+         if ((codbar = '') or (codbar = '*')) then exit;
+
+         if DBGrid1.DataSource.DataSet.Locate('codbar', codbar, []) = false then begin
+           ShowMessage('Produto nâo localizado ou já foi entregue!' + #13 +'Código:' + codbar);
+           exit;
+         end;
+
+         ShowMessage('Código Seq.: '+ DBGrid1.DataSource.DataSet.FieldByName('cod').AsString + #13 +
+                     'Cód. Barras: '+ DBGrid1.DataSource.DataSet.FieldByName('codbar').AsString + #13 +
+                     'Quantidade.: '+ DBGrid1.DataSource.DataSet.FieldByName('quant').AsString + #13 );
+
+         entregaProduto;
+       end;
+     end;
+
+
      if key = #13 then begin
+       if funcoes.buscaParamGeral(131, 'N') = 'S' then begin
+         codbar := procura;
+         if trim(codbar) = '' then exit;
+         
+         if DBGrid1.DataSource.DataSet.Locate('codbar', codbar, []) = false then begin
+           ShowMessage('Produto nâo localizado ou já foi entregue!' + #13 +'Código:' + codbar);
+           exit;
+         end;
+
+         ShowMessage('Código Seq.: '+ DBGrid1.DataSource.DataSet.FieldByName('cod').AsString + #13 +
+                     'Cód. Barras: '+ DBGrid1.DataSource.DataSet.FieldByName('codbar').AsString + #13 +
+                     'Quantidade.: '+ DBGrid1.DataSource.DataSet.FieldByName('quant').AsString + #13 );
+
+         entregaProduto;
+
+         exit;
+       end;
        entregaProduto;
        exit;
      end;
@@ -325,6 +365,7 @@ end;
 procedure TForm44.FormCreate(Sender: TObject);
 begin
   entrada := false;
+  procura := '';
 end;
 
 procedure TForm44.FormKeyDown(Sender: TObject; var Key: Word;
@@ -333,6 +374,13 @@ begin
   if ((ssCtrl in Shift) and (chr(Key) in [#46])) then begin
     limpaVendas;
   end;
+end;
+
+procedure TForm44.FormKeyPress(Sender: TObject; var Key: Char);
+begin
+  if not(key in [#13, #27]) then procura := procura + key;
+  Timer1.Enabled := false;
+  Timer1.Enabled := true;
 end;
 
 procedure TForm44.FormKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -391,7 +439,25 @@ begin
   end;
 
   if opcao = 2 then begin
+    if funcoes.buscaParamGeral(131, 'N') = 'S' then begin
+      if key = 113 then begin
+        cod := funcoes.dialogo('generico', 150, '1234567890' + #8, 150, false, '',application.Title, 'Qual o Cód. de Barras ?', '');
+        if ((cod = '') or (cod = '*')) then exit;
+
+        dm.IBQuery1.close;
+        dm.IBQuery1.SQL.Text := 'update produto set codbar = :codbar where cod = :cod';
+        dm.IBQuery1.ParamByName('codbar').AsString := cod;
+        dm.IBQuery1.ParamByName('cod').AsString    := DBGrid1.DataSource.DataSet.FieldByName('cod').AsString;
+        dm.IBQuery1.ExecSQL;
+        dm.IBQuery1.Transaction.Commit;
+        abreDataSetEntrega;
+
+      end;
+      exit;
+    end;
+
     if key = 115 then begin
+      if funcoes.buscaParamGeral(131, 'N') = 'S' then exit;
       cod := form22.Pgerais.Values['nota'];
       if funcoes.Contido(cod, 'TDE') then cod := 'TE'
        else cod := 'ME';
@@ -447,15 +513,22 @@ begin
   dm.IBQuery2.Close;
   dm.IBQuery2.SQL.Text := 'select i.nota, i.DATA_ENTREGA + HORA AS DATA_ENTREGA, i.cod, p.nome, i.quant, i.numdoc from CONT_ENTREGA ' +
   'i left join produto p on (i.cod = p.cod) where i.nota = :nota';
+
+  if funcoes.buscaParamGeral(131, 'N') = 'S' then begin
+    dm.IBQuery2.SQL.Text := 'select i.nota, i.DATA_ENTREGA + HORA AS DATA_ENTREGA, i.cod, p.codbar, p.nome, i.quant, i.numdoc from CONT_ENTREGA ' +
+    'i left join produto p on (i.cod = p.cod) where i.nota = :nota';
+  end;
+
+
   dm.IBQuery2.ParamByName('nota').AsString := nota;
   dm.IBQuery2.Open;
 
   dm.IBQuery2.FieldByName('numdoc').Visible := false;
 
   TCurrencyField(dm.IBQuery2.FieldByName('quant')).DisplayFormat
-        := '###,##0.00';
+        := '###,##0.000';
   TCurrencyField(ClientDataSet1.FieldByName('quant')).DisplayFormat
-        := '###,##0.00';
+        := '###,##0.000';
   DBGrid2.DataSource := dm.entrada;
 end;
 
@@ -478,6 +551,7 @@ begin
   dm.IBQuery2.Close;
   dm.IBQuery2.SQL.Text := 'select e.cod, e.numvenda, v.cliente, c.nome, e.datavenda,e.usuario_incluiu,v.cliente||''-''||c.nome as clienteN, e.usuario_incluiu||''-''||u.nome as usuarion, v.total ' +
                           'from entrega_novo e left join venda v on (v.nota = e.numvenda) left join cliente c on (c.cod = v.cliente) left join usuario u on(e.usuario_incluiu = u.cod) where (e.usuario_baixa = 0) or (e.usuario_baixa is null)';
+
   dm.IBQuery2.Open;
 
   dm.IBQuery2.FieldByName('cod').Visible := false;
@@ -519,6 +593,12 @@ begin
   abreDataSet(true);
 end;
 
+procedure TForm44.Timer1Timer(Sender: TObject);
+begin
+  procura := '';
+  Timer1.Enabled := false;
+end;
+
 procedure TForm44.entregaProduto;
 var
   quant : string;
@@ -528,7 +608,7 @@ begin
     exit;
   end;
 
-  quant := funcoes.dialogo('numero',2,'SN',2,true,'S','Control for Windows:','Quantidade:', formataCurrency(DBGrid1.DataSource.DataSet.FieldByName('quant').AsCurrency));
+  quant := funcoes.dialogo('numero',2,'SN',2,true,'S','Control for Windows:','Quantidade:', FormatCurr('#,###,###0.000',DBGrid1.DataSource.DataSet.FieldByName('quant').AsCurrency));
   if quant = '*' then exit;
 
   if (StrToCurr(quant) > DBGrid1.DataSource.DataSet.FieldByName('quant').AsCurrency) or (StrToCurr(quant) <= 0) then begin
@@ -552,6 +632,18 @@ begin
   CurrToStr(StrToCurrDef(listaEntrega.Values[DBGrid1.DataSource.DataSet.FieldByName('cod').AsString], 0) + StrToCurr(quant));
 
   abreDataSetEntrega;
+
+
+  if funcoes.buscaParamGeral(131, 'N') = 'S' then begin
+    if (DBGrid1.DataSource.DataSet.RecordCount = 0) and (DBGrid2.DataSource.DataSet.RecordCount > 0) then begin
+      //se entrou aqui é pq foi entregue tudo
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := 'update venda set os = 1 where nota = :nota';
+      dm.IBQuery1.ParamByName('nota').AsString := nota;
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+  end;
 end;
 
 procedure TForm44.criaDataSetVendaEntrega;
@@ -577,7 +669,7 @@ begin
   end;
 
   dm.IBselect.Close;
-  dm.IBselect.SQL.Text := 'select i.nota, i.data, i.cod, p.nome, i.quant from item_venda i'+
+  dm.IBselect.SQL.Text := 'select i.nota, i.data, i.cod, p.codbar, p.nome, i.quant from item_venda i'+
   ' left join produto p on (p.cod = i.cod) where i.nota = :nota';
   dm.IBselect.ParamByName('nota').AsString := nota;
   dm.IBselect.Open;
@@ -591,6 +683,7 @@ begin
       ClientDataSet1.FieldByName('data').AsDateTime  := dm.IBselect.FieldByName('data').AsDateTime;
       ClientDataSet1.FieldByName('cod').AsString     := dm.IBselect.FieldByName('cod').AsString;
       ClientDataSet1.FieldByName('nome').AsString    := dm.IBselect.FieldByName('nome').AsString;
+      ClientDataSet1.FieldByName('codbar').AsString    := dm.IBselect.FieldByName('codbar').AsString;
       ClientDataSet1.FieldByName('quant').AsCurrency := dm.IBselect.FieldByName('quant').AsCurrency - StrToCurrDef(lista.Values[dm.IBselect.FieldByName('cod').AsString], 0);
       ClientDataSet1.Post;
     end;

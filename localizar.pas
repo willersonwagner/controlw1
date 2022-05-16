@@ -63,7 +63,7 @@ var
   Form7: TForm7;
  implementation
 
-uses Unit1, func, cadfornecedor, cadvendedor, StrUtils, Unit2;
+uses Unit1, func, cadfornecedor, cadvendedor, StrUtils, Unit2, infNutri;
 
 
 {$R *.dfm}
@@ -383,6 +383,22 @@ begin
         DBGrid1.DataSource.DataSet.Open;
         DBGrid1.DataSource.DataSet.Locate('cod', i, []);
         exit;
+      end;
+    end;
+  end;
+
+  if key = #13 then begin
+    if UpperCase(tabela) = 'PRODUTO' then begin
+      if Contido('INFNUTRI', UpperCase(campos)) then begin
+        form87.limpar;
+        form87.codProd.Text := DBGrid1.DataSource.DataSet.FieldByName('cod').AsString;
+        form87.seleciona;
+
+        i := DBGrid1.DataSource.DataSet.FieldByName('cod').AsInteger;
+        form87.ShowModal;
+        DBGrid1.DataSource.DataSet.Close;
+        DBGrid1.DataSource.DataSet.Open;
+        DBGrid1.DataSource.DataSet.Locate('cod', i, []);
       end;
     end;
   end;

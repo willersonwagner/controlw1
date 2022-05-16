@@ -247,7 +247,7 @@ begin
       if not dm.IBQuery1.IsEmpty then begin
         if dm.IBQuery2.RecordCount = 1 then begin
           dm.IBQuery2.Close;
-          dm.IBQuery2.SQL.Text := ('update contasreceber set pago=0,valor=total,data=vencimento,saldo=0 where trim(HISTORICO) = :HIS and vencimento = :venc');
+          dm.IBQuery2.SQL.Text := ('update contasreceber set pago=0,valor=total,data=vencimento,saldo=0, ult_usu_alterado = -1 where trim(HISTORICO) = :HIS and vencimento = :venc');
           dm.IBQuery2.ParamByName('HIS').AsString    := trim(dm.IBselect.FieldByName('HISTORICO').AsString);
           dm.IBQuery2.ParamByName('venc').AsDateTime := dm.IBselect.fieldbyname('vencimento').AsDateTime;
           dm.IBQuery2.ExecSQL;
@@ -268,7 +268,7 @@ begin
         else begin
           dm.IBQuery2.Close;
           dm.IBQuery2.SQL.Clear;
-          dm.IBQuery2.SQL.Text := ('update contasreceber set pago=0,valor=valor+:total where trim(HISTORICO) = :HIS and vencimento = :venc');
+          dm.IBQuery2.SQL.Text := ('update contasreceber set pago=0,valor=valor+:total, ult_usu_alterado = -1 where trim(HISTORICO) = :HIS and vencimento = :venc');
           dm.IBQuery2.ParamByName('total').AsCurrency := dm.IBselect.fieldbyname('entrada').AsCurrency;
           dm.IBQuery2.ParamByName('HIS').AsString  := trim(dm.IBselect.FieldByName('HISTORICO').AsString);
           dm.IBQuery2.ParamByName('venc').AsDateTime := dm.IBselect.fieldbyname('vencimento').AsDateTime;
@@ -340,7 +340,7 @@ begin
     else begin
       if ((dm.IBQuery1.FieldByName('valor').AsCurrency + dm.IBselect.FieldByName('entrada').AsCurrency) >= dm.IBQuery1.FieldByName('total').AsCurrency) and (false) then begin
         dm.IBQuery2.Close;
-        dm.IBQuery2.SQL.Text := ('update contasreceber set pago=0,valor=total,data=vencimento,saldo=0 where cod='+codES);
+        dm.IBQuery2.SQL.Text := ('update contasreceber set pago=0,valor=total,data=vencimento,saldo=0, ult_usu_alterado = -1 where cod='+codES);
         try
           dm.IBQuery2.ExecSQL;
           dm.IBQuery2.Transaction.Commit;
@@ -363,7 +363,7 @@ begin
         if dm.IBQuery2.RecordCount = 1 then begin
           dm.IBQuery2.Close;
           dm.IBQuery2.SQL.Text := ('update contasreceber set pago = 0,valor = total,'+
-          'data = vencimento, saldo = 0, datamov = vencimento where cod='+codES);
+          'data = vencimento, saldo = 0, datamov = vencimento, ult_usu_alterado = -1 where cod='+codES);
           dm.IBQuery2.ExecSQL;
           dm.IBQuery2.Transaction.Commit;
           dm.IBselect.Open;
@@ -378,7 +378,7 @@ begin
         else begin
           dm.IBQuery2.Close;
           dm.IBQuery2.SQL.Clear;
-          dm.IBQuery2.SQL.Add('update contasreceber set pago=0,valor=valor+:total where cod='+codES);
+          dm.IBQuery2.SQL.Add('update contasreceber set pago=0,valor=valor+:total , ult_usu_alterado = -1 where cod='+codES);
           dm.IBQuery2.ParamByName('total').AsCurrency := dm.IBselect.fieldbyname('entrada').AsCurrency;
           dm.IBQuery2.ExecSQL;
           try
