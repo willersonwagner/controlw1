@@ -6,7 +6,10 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, JsEditNumero1, StdCtrls, Mask, JsEditData1, JsEdit1,
   JsEditInteiro1, Grids, DBGrids, Buttons, JsBotao1, ToolWin, ComCtrls,
-  ExtCtrls, DB, IBCustomDataSet, IBQuery;
+  ExtCtrls, DB,  IBQuery,FireDAC.Comp.Client, FireDAC.Stan.Intf,
+  FireDAC.Stan.Option, FireDAC.Stan.Param, FireDAC.Stan.Error, FireDAC.DatS,
+  FireDAC.Phys.Intf, FireDAC.DApt.Intf, FireDAC.Stan.Async, FireDAC.DApt,
+  FireDAC.Comp.DataSet;
 
 type
   TForm27 = class(TForm)
@@ -31,7 +34,7 @@ type
     JsBotao1: JsBotao;
     info: TLabel;
     DataSource1: TDataSource;
-    IBQuery1: TIBQuery;
+    IBQuery1: TFDQuery;
     procedure JsEditInteiro1KeyPress(Sender: TObject; var Key: Char);
     procedure JsEdit1KeyPress(Sender: TObject; var Key: Char);
     procedure JsEditInteiro2KeyPress(Sender: TObject; var Key: Char);

@@ -206,10 +206,10 @@ uses IniFiles, comctrls, sysutils, controls, classes,
      ComObj,variants,dialogs, StdCtrls, ShDocVw, Forms,
      pcnConversao, pcnNFeRTXT, ACBrUtil, DateUtils, ACBrNFe,
      ACBrNFeDANFEClass, printers, ACBrNFeDANFeESCPOS,
-     func, ibquery, classes1, StrUtils, acbrbal, WINDOWS, funcoesdav,
+     func,  classes1, StrUtils, acbrbal, WINDOWS, funcoesdav,
      ACBrIBPTax, pcnConversaoNFe,
      ACBrDFeSSL, ACBrPosPrinter, ACBrDANFCeFortesFr, ACBrNFeDANFeRL,
-     ACBrNFeDANFeRLClass, SyncObjs, ACBrNFeDANFEFR, ACBrMail, IdThreadComponent;
+     ACBrNFeDANFeRLClass, SyncObjs,  ACBrMail, IdThreadComponent;
 
 {type
   TTWtheadNFeEnvia = class(TThread)

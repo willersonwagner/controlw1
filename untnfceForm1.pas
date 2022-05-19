@@ -9,10 +9,10 @@ uses
   ComObj, StdCtrls, ShDocVw,
   pcnConversao, pcnNFeRTXT, ACBrUtil, DateUtils, ACBrNFe,
   ACBrNFeDANFEClass, printers, ACBrNFeDANFeESCPOS,
-  func, ibquery, classes1, StrUtils, acbrbal, funcoesdav,
+  func,  classes1, StrUtils, acbrbal, funcoesdav,
   ACBrIBPTax, pcnConversaoNFe,
   ACBrDFeSSL, ACBrPosPrinter, ACBrDANFCeFortesFr, ACBrNFeDANFeRL,
-  ACBrNFeDANFeRLClass, SyncObjs, ACBrNFeDANFEFR, ACBrMail, IdThreadComponent,
+  ACBrNFeDANFeRLClass, SyncObjs,  ACBrMail, IdThreadComponent,
   pcnNFe, Math, DB, ACBrNFeNotasFiscais, pcnEventoNFe, pcnEnvEventoNFe,
   ACBrNFeWebServices, IdBaseComponent, BMDThread, IdComponent, IdTCPConnection,
   IdTCPClient, IdHTTP, IdMultipartFormData;
@@ -275,7 +275,7 @@ var
   venda: Tvenda;
   lista: TList;
   codNF, erro12002, USUARIO1: integer;
-  query1, query2, query3: tibquery;
+  query1, query2, query3: TFDQuery;
   dadosEmitente, dadosDest: TStringList;
   TOT_PIS, TOT_COFINS, totalNota, PIS_ST, COFINS_ST, TRIB_ALIQ_COFINS, BASE_ICM,
     VLR_ICM, tot_Geral, TOTICM, TOT_BASEICM, PIS_NT, TRIB_ALIQ_PIS, TotImp,
@@ -627,9 +627,9 @@ begin
   chaveRecria := '';
   fim := lista.Count - 1;
   if 0 <= fim then
-    query1 := tibquery(lista.Items[0]);
+    query1 := TFDQuery(lista.Items[0]);
   if 1 <= fim then
-    query2 := tibquery(lista.Items[1]);
+    query2 := TFDQuery(lista.Items[1]);
   if 2 <= fim then
     ACBrNFe := TACBrNFe(lista.Items[2]);
   if 3 <= fim then
@@ -4203,13 +4203,13 @@ end;
 procedure GerarNFCe(nota, NumNFCe, TipoEmissao, TipoAmbiente, UFComerciante,
   FinalidadeNFE: String; recebido: currency = 0);
 var
-  qr, qrPg: tibquery;
+  qr, qrPg: TFDQuery;
   SQL: string;
   sCST, idCST: string;
   sCondPag: string;
   CodUF, CodMun: string;
   bolISSQN: string;
-  qry: tibquery;
+  qry: TFDQuery;
   ini, fim: integer;
   item: Item_venda;
   op: TOpenDialog;

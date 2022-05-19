@@ -300,12 +300,8 @@ object Form27: TForm27
     Left = 56
     Top = 56
   end
-  object IBQuery1: TIBQuery
-    Database = dm.bd
+  object IBQuery1: TFDQuery
     Transaction = dm.IBTransaction2
-    BufferChunks = 1000
-    CachedUpdates = False
-    ParamCheck = True
     Left = 104
     Top = 72
   end

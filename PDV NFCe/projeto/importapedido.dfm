@@ -1,9 +1,9 @@
 object Form2: TForm2
   Left = 192
   Top = 107
-  Width = 805
-  Height = 480
   Caption = 'Importar Pedidos - PDV'
+  ClientHeight = 441
+  ClientWidth = 789
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -18,7 +18,7 @@ object Form2: TForm2
   TextHeight = 13
   object Label1: TLabel
     Left = 0
-    Top = 221
+    Top = 220
     Width = 789
     Height = 24
     Align = alBottom
@@ -31,6 +31,7 @@ object Form2: TForm2
     Font.Style = []
     ParentFont = False
     Layout = tlCenter
+    ExplicitWidth = 271
   end
   object DBGrid1: TDBGrid
     Left = 0
@@ -51,7 +52,7 @@ object Form2: TForm2
   end
   object DBGrid2: TDBGrid
     Left = 0
-    Top = 245
+    Top = 244
     Width = 789
     Height = 197
     Align = alBottom
@@ -64,11 +65,8 @@ object Form2: TForm2
     TitleFont.Style = []
     OnCellClick = DBGrid2CellClick
   end
-  object Venda: TIBQuery
-    Database = dtmMain.bd
+  object Venda: TFDQuery
     Transaction = dtmMain.IBTransaction1
-    BufferChunks = 1000
-    CachedUpdates = False
     SQL.Strings = (
       
         'select nota, data, cliente, (select nome from cliente c where  c' +
@@ -77,11 +75,8 @@ object Form2: TForm2
     Left = 272
     Top = 96
   end
-  object itens: TIBQuery
-    Database = dtmMain.bd
+  object itens: TFDQuery
     Transaction = dtmMain.IBTransaction1
-    BufferChunks = 1000
-    CachedUpdates = False
     Left = 272
     Top = 136
   end

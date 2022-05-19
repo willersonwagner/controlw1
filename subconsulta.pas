@@ -4,16 +4,16 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, DB, IBCustomDataSet, Grids, DBGrids, DBClient;
+  Dialogs, DB,  Grids, DBGrids, DBClient;
 
 type
   TForm25 = class(TForm)
     ClientDataSet1: TClientDataSet;
     DBGrid1: TDBGrid;
-    ClientDataSet1CODBAR: TIBStringField;
-    ClientDataSet1DESCRICAO: TIBStringField;
-    ClientDataSet1PRECO: TIBBCDField;
-    ClientDataSet1ESTOQUE: TIBBCDField;
+    ClientDataSet1CODBAR: TStringField;
+    ClientDataSet1DESCRICAO: TStringField;
+    ClientDataSet1PRECO: TBCDField;
+    ClientDataSet1ESTOQUE: TBCDField;
     ClientDataSet1COD: TIntegerField;
     DataSource1: TDataSource;
     procedure DBGrid1KeyPress(Sender: TObject; var Key: Char);

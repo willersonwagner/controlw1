@@ -152,7 +152,7 @@ uses IniFiles, comctrls, sysutils, controls, classes,
      pcnConversao, pcnNFeRTXT, ACBrUtil, DateUtils, ACBrNFe, ACBrNFeDANFeESCPOS,
      ACBrNFeDANFEClass, ACBrNFeDANFERave, ACBrDANFCeFortesFr, printers,
 
-     P4InfoVarejo_rotinas, P4InfoVarejo_constantes, func, ibquery, classes1, StrUtils;
+     P4InfoVarejo_rotinas, P4InfoVarejo_constantes, func,  classes1, StrUtils;
  //
   procedure imprimirNfce();
   procedure lerVenda(const nota1 : String);
@@ -217,7 +217,7 @@ var
  venda      : Tvenda;
  lista      : TList;
  codNF    : integer;
- query1, query2, query3 : tibquery;
+ query1, query2, query3 : TFDQuery;
  dadosEmitente, dadosDest : TStringList;
  TOT_PIS, TOT_COFINS, totalNota, PIS_ST, COFINS_ST, TRIB_ALIQ_COFINS, BASE_ICM,
  VLR_ICM, tot_Geral, TOTICM, TOT_BASEICM, PIS_NT, TRIB_ALIQ_PIS : currency;
@@ -318,8 +318,8 @@ end;
 
 procedure setQueryNFCe(Lista : TList);
 begin
-  query1  := TIBQuery(Lista.Items[0]);
-  query2  := TIBQuery(Lista.Items[1]);
+  query1  := TFDQuery(Lista.Items[0]);
+  query2  := TFDQuery(Lista.Items[1]);
   ACBrNFe := TACBrNFe(Lista.Items[2]);
   pgerais := TStringList(lista.Items[3]);
   DANFE   := TACBrNFeDANFCeFortes(Lista.Items[4]);
@@ -2268,7 +2268,7 @@ end;
 
 procedure GerarNFe(nota, NumNFCe, TipoEmissao, TipoAmbiente, UFComerciante, FinalidadeNFe : String);
 var
- qr,qrPg  : tibquery;
+ qr,qrPg  : TFDQuery;
  sql      : string;
  sCST,
  idCST    : string;
@@ -2276,7 +2276,7 @@ var
  CodUF,
  CodMun   : string;
  bolISSQN : string;
- qry      : TIBQuery;
+ qry      : TFDQuery;
  ini, fim : integer;
  item     : Item_venda;
  op : TOpenDialog;

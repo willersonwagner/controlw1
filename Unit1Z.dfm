@@ -3,7 +3,7 @@ object dm: Tdm
   OnCreate = DataModuleCreate
   Height = 379
   Width = 673
-  object IBselect: TIBQuery
+  object IBselect: TFDQuery
     Database = bd
     Transaction = IBTransaction2
     ForcedRefresh = True
@@ -20,7 +20,7 @@ object dm: Tdm
     Left = 256
     Top = 58
   end
-  object IBQuery2: TIBQuery
+  object IBQuery2: TFDQuery
     Database = bd
     Transaction = IBTransaction3
     BufferChunks = 1000
@@ -48,7 +48,7 @@ object dm: Tdm
     Left = 320
     Top = 58
   end
-  object IBSQL: TIBSQL
+  object IBSQL: TFDQuery
     Database = bd
     Transaction = IBTransaction1
     Left = 376
@@ -59,7 +59,7 @@ object dm: Tdm
     Left = 192
     Top = 50
   end
-  object bd: TIBDatabase
+  object bd: TFDConnection
     Connected = True
     DatabaseName = 'C:\ControlW\bd.fdb'
     Params.Strings = (
@@ -73,7 +73,7 @@ object dm: Tdm
     Left = 8
     Top = 2
   end
-  object IBTransaction2: TIBTransaction
+  object IBTransaction2: TFDTransaction
     Active = True
     DefaultDatabase = bd
     Params.Strings = (
@@ -83,7 +83,7 @@ object dm: Tdm
     Left = 8
     Top = 47
   end
-  object formpagttable: TIBQuery
+  object formpagttable: TFDQuery
     Database = bd
     Transaction = IBTransaction2
     BufferChunks = 1000
@@ -98,50 +98,50 @@ object dm: Tdm
       Origin = 'FORMPAGTO.COD'
       Required = True
     end
-    object formpagttableNOME: TIBStringField
+    object formpagttableNOME: TStringField
       FieldName = 'NOME'
       Origin = 'FORMPAGTO.NOME'
       Size = 15
     end
-    object formpagttableDINHEIRO: TIBStringField
+    object formpagttableDINHEIRO: TStringField
       FieldName = 'DINHEIRO'
       Origin = 'FORMPAGTO.DINHEIRO'
       Size = 1
     end
-    object formpagttableDESC_PAG: TIBBCDField
+    object formpagttableDESC_PAG: TBCDField
       FieldName = 'DESC_PAG'
       Origin = 'FORMPAGTO.DESC_PAG'
       Precision = 18
       Size = 2
     end
-    object formpagttableDESC_ANT: TIBBCDField
+    object formpagttableDESC_ANT: TBCDField
       FieldName = 'DESC_ANT'
       Origin = 'FORMPAGTO.DESC_ANT'
       Precision = 18
       Size = 2
     end
-    object formpagttableCODGRU: TIBStringField
+    object formpagttableCODGRU: TStringField
       FieldName = 'CODGRU'
       Origin = 'FORMPAGTO.CODGRU'
       Size = 4
     end
-    object formpagttableCODHIS: TIBStringField
+    object formpagttableCODHIS: TStringField
       FieldName = 'CODHIS'
       Origin = 'FORMPAGTO.CODHIS'
       Size = 4
     end
-    object formpagttableREG_CAIXA: TIBStringField
+    object formpagttableREG_CAIXA: TStringField
       FieldName = 'REG_CAIXA'
       Origin = 'FORMPAGTO.REG_CAIXA'
       Size = 7
     end
-    object formpagttablePRAZO: TIBBCDField
+    object formpagttablePRAZO: TBCDField
       FieldName = 'PRAZO'
       Origin = 'FORMPAGTO.PRAZO'
       Precision = 4
       Size = 2
     end
-    object formpagttableIMP_FISCAL: TIBStringField
+    object formpagttableIMP_FISCAL: TStringField
       FieldName = 'IMP_FISCAL'
       Origin = 'FORMPAGTO.IMP_FISCAL'
       Size = 2
@@ -152,7 +152,7 @@ object dm: Tdm
     Left = 192
     Top = 180
   end
-  object IBTransaction1: TIBTransaction
+  object IBTransaction1: TFDTransaction
     DefaultDatabase = bd
     Params.Strings = (
       'read_committed'
@@ -161,7 +161,7 @@ object dm: Tdm
     Left = 8
     Top = 96
   end
-  object IBQuery1: TIBQuery
+  object IBQuery1: TFDQuery
     Database = bd
     Transaction = IBTransaction1
     BufferChunks = 1000
@@ -169,7 +169,7 @@ object dm: Tdm
     ParamCheck = True
     Left = 192
   end
-  object produto: TIBQuery
+  object produto: TFDQuery
     Database = bd
     Transaction = IBTransaction2
     BufferChunks = 500
@@ -188,7 +188,7 @@ object dm: Tdm
     Left = 288
     Top = 193
   end
-  object produtotemp: TIBQuery
+  object produtotemp: TFDQuery
     Database = bd
     Transaction = IBTransaction2
     BufferChunks = 1000
@@ -206,7 +206,7 @@ object dm: Tdm
     Left = 352
     Top = 193
   end
-  object IBTransaction3: TIBTransaction
+  object IBTransaction3: TFDTransaction
     Active = True
     DefaultDatabase = bd
     Params.Strings = (
@@ -216,7 +216,7 @@ object dm: Tdm
     Left = 8
     Top = 152
   end
-  object ProdutoQY: TIBQuery
+  object ProdutoQY: TFDQuery
     Database = bd
     Transaction = IBTransaction1
     BufferChunks = 1000
@@ -225,7 +225,7 @@ object dm: Tdm
     Left = 248
     Top = 240
   end
-  object IBQuery3: TIBQuery
+  object IBQuery3: TFDQuery
     Database = bd
     Transaction = IBTransaction2
     BufferChunks = 1000
@@ -234,7 +234,7 @@ object dm: Tdm
     Left = 376
     Top = 56
   end
-  object IBQuery4: TIBQuery
+  object IBQuery4: TFDQuery
     Database = bd
     Transaction = IBTransaction2
     BufferChunks = 1000
@@ -243,7 +243,7 @@ object dm: Tdm
     Left = 424
     Top = 40
   end
-  object IBTable1: TIBTable
+  object IBTable1: TFDTable
     Database = bd
     Transaction = IBTransaction2
     BufferChunks = 1000
@@ -252,7 +252,7 @@ object dm: Tdm
     Left = 112
     Top = 8
   end
-  object TabelaOrdem: TIBTable
+  object TabelaOrdem: TFDTable
     Database = bd
     Transaction = IBTransaction2
     OnCalcFields = TabelaOrdemCalcFields
@@ -277,7 +277,7 @@ object dm: Tdm
       Size = 40
       Calculated = True
     end
-    object TabelaOrdemNOME: TIBStringField
+    object TabelaOrdemNOME: TStringField
       DisplayLabel = 'CLIENTE'
       FieldName = 'NOME'
       ReadOnly = True
@@ -288,39 +288,39 @@ object dm: Tdm
       FieldName = 'CLIENTE'
       Visible = False
     end
-    object TabelaOrdemEQUIP: TIBStringField
+    object TabelaOrdemEQUIP: TStringField
       FieldName = 'EQUIP'
       Size = 40
     end
-    object TabelaOrdemMARCA: TIBStringField
+    object TabelaOrdemMARCA: TStringField
       FieldName = 'MARCA'
       Size = 15
     end
-    object TabelaOrdemMODELO: TIBStringField
+    object TabelaOrdemMODELO: TStringField
       FieldName = 'MODELO'
       Size = 15
     end
-    object TabelaOrdemSERIE: TIBStringField
+    object TabelaOrdemSERIE: TStringField
       FieldName = 'SERIE'
     end
-    object TabelaOrdemTECNICO: TIBStringField
+    object TabelaOrdemTECNICO: TStringField
       FieldName = 'TECNICO'
       Size = 15
     end
-    object TabelaOrdemDEFEITO: TIBStringField
+    object TabelaOrdemDEFEITO: TStringField
       FieldName = 'DEFEITO'
       Size = 40
     end
-    object TabelaOrdemSITUACAO: TIBStringField
+    object TabelaOrdemSITUACAO: TStringField
       FieldName = 'SITUACAO'
       Size = 1
     end
-    object TabelaOrdemDIAG: TIBStringField
+    object TabelaOrdemDIAG: TStringField
       DisplayLabel = 'DIAGNOSTICO'
       FieldName = 'DIAG'
       Size = 30
     end
-    object TabelaOrdemOBS: TIBStringField
+    object TabelaOrdemOBS: TStringField
       FieldName = 'OBS'
       Size = 50
     end
@@ -332,7 +332,7 @@ object dm: Tdm
       FieldName = 'SAIDA'
       Visible = False
     end
-    object TabelaOrdemPAGO: TIBBCDField
+    object TabelaOrdemPAGO: TBCDField
       FieldName = 'PAGO'
       Precision = 18
       Size = 2
@@ -346,7 +346,7 @@ object dm: Tdm
       ReadOnly = True
       Visible = False
     end
-    object TabelaOrdemPARECER: TIBStringField
+    object TabelaOrdemPARECER: TStringField
       FieldName = 'PARECER'
       Visible = False
       Size = 80
@@ -355,12 +355,12 @@ object dm: Tdm
       FieldName = 'H_SAI'
       EditMask = '!90:00:00;1;_'
     end
-    object TabelaOrdemORDEM: TIBStringField
+    object TabelaOrdemORDEM: TStringField
       FieldName = 'ORDEM'
       Visible = False
       Size = 7
     end
-    object TabelaOrdemusu: TIBStringField
+    object TabelaOrdemusu: TStringField
       DisplayLabel = 'USUARIO'
       FieldKind = fkCalculated
       FieldName = 'usu'
@@ -383,7 +383,7 @@ object dm: Tdm
     Left = 112
     Top = 152
   end
-  object queryCupons: TIBQuery
+  object queryCupons: TFDQuery
     Database = bd
     Transaction = IBTransaction2
     BufferChunks = 1000

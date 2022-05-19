@@ -140,21 +140,21 @@ object Form2: TForm2
     Left = 48
     Top = 80
   end
-  object Query1: TIBQuery
+  object Query1: TFDQuery
     BufferChunks = 1000
     CachedUpdates = False
     ParamCheck = True
     Left = 232
     Top = 8
   end
-  object Query3: TIBQuery
+  object Query3: TFDQuery
     BufferChunks = 1000
     CachedUpdates = False
     ParamCheck = True
     Left = 232
     Top = 136
   end
-  object Query2: TIBQuery
+  object Query2: TFDQuery
     BufferChunks = 1000
     CachedUpdates = False
     ParamCheck = True

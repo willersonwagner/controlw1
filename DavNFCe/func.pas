@@ -2,8 +2,8 @@ unit func;
 
 interface
 
-uses controls, windows, forms, Types , messages, ibquery, classes1, classes,StdCtrls,Dialogs, db,
-SysUtils, ExtCtrls, ComCtrls, graphics, acbrECF,acbrbal, dbgrids, acbrutil;
+uses controls, windows, forms, Types , messages,  classes1, classes,StdCtrls,Dialogs, db,
+SysUtils, ExtCtrls, ComCtrls, graphics, acbrECF,acbrbal, dbgrids, acbrutil, FireDAC.Comp.Client;
 
 function copiaArquivo(origem, destino : String) : boolean;
 function ValidaCPF(sCPF: string): boolean;
@@ -13,7 +13,7 @@ function LerConfig(valor:string;posi:integer) : string;
 function HexToTColor(sColor : string) : TColor;
 procedure setParametrosACBrECF1(var ecf : TACBrECF;var bal : TACBrBAL; var arq : TStringList);
 procedure LerParametrosACBrECF1(var arq : TStringList);
-function le_codbar(var query : TIBQuery; const codbar, paramGe38 : String) : TprodutoVendaCodBar;
+function le_codbar(var query : TFDQuery; const codbar, paramGe38 : String) : TprodutoVendaCodBar;
 function retornaPos(valor:string;sub:string;posi:integer) : integer;
 procedure redimensionaTelaDbgrid(var dbgrid : TDBGrid);
 function lerForma(const form : String; const ind : integer) : String;
@@ -22,7 +22,7 @@ FUNCTION DIGEAN(vx_cod : string) : string;
 function LerFormPato(index:integer; label1 : string; escSair : boolean) : string;
 procedure CtrlResize(var Sender: TForm);
 function formataCurrency(const valor : currency) : String ;
-procedure FormataCampos(query:Tibquery;qtdCasasDecimais:integer;CampoFormatoDiferente:string;qtd:integer);
+procedure FormataCampos(query:TFDQuery;qtdCasasDecimais:integer;CampoFormatoDiferente:string;qtd:integer);
 function retornaSQL(const sql : String) : String;
 function conectaBD() : boolean;
 function logar(const usu, senha : String) : Boolean;
@@ -46,7 +46,7 @@ function centraliza(valor:string;repetir:string;tamanho:integer):string;
 function ContaChar(estring:string;sub:string):string;
 function dialogo(tipo:string;maxlengt : integer;ValorEntrada:string;tamanhocampo:integer;obrigatorio1:boolean;trocaletras:string;titulo:string;label1:string;default:string):string;
 function dialogoG(tipo:string;maxlengt : integer;ValorEntrada:string;tamanhocampo:integer;obrigatorio1:boolean;trocaletras:string;titulo:string;label1:string;default:string;const Normal : boolean):string;
-function busca(var dataset:tibquery;busca:string;retorno:string;campobusca:string;camposdataset:string):string;
+function busca(var dataset:TFDQuery;busca:string;retorno:string;campobusca:string;camposdataset:string):string;
 function localizar1(titulo:string;tabela:string;campos:string;retorno:string;esconde:string;localizarPor:string;OrdenarPor:string;editLocaliza:boolean;editavel:boolean;deletar:boolean;campoLocate:string;keyLocate: String;tamanho:integer;compnenteAlinhar: TObject):string;
 procedure mostraMensagem(const mensagem1 : String;const novo : boolean);
 function localizar2(titulo:string;tabela:string;campos:string;retorno:string;esconde:string;localizarPor:string;OrdenarPor:string;editLocaliza:boolean;editavel:boolean;deletar:boolean;campoLocate:string;keyLocate: String;tamanho:integer;compnenteAlinhar: TObject):string;
@@ -56,14 +56,14 @@ procedure SetBorder(var comp : TWinControl;AColor: TColor);
 procedure setParametrosACBrECF(var ecf : TACBrECF;var bal : TACBrBAL;const indexImpressora, velocidade : integer; const porta, velobal, portabal, tipobal : String);
 procedure gravaParametrosACBrECF(const indexImpressora, velocidade : integer; const porta, UsarDLL : String);
 procedure LerParametrosACBrECF(var indexImpressora, velocidade : integer; var porta, usaDLL, portaBal, velobal, tipobal, intervalo : String);
-function VerificaRegistroPDV(var query : TIBQuery) : boolean;
+function VerificaRegistroPDV(var query : TFDQuery) : boolean;
 function StringToInteger(Ent : String) : integer;
 
 var
  Simbolos : array [0..3] of String;
  retornoBusca1 : String;
- query : TIBQuery;
- query1 : TIBQuery;
+ query : TFDQuery;
+ query1 : TFDQuery;
 
 const
   simbolos1 : String = 'ABCDEFGHIJLMNOPQRSTUVXZYWK abcdefghijlmnopqrstuvxzywk1234567890-+=_?/.,<>;:)(*&^%$#@!~בהא';
@@ -85,7 +85,7 @@ begin
    end;
 end;
 
-function le_codbar(var query : TIBQuery; const codbar, paramGe38 : String) : TprodutoVendaCodBar;
+function le_codbar(var query : TFDQuery; const codbar, paramGe38 : String) : TprodutoVendaCodBar;
 var
   _ptot, quanti, ptotCodbar : currency;
 begin
@@ -152,7 +152,7 @@ begin
     end;
 end;
 
-function VerificaRegistroPDV(var query : TIBQuery) : boolean;
+function VerificaRegistroPDV(var query : TFDQuery) : boolean;
 var
   ativo, empresa, tmp, temp : string;
   t1 : integer;
@@ -635,7 +635,7 @@ begin
 end;
 
 
-function busca(var dataset:tibquery;busca:string;retorno:string;campobusca:string;camposdataset:string):string;
+function busca(var dataset:TFDQuery;busca:string;retorno:string;campobusca:string;camposdataset:string):string;
 var
  i   :integer;
  lab : TLabel;
@@ -925,7 +925,7 @@ begin
   if not DirectoryExists(pasta) then forceDirectories(pasta);
 end;
 
-procedure FormataCampos(query:Tibquery;qtdCasasDecimais:integer;CampoFormatoDiferente:string;qtd:integer);
+procedure FormataCampos(query:TFDQuery;qtdCasasDecimais:integer;CampoFormatoDiferente:string;qtd:integer);
 var a:integer;
 begin
   a:=0;

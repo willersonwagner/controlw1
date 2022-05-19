@@ -397,19 +397,12 @@ object promocao: Tpromocao
     Left = 232
     Top = 162
   end
-  object IBQuery1: TIBQuery
+  object IBQuery1: TFDQuery
     Transaction = IBTransaction1
-    BufferChunks = 1000
-    CachedUpdates = False
-    ParamCheck = True
     Left = 232
     Top = 128
   end
-  object IBTransaction1: TIBTransaction
-    Params.Strings = (
-      'read_committed'
-      'rec_version'
-      'wait')
+  object IBTransaction1: TFDTransaction
     Left = 192
     Top = 128
   end

@@ -3,16 +3,16 @@ unit func;
 interface
 
 uses
-  StdCtrls, Controls, Forms,Windows, Messages, SysUtils,IBQuery, Variants, Classes, Graphics,
-  Dialogs,IniFiles,SHELLAPI, db,dbgrids,ComCtrls,richedit,dbclient, IBDatabase,
-  IBCustomDataSet, ExtCtrls;
+  StdCtrls, Controls, Forms,Windows, Messages, SysUtils, Variants, Classes, Graphics,
+  Dialogs,IniFiles,SHELLAPI, db,dbgrids,ComCtrls,richedit,dbclient, 
+   ExtCtrls;
 
 
 
 type
   Tfuncoes = class(TForm)
-    a: TIBQuery;
-    IBTransaction1: TIBTransaction;
+    a: TFDQuery;
+    IBTransaction1: TFDTransaction;
     procedure FormCreate(Sender: TObject);
 
   private
@@ -20,7 +20,7 @@ type
     procedure MeuKeyPress1(Sender: TObject; var Key: Char);
     { Private declarations }
   public
-   //  queryTemp  : TIBQuery;
+   //  queryTemp  : TFDQuery;
      lista1 : string;
      valordg:string;
      formpato:string;
@@ -59,19 +59,19 @@ type
      function grelatoriocima(SQLGrupo:string;SQLFornec:string;SQLFabric:string;SQLCom2Filtros:string;SQLSemFiltros:string;cabecalho:string;NomeDaEmpresa:string;NomeDoRelatorio:string;colunas:string):boolean;
      procedure ExecFile(F: String);
      function Contido(substring:string;texto:string):boolean;
-     function PerguntasRel(var query:tibquery;paramper:string;paramverifica:boolean;valorbd:string;valorstring:string) : boolean;
-     function BuscaNomeBD(var query:tibquery;NomeCampo:string;NomeTabela:string;condicao:string) : string;
+     function PerguntasRel(var query:TFDQuery;paramper:string;paramverifica:boolean;valorbd:string;valorstring:string) : boolean;
+     function BuscaNomeBD(var query:TFDQuery;NomeCampo:string;NomeTabela:string;condicao:string) : string;
      procedure OrdenaCamposVenda(campos:string);
-     procedure FormataCampos(var query:Tibquery;qtdCasasDecimais:integer;CampoFormatoDiferente:string;qtd:integer);
+     procedure FormataCampos(var query:TFDQuery;qtdCasasDecimais:integer;CampoFormatoDiferente:string;qtd:integer);
      Function ConverteNumerico(valor:string):string;
      function ContaChar(estring:string;sub:string):string;
      function PosFinal(substr:string;Texto:string):integer;
      procedure CharSetRichEdit(var rich:TRichEdit);
      procedure ResizeForms();
      function localizar(titulo:string;tabela:string;campos:string;retorno:string;esconde:string;localizarPor:string;OrdenarPor:string;editLocaliza:boolean;editavel:boolean;deletar:boolean;condicao:string;tamanho:integer;compnenteAlinhar: TObject):string;
-     function busca(var dataset:tibquery;busca:string;retorno:string;campobusca:string;camposdataset:string):string;
+     function busca(var dataset:TFDQuery;busca:string;retorno:string;campobusca:string;camposdataset:string):string;
      function procuraMultiplos(entradaDataset:string;valorParaComarar:string):boolean;
-     function SomaCampoDBGRID(var dataset:tibquery;campo:string;dataini:TDateTime;datafim:TDateTime;dataIgual:TDateTime;NomeCampoDataParaComparar:string): currency;
+     function SomaCampoDBGRID(var dataset:TFDQuery;campo:string;dataini:TDateTime;datafim:TDateTime;dataIgual:TDateTime;NomeCampoDataParaComparar:string): currency;
      function valorPorExtenso(vlr: real): string;
      function centraliza(valor:string;repetir:string;tamanho:integer):string;
      function GeraAleatorio(valor:integer):string;
@@ -88,12 +88,12 @@ type
      function QuebraLinhas(ini,fim,entrada:string; qtdQuebra:integer) : string;
      procedure Traca_Nome_Rota;
      procedure GeraCarne(nota,tipo : String);
-     procedure Ibquery_to_clienteDataSet(var ibquer : TIBQuery; var cliente: TClientDataSet);
+     procedure Ibquery_to_clienteDataSet(var ibquer : TFDQuery; var cliente: TClientDataSet);
      function RetornaMaiorTstrings(entra:tstrings) :  string;
      procedure VerificaVersao_do_bd;
      FUNCTION Mensagem(Mensagem : string; option : integer) : string;
      FUNCTION MensagemTextoInput(caption : string) : string;
-     function Procura_em_Multiplos_Campos(var data_set : TIBQuery;Campo_separados_por_espaco, valorParaComparar : string) : boolean;
+     function Procura_em_Multiplos_Campos(var data_set : TFDQuery;Campo_separados_por_espaco, valorParaComparar : string) : boolean;
   end;
 
 var
@@ -473,7 +473,7 @@ begin
 end;
 
 
-procedure tfuncoes.Ibquery_to_clienteDataSet(var ibquer : TIBQuery; var cliente: TClientDataSet);
+procedure tfuncoes.Ibquery_to_clienteDataSet(var ibquer : TFDQuery; var cliente: TClientDataSet);
 var i : integer;
 begin
   for i := 0 to ibquer.Fields.Count-1 do
@@ -1833,7 +1833,7 @@ begin
   valorPorExtenso := s;
 end;
 
-function tfuncoes.SomaCampoDBGRID(var dataset:tibquery;campo:string;dataini:TDateTime;datafim:TDateTime;dataIgual:TDateTime;NomeCampoDataParaComparar:string): currency;
+function tfuncoes.SomaCampoDBGRID(var dataset:TFDQuery;campo:string;dataini:TDateTime;datafim:TDateTime;dataIgual:TDateTime;NomeCampoDataParaComparar:string): currency;
 var i,a,recno: integer;
 begin
   result:=0;
@@ -1887,7 +1887,7 @@ begin
 end;
 
 
-function tfuncoes.Procura_em_Multiplos_Campos(var data_set : TIBQuery;Campo_separados_por_espaco, valorParaComparar : string) : boolean;
+function tfuncoes.Procura_em_Multiplos_Campos(var data_set : TFDQuery;Campo_separados_por_espaco, valorParaComparar : string) : boolean;
 var i:integer;
 var b, acc:string;
 begin
@@ -1938,12 +1938,12 @@ begin
 end;
 
 
-function tfuncoes.busca(var dataset:tibquery;busca:string;retorno:string;campobusca:string;camposdataset:string):string;
+function tfuncoes.busca(var dataset:TFDQuery;busca:string;retorno:string;campobusca:string;camposdataset:string):string;
 var i:integer;
 var ClientDataSet1: TClientDataSet;
 begin
   ClientDataSet1 := TClientDataSet.Create(self);
-  a := tibquery.Create(self);
+  a := TFDQuery.Create(self);
   a.Database := dataset.Database;
   a.Transaction := dataset.Database.DefaultTransaction;
   a.SQL.Text := dataset.SQL.GetText;
@@ -1969,7 +1969,7 @@ begin
   while not a.Eof do
   begin
     //if Contido(busca, a.Fieldbyname(retorno).Value) then
-   if Procura_em_Multiplos_Campos(tibquery(a),busca, a.Fieldbyname(retorno).Value) then
+   if Procura_em_Multiplos_Campos(TFDQuery(a),busca, a.Fieldbyname(retorno).Value) then
     begin
         ClientDataSet1.Open;
         ClientDataSet1.Insert;
@@ -1989,7 +1989,7 @@ begin
   CtrlResize(tform(form33));
   form33.campobusca := campobusca;
   form33.campolocalizaca := retorno;
-  FormataCampos(tibquery(ClientDataSet1),2,'',2);
+  FormataCampos(TFDQuery(ClientDataSet1),2,'',2);
   form33.DataSource1.DataSet := ClientDataSet1;
   form33.ShowModal;
   ClientDataSet1.Destroy;
@@ -2122,7 +2122,7 @@ begin
    else result:='0';
 end;
 
-procedure tfuncoes.FormataCampos(var query:Tibquery;qtdCasasDecimais:integer;CampoFormatoDiferente:string;qtd:integer);
+procedure tfuncoes.FormataCampos(var query:TFDQuery;qtdCasasDecimais:integer;CampoFormatoDiferente:string;qtd:integer);
 var a:integer;
 begin
   a:=0;
@@ -2166,7 +2166,7 @@ begin
     end;
 end;
 
-function tfuncoes.BuscaNomeBD(var query:tibquery;NomeCampo:string;NomeTabela:string;condicao:string) : string;
+function tfuncoes.BuscaNomeBD(var query:TFDQuery;NomeCampo:string;NomeTabela:string;condicao:string) : string;
 begin
   query.SQL.Clear;
   query.SQL.Add('select '+NomeCampo+' from '+NomeTabela+' '+condicao);
@@ -2180,7 +2180,7 @@ begin
   query.Close;
 end;
 
-function tfuncoes.PerguntasRel(var query:tibquery;paramper:string;paramverifica:boolean;valorbd:string;valorstring:string) : boolean;
+function tfuncoes.PerguntasRel(var query:TFDQuery;paramper:string;paramverifica:boolean;valorbd:string;valorstring:string) : boolean;
 //var grupo,fornec,fabric:string;
 var test:boolean;
 begin

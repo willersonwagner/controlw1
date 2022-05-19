@@ -161,31 +161,35 @@ begin
   //Application.CreateForm(TForm69, Form69);
   //Application.CreateForm(TForm68, Form68);
 
-
   if ParamCount = 2 then
      begin
-      dm.bd.DatabaseName := ParamStr(1) + ':' + ParamStr(2);
+      dm.bd.ConnectionName := ParamStr(1) + ':' + ParamStr(2);
+      dm.bd.Params.Values['Database'] := dm.bd.ConnectionName;
       CaminhoBD := ParamStr(1) + ':' + ParamStr(2);
      end
    else if ParamCount = 1 then
      begin
-         dm.bd.DatabaseName := ParamStr(1) ;
+         dm.bd.ConnectionName := ParamStr(1) ;
+         dm.bd.Params.Values['Database'] := dm.bd.ConnectionName;
          CaminhoBD := ParamStr(1);
      end
    else
      begin
-       dm.bd.DatabaseName := copy(ParamStr(0),1,funcoes.PosFinal('\',ParamStr(0))-1)+'\bd.fdb' ;
+       dm.bd.ConnectionName := copy(ParamStr(0),1,funcoes.PosFinal('\',ParamStr(0))-1)+'\bd.fdb' ;
+       dm.bd.Params.Values['Database'] := dm.bd.ConnectionName;
        CaminhoBD := copy(ParamStr(0),1,funcoes.PosFinal('\',ParamStr(0))-1)+'\bd.fdb' ;
      end;
 
-   try
+ //  try
      conectaBD2(dm.bd);
-   except
+{   except
+     on e:exception do begin
      ShowMessage('Não foi Possivel a Conexão com o Banco de Dados.' + #10 + #13 + 'Verifique:' + #10 + #13 + #10 + #13 + '1. Se o Banco de Dados existe na pasta do EXECUTÁVEL; ' + #10 + #13 + #10 + #13 + '2. Verifique se o Servidor Firebird está instalado adquadamente neste computador.' + #10 + #13 + #10 + #13 + '3.Se este Computador estiver sendo configurado em rede, verifique se o caminho do banco de dados foi posto corretamente, altere a Propriedade do Atalho no campo DESTINO para "c:\controlw\controlw.exe' + '<NOME_DO_SERVIDOR> <PASTA_NO_SERVIDOR_QUE_CONTEM_O_BD>" Exemplo: "c:\controlw\controlw.exe \\Servidor c:\controlw\bd.fdb'  + #10 + #13 + #10 + #13 + '4. Se o problema persistir entre em contato com o SUPORTE.' );
      funcoes.adicionarExcecao;
      Application.Terminate;
      exit;
-   end;
+     end;
+   end; }
    
 
   try

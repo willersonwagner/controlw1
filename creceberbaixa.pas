@@ -6,7 +6,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, Buttons, JsBotao1, ToolWin, ComCtrls, Grids, DBGrids,
   JsEditInteiro1, Mask, JsEditData1, JsEdit1, JsEditNumero1, ExtCtrls, DB,
-  DBClient,ibquery;
+  DBClient,FireDAC.Comp.Client;
 
 type
   TForm30 = class(TForm)
@@ -77,7 +77,7 @@ begin
  dm.IBselect.Open;
 
  funcoes.Ibquery_to_clienteDataSet(dm.ibselect,clientdataset1);
- funcoes.FormataCampos(tibquery(ClientDataSet1),2,'',2);
+ funcoes.FormataCampos(TFDQuery(ClientDataSet1),2,'',2);
 
  dm.IBselect.Close;
  codgru.Text := '1';
@@ -257,7 +257,7 @@ begin
           ClientDataSet1.Post;
         end;
 
-        if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+        if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
         jsedit.LimpaCampos(self.Name);
       exit;
     end;
@@ -479,7 +479,7 @@ begin
   dm.IBQuery1.SQL.Text := 'delete from contasreceber where cod = :cod';
   dm.IBQuery1.ParamByName('cod').AsString := StrNum(cod.Text);
   dm.IBQuery1.ExecSQL;
-  if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+  if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
 
   dm.IBselect.Close;
 

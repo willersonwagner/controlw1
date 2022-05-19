@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, DateUtils, forms, funcoesDAV, dialogs,
-  unit1, ibquery, Contnrs, dbclient, dialog, classes1, func, untnfceForm, relatorio;
+  unit1,  Contnrs, dbclient, dialog, classes1, func, untnfceForm, relatorio, FireDAC.Comp.Client;
 
 
 type matriz = array of string;
@@ -112,7 +112,7 @@ FUNCTION MONTA_REG(var MAT : TStringList) : String;
 FUNCTION VALIDA_UNID(UNID : String) : String;     
 function verificaConsistenciaReducaoZ : boolean;     
 procedure VALIDALIQ(ALIQUOTA : String;var NUM_ALIQ : integer;var ALIQ : currency;var TRIB : String;var BASE_ICM : currency);
-FUNCTION VE_VENDAECF(var query : tibquery; LIQ : boolean) : currency;
+FUNCTION VE_VENDAECF(var query : TFDQuery; LIQ : boolean) : currency;
 FUNCTION VAL_ALIQ(ALIQ : String) : integer;
 FUNCTION VE_MOVCUPOM(DAT : TDate; ALIQ : Integer = 2; TOT : currency = 0; const indiceECF : String = '') : currency;
 FUNCTION VE_ECF(const COD_ECF : integer) : String;
@@ -155,7 +155,7 @@ FUNCTION ACUMULACOD(COD : String; var variavel : string) : String; overload;
 FUNCTION ACUMULACOD(COD : Integer; var variavel : string) : String; overload;
 FUNCTION TOTAL_MATRIZ(var mat1 : TStringList) : currency;
 Function ACUMULA_COD(cod : String;const unid : String = '') : String;
-PROCEDURE LE_VALORES_DADOADIC(var query : tibquery);
+PROCEDURE LE_VALORES_DADOADIC(var query : TFDQuery);
 FUNCTION TOT_ADIC() : currency;
 FUNCTION ALIQ_INTEREST(ESTADO : String) : currency;
 FUNCTION ALIQ_CREDICM(const CODFOR : Integer) : currency;
@@ -766,7 +766,7 @@ begin
 end;
 
 
-PROCEDURE LE_VALORES_DADOADIC(var query : tibquery);
+PROCEDURE LE_VALORES_DADOADIC(var query : TFDQuery);
 BEGIN
   if not query.IsEmpty then
      begin
@@ -3385,10 +3385,14 @@ begin
   Result := aliq1;
 end;
 
-FUNCTION VE_VENDAECF(var query : tibquery; LIQ : boolean) : currency;
-var
-  ini1, fim1 : integer;
-begin
+
+FUNCTION VE_VENDAECF(var query : TFDQuery; LIQ : boolean) : currency;
+
+var
+
+  ini1, fim1 : integer;
+
+begin
   fim1   := query.FieldDefs.Count - IfThen(query.FieldDefs.Count = 22, 3, 2);
   Result := 0;
   for ini1 := 7 to fim1 do

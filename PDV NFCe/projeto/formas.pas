@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ibquery;
+  Dialogs, StdCtrls, FireDAC.Comp.Client;
 
 type
   TForm5 = class(TForm)
@@ -22,13 +22,13 @@ type
 
 var
   Form5: TForm5;
-  function lerFormasDePagamento(var query : TIBQuery; const cap : String;const ApareceCaption : boolean; var listaPAGTOIMPRESORA : TStringList; const indice : string) : String;
+  function lerFormasDePagamento(var query : TFDQuery; const cap : String;const ApareceCaption : boolean; var listaPAGTOIMPRESORA : TStringList; const indice : string) : String;
 
 implementation
 
 {$R *.dfm}
 
-function lerFormasDePagamento(var query : TIBQuery; const cap : String;const ApareceCaption : boolean; var listaPAGTOIMPRESORA : TStringList; const indice : string) : String;
+function lerFormasDePagamento(var query : TFDQuery; const cap : String;const ApareceCaption : boolean; var listaPAGTOIMPRESORA : TStringList; const indice : string) : String;
 begin
   if not Assigned(form5) then
     begin

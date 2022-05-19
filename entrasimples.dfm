@@ -662,7 +662,7 @@ object Form17: TForm17
       object tot: TLabel
         Left = 1
         Top = 1
-        Width = 91
+        Width = 199
         Height = 23
         Align = alTop
         Alignment = taCenter
@@ -673,11 +673,12 @@ object Form17: TForm17
         Font.Name = 'Courier New'
         Font.Style = [fsBold]
         ParentFont = False
+        ExplicitWidth = 91
       end
       object totXML: TLabel
         Left = 1
         Top = 33
-        Width = 13
+        Width = 199
         Height = 23
         Align = alBottom
         Alignment = taCenter
@@ -687,6 +688,7 @@ object Form17: TForm17
         Font.Name = 'Courier New'
         Font.Style = [fsBold]
         ParentFont = False
+        ExplicitWidth = 13
       end
     end
     object DESC_COMP: JsEditNumero
@@ -738,12 +740,9 @@ object Form17: TForm17
       CasasDecimais = 2
     end
   end
-  object IBQuery1: TIBQuery
-    Database = dm.bd
+  object IBQuery1: TFDQuery
+    Connection = dm.bd
     Transaction = IBTransaction2
-    BufferChunks = 1000
-    CachedUpdates = False
-    ParamCheck = True
     Left = 208
     Top = 248
   end
@@ -752,12 +751,8 @@ object Form17: TForm17
     Left = 128
     Top = 264
   end
-  object IBTransaction2: TIBTransaction
-    DefaultDatabase = dm.bd
-    Params.Strings = (
-      'read_committed'
-      'rec_version'
-      'wait')
+  object IBTransaction2: TFDTransaction
+    Connection = dm.bd
     Left = 168
     Top = 183
   end

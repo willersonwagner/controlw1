@@ -13,7 +13,7 @@ object dm: Tdm
     Left = 312
     Top = 322
   end
-  object IBSQL: TIBSQL
+  object IBSQL: TFDQuery
     Left = 216
     Top = 7
   end
@@ -37,7 +37,7 @@ object dm: Tdm
     Left = 472
     Top = 217
   end
-  object IBTable1: TIBTable
+  object IBTable1: TFDTable
     BufferChunks = 1000
     CachedUpdates = False
     UniDirectional = False
@@ -417,7 +417,7 @@ object dm: Tdm
       Origin = 'HISTORICO'
       Size = 35
     end
-    object IBTable1TOTAL: TIBBCDField
+    object IBTable1TOTAL: TBCDField
       FieldName = 'TOTAL'
       Visible = False
       Precision = 18
@@ -427,7 +427,7 @@ object dm: Tdm
       FieldName = 'CODHIS'
       Visible = False
     end
-    object IBTable1PAGO: TIBBCDField
+    object IBTable1PAGO: TBCDField
       FieldName = 'PAGO'
       Visible = False
       Precision = 18
@@ -457,7 +457,7 @@ object dm: Tdm
       FieldName = 'PREVISAO'
       Visible = False
     end
-    object IBTable1VALOR: TIBBCDField
+    object IBTable1VALOR: TBCDField
       FieldName = 'VALOR'
       Visible = False
       Precision = 18
@@ -485,7 +485,7 @@ object dm: Tdm
       currency = False
       Calculated = True
     end
-    object IBTable1SALDO: TIBBCDField
+    object IBTable1SALDO: TBCDField
       FieldName = 'SALDO'
       Precision = 18
       Size = 2
@@ -703,7 +703,7 @@ object dm: Tdm
       Origin = 'ORDEM'
       Size = 7
     end
-    object TabelaOrdemusu: TIBStringField
+    object TabelaOrdemusu: TStringField
       DisplayLabel = 'USUARIO'
       FieldKind = fkCalculated
       FieldName = 'usu'

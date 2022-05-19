@@ -4,13 +4,13 @@ unit func;
 interface
 
 uses
-  StdCtrls, Controls, Forms,Windows, Messages, SysUtils,IBQuery, Variants, Classes, Graphics,
-  Dialogs,IniFiles,SHELLAPI, db,dbgrids,ComCtrls,richedit,dbclient, IBDatabase,
-  IBCustomDataSet, ExtCtrls, printers, funcoesDAV, OleCtrls,
+  StdCtrls, Controls, Forms,Windows, Messages, SysUtils, Variants, Classes, Graphics,
+  Dialogs,IniFiles,SHELLAPI, db,dbgrids,ComCtrls,richedit,dbclient, 
+   ExtCtrls, printers, funcoesDAV, OleCtrls,
   SHDocVw, sButton
   , IdComponent, IdTCPConnection, IdTCPClient, IdHTTP,
   IdBaseComponent, IdAntiFreezeBase, IdAntiFreeze, WinInet, RxCalc, IdFTP,
-  IdTime, ibsql, shlobj, Grids, Registry,ActiveX, ComObj, Provider, jsedit1, SyncObjs,
+  IdTime,  shlobj, Grids, Registry,ActiveX, ComObj, Provider, jsedit1, SyncObjs,
   classes1, ACBrETQ ;
 type
   Ptr_Item = ^Item_pagamento;
@@ -70,8 +70,8 @@ type
 
 type
   Tfuncoes = class(TForm)
-    a: TIBQuery;
-    IBTransaction1: TIBTransaction;
+    a: TFDQuery;
+    IBTransaction1: TFDTransaction;
     WebBrowser1: TWebBrowser;
     Timer2: TTimer;
     RxCalculator1: TRxCalculator;
@@ -120,8 +120,8 @@ type
      function recebeFornecedores(var arq : TStringList) : boolean;
      function exportaFornecedores(var arq : TextFile) : boolean;
      function buscaXMl(const path : String; novo : boolean = true) : boolean;
-     function exportaTabela(Tabela, CAMPOS : String; var arq : TextFile; var query : TIBQuery) : boolean;
-     function sincronizarArquivoDeRemessa(caminho : String; var query : TIBQuery) : boolean;
+     function exportaTabela(Tabela, CAMPOS : String; var arq : TextFile; var query : TFDQuery) : boolean;
+     function sincronizarArquivoDeRemessa(caminho : String; var query : TFDQuery) : boolean;
      function criaBackup() : boolean;
      function marcaXMLNFCeParaEnvio(chave, erro, serie : String) : boolean;
      function manutencaoDeXml(inicia : smallint) : String;
@@ -160,9 +160,9 @@ type
      function le_configTerminalWindows(posi : integer; padrao : string) : String;
      procedure exportaNFCeEmitidas();
      function verQuntDecimais(const campo, tabela : String) : integer;
-     procedure limpaBloqueado(var quer : TIBQuery);
+     procedure limpaBloqueado(var quer : TFDQuery);
      function buscaDiasBloqueio() : integer;
-     procedure adicionaRegistroDataBloqueio(const mostraMensagem, adicionaBloqueio  : boolean; var dias : integer; var quer : TIBQuery; buscaDiasSite : boolean = false);
+     procedure adicionaRegistroDataBloqueio(const mostraMensagem, adicionaBloqueio  : boolean; var dias : integer; var quer : TFDQuery; buscaDiasSite : boolean = false);
      procedure acertarTamanhoDBGRID(var tabela : TDBGrid);
      function dataInglesToBrasil(const data : String) : string;
      function buscaProdutoCodCodBar(const cod : String) : String;
@@ -191,7 +191,7 @@ type
      procedure Comprimir(ArquivoCompacto: TFileName; Arquivos: array of TFileName);
      function retornaTipoDoCampo(campo, tabela : String) : String;
      function verificaSeExisteIndiceTrueExiste(const indiceName : String) : boolean;
-     procedure iniciaDataset(var ibquery : TIBQuery; const sql : String);
+     procedure iniciaDataset(var ibquery : TFDQuery; const sql : String);
      function retornaTamanhoDoCampoBD(const nomeCampo, tabela : String) : Smallint;
      FUNCTION VE_CUSTO(PCOMPRA, PVENDA : Currency; COD : String) : currency;
      procedure desmarcaVendaPaf(const numvenda : String);
@@ -268,10 +268,10 @@ type
      function grelatoriocima(SQLGrupo:string;SQLFornec:string;SQLFabric:string;SQLCom2Filtros:string;SQLSemFiltros:string;cabecalho:string;NomeDaEmpresa:string;NomeDoRelatorio:string;colunas:string):boolean;
      procedure ExecFile(F: String);
      function Contido(substring:string;texto:string):boolean;
-     function PerguntasRel(var query:tibquery;paramper:string;paramverifica:boolean;valorbd:string;valorstring:string) : boolean;
-     function BuscaNomeBD(var query:tibquery;NomeCampo:string;NomeTabela:string;condicao:string) : string;
+     function PerguntasRel(var query:TFDQuery;paramper:string;paramverifica:boolean;valorbd:string;valorstring:string) : boolean;
+     function BuscaNomeBD(var query:TFDQuery;NomeCampo:string;NomeTabela:string;condicao:string) : string;
      procedure OrdenaCamposVenda(campos:string);
-     procedure FormataCampos(query:Tibquery;qtdCasasDecimais:integer;CampoFormatoDiferente:string;qtd:integer);
+     procedure FormataCampos(query:TFDQuery;qtdCasasDecimais:integer;CampoFormatoDiferente:string;qtd:integer);
      Function ConverteNumerico(valor:string):string;
      function ContaChar(estring:string;sub:string):string;
      function PosFinal(substr:string;Texto:string):integer;
@@ -279,9 +279,9 @@ type
      function BrowseForFolder(const browseTitle: String;  const initialFolder: String ='';  mayCreateNewFolder: Boolean = False) : String;
      procedure ResizeForms();
      function localizar(titulo:string;tabela:string;campos:string;retorno:string;esconde:string;localizarPor:string;OrdenarPor:string;editLocaliza:boolean;editavel:boolean;deletar:boolean;condicao:string;tamanho:integer;compnenteAlinhar: TObject):string;
-     function busca(var dataset:tibquery;busca:string;retorno:string;campobusca:string;camposdataset:string):string;
+     function busca(var dataset:TFDQuery;busca:string;retorno:string;campobusca:string;camposdataset:string):string;
      function procuraMultiplos(entradaDataset:string;valorParaComarar:string):boolean;
-     function SomaCampoDBGRID(var dataset:tibquery;campo:string;dataini:TDateTime;datafim:TDateTime;dataIgual:TDateTime;NomeCampoDataParaComparar:string): currency;
+     function SomaCampoDBGRID(var dataset:TFDQuery;campo:string;dataini:TDateTime;datafim:TDateTime;dataIgual:TDateTime;NomeCampoDataParaComparar:string): currency;
      function valorPorExtenso(vlr: real): string;
      function centraliza(valor:string;repetir:string;tamanho:integer):string;
      function GeraAleatorio(valor:integer):string;
@@ -298,12 +298,12 @@ type
      function QuebraLinhas(ini,fim,entrada:string; qtdQuebra:integer) : string;
      procedure Traca_Nome_Rota;
      procedure GeraCarne(nota,tipo : String);
-     procedure Ibquery_to_clienteDataSet(var ibquer : TIBQuery; var cliente: TClientDataSet);
+     procedure Ibquery_to_clienteDataSet(var ibquer : TFDQuery; var cliente: TClientDataSet);
      function RetornaMaiorTstrings(entra:tstrings) :  string;
      procedure VerificaVersao_do_bd;
      FUNCTION Mensagem(Caption : String;Mensagem : string; FontSize : integer; fonteLetra : string; btOk : boolean; option : integer; color : TColor) : string;
      FUNCTION MensagemTextoInput(caption, default : string) : string;
-     function Procura_em_Multiplos_Campos(var data_set : TIBQuery;Campo_separados_por_espaco, valorParaComparar : string) : boolean;
+     function Procura_em_Multiplos_Campos(var data_set : TFDQuery;Campo_separados_por_espaco, valorParaComparar : string) : boolean;
      procedure CentralizaNoFormulario(var compo : TWinControl; var send : tform);
      function verificaCodbar(cod, codbar : string; opcao : smallint) : String;
      procedure atualizaBD;
@@ -342,8 +342,8 @@ type
      function voltarLogin(var form : TForm) : boolean;
      function baixaEstoque(cod : String; quant : currency; destino : integer) : boolean;
      function verificaTamnhoCampoBD(tabela, campo : String; tamanhoComparar  : integer) : boolean;
-     function addRegSite(emp1 : String; var quer : TIBQuery) : String;
-     procedure procuraTimmer(var dataset : TIBQuery; caracter : char;const campo : String);
+     function addRegSite(emp1 : String; var quer : TFDQuery) : String;
+     procedure procuraTimmer(var dataset : TFDQuery; caracter : char;const campo : String);
      procedure fazBackupDoBD(const rede : boolean);
      procedure criaArqTerminal();
      procedure redimensionaTelaDbgrid(var dbgrid : TDBGrid);
@@ -432,7 +432,7 @@ begin
   dm.IBQuery1.SQL.Text := 'update venda set exportado = 0 where nota = :nota';
   dm.IBQuery1.ParamByName('nota').AsString := numVenda;
   dm.IBQuery1.ExecSQL;
-  if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+  if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
 end;
 
 function Tfuncoes.dataInglesToBrasil(const data : String) : string;
@@ -1679,7 +1679,7 @@ begin
   Result := dm.IBselect.fieldbyname(nomeCampo).Size;
   dm.IBselect.Close;
 end;
-procedure Tfuncoes.iniciaDataset(var ibquery : TIBQuery; const sql : String);
+procedure Tfuncoes.iniciaDataset(var ibquery : TFDQuery; const sql : String);
 begin
   ibquery.Close;
   ibquery.SQL.Clear;
@@ -1883,7 +1883,7 @@ begin
   end;
 end;
 
-procedure Tfuncoes.procuraTimmer(var dataset : TIBQuery; caracter : char;const campo : String);
+procedure Tfuncoes.procuraTimmer(var dataset : TFDQuery; caracter : char;const campo : String);
 begin
   buscaTimer := buscaTimer + caracter;
   dataset.Locate(campo, buscaTimer, [loPartialKey, loCaseInsensitive]);
@@ -1912,7 +1912,7 @@ begin
   end;
 end;
 
-function Tfuncoes.addRegSite(emp1 : String; var quer : TIBQuery) : String;
+function Tfuncoes.addRegSite(emp1 : String; var quer : TFDQuery) : String;
 var
   bu, th, cnpj, ende : String;
   SS : TStringStream;
@@ -2201,7 +2201,7 @@ begin
     end;
 
   try
-   if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+   if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
   except
   end;
 
@@ -2216,7 +2216,7 @@ begin
     end;
 }
    try
-    if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+    if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
     mtt.Free;
   except
   end; 
@@ -2569,7 +2569,7 @@ begin
   dm.IBselect.FetchAll;
   fim := dm.IBselect.RecordCount;
 
-  if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+  if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
   dm.IBQuery1.Transaction.StartTransaction;
 
 
@@ -2604,7 +2604,7 @@ begin
     end;
 
   funcoes.informacao(dm.IBselect.RecNo, fim,'AGUARDE... ',false,true,2);  
-  if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+  if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
 
   dm.IBselect.Close;
 end;
@@ -2621,7 +2621,7 @@ begin
   dm.IBselect.FetchAll;
   fim := dm.IBselect.RecordCount;
 
-  if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+  if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
   dm.IBQuery1.Transaction.StartTransaction;
 
 
@@ -2646,7 +2646,7 @@ begin
     end;
 
   funcoes.informacao(dm.IBselect.RecNo, fim,'AGUARDE... ',false,true,2);  
-  if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+  if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
 
   dm.IBselect.Close;
 end;
@@ -2729,7 +2729,7 @@ begin
   funcoes.informacao(0, fimDataSet, 'Aguarde, Atualizando estoque...', true, false, 5);
 
   dm.IBQuery1.Close;
-  if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+  if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
   dm.IBQuery1.Transaction.StartTransaction;
   trans := 100;
   cont  := 0;
@@ -2739,7 +2739,7 @@ begin
       {if cont >= trans then
         begin
           trans := trans + 100;
-          if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+          if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
         end;}  
 
       Application.ProcessMessages;
@@ -2804,7 +2804,7 @@ begin
      cont := cont + 1;
     end;
 
-   if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+   if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
    funcoes.informacao(cont, fimDataSet, 'Aguarde, Atualizando estoque...', false, true, 5);
    Result := true;
 end;
@@ -3758,7 +3758,7 @@ begin
   form48.DBGrid1.DataSource := form48.DataSource1;
 
   form48.ClientDataSet1.CreateDataSet;
-  FormataCampos(tibquery(form48.ClientDataSet1), 3, '', 3);
+  FormataCampos(TFDQuery(form48.ClientDataSet1), 3, '', 3);
 
   TCurrencyField(form48.ClientDataSet1.FieldByName('PRECO_NFE')).DisplayFormat := '###,##0.000';
   TField(form48.ClientDataSet1.FieldByName('CONT')).DisplayLabel                 := 'Num. Produto';
@@ -4017,7 +4017,7 @@ begin
   end;
 
   try
-    if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+    if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
   except
     ShowMessage('Ocorreu um erro. Tente Novamente');
   end;
@@ -4322,9 +4322,9 @@ begin
           Result := '1';
         end;
           try
-            if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+            if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
           except
-            if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Rollback;
+            if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Rollback;
           end;
         end
       else
@@ -5128,7 +5128,7 @@ begin
    hand := nil;
 
    imp := LerConfig(form22.Pgerais.values['imp'], 8);
-   if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+   if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
 
 
    if LerConfig(form22.Pgerais.Values['imp'], 9) = 'U' then
@@ -5203,9 +5203,9 @@ var
   tst : boolean;
   i,a, dias : integer;
   tft, tmpi : string;
-  query : TIBQuery;
+  query : TFDQuery;
 begin
- query := TIBQuery.Create(self);
+ query := TFDQuery.Create(self);
  query.Database := dm.bd;
  Result := '';
 
@@ -5585,7 +5585,7 @@ begin
           dm.IBQuery2.ExecSQL;
         end;
 
-      if dm.IBQuery2.Transaction.InTransaction then dm.IBQuery2.Transaction.Commit;}  
+      if dm.IBQuery2.Transaction.Active then dm.IBQuery2.Transaction.Commit;}  
     end;
 
 end;
@@ -6244,7 +6244,7 @@ begin
     begin
       if VerificaCampoTabela('DOC', 'PROMOC') then
         begin
-          if dm.IBselect.Transaction.InTransaction then dm.IBselect.Transaction.Commit;
+          if dm.IBselect.Transaction.Active then dm.IBselect.Transaction.Commit;
           dm.IBQuery1.Close;
           dm.IBQuery1.SQL.Text := 'drop table promoc';
           dm.IBQuery1.ExecSQL;
@@ -7706,7 +7706,7 @@ begin
 
 
 
-  if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+  if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
 
   pger.Free;
   DeleteFile(caminhoEXE_com_barra_no_final + 'bd0.fdb');
@@ -7866,7 +7866,7 @@ begin
 end;
 
 
-procedure tfuncoes.Ibquery_to_clienteDataSet(var ibquer : TIBQuery; var cliente: TClientDataSet);
+procedure tfuncoes.Ibquery_to_clienteDataSet(var ibquer : TFDQuery; var cliente: TClientDataSet);
 var i : integer;
 begin
   for i := 0 to ibquer.Fields.Count-1 do
@@ -8364,7 +8364,7 @@ begin
     funcoes.reorganizaClientes;
 
     try
-      if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+      if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
       ShowMessage('Reorganizacao Completada!');
     except
 
@@ -10112,7 +10112,7 @@ begin
   valorPorExtenso := s;
 end;
 
-function tfuncoes.SomaCampoDBGRID(var dataset:tibquery;campo:string;dataini:TDateTime;datafim:TDateTime;dataIgual:TDateTime;NomeCampoDataParaComparar:string): currency;
+function tfuncoes.SomaCampoDBGRID(var dataset:TFDQuery;campo:string;dataini:TDateTime;datafim:TDateTime;dataIgual:TDateTime;NomeCampoDataParaComparar:string): currency;
 var i,a,recno: integer;
 begin
   result:=0;
@@ -10166,7 +10166,7 @@ begin
 end;
 
 
-function tfuncoes.Procura_em_Multiplos_Campos(var data_set : TIBQuery;Campo_separados_por_espaco, valorParaComparar : string) : boolean;
+function tfuncoes.Procura_em_Multiplos_Campos(var data_set : TFDQuery;Campo_separados_por_espaco, valorParaComparar : string) : boolean;
 var i:integer;
 var b, acc:string;
 begin
@@ -10217,7 +10217,7 @@ begin
    end;
 end;
 
-function tfuncoes.busca(var dataset:tibquery;busca:string;retorno:string;campobusca:string;camposdataset:string):string;
+function tfuncoes.busca(var dataset:TFDQuery;busca:string;retorno:string;campobusca:string;camposdataset:string):string;
 var
  i   :integer;
  lab : TLabel;
@@ -10440,7 +10440,7 @@ begin
    else result:='0';
 end;
 
-procedure tfuncoes.FormataCampos(query:Tibquery;qtdCasasDecimais:integer;CampoFormatoDiferente:string;qtd:integer);
+procedure tfuncoes.FormataCampos(query:TFDQuery;qtdCasasDecimais:integer;CampoFormatoDiferente:string;qtd:integer);
 var a:integer;
 begin
   a:=0;
@@ -10488,7 +10488,7 @@ begin
   nomeCampo.Free;  
 end;
 
-function tfuncoes.BuscaNomeBD(var query:tibquery;NomeCampo:string;NomeTabela:string;condicao:string) : string;
+function tfuncoes.BuscaNomeBD(var query:TFDQuery;NomeCampo:string;NomeTabela:string;condicao:string) : string;
 begin
   query.SQL.Clear;
   query.SQL.Add('select '+NomeCampo+' from '+NomeTabela+' '+condicao);
@@ -10502,7 +10502,7 @@ begin
   query.Close;
 end;
 
-function tfuncoes.PerguntasRel(var query:tibquery;paramper:string;paramverifica:boolean;valorbd:string;valorstring:string) : boolean;
+function tfuncoes.PerguntasRel(var query:TFDQuery;paramper:string;paramverifica:boolean;valorbd:string;valorstring:string) : boolean;
 //var grupo,fornec,fabric:string;
 var test:boolean;
 begin
@@ -11420,7 +11420,7 @@ begin
   //dm.IBselect.close;
 end;
 
-procedure Tfuncoes.adicionaRegistroDataBloqueio(const mostraMensagem, adicionaBloqueio  : boolean; var dias : integer; var quer : TIBQuery; buscaDiasSite : boolean = false);
+procedure Tfuncoes.adicionaRegistroDataBloqueio(const mostraMensagem, adicionaBloqueio  : boolean; var dias : integer; var quer : TFDQuery; buscaDiasSite : boolean = false);
 var
  too : integer;
  data : TDate;
@@ -11496,7 +11496,7 @@ begin
   Result := StrToIntDef( dm.IBselect.fieldbyname('nfe').AsString, diasparabloquear);
 end;
 
-procedure Tfuncoes.limpaBloqueado(var quer : TIBQuery);
+procedure Tfuncoes.limpaBloqueado(var quer : TFDQuery);
 begin
   dm.IBQuery1.Close;
   dm.IBQuery1.SQL.Text := 'delete from acesso where acesso = ''diaBloq''';
@@ -11526,11 +11526,11 @@ end;
 
 procedure TTWtheadEnviaCupons1.enviaCupons;
 var
-  query : TIBQuery;
+  query : TFDQuery;
   forne : String;
   cont, fim : integer;
 begin
-  query := TIBQuery.Create(Application);
+  query := TFDQuery.Create(Application);
   query.Database := dm.bd;
 
   query.SQL.Text := 'select nota, chave from NFCE where adic = ''OFF''';
@@ -12951,7 +12951,7 @@ begin
         end;
     end;
 
-  if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+  if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
   funcoes.informacao(ini, fim,'Atualizando CFOPs...', false, true, 2);
   cods := '';
   camp.Free;
@@ -13244,7 +13244,7 @@ begin
   ShowMessage('Backup Criado em: ' + caminho);
 end;
 
-function Tfuncoes.exportaTabela(Tabela, CAMPOS : String; var arq : TextFile; var query : TIBQuery) : boolean;
+function Tfuncoes.exportaTabela(Tabela, CAMPOS : String; var arq : TextFile; var query : TFDQuery) : boolean;
 var
   ini, a, b : integer;
   linha : String;
@@ -13288,7 +13288,7 @@ begin
   query.Close;
 end;
 
-function Tfuncoes.sincronizarArquivoDeRemessa(caminho : String; var query : TIBQuery) : boolean;
+function Tfuncoes.sincronizarArquivoDeRemessa(caminho : String; var query : TFDQuery) : boolean;
 var
   ini, a, b : integer;
   linha, campos, tabela, sql : String;
@@ -13495,7 +13495,7 @@ begin
   dm.IBQuery1.SQL.Text := 'alter sequence ' + generator + ' restart with ' + IntToStr(genVaue);
   if genVaue > 0 then dm.IBQuery1.ExecSQL;
 
-  if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit; 
+  if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit; 
 end;
 
 

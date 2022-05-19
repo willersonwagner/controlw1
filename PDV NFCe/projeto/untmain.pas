@@ -282,7 +282,7 @@ begin
     end;
   end;
   stb.panels[1].Text := 'Usuário: ';
-  stb.panels[2].Text := dtmMain.bd.DatabaseName;
+  stb.panels[2].Text := dtmMain.bd.ConnectionName;
 
 end;
 

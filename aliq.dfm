@@ -51,11 +51,8 @@ object aliq1: Taliq1
     ExplicitTop = 136
     ExplicitWidth = 185
   end
-  object IBTable1: TIBTable
+  object IBTable1: TFDTable
     BeforeInsert = IBTable1BeforeInsert
-    BufferChunks = 1000
-    CachedUpdates = False
-    UniDirectional = True
     Left = 104
     Top = 80
   end

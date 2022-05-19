@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, Grids, DBGrids, DB, DBClient,ibquery, untNfce, jsedit1;
+  Dialogs, Grids, DBGrids, DB, DBClient, untNfce, jsedit1,FireDAC.Comp.Client;
 
 type
   TForm33 = class(TForm)
@@ -54,7 +54,7 @@ var
   a, c, b : integer;
   key1    : char;
   val, total, ent : currency;
-  query : TIBQuery;
+  query : TFDQuery;
 begin
 
   if campobusca = 'dataVenda' then begin
@@ -145,7 +145,7 @@ begin
    begin
      if ((ord(key)) >= 65) and (((ord(key))) <= 95) then
        begin
-         query := Tibquery(DBGrid1.DataSource.DataSet);
+         query := TFDQuery(DBGrid1.DataSource.DataSet);
          funcoes.procuraTimmer(query, key, campos);
        end;
    end;
@@ -204,20 +204,20 @@ begin
        begin
          a := DBGrid1.DataSource.DataSet.RecNo;
          try
-         tibquery(DBGrid1.DataSource.DataSet).DisableControls;
-         tibquery(DBGrid1.DataSource.DataSet).First;
+         TFDQuery(DBGrid1.DataSource.DataSet).DisableControls;
+         TFDQuery(DBGrid1.DataSource.DataSet).First;
          val := 0;
          ent := 0;
-         while not tibquery(DBGrid1.DataSource.DataSet).Eof do
+         while not TFDQuery(DBGrid1.DataSource.DataSet).Eof do
            begin
-             ent := ent + tibquery(DBGrid1.DataSource.DataSet).fieldbyname('entrada').AsCurrency;
-             val := val + tibquery(DBGrid1.DataSource.DataSet).fieldbyname('saida').AsCurrency;
-             tibquery(DBGrid1.DataSource.DataSet).Next;
+             ent := ent + TFDQuery(DBGrid1.DataSource.DataSet).fieldbyname('entrada').AsCurrency;
+             val := val + TFDQuery(DBGrid1.DataSource.DataSet).fieldbyname('saida').AsCurrency;
+             TFDQuery(DBGrid1.DataSource.DataSet).Next;
            end;
          finally
-           tibquery(DBGrid1.DataSource.DataSet).First;
-           tibquery(DBGrid1.DataSource.DataSet).MoveBy(a - 1);
-           tibquery(DBGrid1.DataSource.DataSet).EnableControls;
+           TFDQuery(DBGrid1.DataSource.DataSet).First;
+           TFDQuery(DBGrid1.DataSource.DataSet).MoveBy(a - 1);
+           TFDQuery(DBGrid1.DataSource.DataSet).EnableControls;
          end;
 
          DOC := funcoes.CompletaOuRepete('', '', '-', 22) + CRLF + 'Total de Movimento:' + CRLF + CRLF + 'Entrada=>'+ funcoes.CompletaOuRepete('', formataCurrency(ent), ' ', 13) + '+' + CRLF + 'Saída  =>'+funcoes.CompletaOuRepete('', formataCurrency(val), ' ', 13) + '-' + CRLF + funcoes.CompletaOuRepete('', '', '-', 22) + CRLF + 'TOTAL  =>' + funcoes.CompletaOuRepete('', formataCurrency(ent - val), ' ', 13) + CRLF + funcoes.CompletaOuRepete('', '', '-', 22) + CRLF + CRLF;
@@ -229,26 +229,26 @@ begin
          if MessageBox(Handle, 'Deseja Enviar para a Impressora', pchar(Application.Title), MB_YESNO + MB_ICONQUESTION + MB_DEFBUTTON2) = idyes then
            begin
              form19.RichEdit1.Clear;
-             addRelatorioForm19(funcoes.RelatorioCabecalho(form22.Pgerais.Values['empresa'], 'MOVIMENTO DE CAIXA DE ' + formataDataDDMMYY(tibquery(DBGrid1.DataSource.DataSet).Parambyname('ini').AsDateTime) + ' A ' + formataDataDDMMYY(tibquery(DBGrid1.DataSource.DataSet).Parambyname('fim').AsDateTime), 80));
+             addRelatorioForm19(funcoes.RelatorioCabecalho(form22.Pgerais.Values['empresa'], 'MOVIMENTO DE CAIXA DE ' + formataDataDDMMYY(TFDQuery(DBGrid1.DataSource.DataSet).Parambyname('ini').AsDateTime) + ' A ' + formataDataDDMMYY(TFDQuery(DBGrid1.DataSource.DataSet).Parambyname('fim').AsDateTime), 80));
              addRelatorioForm19('| DATA      DOC. HISTORICO                                                 VALOR' + CRLF);
              addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + CRLF);
              try
-               tibquery(DBGrid1.DataSource.DataSet).DisableControls;
-               tibquery(DBGrid1.DataSource.DataSet).First;
+               TFDQuery(DBGrid1.DataSource.DataSet).DisableControls;
+               TFDQuery(DBGrid1.DataSource.DataSet).First;
                total := 0;
-               while not tibquery(DBGrid1.DataSource.DataSet).Eof do
+               while not TFDQuery(DBGrid1.DataSource.DataSet).Eof do
                  begin
-                   val := tibquery(DBGrid1.DataSource.DataSet).fieldbyname('entrada').Ascurrency - tibquery(DBGrid1.DataSource.DataSet).fieldbyname('saida').Ascurrency;
+                   val := TFDQuery(DBGrid1.DataSource.DataSet).fieldbyname('entrada').Ascurrency - TFDQuery(DBGrid1.DataSource.DataSet).fieldbyname('saida').Ascurrency;
                    total := total + val;
-                   addRelatorioForm19(formataDataDDMMYY(tibquery(DBGrid1.DataSource.DataSet).fieldbyname('data').AsDateTime) + ' ' + funcoes.CompletaOuRepete('', tibquery(DBGrid1.DataSource.DataSet).fieldbyname('documento').AsString, ' ', 7) + ' ' + funcoes.CompletaOuRepete(LeftStr(tibquery(DBGrid1.DataSource.DataSet).fieldbyname('historico').AsString, 48), '', ' ', 48) + ' ' + funcoes.CompletaOuRepete('', formataCurrency(abs(val)), ' ', 13) + iif(val < 0, '-', '+') + CRLF);
-                   tibquery(DBGrid1.DataSource.DataSet).Next;
+                   addRelatorioForm19(formataDataDDMMYY(TFDQuery(DBGrid1.DataSource.DataSet).fieldbyname('data').AsDateTime) + ' ' + funcoes.CompletaOuRepete('', TFDQuery(DBGrid1.DataSource.DataSet).fieldbyname('documento').AsString, ' ', 7) + ' ' + funcoes.CompletaOuRepete(LeftStr(TFDQuery(DBGrid1.DataSource.DataSet).fieldbyname('historico').AsString, 48), '', ' ', 48) + ' ' + funcoes.CompletaOuRepete('', formataCurrency(abs(val)), ' ', 13) + iif(val < 0, '-', '+') + CRLF);
+                   TFDQuery(DBGrid1.DataSource.DataSet).Next;
                  end;
              finally
                addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + CRLF);
                addRelatorioForm19(funcoes.CompletaOuRepete('TOTAL => ' + formataCurrency(total), '', ' ', 80) + CRLF);
                addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + CRLF);
-               tibquery(DBGrid1.DataSource.DataSet).First;
-               tibquery(DBGrid1.DataSource.DataSet).EnableControls;
+               TFDQuery(DBGrid1.DataSource.DataSet).First;
+               TFDQuery(DBGrid1.DataSource.DataSet).EnableControls;
              end;
 
              imprime.textx('');

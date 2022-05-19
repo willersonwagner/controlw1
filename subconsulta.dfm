@@ -48,20 +48,20 @@ object Form25: TForm25
     Params = <>
     Left = 248
     Top = 208
-    object ClientDataSet1CODBAR: TIBStringField
+    object ClientDataSet1CODBAR: TStringField
       FieldName = 'CODBAR'
       Size = 15
     end
-    object ClientDataSet1DESCRICAO: TIBStringField
+    object ClientDataSet1DESCRICAO: TStringField
       FieldName = 'DESCRICAO'
       Size = 40
     end
-    object ClientDataSet1PRECO: TIBBCDField
+    object ClientDataSet1PRECO: TBCDField
       FieldName = 'PRECO'
       Precision = 18
       Size = 3
     end
-    object ClientDataSet1ESTOQUE: TIBBCDField
+    object ClientDataSet1ESTOQUE: TBCDField
       FieldName = 'ESTOQUE'
       ProviderFlags = []
       Precision = 18

@@ -4,12 +4,15 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, Grids, DBGrids, DB,ibquery, IBCustomDataSet, IBTable, Vcl.ExtCtrls;
+  Dialogs, Grids, DBGrids, DB,   Vcl.ExtCtrls,FireDAC.Comp.Client,
+  FireDAC.Stan.Intf, FireDAC.Stan.Option, FireDAC.Stan.Param,
+  FireDAC.Stan.Error, FireDAC.DatS, FireDAC.Phys.Intf, FireDAC.DApt.Intf,
+  FireDAC.Stan.Async, FireDAC.DApt, FireDAC.Comp.DataSet;
 
 type
   Taliq1 = class(TForm)
     DBGrid1: TDBGrid;
-    IBTable1: TIBTable;
+    IBTable1: TFDTable;
     DataSource1: TDataSource;
     Panel1: TPanel;
     procedure FormShow(Sender: TObject);
@@ -35,10 +38,10 @@ uses Unit1, func;
 
 procedure Taliq1.FormShow(Sender: TObject);
 begin
-  IBTable1.Database := dm.bd;
+  IBTable1.Connection := dm.bd;
   IBTable1.TableName := 'ALIQ';
   IBTable1.Open;
-  funcoes.FormataCampos(tibquery(ibtable1),2,'',2);
+  funcoes.FormataCampos(TFDQuery(ibtable1),2,'',2);
 end;
 
 procedure Taliq1.DBGrid1KeyDown(Sender: TObject; var Key: Word;

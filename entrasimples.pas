@@ -6,8 +6,10 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, Mask, JsEditData1, StdCtrls, Buttons, JsBotao1, ToolWin,
   ComCtrls, JsEdit1, JsEditInteiro1, ExtCtrls, Grids, DBGrids, DBCtrls,
-  JsEditNumero1, DB, IBCustomDataSet, DBClient, Provider, Menus, IBQuery,
-  IBDatabase, untnfceForm, classes1;
+  JsEditNumero1, DB,  DBClient, Provider, Menus,  FireDAC.Comp.Client,
+   untnfceForm, classes1, FireDAC.Stan.Intf, FireDAC.Stan.Option,
+  FireDAC.Stan.Param, FireDAC.Stan.Error, FireDAC.DatS, FireDAC.Phys.Intf,
+  FireDAC.DApt.Intf, FireDAC.Stan.Async, FireDAC.DApt, FireDAC.Comp.DataSet;
 
 type
   TForm17 = class(TForm)
@@ -47,9 +49,9 @@ type
     baseicm: JsEditNumero;
     credicm: JsEditNumero;
     agreg: JsEditNumero;
-    IBQuery1: TIBQuery;
+    IBQuery1: TFDQuery;
     DataSource1: TDataSource;
-    IBTransaction2: TIBTransaction;
+    IBTransaction2: TFDTransaction;
     Panel2: TPanel;
     tot: TLabel;
     totXML: TLabel;
@@ -397,11 +399,11 @@ begin
   if cod <> '' then
     begin
       DBGrid2.DataSource.DataSet.DisableControls;
-      if tibquery(DBGrid2.DataSource.DataSet).Locate('cod', tr, []) then
+      if TFDQuery(DBGrid2.DataSource.DataSet).Locate('cod', tr, []) then
         begin
-          tibquery(DBGrid2.DataSource.DataSet).First;
+          TFDQuery(DBGrid2.DataSource.DataSet).First;
         end;
-       tibquery(DBGrid2.DataSource.DataSet).EnableControls;
+       TFDQuery(DBGrid2.DataSource.DataSet).EnableControls;
     end;
 
 end;
@@ -555,8 +557,8 @@ begin
   ' left join produto p on (a.cod = p.cod) ' +
   ' left join usuario c on (a.usuario = c.cod) ' +
   ' where (a.nota = :nota) and (a.fornec = :fornec)');
-  IBQuery1.ParamByName('nota').AsString   := codigo.Text;
-  IBQuery1.ParamByName('fornec').AsString := fornec.Text;
+  IBQuery1.ParamByName('nota').AsString   := StrNum(codigo.Text);
+  IBQuery1.ParamByName('fornec').AsString := StrNum(fornec.Text);
   IBQuery1.open;
   IBQuery1.FieldByName('codentrada').Visible := false;
   IBQuery1.FieldByName('nota').Visible       := false;
@@ -839,8 +841,8 @@ begin
   tabela := 'entrada';
 
   try
-    if dm.IBQuery4.Transaction.InTransaction then dm.IBQuery4.Transaction.Commit;
-    if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit; //gravar quantidade
+    if dm.IBQuery4.Transaction.Active then dm.IBQuery4.Transaction.Commit;
+    if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit; //gravar quantidade
   except
   end;
 
@@ -863,7 +865,7 @@ begin
  begin
     if messageDlg('Deseja Excluir?', mtConfirmation, [mbyes, mbNo], 0) = mrYes then
      begin
-      if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+      if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
       dm.IBQuery1.Transaction.StartTransaction;
       ult := 0;
       nota := DBGrid2.DataSource.DataSet.fieldbyname('nota').AsString;
@@ -894,7 +896,7 @@ begin
           dm.IBQuery1.ExecSQL;
         end;
       try
-        if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+        if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
 
         if ult = 1 then
           begin
@@ -1673,7 +1675,7 @@ begin
     end;
 
   finally
-    if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+    if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
     DBGrid2.DataSource.DataSet.First;
     DBGrid2.DataSource.DataSet.EnableControls;
   end;
@@ -1748,7 +1750,7 @@ begin
 
 
   finally
-    if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+    if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
     DBGrid2.DataSource.DataSet.First;
     DBGrid2.DataSource.DataSet.EnableControls;
   end;

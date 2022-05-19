@@ -95,134 +95,82 @@ object Form1: TForm1
     Enabled = False
     Interval = 20000
     OnTimer = Timer1Timer
-    Left = 448
-    Top = 88
+    Left = 528
+    Top = 8
   end
   object Timer2: TTimer
     Enabled = False
     Interval = 4000
     OnTimer = Timer2Timer
-    Left = 432
+    Left = 528
+    Top = 112
   end
-  object BDControl: TIBDatabase
-    DatabaseName = 'C:\CONTROLW\BD.FDB'
-    Params.Strings = (
-      'user_name=sysdba'
-      'password=masterkey'
-      'lc_ctype=ISO8859_1')
-    LoginPrompt = False
-    DefaultTransaction = IBTransaction4
-    ServerType = 'IBServer'
-    AllowStreamedConnected = False
-    Left = 312
-    Top = 72
-  end
-  object IBTransaction2: TIBTransaction
-    DefaultDatabase = BDControl
-    Params.Strings = (
-      'read_committed'
-      'rec_version'
-      'wait')
-    Left = 320
-    Top = 184
-  end
-  object QueryControlProd: TIBQuery
-    Database = BDControl
-    Transaction = IBTransaction1
-    BufferChunks = 1000
-    CachedUpdates = False
-    ParamCheck = True
-    Left = 488
-    Top = 120
-  end
-  object QueryControlVenda: TIBQuery
-    Database = BDControl
-    Transaction = IBTransaction2
-    BufferChunks = 1000
-    CachedUpdates = False
-    ParamCheck = True
-    Left = 488
-    Top = 312
-  end
-  object QueryControlDivs: TIBQuery
-    Database = BDControl
-    Transaction = IBTransaction2
-    BufferChunks = 1000
-    CachedUpdates = False
-    ParamCheck = True
-    Left = 488
-    Top = 264
-  end
-  object IBTransaction1: TIBTransaction
-    DefaultDatabase = BDControl
-    Params.Strings = (
-      'read_committed'
-      'rec_version'
-      'wait')
+  object IBTransaction2: TFDTransaction
+    Options.AutoStop = False
+    Options.StopOptions = [xoIfCmdsInactive]
+    Connection = BDControl
     Left = 376
-    Top = 152
+    Top = 256
+  end
+  object QueryControlProd: TFDQuery
+    Connection = BDControl
+    Transaction = IBTransaction1
+    Left = 456
+    Top = 8
+  end
+  object QueryControlVenda: TFDQuery
+    Connection = BDControl
+    Transaction = IBTransaction2
+    Left = 464
+    Top = 216
+  end
+  object QueryControlDivs: TFDQuery
+    Connection = BDControl
+    Transaction = IBTransaction2
+    Left = 456
+    Top = 160
+  end
+  object IBTransaction1: TFDTransaction
+    Options.AutoStop = False
+    Options.StopOptions = [xoIfCmdsInactive]
+    Connection = BDControl
+    Left = 376
+    Top = 200
   end
   object ACBrIBPTax1: TACBrIBPTax
     ProxyPort = '8080'
-    Left = 248
-    Top = 8
+    Left = 264
   end
-  object BD_Servidor: TIBDatabase
-    Params.Strings = (
-      'user_name=sysdba'
-      'password=masterkey'
-      'lc_ctype=ISO8859_1')
-    LoginPrompt = False
-    DefaultTransaction = IBTransaction3
-    ServerType = 'IBServer'
-    AllowStreamedConnected = False
-    Left = 144
-    Top = 128
-  end
-  object IBQueryServer1: TIBQuery
-    Database = BD_Servidor
+  object IBQueryServer1: TFDQuery
+    Connection = BD_Servidor
     Transaction = IBTransaction3
-    BufferChunks = 1000
-    CachedUpdates = False
-    ParamCheck = True
     Left = 144
     Top = 176
   end
-  object IBTransaction3: TIBTransaction
-    DefaultDatabase = BD_Servidor
-    Params.Strings = (
-      'read_committed'
-      'rec_version'
-      'wait')
-    Left = 88
-    Top = 132
+  object IBTransaction3: TFDTransaction
+    Options.AutoStop = False
+    Options.StopOptions = [xoIfCmdsInactive]
+    Connection = BD_Servidor
+    Left = 64
+    Top = 140
   end
-  object IBQueryServer2: TIBQuery
-    Database = BD_Servidor
+  object IBQueryServer2: TFDQuery
+    Connection = BD_Servidor
     Transaction = IBTransaction3
-    BufferChunks = 1000
-    CachedUpdates = False
-    ParamCheck = True
     Left = 144
     Top = 224
   end
-  object IBQuery1: TIBQuery
-    Database = BDControl
+  object IBQuery1: TFDQuery
+    Connection = BDControl
     Transaction = IBTransaction1
-    BufferChunks = 1000
-    CachedUpdates = False
-    ParamCheck = True
-    Left = 488
-    Top = 168
+    Left = 456
+    Top = 64
   end
-  object IBQuery2: TIBQuery
-    Database = BDControl
+  object IBQuery2: TFDQuery
+    Connection = BDControl
     Transaction = IBTransaction2
-    BufferChunks = 1000
-    CachedUpdates = False
-    ParamCheck = True
-    Left = 488
-    Top = 216
+    Left = 456
+    Top = 112
   end
   object ACBrNFeDANFeRL1: TACBrNFeDANFeRL
     Sistema = 'Projeto ACBr - www.projetoacbr.com.br'
@@ -243,8 +191,8 @@ object Form1: TForm1
     CasasDecimais.MaskvUnCom = ',0.00'
     ACBrNFe = ACBrNFe1
     ExibeCampoFatura = False
-    Left = 496
-    Top = 24
+    Left = 256
+    Top = 272
   end
   object ACBrNFeDANFCeFortes1: TACBrNFeDANFCeFortes
     Sistema = 'Projeto ACBr - www.projetoacbr.com.br'
@@ -293,15 +241,15 @@ object Form1: TForm1
     CasasDecimais.MaskvUnCom = ',0.00'
     TipoDANFE = tiSemGeracao
     FormularioContinuo = True
-    Left = 168
+    Left = 160
     Top = 64
   end
   object TrayIcon1: TTrayIcon
     Animate = True
     PopupMenu = PopupMenu1
     OnClick = TrayIcon1Click
-    Left = 320
-    Top = 232
+    Left = 256
+    Top = 144
   end
   object PopupMenu1: TPopupMenu
     Left = 256
@@ -315,40 +263,35 @@ object Form1: TForm1
       OnClick = Fechar1Click
     end
   end
-  object IBQuery3: TIBQuery
-    Database = BDControl
+  object IBQuery3: TFDQuery
+    Connection = BDControl
     Transaction = IBTransaction4
-    BufferChunks = 1000
-    CachedUpdates = False
-    ParamCheck = True
-    Left = 432
-    Top = 176
+    Left = 464
+    Top = 264
   end
-  object IBTransaction4: TIBTransaction
-    DefaultDatabase = BDControl
-    Params.Strings = (
-      'read_committed'
-      'rec_version'
-      'wait')
+  object IBTransaction4: TFDTransaction
+    Options.AutoStop = False
+    Options.StopOptions = [xoIfCmdsInactive]
+    Connection = BDControl
     Left = 376
-    Top = 96
+    Top = 144
   end
   object Timer3: TTimer
     Enabled = False
     Interval = 1
     OnTimer = Timer3Timer
-    Left = 312
-    Top = 8
+    Left = 528
+    Top = 168
   end
   object IdAntiFreeze1: TIdAntiFreeze
-    Left = 368
-    Top = 16
+    Left = 376
+    Top = 8
   end
   object FinalizaTimer: TTimer
     Enabled = False
     OnTimer = FinalizaTimerTimer
-    Left = 512
-    Top = 72
+    Left = 528
+    Top = 56
   end
   object IdSNTP1: TIdSNTP
     BroadcastEnabled = True
@@ -375,7 +318,32 @@ object Form1: TForm1
     Configuracoes.WebServices.SSLType = LT_TLSv1_2
     Configuracoes.RespTec.IdCSRT = 0
     DANFE = ACBrNFeDANFeRL1
-    Left = 416
-    Top = 56
+    Left = 256
+    Top = 216
+  end
+  object BDControl: TFDConnection
+    Params.Strings = (
+      'User_Name=sysdba'
+      'Password=SYSTEMA1'
+      'Database=F:\ControlW\bd.fdb'
+      'DriverID=FB')
+    LoginPrompt = False
+    Left = 376
+    Top = 90
+  end
+  object BD_Servidor: TFDConnection
+    Params.Strings = (
+      'User_Name=sysdba'
+      'Password=SYSTEMA1'
+      'Database=F:\ControlW\bd.fdb'
+      'DriverID=FB')
+    LoginPrompt = False
+    Left = 144
+    Top = 122
+  end
+  object FDGUIxWaitCursor1: TFDGUIxWaitCursor
+    Provider = 'Forms'
+    Left = 320
+    Top = 64
   end
 end

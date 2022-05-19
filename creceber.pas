@@ -6,7 +6,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, Grids, DBGrids, StdCtrls, Buttons, JsBotao1, ToolWin, ComCtrls,
   JsEditNumero1, JsEditInteiro1, Mask, JsEditData1, JsEdit1, ExtCtrls, DB,
-  DBClient,ibquery;
+  DBClient,FireDAC.Comp.Client;
 
 type
   TForm29 = class(TForm)
@@ -232,7 +232,7 @@ begin
  dm.IBselect.Open;
 
  funcoes.Ibquery_to_clienteDataSet(dm.ibselect,clientdataset1);
- funcoes.FormataCampos(tibquery(ClientDataSet1),2,'',2);
+ funcoes.FormataCampos(TFDQuery(ClientDataSet1),2,'',2);
 
  dm.IBselect.Close;
 

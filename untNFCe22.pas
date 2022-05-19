@@ -152,7 +152,7 @@ uses IniFiles, comctrls, sysutils, controls, classes,
      pcnConversao, pcnNFeRTXT, ACBrUtil, DateUtils, ACBrNFe, ACBrNFeDANFeESCPOS,
      ACBrNFeDANFEClass, ACBrNFeDANFERave, ACBrDANFCeFortesFr, printers, ACBrNFeDANFERaveCB,
 
-     func, ibquery, classes1, StrUtils, acbrbal, WINDOWS, funcoesdav;
+     func,  classes1, StrUtils, acbrbal, WINDOWS, funcoesdav;
  //
   function buscaCRCdaChave(const chve : string) : String;
   function substitui_Nodo(nome:string; conteudo : string; const texto :string) : String;
@@ -228,7 +228,7 @@ var
  venda      : Tvenda;
  lista      : TList;
  codNF    : integer;
- query1, query2, query3 : tibquery;
+ query1, query2, query3 : TFDQuery;
  dadosEmitente, dadosDest : TStringList;
  TOT_PIS, TOT_COFINS, totalNota, PIS_ST, COFINS_ST, TRIB_ALIQ_COFINS, BASE_ICM,
  VLR_ICM, tot_Geral, TOTICM, TOT_BASEICM, PIS_NT, TRIB_ALIQ_PIS : currency;
@@ -406,8 +406,8 @@ var
   fim : integer;
 begin
   fim := lista.Count -1;
-  if 0 <= fim then query1     := TIBQuery(Lista.Items[0]);
-  if 1 <= fim then query2     := TIBQuery(Lista.Items[1]);
+  if 0 <= fim then query1     := TFDQuery(Lista.Items[0]);
+  if 1 <= fim then query2     := TFDQuery(Lista.Items[1]);
   if 2 <= fim then ACBrNFe    := TACBrNFe(Lista.Items[2]);
   if 3 <= fim then pgerais    := TStringList(lista.Items[3]);
   if 4 <= fim then DANFE      := TACBrNFeDANFCeFortes(Lista.Items[4]);
@@ -2644,7 +2644,7 @@ end;
 //GerarNFCe(nota, cliente, obs1, serie1, NNF, '');
 procedure GerarNFCe(nota, NumNFCe, TipoEmissao, TipoAmbiente, UFComerciante, FinalidadeNFe : String);
 var
- qr,qrPg  : tibquery;
+ qr,qrPg  : TFDQuery;
  sql      : string;
  sCST,
  idCST    : string;
@@ -2652,7 +2652,7 @@ var
  CodUF,
  CodMun   : string;
  bolISSQN : string;
- qry      : TIBQuery;
+ qry      : TFDQuery;
  ini, fim : integer;
  item     : Item_venda;
  op : TOpenDialog;

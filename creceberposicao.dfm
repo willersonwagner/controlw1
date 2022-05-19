@@ -151,17 +151,13 @@ object Form34: TForm34
       ParentFont = False
     end
   end
-  object IBTable1: TIBTable
-    Database = dm.bd
-    Transaction = dm.IBTransaction2
+  object IBTable1: TFDTable
     AutoCalcFields = False
     OnCalcFields = IBTable1CalcFields
-    BufferChunks = 1000
-    CachedUpdates = False
-    DefaultIndex = False
-    StoreDefs = True
+    Connection = dm.bd
+    Transaction = dm.IBTransaction2
+    UpdateOptions.UpdateTableName = 'CONTASRECEBER'
     TableName = 'CONTASRECEBER'
-    UniDirectional = False
     Left = 376
     Top = 232
     object IBTable1CODGRU: TIntegerField
@@ -174,7 +170,7 @@ object Form34: TForm34
     object IBTable1DOCUMENTO: TIntegerField
       FieldName = 'DOCUMENTO'
     end
-    object IBTable1TOTAL: TIBBCDField
+    object IBTable1TOTAL: TBCDField
       FieldName = 'TOTAL'
       Visible = False
       Precision = 18
@@ -184,11 +180,11 @@ object Form34: TForm34
       FieldName = 'CODHIS'
       Visible = False
     end
-    object IBTable1HISTORICO: TIBStringField
+    object IBTable1HISTORICO: TStringField
       FieldName = 'HISTORICO'
       Size = 35
     end
-    object IBTable1PAGO: TIBBCDField
+    object IBTable1PAGO: TBCDField
       FieldName = 'PAGO'
       Visible = False
       Precision = 18
@@ -218,7 +214,7 @@ object Form34: TForm34
       FieldName = 'PREVISAO'
       Visible = False
     end
-    object IBTable1VALOR: TIBBCDField
+    object IBTable1VALOR: TBCDField
       FieldName = 'VALOR'
       Visible = False
       Precision = 18
@@ -246,7 +242,7 @@ object Form34: TForm34
       currency = False
       Calculated = True
     end
-    object IBTable1SALDO: TIBBCDField
+    object IBTable1SALDO: TBCDField
       FieldName = 'SALDO'
       Precision = 18
       Size = 2

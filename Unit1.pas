@@ -3,78 +3,80 @@ unit Unit1;
 interface
 
 uses
-  SysUtils, Classes, IBQuery, IBDatabase, DB, IBCustomDataSet, IBTable,
-  IBSQL, IBUpdateSQL, DBClient, Provider, IBStoredProc,Dialogs,
+  SysUtils, Classes,   DB,  
+    DBClient, Provider, Dialogs,
   ACBrNFeDANFEClass, ACBrDANFCeFortesFr, ACBrNFeDANFeESCPOS, ACBrBase, ACBrSocket,
    ACBrIBPTax, forms, ACBrDFe, ACBrNFeDANFeRLClass, ACBrETQ, IdBaseComponent,
    IdAntiFreezeBase, IdAntiFreeze, ACBrNFe, ACBrPosPrinter, ACBrConsultaCNPJ,
-  ACBrCargaBal, ACBrCEP, ACBrNFeDANFEFRDM, ACBrNFeDANFEFR, FireDAC.UI.Intf,
+  ACBrCargaBal, ACBrCEP,   FireDAC.UI.Intf,
   FireDAC.VCLUI.Wait, FireDAC.Stan.Intf, FireDAC.Comp.UI, ACBrMail,
   FireDAC.Stan.Option, FireDAC.Stan.Error, FireDAC.Phys.Intf, FireDAC.Stan.Def,
   FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys, FireDAC.Phys.FB,
   FireDAC.Phys.PG, FireDAC.Phys.Oracle, FireDAC.Comp.Client, StdCtrls, Controls, Windows, Messages, Variants,
-  Graphics, IBX.IBScript, ACBrDFeReport, ACBrDFeDANFeReport, ACBrNCMs,
-  ACBrTEFAPIComum, ACBrTEFAPI, ACBrTEFD;
+  Graphics,  ACBrDFeReport, ACBrDFeDANFeReport, ACBrNCMs,
+  ACBrTEFAPIComum, ACBrTEFAPI, ACBrTEFD, FireDAC.Stan.Param, FireDAC.DatS,
+  FireDAC.DApt.Intf, FireDAC.DApt, FireDAC.Comp.ScriptCommands,
+  FireDAC.Stan.Util, ACBrNFeDANFEFR, FireDAC.Comp.Script, FireDAC.Comp.DataSet;
 
 
 type
   Tdm = class(TDataModule)
-    IBselect: TIBQuery;
+    IBselect: TFDQuery;
     ds1: TDataSource;
-    IBQuery2: TIBQuery;
+    IBQuery2: TFDQuery;
     entrada: TDataSource;
-    IBSQL: TIBSQL;
+    IBSQL: TFDQuery;
     ds: TDataSource;
-    bd: TIBDatabase;
-    IBTransaction2: TIBTransaction;
-    formpagttable: TIBQuery;
+    bd: TFDConnection;
+    IBTransaction2: TFDTransaction;
+    formpagttable: TFDQuery;
     Dsformpagto: TDataSource;
     formpagttableCOD: TIntegerField;
-    formpagttableNOME: TIBStringField;
-    formpagttableDINHEIRO: TIBStringField;
-    formpagttableDESC_PAG: TIBBCDField;
-    formpagttableDESC_ANT: TIBBCDField;
-    formpagttableCODGRU: TIBStringField;
-    formpagttableCODHIS: TIBStringField;
-    formpagttableREG_CAIXA: TIBStringField;
-    formpagttablePRAZO: TIBBCDField;
-    formpagttableIMP_FISCAL: TIBStringField;
-    IBTransaction1: TIBTransaction;
-    IBQuery1: TIBQuery;
-    produto: TIBQuery;
+    formpagttableNOME: TStringField;
+    formpagttableDINHEIRO: TStringField;
+    formpagttableDESC_PAG: TBCDField;
+    formpagttableDESC_ANT: TBCDField;
+    formpagttableCODGRU: TStringField;
+    formpagttableCODHIS: TStringField;
+    formpagttableREG_CAIXA: TStringField;
+    formpagttablePRAZO: TBCDField;
+    formpagttableIMP_FISCAL: TStringField;
+    IBTransaction1: TFDTransaction;
+    IBQuery1: TFDQuery;
+    produto: TFDQuery;
     dsprod: TDataSource;
-    produtotemp: TIBQuery;
+    produtotemp: TFDQuery;
     dsprodtemp: TDataSource;
-    IBTransaction3: TIBTransaction;
-    ProdutoQY: TIBQuery;
-    IBQuery3: TIBQuery;
-    IBQuery4: TIBQuery;
-    IBTable1: TIBTable;
-    TabelaOrdem: TIBTable;
+    IBTransaction3: TFDTransaction;
+    ProdutoQY: TFDQuery;
+    IBQuery3: TFDQuery;
+    IBQuery4: TFDQuery;
+    IBTable1: TFDTable;
+    TabelaOrdem: TFDTable;
     TabelaOrdemCOD: TIntegerField;
     TabelaOrdemDATA: TDateField;
-    TabelaOrdemNOME: TIBStringField;
+    TabelaOrdemNOME: TStringField;
     TabelaOrdemUSUARIO: TSmallintField;
     TabelaOrdemCLIENTE: TIntegerField;
-    TabelaOrdemEQUIP: TIBStringField;
-    TabelaOrdemMARCA: TIBStringField;
-    TabelaOrdemMODELO: TIBStringField;
-    TabelaOrdemSERIE: TIBStringField;
-    TabelaOrdemDEFEITO: TIBStringField;
-    TabelaOrdemTECNICO: TIBStringField;
+    TabelaOrdemEQUIP: TStringField;
+    TabelaOrdemMARCA: TStringField;
+    TabelaOrdemMODELO: TStringField;
+    TabelaOrdemSERIE: TStringField;
+    TabelaOrdemDEFEITO: TStringField;
+    TabelaOrdemTECNICO: TStringField;
     TabelaOrdemVENDEDOR: TSmallintField;
-    TabelaOrdemOBS: TIBStringField;
+    TabelaOrdemOBS: TStringField;
     TabelaOrdemSAIDA: TDateField;
-    TabelaOrdemSITUACAO: TIBStringField;
-    TabelaOrdemDIAG: TIBStringField;
-    TabelaOrdemPARECER: TIBStringField;
+    TabelaOrdemSITUACAO: TStringField;
+    TabelaOrdemDIAG: TStringField;
+    TabelaOrdemPARECER: TStringField;
     TabelaOrdemH_ENT: TTimeField;
     TabelaOrdemH_SAI: TTimeField;
-    TabelaOrdemPAGO: TIBBCDField;
-    TabelaOrdemORDEM: TIBStringField;
-    TabelaOrdemusu: TIBStringField;
+    TabelaOrdemPAGO: TBCDField;
+    TabelaOrdemORDEM: TStringField;
+    TabelaOrdemusu: TStringField;
     TabelaOrdemnomCli: TStringField;
-    queryCupons: TIBQuery;
+    queryCupons: TFDQuery;
     ACBrIBPTax1: TACBrIBPTax;
     IdAntiFreeze1: TIdAntiFreeze;
     ACBrETQ1: TACBrETQ;
@@ -92,14 +94,14 @@ type
     FDGUIxWaitCursor2: TFDGUIxWaitCursor;
     FDPhysOracleDriverLink1: TFDPhysOracleDriverLink;
     FDPhysPgDriverLink1: TFDPhysPgDriverLink;
-    IBQueryServico: TIBQuery;
-    IBTransaction4: TIBTransaction;
-    IBStoredProc1: TIBStoredProc;
-    IBScript1: TIBScript;
-    IBTransaction5: TIBTransaction;
-    IBcid: TIBQuery;
-    IBTransaction6: TIBTransaction;
-    IBTransaction7: TIBTransaction;
+    IBQueryServico: TFDQuery;
+    IBTransaction4: TFDTransaction;
+    IBStoredProc1: TFDStoredProc;
+    IBScript1: TFDScript;
+    IBTransaction5: TFDTransaction;
+    IBcid: TFDQuery;
+    IBTransaction6: TFDTransaction;
+    IBTransaction7: TFDTransaction;
     ACBrNCMs1: TACBrNCMs;
     ACBrTEFD1: TACBrTEFD;
     ACBrTEFAPI1: TACBrTEFAPI;

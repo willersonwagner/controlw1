@@ -4,8 +4,11 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls,IBQuery, Grids, DBGrids, DB, DBClient, Provider,
-  DBCtrls, IBCustomDataSet, IBTable, classes1;
+  Dialogs, StdCtrls, ExtCtrls, Grids, DBGrids, DB, DBClient, Provider,
+  DBCtrls,   classes1,FireDAC.Comp.Client, FireDAC.Stan.Intf,
+  FireDAC.Stan.Option, FireDAC.Stan.Param, FireDAC.Stan.Error, FireDAC.DatS,
+  FireDAC.Phys.Intf, FireDAC.DApt.Intf, FireDAC.Stan.Async, FireDAC.DApt,
+  FireDAC.Comp.DataSet;
 
 type
   TForm34 = class(TForm)
@@ -13,21 +16,21 @@ type
     Panel1: TPanel;
     cliente: TLabel;
     label4: TLabel;
-    IBTable1: TIBTable;
+    IBTable1: TFDTable;
     IBTable1CODGRU: TIntegerField;
     IBTable1DOCUMENTO: TIntegerField;
     IBTable1VENCIMENTO: TDateField;
-    IBTable1TOTAL: TIBBCDField;
+    IBTable1TOTAL: TBCDField;
     IBTable1CODHIS: TIntegerField;
-    IBTable1HISTORICO: TIBStringField;
-    IBTable1PAGO: TIBBCDField;
+    IBTable1HISTORICO: TStringField;
+    IBTable1PAGO: TBCDField;
     IBTable1FORNEC: TIntegerField;
     IBTable1USUARIO: TIntegerField;
     IBTable1VENDEDOR: TIntegerField;
     IBTable1DATAMOV: TDateField;
     IBTable1FORMPAGTO: TSmallintField;
     IBTable1PREVISAO: TDateField;
-    IBTable1VALOR: TIBBCDField;
+    IBTable1VALOR: TBCDField;
     IBTable1CONT: TSmallintField;
     IBTable1DATA: TDateField;
     IBTable1COD: TIntegerField;
@@ -39,7 +42,7 @@ type
     Label3: TLabel;
     Label5: TLabel;
     total: TLabel;
-    IBTable1SALDO: TIBBCDField;
+    IBTable1SALDO: TBCDField;
     ClientDataSet1: TClientDataSet;
     procedure FormShow(Sender: TObject);
     procedure IBTable1CalcFields(DataSet: TDataSet);
@@ -62,7 +65,7 @@ type
    function geraSaldo : boolean;
    procedure geraRecibo();
    function verificaValorNegativo() : boolean;
-   procedure copiaContasReceber(var query11 : TIBQuery);
+   procedure copiaContasReceber(var query11 : TFDQuery);
    procedure baixaF10Antigo();
    procedure baixaF10Novo();
     { Public declarations }
@@ -114,7 +117,7 @@ begin
   while not IBTable1.Eof do
     begin
       IBTable1.Edit;
-      saldo1 := saldo1 + TIBQuery(IBTable1).fieldbyname('valorcalc').AsCurrency;
+      saldo1 := saldo1 + TFDQuery(IBTable1).fieldbyname('valorcalc').AsCurrency;
       IBTable1SALDO.AsCurrency := saldo1;
       IBTable1.Post;
       IBTable1.Next;
@@ -127,7 +130,7 @@ begin
   IBTable1.Active := true ;
   IBTable1.First;
   IBTable1.EnableControls;
-  funcoes.FormataCampos(tibquery(IBTable1),2,'',2);
+  funcoes.FormataCampos(TFDQuery(IBTable1),2,'',2);
   Result := true;
 end;
 
@@ -140,7 +143,7 @@ begin
 
  Panel1.Visible := false;
  try
-  total.Caption := CurrToStrF(funcoes.SomaCampoDBGRID(tibquery(ibtable1),'ValorCalc',0,0,0,''),ffnumber,2);
+  total.Caption := CurrToStrF(funcoes.SomaCampoDBGRID(TFDQuery(ibtable1),'ValorCalc',0,0,0,''),ffnumber,2);
  except
  end;
 
@@ -336,7 +339,7 @@ begin
   end;
 end;
 
-procedure TForm34.copiaContasReceber(var query11 : TIBQuery);
+procedure TForm34.copiaContasReceber(var query11 : TFDQuery);
 var
   saldo, valor : currency;
   datamaior : TDateTime;
@@ -349,7 +352,7 @@ begin
   ClientDataSet1.FieldByName('datamov').Visible := false;
   ClientDataSet1.FieldByName('codgru').Visible := false;
   ClientDataSet1.FieldByName('previsao').Visible := false;
-  funcoes.FormataCampos(tibquery(ClientDataSet1), 2, '', 2);
+  funcoes.FormataCampos(TFDQuery(ClientDataSet1), 2, '', 2);
   ClientDataSet1.EmptyDataSet;
 
   try
@@ -568,7 +571,7 @@ begin
   end;
 
 
-  if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+  if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
 
   copiaContasReceber(dm.IBselect);
   imprimeNota(lista, v1);

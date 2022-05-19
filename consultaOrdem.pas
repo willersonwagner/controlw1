@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, Grids, DBGrids, DB, IBCustomDataSet, ibquery, jsedit1, ExtCtrls, classes1;
+  Dialogs, Grids, DBGrids, DB,   jsedit1, ExtCtrls, classes1,FireDAC.Comp.Client;
 
 type
   TForm55 = class(TForm)
@@ -53,7 +53,7 @@ begin
   DBGrid1.DataSource.DataSet.Close;
   DBGrid1.DataSource.DataSet.Open;
   DBGrid1.DataSource.DataSet.Filtered := true;
-  funcoes.FormataCampos(tibquery(DBGrid1.DataSource.DataSet), 2, '', 2);
+  funcoes.FormataCampos(TFDQuery(DBGrid1.DataSource.DataSet), 2, '', 2);
 end;
 
 procedure TForm55.FormShow(Sender: TObject);

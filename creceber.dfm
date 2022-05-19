@@ -1,7 +1,6 @@
 object Form29: TForm29
   Left = 422
   Top = 210
-  AutoScroll = False
   Caption = 'Contas a Receber - Conta Parcelada'
   ClientHeight = 337
   ClientWidth = 542
@@ -67,6 +66,7 @@ object Form29: TForm29
       FormularioComp = 'Form29'
       ColorOnEnter = clSkyBlue
       Indice = 0
+      TipoDeDado = teNumero
     end
     object JsEditData1: JsEditData
       Left = 88
@@ -92,6 +92,7 @@ object Form29: TForm29
       FormularioComp = 'Form29'
       ColorOnEnter = clSkyBlue
       Indice = 0
+      TipoDeDado = teNumero
     end
     object GroupBox1: TGroupBox
       Left = 248
@@ -111,6 +112,7 @@ object Form29: TForm29
         FormularioComp = 'Form29'
         ColorOnEnter = clSkyBlue
         Indice = 0
+        TipoDeDado = teNumero
       end
       object JsEdit2: JsEdit
         Left = 56
@@ -124,6 +126,7 @@ object Form29: TForm29
         FormularioComp = 'Form29'
         ColorOnEnter = clSkyBlue
         Indice = 0
+        TipoDeDado = teNumero
       end
     end
     object JsEditNumero1: JsEditNumero
@@ -139,6 +142,7 @@ object Form29: TForm29
       ColorOnEnter = clSkyBlue
       ValidaCampo = True
       Indice = 0
+      TipoDeDado = teNumero
       CasasDecimais = 2
     end
     object DBGrid1: TDBGrid
@@ -232,8 +236,6 @@ object Form29: TForm29
       Width = 75
       Height = 33
       Caption = 'Gravar'
-      TabOrder = 0
-      OnClick = JsBotao1Click
       Glyph.Data = {
         F6060000424DF606000000000000360000002800000018000000180000000100
         180000000000C0060000EB0A0000EB0A00000000000000000000CCCCCCCACACA
@@ -291,6 +293,8 @@ object Form29: TForm29
         3D8F64ACB8B1CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
         CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
         CCCCCCCCCCCCCCCCBAC0BCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC}
+      TabOrder = 0
+      OnClick = JsBotao1Click
     end
   end
   object DataSource1: TDataSource

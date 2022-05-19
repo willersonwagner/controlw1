@@ -4,13 +4,13 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes,
-  Graphics, Controls, Forms, Dialogs, StdCtrls, IBQuery, classes1;
+  Graphics, Controls, Forms, Dialogs, StdCtrls,  classes1;
 
   function PosFinal(substr:string;Texto:string):integer;
   function menorInteger(v1, v2 : integer) : integer ;
   function formataCPF(const cpf : String) : String;
   function formataCNPJ(Const cnpj : String) : String;
-  procedure LE_XMLNFE(const NuNF : String; var lista : TItensProduto; query : TIBQuery; var dadosNfe : TDadosNFe);
+  procedure LE_XMLNFE(const NuNF : String; var lista : TItensProduto; query : TFDQuery; var dadosNfe : TDadosNFe);
   function menor(v1, v2 : Variant) : Variant ;
   function nome(lin : string; quant : integer) : string ;
   function replicate(lin : string; quant : integer) : string ;
@@ -30,7 +30,7 @@ uses
   function strnum1(num : string) : string;
   function comp_data(dat : String) : String;
   function decomp_data(dat : String) : String;
-  function TabelaExisteNoBD(query : TIBQuery; tabela : string) : boolean;
+  function TabelaExisteNoBD(query : TFDQuery; tabela : string) : boolean;
   function form_num(num : currency; qtd : integer) : String;
   function form_data(data : string) : string;
   function Contido(substring:string;texto:string):boolean;
@@ -587,7 +587,7 @@ begin
 end;
 
 //--------------------------------------------------------------
-function TabelaExisteNoBD(query : TIBQuery; tabela : string) : boolean;
+function TabelaExisteNoBD(query : TFDQuery; tabela : string) : boolean;
 begin
   query.SQL.Clear;
   query.SQL.Add('select rdb$relation_name from rdb$relations where rdb$relation_name = :tabela');
@@ -616,7 +616,7 @@ begin
   Result := StrToDateDef(data, now);
 end;
 
-procedure LE_XMLNFE(const NuNF : String; var lista : TItensProduto; query : TIBQuery; var dadosNfe : TDadosNFe);
+procedure LE_XMLNFE(const NuNF : String; var lista : TItensProduto; query : TFDQuery; var dadosNfe : TDadosNFe);
 var
   chave, pastaControl, txt1, t2, ICMS, imposto : String;
   item, i1 : integer;

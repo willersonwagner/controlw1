@@ -60,8 +60,8 @@ uses
   Dialogs, DateUtils,Db, DBTables, ExtCtrls,IniFiles, StdCtrls,  Menus, Buttons, JsBotao1,
   ExtDlgs, Grids, Calendar, jpeg, Controls, IdBaseComponent, IdComponent,
   IdTCPConnection, IdTCPClient, IdMessageClient, IdSMTP, IdMessage,
-  IdIOHandler, IdIOHandlerSocket, IdAntiFreezeBase, IBSQL,
-  IdAntiFreeze, printers, ibquery, dbclient, IdPOP3, AppEvnts, pngextra,
+  IdIOHandler, IdIOHandlerSocket, IdAntiFreezeBase, 
+  IdAntiFreeze, printers,  dbclient, IdPOP3, AppEvnts, pngextra,
   ComCtrls, jsedit1, treadproqy,DBLocal, DBLocalI, Provider, classes1, untConfiguracoesNFCe,
   untNFCe, pcnConversao, funcoesdav, RxGIF, ACBrGIF, IdIPWatch;
 
@@ -7608,7 +7608,7 @@ begin
      dm.IBQuery3.Next;
     end;
 
-  if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+  if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
   funcoes.informacao(dm.IBQuery3.RecNo, ultimo, 'AGUARDE CALCULANDO ESTOQUE M√çNIMO... ',false,TRUE,5);
 
   dm.IBselect.Close;
@@ -8740,7 +8740,7 @@ begin
 
   sim := funcoes.dialogo('generico',30,'SN', 30, false,'S',Application.Title,'Confirma Proseguimento para Zerar Estoque?','N');
   if (sim = 'N') or (sim = '*') then exit;
-  if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+  if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
 
   dm.IBQuery1.Close;
   dm.IBQuery1.SQL.Clear;
@@ -8944,7 +8944,7 @@ begin
      exit;
    end;
 
-  if dm.IBQuery4.Transaction.InTransaction then dm.IBQuery4.Transaction.Commit;
+  if dm.IBQuery4.Transaction.Active then dm.IBQuery4.Transaction.Commit;
   dm.IBQuery4.Transaction.StartTransaction;
 
   // Aqui vai verificar se o produto est· cadastrado, se nao existir ent„o cadastra
@@ -10574,7 +10574,7 @@ begin
   sim := funcoes.dialogo('generico',0,'SN'+#8,0,false,'S','Control For Windows','Confirma Cancelamento da Entrada da Ordem de Servico ?','S') ;
   if ((sim = '*') or (sim = 'N')) then exit;
 
-  if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+  if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
   dm.IBQuery1.Transaction.StartTransaction;
 
   dm.IBQuery1.Close;
@@ -10969,7 +10969,7 @@ begin
   dm.IBselect.SQL.Text := 'select cod, nome from produto where codbar = ''''';
   dm.IBselect.Open;
   dm.IBselect.FetchAll;
-  if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+  if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
   dm.IBQuery1.Transaction.StartTransaction;
   tot := 0;
 
@@ -10985,7 +10985,7 @@ begin
     end;
 
   dm.IBselect.Close;
-  if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+  if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
   ShowMessage('Total de CÛdigos Criados: ' + IntToStr(tot));
 end;
 
@@ -11794,7 +11794,7 @@ begin
         end;
     end;
 
-  if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+  if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
   ret.Free;
   op.Free;
 
@@ -12345,7 +12345,7 @@ begin
         end;
     end;
 
-  if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+  if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
 
   dm.IBQuery1.Close;
   arq.Free;
@@ -12717,7 +12717,7 @@ begin
       i := i + 1;
     end;
 
-  if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+  if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
   ShowMessage(IntToStr(i)+' Vendas Alteradas');
   dm.IBselect.Close;
   dm.IBQuery1.Close;

@@ -4,8 +4,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, Grids, DBGrids, DB, DBClient, StdCtrls, jsedit1, Provider, ibquery, ExtCtrls, classes1,
-  funcoesdav, untnfceForm, DateUtils;
+  Dialogs, Grids, DBGrids, DB, DBClient, StdCtrls, jsedit1, Provider,  ExtCtrls, classes1,
+  funcoesdav, untnfceForm, DateUtils,FireDAC.Comp.Client;
 
 type
 
@@ -242,7 +242,7 @@ begin
     end;
   dm.IBselect.Close;
 
-  if dm.IBQuery4.Transaction.InTransaction then dm.IBQuery4.Transaction.Commit;
+  if dm.IBQuery4.Transaction.Active then dm.IBQuery4.Transaction.Commit;
   dm.IBQuery4.Transaction.StartTransaction;
 
   nota   := ClientDataSet1.fieldbyname('nota').AsString;
@@ -342,8 +342,8 @@ begin
       //ShowMessage('cod=' + IntToStr(lista[i].cod) + #13 + 'compra=' + CurrToStr(lista[i].BASE_ICM));
     end;
 
-    if dm.IBQuery4.Transaction.InTransaction then dm.IBQuery4.Transaction.Commit;
-    if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+    if dm.IBQuery4.Transaction.Active then dm.IBQuery4.Transaction.Commit;
+    if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
 
 
     //baixa estoque separado para nao acontecer o deadlock
@@ -351,7 +351,7 @@ begin
       funcoes.baixaEstoqueSP(IntToStr(lista[i].cod), lista[i].quant, 1);
     end;
 
-    if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;}
+    if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;}
 
     lista.Free;
     insereDadosAdic(fornecedor);
@@ -883,7 +883,7 @@ begin
   insereFornec();
   escondeCampos();
   ClientDataSet1.First;
-  funcoes.FormataCampos(tibquery(ClientDataSet1), 2, '', 2);
+  funcoes.FormataCampos(TFDQuery(ClientDataSet1), 2, '', 2);
   verificaOK(false, false);
   mostraNomesCampos();
 end;
@@ -1159,7 +1159,7 @@ begin
 
 
 
-  if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+  if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
 
   if ini > 0 then ShowMessage(IntToStr(ini) + ' Produtos Cadastrados');
   finally

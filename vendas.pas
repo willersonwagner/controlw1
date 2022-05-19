@@ -5,9 +5,9 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, Mask, JsEditData1, StdCtrls, JsEdit1, ExtCtrls, Buttons, Grids,
-  DBGrids, DB, IBQuery, IBCustomDataSet, ComCtrls, JsEditNumero1,
+  DBGrids, DB,   ComCtrls, JsEditNumero1,
   JsEditInteiro1,
-  DBClient, funcoesdav, provider, classes1, untnfceForm, ACBrUtil;
+  DBClient, funcoesdav, provider, classes1, untnfceForm, ACBrUtil, FireDAC.Comp.Client;
 
 type
   Ptr_Item = ^Item_venda;
@@ -263,8 +263,7 @@ begin
   end;
 
   if commit then
-    if dm.IBQuery1.Transaction.InTransaction then
-      dm.IBQuery1.Transaction.commit;
+    if dm.bd.InTransaction then dm.bd.commit;
 end;
 
 procedure TForm20.recuperaServico(const nota: String);
@@ -341,9 +340,8 @@ var
   vende: String;
   update: boolean;
 begin
-  if dm.IBQuery1.Transaction.InTransaction then
-    dm.IBQuery1.Transaction.commit;
-  dm.IBQuery1.Transaction.StartTransaction;
+  if dm.bd.InTransaction then dm.bd.commit;
+  //dm.IBQuery1.Transaction.StartTransaction;
 
   // baixaProdutosDeOrdemDeServicos(false);
   // primeiro baixa os produtos do estoque
@@ -410,8 +408,7 @@ begin
     ClientDataSet1.Next;
   end;
 
-  if dm.IBQuery1.Transaction.InTransaction then
-    dm.IBQuery1.Transaction.commit;
+  if dm.bd.InTransaction then dm.bd.commit;
 end;
 
 procedure TForm20.habilitaDBGRIDs(const tr: boolean);
@@ -1044,13 +1041,13 @@ begin
   cod := DBGrid1.DataSource.DataSet.FieldByName('cod').AsString;
   ordem := 'order by ' + DBGrid1.SelectedField.DisplayName;
   DBGrid1.DataSource.DataSet.Close;
-  temp1 := copy(tibquery(DBGrid1.DataSource.DataSet).SQL.GetText, 1,
-    pos('order', tibquery(DBGrid1.DataSource.DataSet).SQL.GetText) - 1);
-  tibquery(DBGrid1.DataSource.DataSet).SQL.Clear;
-  tibquery(DBGrid1.DataSource.DataSet).SQL.Add(temp1 + ordem);
+  temp1 := copy(TFDQuery(DBGrid1.DataSource.DataSet).SQL.GetText, 1,
+    pos('order', TFDQuery(DBGrid1.DataSource.DataSet).SQL.GetText) - 1);
+  TFDQuery(DBGrid1.DataSource.DataSet).SQL.Clear;
+  TFDQuery(DBGrid1.DataSource.DataSet).SQL.Add(temp1 + ordem);
   DBGrid1.DataSource.DataSet.Open;
   DBGrid1.DataSource.DataSet.Locate('cod', cod, []);
-  funcoes.FormataCampos(tibquery(DBGrid1.DataSource.DataSet), 2, '', 2);
+  funcoes.FormataCampos(TFDQuery(DBGrid1.DataSource.DataSet), 2, '', 2);
   funcoes.OrdenaCamposVenda(funcoes.buscaParamGeral(1, ''));
   DBGrid1.SelectedIndex := funcoes.buscaFieldDBgrid1(campo1, DBGrid1);
 end;
@@ -5390,7 +5387,7 @@ function TForm20.adicioinaItem_Venda(cod: string; qtd: currency;
   vendedor: String = ''): boolean;
 var
   fla, m2, vend: Smallint;
-  qery: tibquery;
+  qery: TFDQuery;
 begin
   fla := 0;
 
@@ -6094,8 +6091,7 @@ begin
     end;
   end;
 
-  if dm.IBQuery1.Transaction.InTransaction then
-    dm.IBQuery1.Transaction.commit;
+  if dm.bd.InTransaction then dm.bd.commit;
 
   dm.IBQuery1.Close;
   dm.produto.Close;
@@ -7318,7 +7314,7 @@ begin
         false, true, '', 500, nil);
     end;
 
-    if not dm.produto.Active then
+    if not dm.bd.InTransaction then
     begin
       dm.produto.Open;
       funcoes.FormataCampos(dm.produto, 2, '', 2);

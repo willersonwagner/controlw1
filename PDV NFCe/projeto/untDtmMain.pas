@@ -5,33 +5,36 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Forms,Dialogs, IniFiles,
   ImgList, Controls, DB, StdCtrls, ComCtrls, ExtCtrls,
-  ACBrNFeDANFEClass, ACBrNFeDANFeESCPOS, IBCustomDataSet, IBQuery, IBDatabase,
+  ACBrNFeDANFEClass, ACBrNFeDANFeESCPOS,   
   ACBrBase, ACBrBAL, ACBrLCB, ACBrSocket, ACBrIBPTax, ACBrDFe,
   IdBaseComponent, IdComponent, IdUDPBase, IdUDPClient, IdSNTP, ACBrECF,
   ACBrECFVirtual, ACBrECFVirtualBuffer, ACBrECFVirtualPrinter,
   ACBrECFVirtualNFCe, ACBrPosPrinter, ACBrDevice, ACBrNFeDANFeRLClass,
-  ACBrDANFCeFortesFr, ACBrNFe, ACBrNFeDANFEFRDM, ACBrNFeDANFEFR,
-  IdTCPConnection, IdTCPClient, ACBrDFeReport, ACBrDFeDANFeReport, untnfceForm;
+  ACBrDANFCeFortesFr, ACBrNFe,  
+  IdTCPConnection, IdTCPClient, ACBrDFeReport, ACBrDFeDANFeReport, untnfceForm,
+  FireDAC.Stan.Intf, FireDAC.Stan.Option, FireDAC.Stan.Param,
+  FireDAC.Stan.Error, FireDAC.DatS, FireDAC.Phys.Intf, FireDAC.DApt.Intf,
+  FireDAC.Stan.Async, FireDAC.DApt, FireDAC.UI.Intf, FireDAC.Stan.Def,
+  FireDAC.Stan.Pool, FireDAC.Phys, FireDAC.Phys.FB, FireDAC.Comp.Client,
+  ACBrNFeDANFEFR, FireDAC.Comp.DataSet, FireDAC.VCLUI.Wait, FireDAC.Comp.UI;
 
 type
   TdtmMain = class(TDataModule)
     imlMain: TImageList;
     OpenDlg: TOpenDialog;
     DANFE: TACBrNFeDANFCeFortes;
-    bd: TIBDatabase;
-    IBQuery1: TIBQuery;
-    IBTransaction1: TIBTransaction;
-    IBQuery2: TIBQuery;
-    IBQuery3: TIBQuery;
-    IBTransaction2: TIBTransaction;
+    IBQuery1: TFDQuery;
+    IBTransaction1: TFDTransaction;
+    IBQuery2: TFDQuery;
+    IBQuery3: TFDQuery;
+    IBTransaction2: TFDTransaction;
     ACBrBAL1: TACBrBAL;
-    IBQuery4: TIBQuery;
+    IBQuery4: TFDQuery;
     ACBrNFeDANFeESCPOS1: TACBrNFeDANFeESCPOS;
     ACBrIBPTax1: TACBrIBPTax;
-    BD_Servidor: TIBDatabase;
-    IBQueryServer1: TIBQuery;
-    IBTransaction3: TIBTransaction;
-    IBQueryServer2: TIBQuery;
+    IBQueryServer1: TFDQuery;
+    IBTransaction3: TFDTransaction;
+    IBQueryServer2: TFDQuery;
     IdSNTP1: TIdSNTP;
     ACBrECFVirtualNFCe1: TACBrECFVirtualNFCe;
     ACBrECF1: TACBrECF;
@@ -42,13 +45,16 @@ type
     ACBrPosPrinter2: TACBrPosPrinter;
     ACBrNFeDANFeESCPOS2: TACBrNFeDANFeESCPOS;
     IdTCPClient1: TIdTCPClient;
+    bd: TFDConnection;
+    BD_Servidor: TFDConnection;
+    FDGUIxWaitCursor1: TFDGUIxWaitCursor;
     procedure DataModuleCreate(Sender: TObject);
   private    { Private declarations }
     procedure LerDadosArquivo();
   public     { Public declarations }
     bdPronto : boolean;
     pastaControlW_Servidor : String;
-    function Incrementa_Generator(Gen_name : string; valor_incremento : integer; var query : TIBQuery) : string;
+    function Incrementa_Generator(Gen_name : string; valor_incremento : integer; var query : TFDQuery) : string;
     procedure sincronizaca_de_dados();
     function conectaBD_Servidor() : boolean;
     function sincronizaEstoque()  : boolean;
@@ -105,7 +111,8 @@ begin
  pastaControlW_Servidor :=  Ini.ReadString('SERVER','pastaServidor', '');
  if copy(pastaControlW_Servidor, Length(pastaControlW_Servidor) -1, 1) <> '\' then pastaControlW_Servidor := pastaControlW_Servidor + '\';
 
- BD_Servidor.DatabaseName    := Ini.ReadString('SERVER','conexaoBD', '');
+ BD_Servidor.ConnectionName    := Ini.ReadString('SERVER','conexaoBD', '');
+ BD_Servidor.Params.Values['Database'] := BD_Servidor.ConnectionName;
 
  ACBrPosPrinter1.Porta  := Ini.ReadString('Geral','PortaImpNFCE', '');
  ACBrPosPrinter1.Modelo := TACBrPosPrinterModelo(ini.Readinteger('Geral','impIndex', 0));
@@ -174,9 +181,9 @@ var
   servidor : String;
 begin
   Result := false;
-  servidor := BD_Servidor.DatabaseName;
+  servidor := BD_Servidor.ConnectionName;
 
-  if BD_Servidor.DatabaseName <> '' then begin
+  if BD_Servidor.ConnectionName <> '' then begin
     servidor := copy(servidor, 1, pos(':', servidor) -1);
   end
   else exit;
@@ -258,7 +265,7 @@ begin
     
   if ini > 0 then
     begin
-      if IBQuery1.Transaction.InTransaction then IBQuery1.Transaction.Commit;
+      if IBQuery1.Transaction.Active then IBQuery1.Transaction.Commit;
     end;
 
   IBQueryServer1.Close;
@@ -307,7 +314,7 @@ begin
   if atu > 0 then
     begin
       MessageDlg('Quantidade de Registros Atualizados: ' + IntToStr(atu) + ' Produtos', mtInformation, [mbOK], 1);
-      if IBQuery1.Transaction.InTransaction then IBQuery1.Transaction.Commit;
+      if IBQuery1.Transaction.Active then IBQuery1.Transaction.Commit;
     end;
 end;
 
@@ -437,7 +444,7 @@ begin
   if bdPronto = false then exit;
   if conectaBD_Servidor = false then exit;
 
-  if IBQueryServer1.Transaction.InTransaction then IBQueryServer1.Transaction.Commit;
+  if IBQueryServer1.Transaction.Active then IBQueryServer1.Transaction.Commit;
   IBQueryServer1.Transaction.StartTransaction;
 
   IBQuery1.Close;
@@ -464,8 +471,8 @@ begin
   progresso('Sincronizando Vendas...',ini,fim,false,true);
   if ini > 0 then
     begin
-      if IBQuery2.Transaction.InTransaction then IBQuery2.Transaction.Commit;
-      if IBQueryServer1.Transaction.InTransaction then IBQueryServer1.Transaction.Commit;
+      if IBQuery2.Transaction.Active then IBQuery2.Transaction.Commit;
+      if IBQueryServer1.Transaction.Active then IBQueryServer1.Transaction.Commit;
     end;
 
   BD_Servidor.Connected := false;
@@ -559,7 +566,7 @@ begin
 end;
 
 
-function TdtmMain.Incrementa_Generator(Gen_name : string; valor_incremento : integer; var query : TIBQuery) : string;
+function TdtmMain.Incrementa_Generator(Gen_name : string; valor_incremento : integer; var query : TFDQuery) : string;
 begin
   query.Close;
   query.SQL.Clear;

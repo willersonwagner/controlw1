@@ -83,7 +83,7 @@ var
 begin
 
   if cod = '' then exit;
-  if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+  if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
   dm.IBQuery1.Transaction.StartTransaction;
 
   dm.IBselect.Close;

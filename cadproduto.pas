@@ -6,7 +6,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, Buttons, JsBotao1, ToolWin, ComCtrls, JsEdit1,
   JsEditInteiro1, ExtCtrls, JsEditCodLista1, JsEditNumero1, Grids, DBGrids, DB,
-  DBClient, ibquery, funcoesdav, untnfceForm;
+  DBClient,  funcoesdav, untnfceForm;
 
 type
   TForm9 = class(TForm)

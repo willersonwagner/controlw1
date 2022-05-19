@@ -3,12 +3,12 @@ unit Unit1;
 interface
 
 uses
-  SysUtils, Classes, IBQuery, IBDatabase, DB, IBCustomDataSet, IBTable,
-  IBSQL, IBUpdateSQL, DBClient, Provider, IBStoredProc,Dialogs,
+  SysUtils, Classes,   DB,  
+    DBClient, Provider, Dialogs,
   ACBrNFeDANFEClass, ACBrDANFCeFortesFr, ACBrNFeDANFeESCPOS, ACBrBase, ACBrSocket,
    ACBrIBPTax, forms, ACBrDFe, ACBrNFeDANFeRLClass, ACBrETQ, IdBaseComponent,
    IdAntiFreezeBase, IdAntiFreeze, ACBrNFe, ACBrPosPrinter, ACBrConsultaCNPJ,
-  ACBrCargaBal, ACBrCEP, ACBrNFeDANFEFRDM, ACBrNFeDANFEFR, FireDAC.Stan.Intf,
+  ACBrCargaBal, ACBrCEP,   FireDAC.Stan.Intf,
   FireDAC.Stan.Option, FireDAC.Stan.Error, FireDAC.UI.Intf, FireDAC.Phys.Intf,
   FireDAC.Stan.Def, FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys,
   FireDAC.Phys.MySQL, FireDAC.Stan.Param, FireDAC.DatS, FireDAC.DApt.Intf,
@@ -21,12 +21,12 @@ type
   Tdm = class(TDataModule)
     ds1: TDataSource;
     entrada: TDataSource;
-    IBSQL: TIBSQL;
+    IBSQL: TFDQuery;
     ds: TDataSource;
     Dsformpagto: TDataSource;
     dsprod: TDataSource;
     dsprodtemp: TDataSource;
-    IBTable1: TIBTable;
+    IBTable1: TFDTable;
     ACBrNFe: TACBrNFe;
     ACBrNFeDANFeESCPOS1: TACBrNFeDANFeESCPOS;
     ACBrIBPTax1: TACBrIBPTax;
@@ -59,21 +59,21 @@ type
     IBTable1CODGRU: TIntegerField;
     IBTable1VENCIMENTO: TDateField;
     IBTable1DOCUMENTO: TIntegerField;
-    IBTable1TOTAL: TIBBCDField;
+    IBTable1TOTAL: TBCDField;
     IBTable1CODHIS: TIntegerField;
-    IBTable1PAGO: TIBBCDField;
+    IBTable1PAGO: TBCDField;
     IBTable1FORNEC: TIntegerField;
     IBTable1USUARIO: TIntegerField;
     IBTable1VENDEDOR: TIntegerField;
     IBTable1DATAMOV: TDateField;
     IBTable1FORMPAGTO: TSmallintField;
     IBTable1PREVISAO: TDateField;
-    IBTable1VALOR: TIBBCDField;
+    IBTable1VALOR: TBCDField;
     IBTable1CONT: TSmallintField;
     IBTable1DATA: TDateField;
     IBTable1COD: TIntegerField;
     IBTable1ValorCalc: TCurrencyField;
-    IBTable1SALDO: TIBBCDField;
+    IBTable1SALDO: TBCDField;
     FDTable1HISTORICO: TStringField;
     FDTable1NOTA: TIntegerField;
     contasReceber: TFDTable;
@@ -120,7 +120,7 @@ type
     TabelaOrdemORDEM: TStringField;
     TabelaOrdemVENDA: TIntegerField;
     TabelaOrdemnomCli: TStringField;
-    TabelaOrdemusu: TIBStringField;
+    TabelaOrdemusu: TStringField;
     FDPhysPgDriverLink1: TFDPhysPgDriverLink;
     procedure TabelaOrdemCalcFields(DataSet: TDataSet);
     procedure ACBrNFeGerarLog(const Mensagem: String);

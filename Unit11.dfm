@@ -4,10 +4,14 @@ object dm: Tdm
   Height = 447
   Width = 892
   object IBselect: TFDQuery
-    AutoCalcFields = False
-    Filtered = True
-    Connection = bd
+    Database = bd
     Transaction = IBTransaction2
+    ForcedRefresh = True
+    AutoCalcFields = False
+    BufferChunks = 1000
+    CachedUpdates = False
+    ParamCheck = True
+    Filtered = True
     Left = 256
     Top = 2
   end
@@ -17,8 +21,11 @@ object dm: Tdm
     Top = 58
   end
   object IBQuery2: TFDQuery
-    Connection = bd
+    Database = bd
     Transaction = IBTransaction3
+    BufferChunks = 1000
+    CachedUpdates = False
+    ParamCheck = True
     SQL.Strings = (
       
         'select ITEM_ENTRADA.cod,ITEM_ENTRADA.nota,ITEM_ENTRADA.data,ENTR' +
@@ -30,8 +37,9 @@ object dm: Tdm
     Top = 2
     ParamData = <
       item
-        Name = 'nota'
         DataType = ftString
+        Name = 'nota'
+        ParamType = ptUnknown
         Value = '2020'
       end>
   end
@@ -41,7 +49,9 @@ object dm: Tdm
     Top = 58
   end
   object IBSQL: TFDQuery
-    Connection = bd
+    Database = bd
+    GoToFirstRecordOnExecute = False
+    ParamCheck = False
     Transaction = IBTransaction1
     Left = 392
     Top = 7
@@ -52,25 +62,35 @@ object dm: Tdm
     Top = 50
   end
   object bd: TFDConnection
+    Connected = True
+    DatabaseName = 'f:\ControlW\bd.fdb'
     Params.Strings = (
-      'User_Name=sysdba'
-      'Password=SYSTEMA1'
-      'Database=F:\ControlW\bd.fdb'
-      'DriverID=FB')
+      'user_name=sysdba'
+      'password=SYSTEMA1'
+      '')
     LoginPrompt = False
+    DefaultTransaction = IBTransaction2
+    ServerType = 'IBServer'
+    AllowStreamedConnected = False
     Left = 8
     Top = 2
   end
   object IBTransaction2: TFDTransaction
-    Options.AutoStop = False
-    Options.StopOptions = [xoIfCmdsInactive]
-    Connection = bd
+    Active = True
+    DefaultDatabase = bd
+    Params.Strings = (
+      'read_committed'
+      'rec_version'
+      'wait')
     Left = 8
     Top = 47
   end
   object formpagttable: TFDQuery
-    Connection = bd
+    Database = bd
     Transaction = IBTransaction2
+    BufferChunks = 1000
+    CachedUpdates = False
+    ParamCheck = True
     SQL.Strings = (
       'select * from formpagto ')
     Left = 176
@@ -135,20 +155,28 @@ object dm: Tdm
     Top = 156
   end
   object IBTransaction1: TFDTransaction
-    Options.AutoStop = False
-    Options.StopOptions = [xoIfCmdsInactive]
-    Connection = bd
+    DefaultDatabase = bd
+    Params.Strings = (
+      'read_committed'
+      'rec_version'
+      'nowait')
     Left = 8
     Top = 96
   end
   object IBQuery1: TFDQuery
-    Connection = bd
+    Database = bd
     Transaction = IBTransaction7
+    BufferChunks = 1000
+    CachedUpdates = False
+    ParamCheck = True
     Left = 176
   end
   object produto: TFDQuery
-    Connection = bd
+    Database = bd
     Transaction = IBTransaction5
+    BufferChunks = 500
+    CachedUpdates = False
+    ParamCheck = True
     SQL.Strings = (
       
         'select codbar,nome as Descricao,p_venda as Preco,quant as estoqu' +
@@ -163,8 +191,11 @@ object dm: Tdm
     Top = 161
   end
   object produtotemp: TFDQuery
-    Connection = bd
+    Database = bd
     Transaction = IBTransaction5
+    BufferChunks = 1000
+    CachedUpdates = False
+    ParamCheck = True
     SQL.Strings = (
       
         'select codbar,nome as Descricao,p_venda as Preco,quant as estoqu' +
@@ -178,41 +209,168 @@ object dm: Tdm
     Top = 161
   end
   object IBTransaction3: TFDTransaction
-    Options.AutoStop = False
-    Options.StopOptions = [xoIfCmdsInactive]
-    Connection = bd
+    Active = True
+    DefaultDatabase = bd
+    Params.Strings = (
+      'read_committed'
+      'rec_version'
+      'wait')
     Left = 8
     Top = 152
   end
   object ProdutoQY: TFDQuery
-    Connection = bd
+    Database = bd
     Transaction = IBTransaction1
+    BufferChunks = 1000
+    CachedUpdates = False
+    ParamCheck = True
     Left = 224
     Top = 240
   end
   object IBQuery3: TFDQuery
-    Connection = bd
+    Database = bd
     Transaction = IBTransaction2
+    BufferChunks = 1000
+    CachedUpdates = False
+    ParamCheck = True
     Left = 392
     Top = 56
   end
   object IBQuery4: TFDQuery
-    Connection = bd
+    Database = bd
     Transaction = IBTransaction2
+    BufferChunks = 1000
+    CachedUpdates = False
+    ParamCheck = True
     Left = 392
     Top = 160
   end
   object IBTable1: TFDTable
-    Connection = bd
+    Database = bd
     Transaction = IBTransaction2
+    BufferChunks = 1000
+    CachedUpdates = False
+    UniDirectional = False
     Left = 96
   end
   object TabelaOrdem: TFDTable
-    OnCalcFields = TabelaOrdemCalcFields
-    Connection = bd
+    Database = bd
     Transaction = IBTransaction2
-    UpdateOptions.UpdateTableName = 'SERVICO'
+    OnCalcFields = TabelaOrdemCalcFields
+    BufferChunks = 1000
+    CachedUpdates = False
+    FieldDefs = <
+      item
+        Name = 'COD'
+        DataType = ftInteger
+      end
+      item
+        Name = 'DATA'
+        DataType = ftDate
+      end
+      item
+        Name = 'NOME'
+        DataType = ftString
+        Size = 35
+      end
+      item
+        Name = 'USUARIO'
+        DataType = ftSmallint
+      end
+      item
+        Name = 'CLIENTE'
+        DataType = ftInteger
+      end
+      item
+        Name = 'EQUIP'
+        DataType = ftString
+        Size = 40
+      end
+      item
+        Name = 'MARCA'
+        DataType = ftString
+        Size = 15
+      end
+      item
+        Name = 'MODELO'
+        DataType = ftString
+        Size = 15
+      end
+      item
+        Name = 'SERIE'
+        DataType = ftString
+        Size = 20
+      end
+      item
+        Name = 'DEFEITO'
+        DataType = ftString
+        Size = 40
+      end
+      item
+        Name = 'TECNICO'
+        DataType = ftString
+        Size = 15
+      end
+      item
+        Name = 'VENDEDOR'
+        DataType = ftSmallint
+      end
+      item
+        Name = 'OBS'
+        DataType = ftString
+        Size = 50
+      end
+      item
+        Name = 'SAIDA'
+        DataType = ftDate
+      end
+      item
+        Name = 'SITUACAO'
+        DataType = ftString
+        Size = 1
+      end
+      item
+        Name = 'DIAG'
+        DataType = ftString
+        Size = 30
+      end
+      item
+        Name = 'PARECER'
+        DataType = ftString
+        Size = 80
+      end
+      item
+        Name = 'H_ENT'
+        DataType = ftTime
+      end
+      item
+        Name = 'H_SAI'
+        DataType = ftTime
+      end
+      item
+        Name = 'PAGO'
+        DataType = ftBCD
+        Precision = 18
+        Size = 2
+      end
+      item
+        Name = 'ORDEM'
+        DataType = ftString
+        Size = 7
+      end
+      item
+        Name = 'VENDA'
+        DataType = ftInteger
+      end>
+    IndexDefs = <
+      item
+        Name = 'PK_SERVICO'
+        Fields = 'COD'
+        Options = [ixUnique]
+      end>
+    StoreDefs = True
     TableName = 'SERVICO'
+    UniDirectional = False
     Left = 96
     Top = 48
     object TabelaOrdemCOD: TIntegerField
@@ -322,8 +480,11 @@ object dm: Tdm
     end
   end
   object queryCupons: TFDQuery
-    Connection = bd
+    Database = bd
     Transaction = IBTransaction2
+    BufferChunks = 1000
+    CachedUpdates = False
+    ParamCheck = True
     Left = 392
     Top = 112
   end
@@ -514,45 +675,55 @@ object dm: Tdm
     Top = 160
   end
   object IBQueryServico: TFDQuery
-    AutoCalcFields = False
-    Filtered = True
-    Connection = bd
+    Database = bd
     Transaction = IBTransaction4
+    ForcedRefresh = True
+    AutoCalcFields = False
+    BufferChunks = 1000
+    CachedUpdates = False
+    ParamCheck = True
+    Filtered = True
     Left = 96
     Top = 98
   end
   object IBTransaction4: TFDTransaction
-    Options.AutoStop = False
-    Options.StopOptions = [xoIfCmdsInactive]
-    Connection = bd
+    DefaultDatabase = bd
+    Params.Strings = (
+      'read_committed'
+      'rec_version'
+      'wait')
     Left = 96
     Top = 152
   end
   object IBStoredProc1: TFDStoredProc
-    Connection = bd
+    Database = bd
     Transaction = IBTransaction2
     Left = 376
     Top = 240
   end
   object IBScript1: TFDScript
-    SQLScripts = <>
-    Connection = bd
+    Database = bd
     Transaction = IBTransaction2
-    Params = <>
-    Macros = <>
+    Terminator = ';'
     Left = 584
     Top = 8
   end
   object IBTransaction5: TFDTransaction
-    Options.AutoStop = False
-    Options.StopOptions = [xoIfCmdsInactive]
-    Connection = bd
+    Active = True
+    DefaultDatabase = bd
+    Params.Strings = (
+      'read_committed'
+      'rec_version'
+      'wait')
     Left = 8
     Top = 215
   end
   object IBcid: TFDQuery
-    Connection = bd
+    Database = bd
     Transaction = IBTransaction6
+    BufferChunks = 1000
+    CachedUpdates = False
+    ParamCheck = True
     SQL.Strings = (
       
         'select ITEM_ENTRADA.cod,ITEM_ENTRADA.nota,ITEM_ENTRADA.data,ENTR' +
@@ -564,22 +735,28 @@ object dm: Tdm
     Top = 218
     ParamData = <
       item
-        Name = 'nota'
         DataType = ftString
+        Name = 'nota'
+        ParamType = ptUnknown
         Value = '2020'
       end>
   end
   object IBTransaction6: TFDTransaction
-    Options.AutoStop = False
-    Options.StopOptions = [xoIfCmdsInactive]
-    Connection = bd
+    Active = True
+    DefaultDatabase = bd
+    Params.Strings = (
+      'read_committed'
+      'rec_version'
+      'wait')
     Left = 8
     Top = 279
   end
   object IBTransaction7: TFDTransaction
-    Options.AutoStop = False
-    Options.StopOptions = [xoIfCmdsInactive]
-    Connection = bd
+    DefaultDatabase = bd
+    Params.Strings = (
+      'read_committed'
+      'rec_version'
+      'wait')
     Left = 104
     Top = 271
   end

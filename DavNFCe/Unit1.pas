@@ -5,13 +5,17 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ComCtrls, ExtCtrls, ShellApi, AppEvnts, Contnrs,
-  IBDatabase, DB, IBCustomDataSet, IBQuery, untnfceForm, ACBrNFe, funcoesdav,
+   DB,   untnfceForm, ACBrNFe, funcoesdav,
   ACBrBase, ACBrSocket, ACBrIBPTax, ACBrDFe, IniFiles, Gauges, func,
   IdBaseComponent, IdComponent, IdUDPBase, IdUDPClient, IdSNTP,
   ACBrNFeDANFEClass, ACBrNFeDANFeRLClass, IdAntiFreezeBase, IdAntiFreeze,
   ACBrNFeDANFeESCPOS, ACBrDANFCeFortesFr, Vcl.Menus, RxShell, sEdit, acPNG, vcl.imaging.jpeg,
   TLHelp32, pcnConversaoNFe, IdTCPConnection, IdTCPClient, IdDayTime,
-  ACBrDFeReport, ACBrDFeDANFeReport;
+  ACBrDFeReport, ACBrDFeDANFeReport, FireDAC.Stan.Intf, FireDAC.Stan.Option,
+  FireDAC.Stan.Error, FireDAC.UI.Intf, FireDAC.Phys.Intf, FireDAC.Stan.Def,
+  FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys, FireDAC.Stan.Param,
+  FireDAC.DatS, FireDAC.DApt.Intf, FireDAC.DApt, FireDAC.Comp.DataSet,
+  FireDAC.Comp.Client, FireDAC.Phys.FB, FireDAC.VCLUI.Wait, FireDAC.Comp.UI;
 
 const
   WM_ICONTRAY = WM_USER + 1;
@@ -22,20 +26,18 @@ type
     Label1: TLabel;
     Timer1: TTimer;
     Timer2: TTimer;
-    BDControl: TIBDatabase;
-    IBTransaction2: TIBTransaction;
-    QueryControlProd: TIBQuery;
-    QueryControlVenda: TIBQuery;
-    QueryControlDivs: TIBQuery;
-    IBTransaction1: TIBTransaction;
+    IBTransaction2: TFDTransaction;
+    QueryControlProd: TFDQuery;
+    QueryControlVenda: TFDQuery;
+    QueryControlDivs: TFDQuery;
+    IBTransaction1: TFDTransaction;
     Button1: TButton;
     ACBrIBPTax1: TACBrIBPTax;
-    BD_Servidor: TIBDatabase;
-    IBQueryServer1: TIBQuery;
-    IBTransaction3: TIBTransaction;
-    IBQueryServer2: TIBQuery;
-    IBQuery1: TIBQuery;
-    IBQuery2: TIBQuery;
+    IBQueryServer1: TFDQuery;
+    IBTransaction3: TFDTransaction;
+    IBQueryServer2: TFDQuery;
+    IBQuery1: TFDQuery;
+    IBQuery2: TFDQuery;
     Gauge1: TGauge;
     ACBrNFeDANFeRL1: TACBrNFeDANFeRL;
     Panel1: TPanel;
@@ -46,14 +48,17 @@ type
     PopupMenu1: TPopupMenu;
     Abrir1: TMenuItem;
     Fechar1: TMenuItem;
-    IBQuery3: TIBQuery;
-    IBTransaction4: TIBTransaction;
+    IBQuery3: TFDQuery;
+    IBTransaction4: TFDTransaction;
     Timer3: TTimer;
     IdAntiFreeze1: TIdAntiFreeze;
     FinalizaTimer: TTimer;
     Label3: TLabel;
     IdSNTP1: TIdSNTP;
     ACBrNFe1: TACBrNFe;
+    BDControl: TFDConnection;
+    BD_Servidor: TFDConnection;
+    FDGUIxWaitCursor1: TFDGUIxWaitCursor;
     procedure FormCreate(Sender: TObject);
     procedure Timer2Timer(Sender: TObject);
     procedure FormClick(Sender: TObject);
@@ -81,12 +86,12 @@ type
     function verificaCstatXML(chaveXML : String) : boolean;
     function buscaConfigNaPastaDoControlW1(Const config_name: String;
       gravaVazio: boolean = false): String;
-    function verSeExisteTabela(nome: String; var query: TIBQuery): boolean;
+    function verSeExisteTabela(nome: String; var query: TFDQuery): boolean;
     function procuraProdutoNaLista(cod: integer;
       var lista1: TStringList): integer;
     procedure testaNFe();
     function VerificaCampoTabela(NomeCampo, tabela: string;
-      var query: TIBQuery): boolean;
+      var query: TFDQuery): boolean;
     function listaArquivos(const pasta: String): TStringList;
     procedure sinal(const num: integer);
     function conectaBD_Local(): boolean;
@@ -106,14 +111,14 @@ type
     function sincronizaPromoc(): boolean;
     procedure le_estoque(var listaprod: TStringList);
     procedure copiaProduto(cod: integer);
-    procedure copiaProdutoDataSet(var queryServer: TIBQuery);
+    procedure copiaProdutoDataSet(var queryServer: TFDQuery);
     function copiaVendas(nota: integer; var notaNova: integer; chave: String;
       Cancelado: integer = 0) : boolean;
     function copiaNFCes(chave: String; nota, notaNova: integer;
       somenteCopiaXML: boolean = false): boolean;
     procedure copiaNFes();
     function Incrementa_Generator(Gen_name: string; valor_incremento: integer;
-      var query: TIBQuery): string;
+      var query: TFDQuery): string;
     function verificaNFCeNovo(dataIni: String = ''; DataFim: String = '';
       sped: boolean = False): boolean;
     procedure progresso(ini, fim: integer);
@@ -334,7 +339,8 @@ begin
       bancoControl := ParamStr(1);
 
 
-    BDControl.DatabaseName := bancoControl;
+    BDControl.ConnectionName := bancoControl;
+    BDControl.Params.Values['Database'] := bancoControl;
 
     lista1 := TList.Create;
     lista1.Add(QueryControlVenda);
@@ -456,7 +462,7 @@ begin
     end;
 
      if not conectaBD_Servidor() then begin
-       if BD_Servidor.DatabaseName <> '' then begin
+       if BD_Servidor.ConnectionName <> '' then begin
          RichEdit1.Lines.Add('EXIT: linha 348');
          exit;
        end;
@@ -658,7 +664,7 @@ end;
 function TForm1.conectaBD_Servidor(): boolean;
 begin
   Result := false;
-  if BD_Servidor.DatabaseName = '' then exit;
+  if BD_Servidor.ConnectionName = '' then exit;
   
   BD_Servidor.Connected := false;
   try
@@ -668,7 +674,7 @@ begin
     on e: exception do
     begin
       RichEdit1.Lines.Add('Ocorreu um Erro na Conexao do BD do servidor!' + #13
-        + 'Caminho BD: ' + BD_Servidor.DatabaseName + #13 + 'Erro: ' +
+        + 'Caminho BD: ' + BD_Servidor.ConnectionName + #13 + 'Erro: ' +
         e.Message);
       erroConectaServidor := erroConectaServidor + 1;
       if erroConectaServidor > 11 then begin
@@ -778,7 +784,7 @@ begin
     listacount := lista.Count - 1;
   self.Caption := 'Sincronizando Estoque...';
 
-  if IBQuery1.Transaction.InTransaction then
+  if IBQuery1.Transaction.Active then
     IBQuery1.Transaction.Commit;
   IBQuery1.Transaction.StartTransaction;
 
@@ -918,9 +924,9 @@ begin
     IntToStr(atualizados) + ' Produtos');
   RichEdit1.Lines.Add('Quantidade de Produtos  Excluidos  : ' + IntToStr(exclu)
     + ' Produtos');
-  if IBQuery1.Transaction.InTransaction then
+  if IBQuery1.Transaction.Active then
     IBQuery1.Transaction.Commit;
-  if IBQuery2.Transaction.InTransaction then
+  if IBQuery2.Transaction.Active then
     IBQuery2.Transaction.Commit;
 
   reStartGenerator('ATUALIZACADPROD',
@@ -963,7 +969,8 @@ begin
     RichEdit1.Lines.Add('Pasta ControlW Servidor: ' + pastaControlW_Servidor);
   end;
 
-  BD_Servidor.DatabaseName := ini.ReadString('SERVER', 'conexaoBD', '');
+  BD_Servidor.ConnectionName := ini.ReadString('SERVER', 'conexaoBD', '');
+  BD_Servidor.Params.Values['Database'] := BD_Servidor.ConnectionName;
 
   BD_Servidor.Connected := false;
   ini.Free;
@@ -1101,11 +1108,11 @@ begin
     IBQuery1.Next;
   end;
 
-  if IBQuery2.Transaction.InTransaction then IBQuery2.Transaction.Commit;
+  if IBQuery2.Transaction.Active then IBQuery2.Transaction.Commit;
 
   if ini > 0 then
   begin
-    if IBQuery1.Transaction.InTransaction then
+    if IBQuery1.Transaction.Active then
       IBQuery1.Transaction.Commit;
   end;
 
@@ -1348,7 +1355,7 @@ begin
       RichEdit1.Lines.Add('Vendas Exportadas1: ' + strzero(ini, 3) + ' Nota: ' +
         IBQuery1.fieldbyname('nota').AsString + #13 + 'XML Nao Encontrados: ' +
         IntToStr(XMLnEncontrado));
-      if IBQuery2.Transaction.InTransaction then
+      if IBQuery2.Transaction.Active then
         IBQuery2.Transaction.Commit;
     end;
 
@@ -1365,7 +1372,7 @@ begin
     exit;
   end;
 
-  if IBQueryServer1.Transaction.InTransaction then
+  if IBQueryServer1.Transaction.Active then
     IBQueryServer1.Transaction.Commit;
   IBQueryServer1.Transaction.StartTransaction;
 
@@ -1430,9 +1437,9 @@ begin
       IBQuery1.fieldbyname('nota').AsString + #13 + 'XML Nao Encontrados: ' +
       IntToStr(XMLnEncontrado));
 
-    if IBQuery2.Transaction.InTransaction then
+    if IBQuery2.Transaction.Active then
       IBQuery2.Transaction.Commit;
-    if IBQueryServer1.Transaction.InTransaction then
+    if IBQueryServer1.Transaction.Active then
       IBQueryServer1.Transaction.Commit;
   end;
 
@@ -1566,7 +1573,7 @@ begin
   notaNova := StrToInt(Incrementa_Generator('venda', 1, IBQueryServer1));
   RichEdit1.Lines.Add('Venda No: ' + IntToStr(notaNova));
 
-  if IBQueryServer1.Transaction.InTransaction then
+  if IBQueryServer1.Transaction.Active then
     IBQueryServer1.Transaction.Commit;
   IBQueryServer1.Transaction.StartTransaction;
 
@@ -1728,7 +1735,7 @@ begin
   end;
 
 
-  if IBQueryServer1.Transaction.InTransaction then
+  if IBQueryServer1.Transaction.Active then
     IBQueryServer1.Transaction.Commit;
   IBQueryServer1.Transaction.StartTransaction;
 
@@ -1795,7 +1802,7 @@ begin
       IBQuery2.Transaction.Commit;
     end;
 
-    if IBQueryServer1.Transaction.InTransaction then
+    if IBQueryServer1.Transaction.Active then
       IBQueryServer1.Transaction.Commit;
   except
     on e: exception do
@@ -1807,7 +1814,7 @@ begin
 end;
 
 function TForm1.Incrementa_Generator(Gen_name: string;
-  valor_incremento: integer; var query: TIBQuery): string;
+  valor_incremento: integer; var query: TFDQuery): string;
 begin
   try
     query.Close;
@@ -1914,7 +1921,7 @@ begin
   end;
 end;
 
-procedure TForm1.copiaProdutoDataSet(var queryServer: TIBQuery);
+procedure TForm1.copiaProdutoDataSet(var queryServer: TFDQuery);
 begin
 
   IBQuery1.Close;
@@ -2127,7 +2134,7 @@ begin
     on e: exception do
     begin
       RichEdit1.Lines.Add('Ocorreu um Erro na Conexao do BD!' + #13 +
-        'Caminho BD: ' + BDControl.DatabaseName + #13 + 'Erro: ' + e.Message);
+        'Caminho BD: ' + BDControl.ConnectionName + #13 + 'Erro: ' + e.Message);
       sinal(2);
     end;
   end;
@@ -2281,7 +2288,7 @@ begin
 end;
 
 function TForm1.VerificaCampoTabela(NomeCampo, tabela: string;
-  var query: TIBQuery): boolean;
+  var query: TFDQuery): boolean;
 var
   texto: string;
   ini: integer;
@@ -2488,13 +2495,13 @@ begin
 
   RichEdit1.Lines.Add('Cest Importados: ' + IntToStr(ini));
 
-  if IBQuery1.Transaction.InTransaction then
+  if IBQuery1.Connection.InTransaction then
     IBQuery1.Transaction.Commit;
   IBQueryServer1.Close;
   BD_Servidor.Connected := false;
 end;
 
-function TForm1.verSeExisteTabela(nome: String; var query: TIBQuery): boolean;
+function TForm1.verSeExisteTabela(nome: String; var query: TFDQuery): boolean;
 begin
   Result := false;
   query.Close;
@@ -2649,7 +2656,7 @@ begin
     IBQueryServer1.Next;
   end;
 
-  if IBQuery1.Transaction.InTransaction then IBQuery1.Transaction.Commit;
+  if IBQuery1.Connection.InTransaction then IBQuery1.Transaction.Commit;
 
   IBQuery1.Close;
   IBQuery1.SQL.Text := 'select * from promoc1';
@@ -2667,7 +2674,7 @@ begin
   end;
 
 
-  if IBQuery2.Transaction.InTransaction then IBQuery2.Transaction.Commit;
+  if IBQuery2.Connection.InTransaction then IBQuery2.Transaction.Commit;
 
   RichEdit1.Lines.Add('Tabela Promoc1: ' + IntToStr(cont) + ' Registros Sincronizados');
   arq.Free;
@@ -2727,7 +2734,7 @@ begin
       RichEdit1.Lines.Add('NFCes Verificadas: ' + strzero(ini, 3) + ' Nota: ' +
         IBQuery1.fieldbyname('nota').AsString + #13 + 'XML Nao Encontrados: ' +
         IntToStr(XMLnEncontrado));
-      if IBQuery2.Transaction.InTransaction then
+      if IBQuery2.Connection.InTransaction then
         IBQuery2.Transaction.Commit;
     end;
 
@@ -2960,7 +2967,7 @@ begin
     end;
   end;
 
-  if IBQuery2.Transaction.InTransaction then IBQuery2.Transaction.Commit;
+  if IBQuery2.Connection.InTransaction then IBQuery2.Transaction.Commit;
 
   if trim(semProtocolo) <> '' then begin
     RichEdit1.Lines.Add('Sem Protocolo :');

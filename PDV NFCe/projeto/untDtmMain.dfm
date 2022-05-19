@@ -4,10 +4,10 @@ object dtmMain: TdtmMain
   Height = 442
   Width = 557
   object imlMain: TImageList
-    Left = 33
+    Left = 17
     Top = 3
     Bitmap = {
-      494C01019500A0002C0010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C01019500A000300010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000006002000001002000000000000060
       0200000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -5036,8 +5036,8 @@ object dtmMain: TdtmMain
       'Arquivos NFE (*-nfe.XML)|*-nfe.XML|Arquivos XML (*.XML)|*.XML|To' +
       'dos os Arquivos (*.*)|*.*'
     Title = 'Selecione a NFe'
-    Left = 184
-    Top = 8
+    Left = 400
+    Top = 296
   end
   object DANFE: TACBrNFeDANFCeFortes
     PathPDF = 'C:\Program Files (x86)\Borland\Delphi7\Bin\'
@@ -5067,78 +5067,52 @@ object dtmMain: TdtmMain
     FonteLinhaItem.Height = -9
     FonteLinhaItem.Name = 'Lucida Console'
     FonteLinhaItem.Style = []
-    Left = 288
-    Top = 8
+    Left = 504
+    Top = 120
   end
-  object bd: TIBDatabase
-    Params.Strings = (
-      'user_name=sysdba'
-      'password=masterkey'
-      'lc_ctype=ISO8859_1')
-    LoginPrompt = False
-    ServerType = 'IBServer'
-    Left = 8
-    Top = 112
-  end
-  object IBQuery1: TIBQuery
-    Database = bd
+  object IBQuery1: TFDQuery
+    Connection = bd
     Transaction = IBTransaction1
-    BufferChunks = 1000
-    CachedUpdates = False
-    ParamCheck = True
-    Left = 16
-    Top = 160
+    Left = 192
+    Top = 48
   end
-  object IBTransaction1: TIBTransaction
-    DefaultDatabase = bd
-    Params.Strings = (
-      'read_committed'
-      'rec_version'
-      'wait')
-    Left = 96
-    Top = 108
+  object IBTransaction1: TFDTransaction
+    Options.AutoStop = False
+    Options.StopOptions = [xoIfCmdsInactive]
+    Connection = bd
+    Left = 192
+    Top = 244
   end
-  object IBQuery2: TIBQuery
-    Database = bd
+  object IBQuery2: TFDQuery
+    Connection = bd
     Transaction = IBTransaction2
-    BufferChunks = 1000
-    CachedUpdates = False
-    ParamCheck = True
-    Left = 64
-    Top = 160
+    Left = 192
+    Top = 96
   end
-  object IBQuery3: TIBQuery
-    Database = bd
+  object IBQuery3: TFDQuery
+    Connection = bd
     Transaction = IBTransaction1
-    BufferChunks = 1000
-    CachedUpdates = False
-    ParamCheck = True
-    Left = 120
-    Top = 160
+    Left = 192
+    Top = 144
   end
-  object IBTransaction2: TIBTransaction
-    DefaultDatabase = bd
-    Params.Strings = (
-      'read_committed'
-      'rec_version'
-      'wait')
-    Left = 184
-    Top = 108
+  object IBTransaction2: TFDTransaction
+    Options.AutoStop = False
+    Options.StopOptions = [xoIfCmdsInactive]
+    Connection = bd
+    Left = 192
+    Top = 300
   end
   object ACBrBAL1: TACBrBAL
     Porta = 'COM3'
     Device.Baud = 2400
-    Left = 288
-    Top = 112
+    Left = 504
+    Top = 232
   end
-  object IBQuery4: TIBQuery
-    Database = bd
+  object IBQuery4: TFDQuery
+    Connection = bd
     Transaction = IBTransaction1
-    BufferChunks = 1000
-    CachedUpdates = False
-    ParamCheck = True
-    Left = 168
-    Top = 160
+    Left = 192
+    Top = 192
   end
   object ACBrNFeDANFeESCPOS1: TACBrNFeDANFeESCPOS
     Sistema = 'Projeto ACBr - www.projetoacbr.com.br'
@@ -5161,57 +5135,38 @@ object dtmMain: TdtmMain
     ImprimeDescAcrescItem = False
     FormularioContinuo = True
     PosPrinter = ACBrPosPrinter1
-    Left = 288
-    Top = 56
+    Left = 504
+    Top = 176
   end
   object ACBrIBPTax1: TACBrIBPTax
     ProxyPort = '8080'
-    Left = 184
-    Top = 56
+    Left = 400
+    Top = 240
   end
-  object BD_Servidor: TIBDatabase
-    Params.Strings = (
-      'user_name=sysdba'
-      'password=masterkey'
-      'lc_ctype=ISO8859_1')
-    LoginPrompt = False
-    DefaultTransaction = IBTransaction3
-    ServerType = 'IBServer'
-    Left = 24
-    Top = 304
-  end
-  object IBQueryServer1: TIBQuery
-    Database = BD_Servidor
+  object IBQueryServer1: TFDQuery
+    Connection = BD_Servidor
     Transaction = IBTransaction3
-    BufferChunks = 1000
-    CachedUpdates = False
-    ParamCheck = True
-    Left = 24
-    Top = 352
+    Left = 120
+    Top = 48
   end
-  object IBTransaction3: TIBTransaction
-    DefaultDatabase = BD_Servidor
-    Params.Strings = (
-      'read_committed'
-      'rec_version'
-      'wait')
-    Left = 104
-    Top = 308
+  object IBTransaction3: TFDTransaction
+    Options.AutoStop = False
+    Options.StopOptions = [xoIfCmdsInactive]
+    Connection = BD_Servidor
+    Left = 120
+    Top = 148
   end
-  object IBQueryServer2: TIBQuery
-    Database = BD_Servidor
+  object IBQueryServer2: TFDQuery
+    Connection = BD_Servidor
     Transaction = IBTransaction3
-    BufferChunks = 1000
-    CachedUpdates = False
-    ParamCheck = True
-    Left = 104
-    Top = 352
+    Left = 120
+    Top = 96
   end
   object IdSNTP1: TIdSNTP
     Host = 'time.nist.gov'
     Port = 123
     Left = 16
-    Top = 216
+    Top = 56
   end
   object ACBrECFVirtualNFCe1: TACBrECFVirtualNFCe
     ECF = ACBrECF1
@@ -5234,8 +5189,8 @@ object dtmMain: TdtmMain
     MascaraItem = 
       'III CCCCCCCCCCCCC DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD QQQQQQQQ U' +
       'UxVVVVVVVVV AAAAAAA TTTTTTTTTTT'
-    Left = 288
-    Top = 176
+    Left = 400
+    Top = 8
   end
   object ACBrECF1: TACBrECF
     QuebraLinhaRodape = False
@@ -5287,8 +5242,8 @@ object dtmMain: TdtmMain
     ConfigBarras.Altura = 0
     ConfigBarras.Margem = 0
     InfoRodapeCupom.Imposto.ModoCompacto = False
-    Left = 376
-    Top = 128
+    Left = 504
+    Top = 64
   end
   object ACBrPosPrinter1: TACBrPosPrinter
     Modelo = ppEscBematech
@@ -5302,8 +5257,8 @@ object dtmMain: TdtmMain
     ConfigQRCode.ErrorLevel = 0
     LinhasEntreCupons = 0
     ControlePorta = True
-    Left = 288
-    Top = 232
+    Left = 400
+    Top = 64
   end
   object ACBrNFeDANFeRL1: TACBrNFeDANFeRL
     Sistema = 'Projeto ACBr - www.projetoacbr.com.br'
@@ -5323,8 +5278,8 @@ object dtmMain: TdtmMain
     CasasDecimais.MaskqCom = ',0.00'
     CasasDecimais.MaskvUnCom = ',0.00'
     ExibeCampoFatura = False
-    Left = 352
-    Top = 40
+    Left = 504
+    Top = 344
   end
   object ACBrNFe: TACBrNFe
     Configuracoes.Geral.SSLLib = libWinCrypt
@@ -5344,8 +5299,8 @@ object dtmMain: TdtmMain
     Configuracoes.WebServices.SSLType = LT_TLSv1_2
     Configuracoes.RespTec.IdCSRT = 0
     DANFE = DANFE
-    Left = 120
-    Top = 8
+    Left = 400
+    Top = 352
   end
   object ACBrNFeDANFEFR1: TACBrNFeDANFEFR
     Sistema = 'Projeto ACBr - www.projetoacbr.com.br'
@@ -5367,8 +5322,9 @@ object dtmMain: TdtmMain
     TipoDANFE = tiSemGeracao
     EspessuraBorda = 1
     BorderIcon = [biSystemMenu, biMinimize, biMaximize]
-    Left = 384
-    Top = 184
+    ThreadSafe = False
+    Left = 504
+    Top = 288
   end
   object ACBrPosPrinter2: TACBrPosPrinter
     ConfigBarras.MostrarCodigo = False
@@ -5379,8 +5335,8 @@ object dtmMain: TdtmMain
     ConfigQRCode.LarguraModulo = 4
     ConfigQRCode.ErrorLevel = 0
     LinhasEntreCupons = 0
-    Left = 400
-    Top = 280
+    Left = 504
+    Top = 8
   end
   object ACBrNFeDANFeESCPOS2: TACBrNFeDANFeESCPOS
     Sistema = 'Projeto ACBr - www.projetoacbr.com.br'
@@ -5401,15 +5357,40 @@ object dtmMain: TdtmMain
     CasasDecimais.MaskvUnCom = ',0.00'
     TipoDANFE = tiSemGeracao
     FormularioContinuo = True
-    Left = 216
-    Top = 320
+    Left = 400
+    Top = 120
   end
   object IdTCPClient1: TIdTCPClient
     ConnectTimeout = 2000
     IPVersion = Id_IPv4
     Port = 3050
     ReadTimeout = 1000
-    Left = 360
-    Top = 336
+    Left = 400
+    Top = 184
+  end
+  object bd: TFDConnection
+    Params.Strings = (
+      'User_Name=sysdba'
+      'Password=SYSTEMA1'
+      'Database=F:\ControlW\bd.fdb'
+      'DriverID=FB')
+    LoginPrompt = False
+    Left = 192
+    Top = 2
+  end
+  object BD_Servidor: TFDConnection
+    Params.Strings = (
+      'User_Name=sysdba'
+      'Password=SYSTEMA1'
+      'Database=F:\ControlW\bd.fdb'
+      'DriverID=FB')
+    LoginPrompt = False
+    Left = 120
+    Top = 2
+  end
+  object FDGUIxWaitCursor1: TFDGUIxWaitCursor
+    Provider = 'Forms'
+    Left = 288
+    Top = 8
   end
 end

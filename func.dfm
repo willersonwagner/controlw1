@@ -14,6 +14,8 @@ object funcoes: Tfuncoes
   Font.Style = []
   OldCreateOrder = False
   OnCreate = FormCreate
+  ExplicitWidth = 320
+  ExplicitHeight = 240
   PixelsPerInch = 96
   TextHeight = 13
   object WebBrowser1: TWebBrowser
@@ -43,7 +45,7 @@ object funcoes: Tfuncoes
     TitleFont.Style = []
     Visible = False
   end
-  object IBTransaction1: TIBTransaction
+  object IBTransaction1: TFDTransaction
     Left = 160
     Top = 8
   end
@@ -114,5 +116,9 @@ object funcoes: Tfuncoes
     ReceiveTimeout = 5000
     Left = 16
     Top = 216
+  end
+  object FDTransaction1: TFDTransaction
+    Left = 312
+    Top = 160
   end
 end

@@ -5,8 +5,10 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, JsEdit1, JsEditInteiro1, Buttons, JsBotao1, ExtCtrls,
-  Grids, DBGrids, JsEditNumero1, Mask, JsEditData1, DB, IBDatabase,
-  IBCustomDataSet, IBQuery;
+  Grids, DBGrids, JsEditNumero1, Mask, JsEditData1, DB, 
+   FireDAC.Comp.Client, FireDAC.Stan.Intf, FireDAC.Stan.Option,
+  FireDAC.Stan.Param, FireDAC.Stan.Error, FireDAC.DatS, FireDAC.Phys.Intf,
+  FireDAC.DApt.Intf, FireDAC.Stan.Async, FireDAC.DApt, FireDAC.Comp.DataSet;
 
 type
   Tpromocao = class(TForm)
@@ -18,8 +20,8 @@ type
     Label3: TLabel;
     DBGrid1: TDBGrid;
     ds: TDataSource;
-    IBQuery1: TIBQuery;
-    IBTransaction1: TIBTransaction;
+    IBQuery1: TFDQuery;
+    IBTransaction1: TFDTransaction;
     doc: JsEditInteiro;
     tipo: JsEditInteiro;
     cod: JsEditInteiro;
@@ -94,8 +96,8 @@ end;
 procedure Tpromocao.FormCreate(Sender: TObject);
 begin
   cadProd := false;
-  IBQuery1.Database              := dm.bd;
-  IBTransaction1.DefaultDatabase := dm.bd;
+  IBQuery1.Connection              := dm.bd;
+  IBTransaction1.Connection := dm.bd;
 end;
 
 procedure Tpromocao.FormShow(Sender: TObject);

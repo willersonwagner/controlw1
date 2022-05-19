@@ -8,7 +8,7 @@ uses
   JsEditNumero1, JsEditInteiro1, Grids, DBGrids, DB, DBClient,
   acbrecf, ComCtrls, ACBrBase, ACBrBAL, untnfceForm, formas, ACBrDevice,
   classes1, ACBrLCB, login, acbrnfe, pcnconversao, SyncObjs, ACBrGAV, printers,
-  cadClicompleto, funcoesdav;
+  cadClicompleto, funcoesdav, FireDAC.Comp.Client;
 
 type
 
@@ -172,7 +172,7 @@ Const
 
 implementation
 
-uses untDtmMain, ibquery, StrUtils, login1,
+uses untDtmMain,  StrUtils, login1,
   MenuFiscal, consultaProduto, Math, dmecf, configImp, dialog, mens,
   cadCli, importapedido, untConfiguracoesNFCe, untmain, qrcodePIX;
 
@@ -566,7 +566,7 @@ end;
 
 procedure TForm3.verProdutos();
 begin
-  busca(tibquery(IBClientDataSet1), '', 'RET01', '', '');
+  busca(TFDQuery(IBClientDataSet1), '', 'RET01', '', '');
 end;
 
 function TForm3.gravaVenda(cancelado : boolean = false) : boolean;
@@ -575,7 +575,7 @@ begin
 
   try
   try
-     if dtmMain.IBQuery1.Transaction.InTransaction then dtmMain.IBQuery1.Transaction.Commit;
+     if dtmMain.IBQuery1.Transaction.Active then dtmMain.IBQuery1.Transaction.Commit;
      dtmMain.IBQuery1.Transaction.StartTransaction;
   except
     on e:exception do
@@ -679,7 +679,7 @@ begin
       IBClientDataSet1.Next;
     end;
 
-  if dtmMain.IBQuery1.Transaction.InTransaction then dtmMain.IBQuery1.Transaction.Commit;
+  if dtmMain.IBQuery1.Transaction.Active then dtmMain.IBQuery1.Transaction.Commit;
   Result := true;
   Except
     on e : exception do
@@ -696,7 +696,7 @@ begin
   Result := false;
 
   try
-  if dtmMain.IBQuery1.Transaction.InTransaction then dtmMain.IBQuery1.Transaction.Commit;
+  if dtmMain.IBQuery1.Transaction.Active then dtmMain.IBQuery1.Transaction.Commit;
   dtmMain.IBQuery1.Transaction.StartTransaction;
 
   nota_venda := Incrementa_Generator('venda', 1);
@@ -768,7 +768,7 @@ begin
       IBClientDataSet1.Next;
     end;
 
-  if dtmMain.IBQuery1.Transaction.InTransaction then dtmMain.IBQuery1.Transaction.Commit;
+  if dtmMain.IBQuery1.Transaction.Active then dtmMain.IBQuery1.Transaction.Commit;
   Result := true;
   Except
     on e : exception do
@@ -841,6 +841,9 @@ begin
   if cliente = '*' then exit;
 
   cliente := codCliente;
+
+  if cliente = '' then cliente := '0';
+  
 
   mostraTroco();
 
@@ -2483,13 +2486,13 @@ end;
 
 procedure TTWtheadEnviaCupons1.Execute;
 var
-  query99 : TIBQuery;
+  query99 : TFDQuery;
   forne : String;
   cont, fim : integer;
 begin
   terminou1 := true;
-  query99 := TIBQuery.Create(Application);
-  query99.Database := dtmMain.bd;
+  query99 := TFDQuery.Create(Application);
+  query99.Connection := dtmMain.bd;
 
   query99.SQL.Text := 'select nota, chave from NFCE where adic = ''OFF''';
   query99.Open;
@@ -2667,7 +2670,7 @@ procedure TForm3.atualizaGenerator();
 var
   gen1 : String;
 begin
-  if dtmMain.BD_Servidor.DatabaseName = '' then exit;
+  if dtmMain.BD_Servidor.ConnectionName = '' then exit;
 
   if not dtmMain.conectaBD_Servidor then exit;
 
@@ -3114,7 +3117,7 @@ end;
 
 procedure TForm3.adicionaRegistroPagamentoBanco(tipo :string; valor : currency; nota : integer; obs : String);
 var
-  query : TIBQuery;
+  query : TFDQuery;
 begin
   query := dtmMain.IBQuery1;
 

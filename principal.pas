@@ -217,8 +217,9 @@ if key=#27 then
           dm.IBQuery1.Close;
           dm.IBQuery1.SQL.Clear;
 
-          if VerificaCampoTabela('EXCLUIDO', 'USUARIO') then dm.IBQuery1.SQL.Add('select * from usuario where (usu = :nome) and (senha = :senha) and excluido = 0')
-            else dm.IBQuery1.SQL.Add('select * from usuario where (usu = :nome) and (senha = :senha)');
+          //if VerificaCampoTabela('EXCLUIDO', 'USUARIO') then dm.IBQuery1.SQL.Add('select * from usuario where (usu = :nome) and (senha = :senha) and excluido = 0')
+            //else
+          dm.IBQuery1.SQL.Add('select * from usuario where (usu = :nome) and (senha = :senha)');
           dm.IBQuery1.ParamByName('nome').AsString  := funcoes.Criptografar(nome.Text);
           dm.IBQuery1.ParamByName('senha').AsString := funcoes.Criptografar(senha.Text);
           dm.IBQuery1.Open;
@@ -232,6 +233,7 @@ if key=#27 then
           end;
         end;
 
+      
        try
          Pgerais.Free;
        except
@@ -729,6 +731,9 @@ begin
           cliente := funcoes.cadastroClienteNFCeRetornaCod(tot1);
         end;
     end;
+
+  if cliente = '' then cliente := '0';
+  
 
   obs := '';
   obs := 'NOTA: ' + nota;

@@ -9,13 +9,14 @@ uses
   ComObj, StdCtrls, ShDocVw,
   pcnConversao, pcnNFeRTXT, ACBrUtil, DateUtils, ACBrNFe,
   ACBrNFeDANFEClass, printers, ACBrNFeDANFeESCPOS,
-   ibquery, classes1, StrUtils, acbrbal, funcoesdav,func,
+    classes1, StrUtils, acbrbal, funcoesdav,func,
   ACBrIBPTax, pcnConversaoNFe,
   ACBrDFeSSL, ACBrPosPrinter, ACBrDANFCeFortesFr, ACBrNFeDANFeRL,
-  ACBrNFeDANFeRLClass, SyncObjs, ACBrNFeDANFEFR, ACBrMail, IdThreadComponent,
+  ACBrNFeDANFeRLClass, SyncObjs,  ACBrMail, IdThreadComponent,
   pcnNFe, Math, DB, ACBrNFeNotasFiscais, pcnEventoNFe, pcnEnvEventoNFe,
   ACBrNFeWebServices, IdBaseComponent, BMDThread, IdComponent, IdTCPConnection,
-  IdTCPClient, IdHTTP, IdMultipartFormData, ibdatabase;
+  IdTCPClient, IdHTTP, IdMultipartFormData, ibdatabase, FireDAC.Comp.Client,
+  ACBrBase, ACBrDFeReport, ACBrDFeDANFeReport, ACBrNFeDANFEFR;
 
 type
   TTWtheadNFeEnvia = class(TThread)
@@ -46,6 +47,7 @@ type
     BMDThread1: TBMDThread;
     IdHTTP1: TIdHTTP;
     BMDThread2: TBMDThread;
+    ACBrNFeDANFEFR1: TACBrNFeDANFEFR;
     procedure IdThreadComponent2Run(Sender: TIdThreadComponent);
     procedure IdThreadComponent1Exception(Sender: TIdThreadComponent;
       AException: Exception);
@@ -59,8 +61,8 @@ type
     { Public declarations }
   end;
 
-function conectaBD2(var bd: TIBDatabase; silencioso: boolean = false): boolean;
-function conectaBD2BuscaArquivo(var bd: TIBDatabase; silencioso: boolean = false): boolean;
+function conectaBD2(var bd: TFDConnection; silencioso: boolean = false): boolean;
+function conectaBD2BuscaArquivo(var bd: TFDConnection; silencioso: boolean = false): boolean;
 function FileAgeCreate(const fileName: string): String;
 function GetBuildInfo(Prog: string): string;
 // function substitui_Nodo(nome:string; conteudo : string; const texto :string) : String;
@@ -292,7 +294,7 @@ var
   venda: Tvenda;
   lista: TList;
   codNF, erro12002, USUARIO1: integer;
-  query1, query2, query3: tibquery;
+  query1, query2, query3: TFDQuery;
   dadosEmitente, dadosDest: TStringList;
   TOT_PIS, TOT_COFINS, totalNota, PIS_ST, COFINS_ST, TRIB_ALIQ_COFINS, BASE_ICM,
     VLR_ICM, tot_Geral, TOTICM, TOT_BASEICM, PIS_NT, TRIB_ALIQ_PIS, TotImp,
@@ -747,9 +749,9 @@ begin
   chaveRecria := '';
   fim := lista.Count - 1;
   if 0 <= fim then
-    query1 := tibquery(lista.Items[0]);
+    query1 := TFDQuery(lista.Items[0]);
   if 1 <= fim then
-    query2 := tibquery(lista.Items[1]);
+    query2 := TFDQuery(lista.Items[1]);
   if 2 <= fim then
     ACBrNFe := TACBrNFe(lista.Items[2]);
   if 3 <= fim then
@@ -861,12 +863,12 @@ begin
     except
       on e: Exception do
       begin
-        MessageDlg('Erro em insereNotaBD(venda)722: ' + #13 + e.Message + #13 +
+        {MessageDlg('Erro em insereNotaBD(venda)722: ' + #13 + e.Message + #13 +
           #13 + #13 + 'CHAVENF=' + CHAVENF + #13 + 'ADIC=' + venda.adic + #13 +
           'crc=' + buscaCRCdaChave(strnum(venda.chave)) + #13 + 'nota=' +
           IntToStr(venda.nota) + #13 + 'USUARIO1=' + IntToStr(USUARIO1) + #13 +
           'dados.cliente=' + IntToStr(dados.cliente) + #13 + 'DANFE.vTroco=' +
-          CurrToStr(DANFE.vTroco), mtError, [mbOK], 1);
+          CurrToStr(DANFE.vTroco), mtError, [mbOK], 1);  }
         exit;
       end;
     end;
@@ -4789,13 +4791,13 @@ end;
 procedure GerarNFCe(nota, NumNFCe, TipoEmissao, TipoAmbiente, UFComerciante,
   FinalidadeNFE: String; recebido: currency = 0);
 var
-  qr, qrPg: tibquery;
+  qr, qrPg: TFDQuery;
   SQL: string;
   sCST, idCST: string;
   sCondPag: string;
   CodUF, CodMun: string;
   bolISSQN: string;
-  qry: tibquery;
+  qry: TFDQuery;
   ini, fim: integer;
   item: Item_venda;
   op: TOpenDialog;
@@ -5649,7 +5651,7 @@ end;
 
 procedure geraPgerais(var lis: TStringList);
 begin
-  if query1.Database.Connected = false then
+  if query1.Connection.Connected = false then
     exit;
   query1.Close;
   query1.SQL.Clear;
@@ -9097,7 +9099,7 @@ begin
     Result := false;
 end;
 
-function conectaBD2(var bd: TIBDatabase; silencioso: boolean = false): boolean;
+function conectaBD2(var bd: TFDConnection; silencioso: boolean = false): boolean;
 var
   erro: String;
   senhas: TStringList;
@@ -9123,6 +9125,7 @@ begin
       Result := true;
       exit;
     except
+     on e:exception do begin
       erro := ('Não foi Possivel a Conexão com o Banco de Dados.' + #10 + #13 +
         'Verifique:' + #10 + #13 + #10 + #13 +
         '1. Se o Banco de Dados existe na pasta do EXECUTÁVEL; ' + #10 + #13 +
@@ -9132,8 +9135,10 @@ begin
         '3.Se este Computador estiver sendo configurado em rede, verifique se o caminho do banco de dados foi posto corretamente, altere a Propriedade do Atalho no campo DESTINO para "c:\controlw\controlw.exe'
         + '<NOME_DO_SERVIDOR> <PASTA_NO_SERVIDOR_QUE_CONTEM_O_BD>" Exemplo: "c:\controlw\controlw.exe \\Servidor c:\controlw\bd.fdb'
         + #10 + #13 + #10 + #13 +
-        '4. Se o problema persistir entre em contato com o SUPORTE.');
+        '4. Se o problema persistir entre em contato com o SUPORTE.' + #13 + e.Message);
       // exit;
+
+     end;
     end;
   end;
 
@@ -9142,7 +9147,7 @@ begin
 end;
 
 
-function conectaBD2BuscaArquivo(var bd: TIBDatabase; silencioso: boolean = false): boolean;
+function conectaBD2BuscaArquivo(var bd: TFDConnection; silencioso: boolean = false): boolean;
 var
   erro: String;
   senhas: TStringList;
@@ -9154,7 +9159,7 @@ begin
 
   bd.Params.Values['password']  := arquivo.Values['password'];
   bd.Params.Values['user_name'] := arquivo.Values['user_name'];
-  bd.DatabaseName := arquivo.Values['DatabaseName'];
+  bd.ConnectionName := arquivo.Values['DatabaseName'];
   
   //MessageBox(Application.Handle, pchar(bd.DatabaseName), '', 1, 1);
   try

@@ -1,9 +1,9 @@
 object Movcaixalanc: TMovcaixalanc
   Left = 288
   Top = 270
-  Width = 628
-  Height = 366
   Caption = 'Movimento de Caixa - Lan'#231'amentos'
+  ClientHeight = 327
+  ClientWidth = 612
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -20,9 +20,10 @@ object Movcaixalanc: TMovcaixalanc
     Left = 0
     Top = 0
     Width = 612
-    Height = 288
+    Height = 287
     Align = alClient
     TabOrder = 0
+    ExplicitHeight = 288
     object Label1: TLabel
       Left = 8
       Top = 16
@@ -110,6 +111,7 @@ object Movcaixalanc: TMovcaixalanc
       FormularioComp = 'Movcaixalanc'
       ColorOnEnter = clSkyBlue
       Indice = 0
+      TipoDeDado = teNumero
     end
     object JsEditData1: JsEditData
       Left = 88
@@ -136,6 +138,7 @@ object Movcaixalanc: TMovcaixalanc
       FormularioComp = 'Movcaixalanc'
       ColorOnEnter = clSkyBlue
       Indice = 0
+      TipoDeDado = teNumero
     end
     object GroupBox1: TGroupBox
       Left = 248
@@ -155,6 +158,7 @@ object Movcaixalanc: TMovcaixalanc
         FormularioComp = 'Movcaixalanc'
         ColorOnEnter = clSkyBlue
         Indice = 0
+        TipoDeDado = teNumero
       end
       object JsEdit2: JsEdit
         Left = 56
@@ -167,6 +171,7 @@ object Movcaixalanc: TMovcaixalanc
         FormularioComp = 'Movcaixalanc'
         ColorOnEnter = clSkyBlue
         Indice = 0
+        TipoDeDado = teNumero
       end
     end
     object JsEditNumero1: JsEditNumero
@@ -182,6 +187,7 @@ object Movcaixalanc: TMovcaixalanc
       ColorOnEnter = clSkyBlue
       ValidaCampo = True
       Indice = 0
+      TipoDeDado = teNumero
       CasasDecimais = 2
     end
     object JsEditNumero2: JsEditNumero
@@ -197,6 +203,7 @@ object Movcaixalanc: TMovcaixalanc
       ColorOnEnter = clSkyBlue
       ValidaCampo = True
       Indice = 0
+      TipoDeDado = teNumero
       CasasDecimais = 2
     end
     object DBGrid1: TDBGrid
@@ -221,19 +228,18 @@ object Movcaixalanc: TMovcaixalanc
   end
   object ToolBar1: TPanel
     Left = 0
-    Top = 288
+    Top = 287
     Width = 612
     Height = 40
     Align = alBottom
     TabOrder = 1
+    ExplicitTop = 288
     object JsBotao1: JsBotao
       Left = 0
       Top = 2
       Width = 97
       Height = 35
       Caption = 'Gravar'
-      TabOrder = 0
-      OnClick = JsBotao1Click
       Glyph.Data = {
         F6060000424DF606000000000000360000002800000018000000180000000100
         180000000000C0060000EB0A0000EB0A00000000000000000000CCCCCCCACACA
@@ -291,6 +297,8 @@ object Movcaixalanc: TMovcaixalanc
         3D8F64ACB8B1CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
         CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
         CCCCCCCCCCCCCCCCBAC0BCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC}
+      TabOrder = 0
+      OnClick = JsBotao1Click
     end
   end
   object DataSource1: TDataSource

@@ -3,7 +3,7 @@ unit P4InfoVarejo_Rotinas;
 interface
 
 uses windows, sysutils, registry, forms, controls, stdctrls, dbctrls, graphics,
-     IBQuery,IBDatabase, DB,variants, printers, classes, shellapi, extctrls,
+      DB,variants, printers, classes, shellapi, extctrls,
      dialogs, ComCtrls, IBODataset,IB_Components, IB_StoredProc,
      IB_SessionProps, IB_Grid,DBChart, Winsock,
 
@@ -84,7 +84,7 @@ function  LeRegistroSistema : string;
 function  LeRegistroSistema_BD_Usuario(var Usuario:String; var Senha:String) : string;
 function  Substitui(Texto:string;Atual:string;Novo:String):String;
 function  Retorna_Nome_Aliquota(valor:String):String;
-function  Retorna_Aliquota(valor:String;Banco:TIBDatabase;Transacao:TIBTransaction):String;overload;
+function  Retorna_Aliquota(valor:String;Banco:TFDConnection;Transacao:TFDTransaction):String;overload;
 function  Retorna_Aliquota(valor:String):String;overload;
 function  Retorna_Aliquota_Somente(valor:String):String;
 function  Retorna_Unidade_Sigla(valor:string):String;
@@ -1967,15 +1967,15 @@ begin
 end;
 
 
-function  Retorna_Aliquota(valor:String;Banco:TIBDatabase;Transacao:TIBTransaction):String;
+function  Retorna_Aliquota(valor:String;Banco:TFDConnection;Transacao:TFDTransaction):String;
 var
- qryTmp:TIBQuery;
+ qryTmp:TFDQuery;
  sql,saliquota:string;
 begin
  sql := ' select vlaliquota from aliquota a, detalhe d where a.cdaliquota = d.cdaliquota'+
         ' and d.cddetalhe = '''+valor+'''';
  try
-  qryTmp               := TIBQuery.Create(nil);
+  qryTmp               := TFDQuery.Create(nil);
   qryTmp.Database      := Banco;
   qryTmp.Transaction   := Transacao;
   qryTmp.CachedUpdates := true;

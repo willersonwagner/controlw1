@@ -6,7 +6,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, Mask, JsEditData1, StdCtrls, Buttons, JsBotao1, ToolWin,
   ComCtrls, JsEdit1, JsEditInteiro1, ExtCtrls, Grids, DBGrids, DBCtrls,
-  JsEditNumero1, DB, IBCustomDataSet, DBClient, Provider, Menus, IBQuery,
+  JsEditNumero1, DB,  DBClient, Provider, Menus, 
   IBDatabase;
 
 type
@@ -49,9 +49,9 @@ type
     baseicm: JsEditNumero;
     credicm: JsEditNumero;
     agreg: JsEditNumero;
-    IBQuery1: TIBQuery;
+    IBQuery1: TFDQuery;
     DataSource1: TDataSource;
-    IBTransaction2: TIBTransaction;
+    IBTransaction2: TFDTransaction;
     procedure Edit11KeyUp(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure codigoKeyPress(Sender: TObject; var Key: Char);
@@ -308,11 +308,11 @@ begin
   if cod <> '' then
     begin
       DBGrid2.DataSource.DataSet.DisableControls;
-      if tibquery(DBGrid2.DataSource.DataSet).Locate('cod', tr, []) then
+      if TFDQuery(DBGrid2.DataSource.DataSet).Locate('cod', tr, []) then
         begin
-          tibquery(DBGrid2.DataSource.DataSet).First;
+          TFDQuery(DBGrid2.DataSource.DataSet).First;
         end;
-       tibquery(DBGrid2.DataSource.DataSet).EnableControls;
+       TFDQuery(DBGrid2.DataSource.DataSet).EnableControls;
     end;
 
 end;
@@ -692,8 +692,8 @@ begin
   funcoes.baixaEstoque(codigoProd, quant.getValor, StrToIntDef(destino, 1));
 
   try
-    if dm.IBQuery4.Transaction.InTransaction then dm.IBQuery4.Transaction.Commit;
-    if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit; //gravar quantidade
+    if dm.IBQuery4.Transaction.Active then dm.IBQuery4.Transaction.Commit;
+    if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit; //gravar quantidade
   except
   end;
 
@@ -716,7 +716,7 @@ begin
  begin
     if messageDlg('Deseja Excluir?', mtConfirmation, [mbyes, mbNo], 0) = mrYes then
      begin
-      if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+      if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
       dm.IBQuery1.Transaction.StartTransaction;
       ult := 0;
       nota := DBGrid2.DataSource.DataSet.fieldbyname('nota').AsString;
@@ -778,7 +778,7 @@ begin
           dm.IBQuery1.ExecSQL;
         end;
       try
-        if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+        if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
 
         if ult = 1 then
           begin

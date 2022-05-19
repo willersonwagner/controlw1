@@ -4,8 +4,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, Grids, DBGrids, StdCtrls, JsEdit1, ExtCtrls, ibquery, ibtable,
-  DB, IBCustomDataSet, func;
+  Dialogs, Grids, DBGrids, StdCtrls, JsEdit1, ExtCtrls,  
+  DB,  func, FireDAC.Comp.Client;
 
 type
   TForm7 = class(TForm)
@@ -29,7 +29,7 @@ type
     procedure DBGrid1KeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
   private
-    dataset : tibtable;
+    dataset : TFDTable;
     procura : String;
     procedure acertarTamanhoDBGRID();
     procedure abredataSetContasPagar();
@@ -41,7 +41,7 @@ type
     function buscaCodbar() : String;
     { Private declarations }
   public
-    query, query1 : TIBQuery;
+    query, query1 : TFDQuery;
     deletar:boolean;
     ordem, campoLocate, keyLocate, retLocalizar : string;
     retorno:string;
@@ -69,7 +69,7 @@ begin
   Result := DBGrid1.DataSource.DataSet.FieldByName('cod').AsString;
   query1.Close;
   query1.SQL.Text := 'select codbar from produto where cod = :cod';
-  query1.ParamByName('cod').AsString := Result;
+  query1.ParamByName('cod').AsString := StrNum(Result);
   query1.Open;
 
   if StrNum(query1.FieldByName('codbar').AsString) <> '0' then
@@ -81,7 +81,7 @@ begin
 
   query1.Close;
   query1.SQL.Text := 'select codbar from codbar where cod = :cod';
-  query1.ParamByName('cod').AsString := Result;
+  query1.ParamByName('cod').AsString := StrNum(Result);
   query1.Open;
 
   if not query1.IsEmpty then Result := StrNum(query1.FieldByName('codbar').AsString);
@@ -243,7 +243,7 @@ begin
 
 procedure TForm7.abredataSetContasPagar();
 begin
-{  dataset := TIBTable.Create(self);
+{  dataset := TFDTable.Create(self);
   dataset.Database  := dm.bd;
   dataset.TableName := UpperCase(tabela);
   dataset.Active := TRUE;
@@ -261,7 +261,7 @@ begin
   //dataset.FieldByName('valor').ReadOnly      := true;
   //dataset.FieldByName('vencimento').ReadOnly := true;
 
-  funcoes.FormataCampos(tibquery(dataset), 2, '', 2);
+  funcoes.FormataCampos(TFDQuery(dataset), 2, '', 2);
 
   dm.ds.DataSet := dataset;
 }end;
@@ -283,7 +283,7 @@ begin
   //dataset.FieldByName('valor').ReadOnly      := true;
   //dataset.FieldByName('vencimento').ReadOnly := true;
 
-  funcoes.FormataCampos(tibquery(dataset), 2, '', 2);
+  funcoes.FormataCampos(TFDQuery(dataset), 2, '', 2);
 
   //dm.ds.DataSet := dataset;
 }end;
@@ -547,6 +547,8 @@ begin
 
      if trim(campoLocate) <> '' then
        begin
+         if (campoLocate = 'cod') and (trim(keyLocate) <> '')  then
+         
          if DBGrid1.DataSource.DataSet.Locate(campoLocate, keyLocate, []) then  DBGrid1.SetFocus;
        end;
 
@@ -596,7 +598,7 @@ begin
   query.Close;
   if tabela = 'contaspagar' then
     begin
-      if dataset.Transaction.InTransaction then dataset.Transaction.Commit;
+      if dataset.Transaction.Active then dataset.Transaction.Commit;
       dataset.Free;
     end;
 end;
@@ -642,7 +644,7 @@ if (UpperCase(tabela) = 'PRODUTO') then
       cod := DBGrid1.DataSource.DataSet.fieldbyname('cod').AsString;
       //funcoes.IMP_CODBAR(cod);
       DBGrid1.DataSource.DataSet.Open;
-      FormataCampos(tibquery(DBGrid1.DataSource.DataSet), 2,'ESTOQUE',3);
+      FormataCampos(TFDQuery(DBGrid1.DataSource.DataSet), 2,'ESTOQUE',3);
       DBGrid1.DataSource.DataSet.Locate('cod', cod, []);
       DBGrid1.DataSource.DataSet.EnableControls;
     end;

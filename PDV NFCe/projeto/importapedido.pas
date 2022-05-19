@@ -4,15 +4,18 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, Grids, DBGrids, DB, IBCustomDataSet, IBQuery, StdCtrls, func;
+  Dialogs, Grids, DBGrids, DB,   StdCtrls, func, FireDAC.Comp.Client,
+  FireDAC.Stan.Intf, FireDAC.Stan.Option, FireDAC.Stan.Param,
+  FireDAC.Stan.Error, FireDAC.DatS, FireDAC.Phys.Intf, FireDAC.DApt.Intf,
+  FireDAC.Stan.Async, FireDAC.DApt, FireDAC.Comp.DataSet;
 
 type
   TForm2 = class(TForm)
     DBGrid1: TDBGrid;
     DBGrid2: TDBGrid;
     Label1: TLabel;
-    Venda: TIBQuery;
-    itens: TIBQuery;
+    Venda: TFDQuery;
+    itens: TFDQuery;
     DataSource1: TDataSource;
     DataSource2: TDataSource;
     procedure DBGrid2CellClick(Column: TColumn);

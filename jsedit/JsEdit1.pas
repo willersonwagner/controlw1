@@ -4,7 +4,7 @@ interface
 
 uses
   SysUtils, Classes, Controls, StdCtrls, Graphics, Windows, Messages, Forms, contnrs,
-  Dialogs, Buttons, math, ibquery;
+  Dialogs, Buttons, math, FireDAC.Comp.Client;
 
 //type
 //JsEditInterface = interface
@@ -62,9 +62,9 @@ type
     class function NovoCodigo(formi:string; genName : String = '') : integer;
     class function  AchaProximo(comp:TComponent) : TComponent;
     class function  UltimoCodigoDaTabela(formi:string; genName : String = '') : integer;
-    class procedure SetTabelaDoBd(form:tform;tabela1 : string; query1 : tibquery; primarykey1 : String = '');
+    class procedure SetTabelaDoBd(form:tform;tabela1 : string; query1 : TFDQuery; primarykey1 : String = '');
     class procedure AdicionaComponente(componente : TObject);
-    class procedure RecuperaValorDoCampo(campo : TCustomEdit; query : tibquery);
+    class procedure RecuperaValorDoCampo(campo : TCustomEdit; query : TFDQuery);
     class function GetLista() : TObjectList;
     class function StrNum(lin : String) : String;
     class function GetValorNumericoAsString(lin : String) : String;
@@ -89,7 +89,7 @@ implementation
 uses DB, StrUtils, JsEditNumero1;
 //Uma variável qualquer declarada aqui é entendida como atributo da classe
 var lista,botoes : TObjectList;tabelas, primarykey:Tstringlist; primeiroBotao, ultimoBotao : TBitBtn;
-primeiroCampo : TObject; tabela,formulario : string; query : tibquery;conta,n:integer;
+primeiroCampo : TObject; tabela,formulario : string; query : TFDQuery;conta,n:integer;
 
 procedure Register;
 begin
@@ -688,7 +688,7 @@ begin
     arq.SaveToFile(ExtractFileDir(ParamStr(0)) + '\sql.text');
     arq.Free;
 
-    if query.Transaction.InTransaction then query.Transaction.Commit;
+    if query.Transaction.Active then query.Transaction.Commit;
 
     if msgErro = false then begin
       query.ExecSQL;
@@ -704,7 +704,7 @@ begin
       end;
     end;
 
-    if query.Transaction.InTransaction then query.Transaction.Commit;
+    if query.Transaction.Active then query.Transaction.Commit;
     LimpaCampos(form.Name);
 end;
 
@@ -915,7 +915,7 @@ begin
      end;
 end;
 
-class procedure JsEdit.SetTabelaDoBd(form:tform;tabela1 : string; query1 : tibquery; primarykey1 : String = '');
+class procedure JsEdit.SetTabelaDoBd(form:tform;tabela1 : string; query1 : TFDQuery; primarykey1 : String = '');
 begin
 
   if not Assigned(tabelas) then tabelas := TStringList.Create;
@@ -927,7 +927,7 @@ begin
 end;
 
 
-class procedure JsEdit.RecuperaValorDoCampo(campo : TCustomEdit; query : tibquery);
+class procedure JsEdit.RecuperaValorDoCampo(campo : TCustomEdit; query : TFDQuery);
 var ret, nomeDoCampo, nomeDaClasse, DECIMAIS : String;
 begin
   nomeDoCampo := campo.Name;

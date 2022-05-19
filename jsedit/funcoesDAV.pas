@@ -3,8 +3,8 @@ unit funcoesDAV;
 interface
 
 uses
-  Windows, Messages, SysUtils,classes, ACBrUtil,
-  Graphics, Controls, Forms, Dialogs, StdCtrls, classes1, math, printers, System.Zip, FireDAC.Comp.Client;
+  Windows, Messages, SysUtils,FireDAC.Comp.Client, System.Classes, ACBrUtil,
+  Graphics, Controls, Forms, Dialogs, StdCtrls, classes1, math, printers, System.Zip;
 
   function Trunca(const nValor: currency; const iCasas: integer): currency;
   function le_codbar1(var query : TFDQuery; const codbar, paramGe38 : String; arredon : String = '') : TprodutoVendaCodBar;

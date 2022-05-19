@@ -2,7 +2,7 @@ unit treadproqy;
 
 interface
 
-uses classes, IBQuery, func, untnfceForm, dialogs;
+uses classes,  func, untnfceForm, dialogs, FireDAC.Comp.Client;
 
 type
   TTWThreadProdQY = class(TThread)
@@ -36,10 +36,10 @@ end;
 
 procedure TTWThreadOcioso.Execute;
 var
-  query : TIBQuery;
+  query : TFDQuery;
 begin
-  query := TIBQuery.Create(nil);
-  query.Database := dm.bd;
+  query := TFDQuery.Create(nil);
+  query.Connection := dm.bd;
 
   query.SQL.Text := 'SELECT CAST (''NOW'' AS TIMESTAMP) as DATA FROM RDB$DATABASE';
   query.Open;
@@ -50,11 +50,11 @@ end;
 
 procedure TTWtheadEnviaCupons.Execute;
 var
-  query : TIBQuery;
+  query : TFDQuery;
   fornec : String;
 begin
-  query := TIBQuery.Create(nil);
-  query.Database := dm.bd;
+  query := TFDQuery.Create(nil);
+  query.Connection := dm.bd;
 
   query.SQL.Text := 'select nota, chave from NFCE where adic = ''OFF''';
   query.Open;

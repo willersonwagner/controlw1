@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, Grids, DBGrids, StdCtrls, Buttons, ibquery, ComCtrls, ToolWin,
+  Dialogs, Grids, DBGrids, StdCtrls, Buttons,  ComCtrls, ToolWin,
   ExtCtrls, JsEditNumero1, JsEdit1, JsEditInteiro1, Mask, JsEditData1,
   JsBotao1, Data.DB;
 

@@ -58,7 +58,7 @@ interface
 uses
    Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, Mask, JsEditData1, StdCtrls, JsEdit1, ExtCtrls, Buttons, dbGrids,
-  Grids, DB, DBClient, Provider, IBCustomDataSet,IBQuery,
+  Grids, DB, DBClient, Provider, 
    ComCtrls, ToolWin, classes1, untnfceForm;
 type
   TForm24 = class(TForm)

@@ -4,7 +4,7 @@
     end;
   dm.IBselect.Close;
 
-  if dm.IBQuery4.Transaction.InTransaction then dm.IBQuery4.Transaction.Commit;
+  if dm.IBQuery4.Transaction.Active then dm.IBQuery4.Transaction.Commit;
   dm.IBQuery4.Transaction.StartTransaction;
 
   nota   := ClientDataSet1.fieldbyname('nota').AsString;
@@ -89,8 +89,8 @@
       //ShowMessage('cod=' + IntToStr(lista[i].cod) + #13 + 'compra=' + CurrToStr(lista[i].BASE_ICM));
     end;
 
-    if dm.IBQuery4.Transaction.InTransaction then dm.IBQuery4.Transaction.Commit;
-    if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+    if dm.IBQuery4.Transaction.Active then dm.IBQuery4.Transaction.Commit;
+    if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
 
 
     //baixa estoque separado para nao acontecer o deadlock
@@ -98,7 +98,7 @@
       funcoes.baixaEstoqueSP(IntToStr(lista[i].cod), lista[i].quant, 1);
     end;
 
-    if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;}
+    if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;}
 
     lista.Free;
     insereDadosAdic(fornecedor);
@@ -581,7 +581,7 @@ begin
   insereFornec();
   escondeCampos();
   ClientDataSet1.First;
-  funcoes.FormataCampos(tibquery(ClientDataSet1), 2, '', 2);
+  funcoes.FormataCampos(TFDQuery(ClientDataSet1), 2, '', 2);
   verificaOK(false, false);
   mostraNomesCampos();
 end;
@@ -830,7 +830,7 @@ begin
       ClientDataSet1.Next;
     end;
 
-  if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+  if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
 
   if ini > 0 then ShowMessage(IntToStr(ini) + ' Produtos Cadastrados');
   finally

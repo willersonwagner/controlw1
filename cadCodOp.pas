@@ -123,10 +123,10 @@ if (key = #13) and ((
 (tedit(sender).Text)='') or (tedit(sender).Text='0')) then
  begin
    form39 := tform39.Create(self);
-   form39.ListBox1.Items.Add('  - TRIBUTADO');
-   form39.ListBox1.Items.Add('N - NÃO TRIBUTADO');
-   form39.ListBox1.Items.Add('I - ISENTO');
-   form39.ListBox1.Items.Add('S - SUBSTITUIÇÃO');
+   form39.ListBox1.Items.Add('  - TRIBUTADO(00)');
+   form39.ListBox1.Items.Add('N - NÃO TRIBUTADO(41)');
+   form39.ListBox1.Items.Add('I - ISENTO(40)');
+   form39.ListBox1.Items.Add('S - SUBSTITUIÇÃO(60)');
    tedit(sender).Text := funcoes.lista(Sender, false);
  end;
 if tedit(sender).Text = '*' then

@@ -6,11 +6,10 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, forms,
   Dialogs, DateUtils, Db, ExtCtrls, IniFiles, StdCtrls, Menus, Buttons,
-  JsBotao1,
-  ExtDlgs, Grids, Calendar, Controls, IdBaseComponent, IdComponent,
+  JsBotao1, ExtDlgs, Grids, Calendar, Controls, IdBaseComponent, IdComponent,
   IdTCPConnection, IdTCPClient, IdMessageClient, IdSMTP, IdMessage,
-  IdIOHandler, IdIOHandlerSocket, IdAntiFreezeBase, IBSQL,
-  IdAntiFreeze, printers, ibquery, dbclient, IdPOP3, AppEvnts,
+  IdIOHandler, IdIOHandlerSocket, IdAntiFreezeBase, 
+  IdAntiFreeze, printers,  dbclient, IdPOP3, AppEvnts,
   ComCtrls, jsedit1, treadproqy, Provider, classes1, untConfiguracoesNFCe,
   untnfceForm, funcoesdav, ACBrGIF, IdIPWatch,
   IdExplicitTLSClientServerBase, IdSMTPBase, IdAttachmentFile, Vcl.ImgList,
@@ -1119,7 +1118,7 @@ begin
 
   IF form22.superUsu = 1 THEN
   BEGIN
-    stb.Panels[2].Text := dm.bd.DatabaseName;
+    stb.Panels[2].Text := dm.bd.ConnectionName;
   END
   ELSE
     stb.Panels[2].Text := '';
@@ -5875,16 +5874,22 @@ begin
     data1 := StrToDate(fim);
     Form34 := Tform34.Create(self);
     Form34.cont := 1;
+
     Form34.IBTable1.Filtered := false;
     Form34.IBTable1.Active := true;
 
-    if g1 <> '' then
-      Form34.IBTable1.Filter := '(vencimento<=' +
-        QuotedStr(FormatDateTime('MM/DD/YYYY', data1)) + ') and (codgru=' + g1 +
-        ') and (pago = 0)'
-    else
-      Form34.IBTable1.Filter := '(vencimento<=' +
-        QuotedStr(FormatDateTime('MM/DD/YYYY', data1)) + ') and (pago = 0)';
+    if g1 <> '' then begin
+      Form34.IBTable1.Filter := '(vencimento <= {d ' + (FormatDateTime('yyyy-mm-dd', Data1))+'}) and (codgru=' + g1 +
+        ') and (pago = 0)';
+
+      //form34.IBTable1.ParamByName('venc').AsDate := data1;
+      //form34.IBTable1.FilterOptions
+    end
+    else begin
+      Form34.IBTable1.Filter := '(vencimento <= {d ' + (FormatDateTime('yyyy-mm-dd', Data1))+'}) and (pago = 0)';
+      //form34.IBTable1.ParamByName('venc').AsDate := data1;
+    end;
+
     Form34.IBTable1.Filtered := true;
     funcoes.CtrlResize(TForm(Form34));
     Form34.DBGrid1.Font.Name := 'Courier New';
@@ -14999,8 +15004,8 @@ begin
     dm.IBQuery3.Next;
   end;
 
-  if dm.IBQuery1.Transaction.InTransaction then
-    dm.IBQuery1.Transaction.Commit;
+//  if dm.IBQuery1.Transaction.Active then
+  //  dm.IBQuery1.Transaction.Commit;
   funcoes.informacao(dm.IBQuery3.RecNo, ultimo,
     'AGUARDE CALCULANDO ESTOQUE MÍNIMO... ', false, true, 5);
 
@@ -16399,7 +16404,7 @@ begin
     application.Title, 'Confirma Proseguimento para Zerar Estoque?', 'N');
   if (sim = 'N') or (sim = '*') then
     exit;
-  if dm.IBQuery1.Transaction.InTransaction then
+  if dm.IBQuery1.Transaction.Active then
     dm.IBQuery1.Transaction.Commit;
   nega := funcoes.dialogo('generico', 30, 'SN' + #8, 30, true, 'S',
     application.Title, 'Somente Negativos ?', 'N');
@@ -16651,7 +16656,7 @@ begin
     exit;
   end;
 
-  if dm.IBQuery4.Transaction.InTransaction then
+  if dm.IBQuery4.Transaction.Active then
     dm.IBQuery4.Transaction.Commit;
   dm.IBQuery4.Transaction.StartTransaction;
 
@@ -19743,7 +19748,7 @@ begin
   if ((sim = '*') or (sim = 'N')) then
     exit;
 
-  if dm.IBQuery1.Transaction.InTransaction then
+  if dm.IBQuery1.Transaction.Active then
     dm.IBQuery1.Transaction.Commit;
   dm.IBQuery1.Transaction.StartTransaction;
 
@@ -20712,7 +20717,7 @@ begin
   dm.IBQuery1.SQL.Text := 'ALTER SEQUENCE venda RESTART WITH ' + nota;
   dm.IBQuery1.ExecSQL;
 
-  if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+  if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
     
 
   addRelatorioForm19(CompletaOuRepete('', '', '-', 80) + CRLF);
@@ -20749,7 +20754,7 @@ begin
   dm.ibselect.SQL.Text := 'select cod, nome from produto where codbar = ''''';
   dm.ibselect.Open;
   dm.ibselect.FetchAll;
-  if dm.IBQuery1.Transaction.InTransaction then
+  if dm.IBQuery1.Transaction.Active then
     dm.IBQuery1.Transaction.Commit;
   dm.IBQuery1.Transaction.StartTransaction;
   TOT := 0;
@@ -20770,7 +20775,7 @@ begin
   end;
 
   dm.ibselect.Close;
-  if dm.IBQuery1.Transaction.InTransaction then
+  if dm.IBQuery1.Transaction.Active then
     dm.IBQuery1.Transaction.Commit;
   ShowMessage('Total de Códigos Criados: ' + IntToStr(TOT));
 end;
@@ -22128,7 +22133,7 @@ begin
     dm.IBQuery1.ExecSQL;
   end;
 
-  if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+  if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
 
   ShowMessage(IntToStr(lista.Count) + ' Registros Alterados');
 
@@ -22278,7 +22283,7 @@ begin
     end;
   end;
 
-  if dm.IBQuery1.Transaction.InTransaction then
+  if dm.IBQuery1.Transaction.Active then
     dm.IBQuery1.Transaction.Commit;
   ret.Free;
   op.Free;
@@ -22840,7 +22845,7 @@ begin
     dm.ibselect.Next;
   end;
 
-  if dm.IBQuery1.Transaction.InTransaction then
+  if dm.IBQuery1.Transaction.Active then
     dm.IBQuery1.Transaction.Commit;
 
   funcoes.informacao(i, fi, 'Aguarde, Gerando Relatório...', false, true, 5);
@@ -22971,7 +22976,7 @@ begin
     end;
   end;
 
-  if dm.IBQuery1.Transaction.InTransaction then
+  if dm.IBQuery1.Transaction.Active then
     dm.IBQuery1.Transaction.Commit;
 
   dm.IBQuery1.Close;
@@ -23439,7 +23444,7 @@ begin
     i := i + 1;
   end;
 
-  if dm.IBQuery1.Transaction.InTransaction then
+  if dm.IBQuery1.Transaction.Active then
     dm.IBQuery1.Transaction.Commit;
   ShowMessage(IntToStr(i) + ' Vendas Alteradas');
   dm.ibselect.Close;

@@ -4,8 +4,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, Grids, DBGrids, StdCtrls, JsEdit1, ExtCtrls, ibquery, ibtable,
-  DB, IBCustomDataSet, principal, funcoesdav, Datasnap.DBClient;
+  Dialogs, Grids, DBGrids, StdCtrls, JsEdit1, ExtCtrls,  
+  DB,  principal, funcoesdav, Datasnap.DBClient, FireDAC.Comp.Client;
 
 type
   TForm7 = class(TForm)
@@ -33,7 +33,7 @@ type
     procedure FormShow(Sender: TObject);
     procedure Edit1Change(Sender: TObject);
   private
-    dataset : tibtable;
+    dataset : TFDTable;
     procedure acertarTamanhoDBGRID();
     procedure abredataSetContasPagar();
     procedure reabredataSetContasPagar();
@@ -212,8 +212,8 @@ end;
 
 procedure TForm7.abredataSetContasPagar();
 begin
-  dataset := TIBTable.Create(self);
-  dataset.Database  := dm.bd;
+  dataset := TFDTable.Create(self);
+  dataset.Connection  := dm.bd;
   dataset.TableName := UpperCase(tabela);
   dataset.Active := TRUE;
   dataset.Filter   := '(pago = 0)';
@@ -230,7 +230,7 @@ begin
   //dataset.FieldByName('valor').ReadOnly      := true;
   //dataset.FieldByName('vencimento').ReadOnly := true;
 
- // funcoes.FormataCampos(tibquery(dataset), 2, '', 2);
+ // funcoes.FormataCampos(TFDQuery(dataset), 2, '', 2);
 
   dm.ds.DataSet := dataset;
 end;
@@ -252,7 +252,7 @@ begin
   //dataset.FieldByName('valor').ReadOnly      := true;
   //dataset.FieldByName('vencimento').ReadOnly := true;
 
-  funcoes.FormataCampos(tibquery(dataset), 2, '', 2);
+  funcoes.FormataCampos(TFDQuery(dataset), 2, '', 2);
 
   //dm.ds.DataSet := dataset;
 end;
@@ -432,6 +432,7 @@ if (key = #32) and (UpperCase(tabela) = 'PRODUTO') then
 
         mm := funcoes.busca(dm.IBQuery3, acc,'COD NOME CODBAR', 'cod' , '');
         if mm = '' then exit;}
+
         dm.IBQuery1.Locate('cod',strnum(acc),[loPartialKey]);
         exit;
       end;
@@ -459,7 +460,7 @@ if (key = #32) and (UpperCase(tabela) = 'PRODUTO') then
 
     mm := funcoes.busca(dm.IBQuery3, acc,'COD NOME CODBAR', 'cod' , '');
     if mm = '' then exit;
-    dm.IBQuery1.Locate('cod',mm,[loPartialKey]);
+    dm.IBQuery1.Locate('cod',StrNum(mm),[loPartialKey]);
   end;
 
 if (key = #32) and (UpperCase(tabela) = 'CLIENTE') then
@@ -495,7 +496,8 @@ begin
    begin
      Timer1.Enabled := true;
    end;
-   
+
+
  DBGrid1.DataSource.DataSet.Locate(campolocaliza,procura,[loCaseInsensitive, loPartialKey]);
 end;
 
@@ -656,7 +658,7 @@ begin
   dm.IBQuery1.Close;
   if tabela = 'contaspagar' then
     begin
-      if dataset.Transaction.InTransaction then dataset.Transaction.Commit;
+      if dataset.Transaction.Active then dataset.Transaction.Commit;
       dataset.Free;
     end;
 
@@ -707,7 +709,7 @@ if (UpperCase(tabela) = 'PRODUTO') then
       cod := DBGrid1.DataSource.DataSet.fieldbyname('cod').AsString;
       funcoes.IMP_CODBAR(cod);
       DBGrid1.DataSource.DataSet.Open;
-      funcoes.FormataCampos(tibquery(DBGrid1.DataSource.DataSet), 2,'ESTOQUE',3);
+      funcoes.FormataCampos(TFDQuery(DBGrid1.DataSource.DataSet), 2,'ESTOQUE',3);
       DBGrid1.DataSource.DataSet.Locate('cod', cod, []);
       DBGrid1.DataSource.DataSet.EnableControls;
     end;
@@ -808,6 +810,7 @@ begin
 
      if trim(campoLocate) <> '' then
        begin
+         if (campoLocate = 'cod') and (trim(keyLocate) <> '')  then
          if DBGrid1.DataSource.DataSet.Locate(campoLocate, keyLocate, []) then  DBGrid1.SetFocus;
        end;
 

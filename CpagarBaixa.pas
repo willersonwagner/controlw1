@@ -30,7 +30,7 @@ var
 
 implementation
 
-uses Unit1, func, IBQuery, principal, DB, DateUtils;
+uses Unit1, func,  principal, DB, DateUtils;
 
 {$R *.dfm}
 
@@ -148,7 +148,7 @@ begin
      dm.IBQuery3.ExecSQL;
      try
        dm.IBQuery3.Transaction.Commit;
-       if dm.IBQuery1.Transaction.InTransaction then dm.IBQuery1.Transaction.Commit;
+       if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
      except
        dm.IBQuery3.Transaction.Rollback;
        ShowMessage('Ocorreu um Erro e a Transacao Nao foi Concluida. Tente Novamente');

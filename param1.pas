@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, dbclient, db, ibquery;
+  Dialogs, StdCtrls, dbclient, db,FireDAC.Comp.Client;
 
 type
   TForm40 = class(TForm)
@@ -153,7 +153,7 @@ begin
     end;
   end;
 
-  busca := funcoes.busca(tibquery(cds), '', 'cod', 'cod','');
+  busca := funcoes.busca(TFDQuery(cds), '', 'cod', 'cod','');
   cds.Free;
   if (busca = '') or (busca = '*') then exit;
 
