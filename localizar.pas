@@ -497,7 +497,6 @@ begin
      Timer1.Enabled := true;
    end;
 
-
  DBGrid1.DataSource.DataSet.Locate(campolocaliza,procura,[loCaseInsensitive, loPartialKey]);
 end;
 
