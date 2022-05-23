@@ -5445,7 +5445,7 @@ begin
     dm.IBselect.SQL.Add
       ('select cod, nome, unid2, aliquota, unid, p_venda, codbar, refori, is_pis, cod_ispis from produto where REFNFE = :cod');
     dm.IBselect.ParamByName('cod').AsString :=
-      copy(form48.ClientDataSet1.FieldByName('REF_NFE').AsString, 1, 25);
+      StrNum(copy(form48.ClientDataSet1.FieldByName('REF_NFE').AsString, 1, 25));
     dm.IBselect.Open;
 
     axx := '0';
@@ -5477,7 +5477,7 @@ begin
     if axx = '1' then // se achou o produto
     begin
       form48.ClientDataSet1.FieldByName('codigo').AsString :=
-        dm.IBselect.FieldByName('cod').AsString;
+        (dm.IBselect.FieldByName('cod').AsString);
       form48.ClientDataSet1.FieldByName('CODBAR_ATUAL').AsString :=
         dm.IBselect.FieldByName('codbar').AsString;
       form48.ClientDataSet1.FieldByName('PRECO_ATUAL').AsCurrency :=

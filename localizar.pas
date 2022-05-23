@@ -657,7 +657,7 @@ begin
   dm.IBQuery1.Close;
   if tabela = 'contaspagar' then
     begin
-      if dataset.Transaction.Active then dataset.Transaction.Commit;
+      if dataset.Connection.InTransaction then dataset.Transaction.Commit;
       dataset.Free;
     end;
 

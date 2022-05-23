@@ -9135,7 +9135,7 @@ begin
         '3.Se este Computador estiver sendo configurado em rede, verifique se o caminho do banco de dados foi posto corretamente, altere a Propriedade do Atalho no campo DESTINO para "c:\controlw\controlw.exe'
         + '<NOME_DO_SERVIDOR> <PASTA_NO_SERVIDOR_QUE_CONTEM_O_BD>" Exemplo: "c:\controlw\controlw.exe \\Servidor c:\controlw\bd.fdb'
         + #10 + #13 + #10 + #13 +
-        '4. Se o problema persistir entre em contato com o SUPORTE.' + #13 + e.Message);
+        '4. Se o problema persistir entre em contato com o SUPORTE.' + #13 + e.Message + #13 + bd.Params.GetText + #13 + #13 + bd.Name);
       // exit;
 
      end;
@@ -9160,6 +9160,7 @@ begin
   bd.Params.Values['password']  := arquivo.Values['password'];
   bd.Params.Values['user_name'] := arquivo.Values['user_name'];
   bd.ConnectionName := arquivo.Values['DatabaseName'];
+  bd.Params.Values['Database'] := bd.ConnectionName;
   
   //MessageBox(Application.Handle, pchar(bd.DatabaseName), '', 1, 1);
   try

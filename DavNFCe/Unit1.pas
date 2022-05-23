@@ -339,9 +339,9 @@ begin
       bancoControl := ParamStr(1);
 
 
-    BDControl.ConnectionName := bancoControl;
+    //BDControl.ConnectionName := bancoControl;
     BDControl.Params.Values['Database'] := bancoControl;
-
+  
     lista1 := TList.Create;
     lista1.Add(QueryControlVenda);
     lista1.Add(QueryControlDivs);
@@ -665,6 +665,7 @@ function TForm1.conectaBD_Servidor(): boolean;
 begin
   Result := false;
   if BD_Servidor.ConnectionName = '' then exit;
+  BD_Servidor.Params.Values['Database'] := BD_Servidor.ConnectionName;
   
   BD_Servidor.Connected := false;
   try

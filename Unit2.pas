@@ -13478,7 +13478,7 @@ begin
       dm.ibselect.SQL.Clear;
       dm.ibselect.SQL.Add
         ('select p.cod, c.nome, p.quant, p.p_venda, p.total from item_venda p, produto c where (c.cod = p.cod) and (p.nota = :nota)');
-      dm.ibselect.ParamByName('nota').AsString := dm.IBQuery2.FieldByName('nota').AsString;
+      dm.ibselect.ParamByName('nota').AsString := StrNum(dm.IBQuery2.FieldByName('nota').AsString);
       dm.ibselect.Open;
 
       form44 := TForm44.Create(self);
@@ -13515,7 +13515,7 @@ begin
       dm.ibselect.SQL.Clear;
       dm.ibselect.SQL.Add
         ('select total, codhis, entrada, data from venda where (nota = :nota) and (cancelado = 0)');
-      dm.ibselect.ParamByName('nota').AsString := nota;
+      dm.ibselect.ParamByName('nota').AsString := strnum(nota);
       dm.ibselect.Open;
 
 
@@ -13535,7 +13535,7 @@ begin
       dm.ibselect.SQL.Clear;
       dm.ibselect.SQL.Add
         ('select total, codhis, entrada, data from venda where (nota = :nota) and (cancelado = 0)');
-      dm.ibselect.ParamByName('nota').AsString := nota;
+      dm.ibselect.ParamByName('nota').AsString := strnum(nota);
       dm.ibselect.Open;
 
       if dm.ibselect.IsEmpty then
@@ -13675,10 +13675,10 @@ begin
         dm.IBQuery1.SQL.Text := ('update venda set ok =' + QuotedStr(conf) + ', codhis = :codhis, entrada = :entrada, usuario = :usu where nota = :nota');
       end;
 
-      dm.IBQuery1.ParamByName('nota').AsString      := nota;
-      dm.IBQuery1.ParamByName('codhis').AsString    := formpagto;
+      dm.IBQuery1.ParamByName('nota').AsString      := strnum(nota);
+      dm.IBQuery1.ParamByName('codhis').AsString    := strnum(formpagto);
       dm.IBQuery1.ParamByName('entrada').AsCurrency := entrada;
-      dm.IBQuery1.ParamByName('usu').AsString       := form22.codusario;
+      dm.IBQuery1.ParamByName('usu').AsString       := strnum(form22.codusario);
       dm.IBQuery1.ExecSQL;
       dm.IBQuery1.Transaction.Commit;
       dm.IBQuery1.Close;
@@ -15004,8 +15004,6 @@ begin
     dm.IBQuery3.Next;
   end;
 
-//  if dm.IBQuery1.Transaction.Active then
-  //  dm.IBQuery1.Transaction.Commit;
   funcoes.informacao(dm.IBQuery3.RecNo, ultimo,
     'AGUARDE CALCULANDO ESTOQUE MÍNIMO... ', false, true, 5);
 
@@ -16404,8 +16402,7 @@ begin
     application.Title, 'Confirma Proseguimento para Zerar Estoque?', 'N');
   if (sim = 'N') or (sim = '*') then
     exit;
-  if dm.IBQuery1.Transaction.Active then
-    dm.IBQuery1.Transaction.Commit;
+  if dm.IBQuery1.Connection.InTransaction then dm.IBQuery1.Transaction.Commit;
   nega := funcoes.dialogo('generico', 30, 'SN' + #8, 30, true, 'S',
     application.Title, 'Somente Negativos ?', 'N');
   if nega = '*' then
@@ -16656,8 +16653,7 @@ begin
     exit;
   end;
 
-  if dm.IBQuery4.Transaction.Active then
-    dm.IBQuery4.Transaction.Commit;
+  if dm.IBQuery4.Connection.InTransaction then dm.IBQuery4.Transaction.Commit;
   dm.IBQuery4.Transaction.StartTransaction;
 
   // Aqui vai verificar se o produto está cadastrado, se nao existir então cadastra
@@ -19748,8 +19744,7 @@ begin
   if ((sim = '*') or (sim = 'N')) then
     exit;
 
-  if dm.IBQuery1.Transaction.Active then
-    dm.IBQuery1.Transaction.Commit;
+  if dm.IBQuery1.Connection.InTransaction then dm.IBQuery1.Transaction.Commit;
   dm.IBQuery1.Transaction.StartTransaction;
 
   dm.ibselect.Close;
@@ -20717,7 +20712,7 @@ begin
   dm.IBQuery1.SQL.Text := 'ALTER SEQUENCE venda RESTART WITH ' + nota;
   dm.IBQuery1.ExecSQL;
 
-  if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
+  if dm.IBQuery1.Connection.InTransaction then dm.IBQuery1.Transaction.Commit;
     
 
   addRelatorioForm19(CompletaOuRepete('', '', '-', 80) + CRLF);
@@ -20754,8 +20749,7 @@ begin
   dm.ibselect.SQL.Text := 'select cod, nome from produto where codbar = ''''';
   dm.ibselect.Open;
   dm.ibselect.FetchAll;
-  if dm.IBQuery1.Transaction.Active then
-    dm.IBQuery1.Transaction.Commit;
+  if dm.IBQuery1.Connection.InTransaction then dm.IBQuery1.Transaction.Commit;
   dm.IBQuery1.Transaction.StartTransaction;
   TOT := 0;
 
@@ -20775,8 +20769,7 @@ begin
   end;
 
   dm.ibselect.Close;
-  if dm.IBQuery1.Transaction.Active then
-    dm.IBQuery1.Transaction.Commit;
+  if dm.IBQuery1.Connection.InTransaction then dm.IBQuery1.Transaction.Commit;
   ShowMessage('Total de Códigos Criados: ' + IntToStr(TOT));
 end;
 
@@ -22133,7 +22126,7 @@ begin
     dm.IBQuery1.ExecSQL;
   end;
 
-  if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
+  if dm.IBQuery1.Connection.InTransaction then dm.IBQuery1.Transaction.Commit;
 
   ShowMessage(IntToStr(lista.Count) + ' Registros Alterados');
 
@@ -22283,8 +22276,7 @@ begin
     end;
   end;
 
-  if dm.IBQuery1.Transaction.Active then
-    dm.IBQuery1.Transaction.Commit;
+  if dm.IBQuery1.Connection.InTransaction then dm.IBQuery1.Transaction.Commit;
   ret.Free;
   op.Free;
 
@@ -22845,8 +22837,7 @@ begin
     dm.ibselect.Next;
   end;
 
-  if dm.IBQuery1.Transaction.Active then
-    dm.IBQuery1.Transaction.Commit;
+  if dm.IBQuery1.Connection.InTransaction then dm.IBQuery1.Transaction.Commit;
 
   funcoes.informacao(i, fi, 'Aguarde, Gerando Relatório...', false, true, 5);
   ShowMessage(IntToStr(cont) + ' NFCes Criadas.');
@@ -22976,8 +22967,7 @@ begin
     end;
   end;
 
-  if dm.IBQuery1.Transaction.Active then
-    dm.IBQuery1.Transaction.Commit;
+  if dm.IBQuery1.Connection.InTransaction then dm.IBQuery1.Transaction.Commit;
 
   dm.IBQuery1.Close;
   arq.Free;
@@ -23444,8 +23434,7 @@ begin
     i := i + 1;
   end;
 
-  if dm.IBQuery1.Transaction.Active then
-    dm.IBQuery1.Transaction.Commit;
+  if dm.IBQuery1.Connection.InTransaction then dm.IBQuery1.Transaction.Commit;
   ShowMessage(IntToStr(i) + ' Vendas Alteradas');
   dm.ibselect.Close;
   dm.IBQuery1.Close;

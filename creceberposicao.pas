@@ -499,9 +499,10 @@ begin
     if valorb >= DBGrid1.DataSource.DataSet.FieldByName('valor').AsCurrency then begin
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Clear;
-      dm.IBQuery1.SQL.Add('update contasreceber set valor=0,pago=:valor, ult_usu_alterado = :ult_usu_alterado where cod='+DBGrid1.DataSource.DataSet.FieldByName('cod').AsString);
+      dm.IBQuery1.SQL.Add('update contasreceber set valor=0,pago=:valor, ult_usu_alterado = :ult_usu_alterado, datamov = :data where cod='+DBGrid1.DataSource.DataSet.FieldByName('cod').AsString);
       dm.IBQuery1.ParamByName('valor').AsCurrency := DBGrid1.DataSource.DataSet.FieldByName('valor').AsCurrency;
       dm.IBQuery1.ParamByName('ult_usu_alterado').AsInteger   := StrToInt(StrNum(form22.codusario));
+      dm.IBQuery1.ParamByName('data').AsDate                  := form22.datamov;
       dm.IBQuery1.ExecSQL;
 
       valorb := valorb - DBGrid1.DataSource.DataSet.FieldByName('valor').AsCurrency;

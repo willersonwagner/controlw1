@@ -171,7 +171,7 @@ begin
   dm.IBselect.Close;
   dm.IBselect.SQL.Clear;
   dm.IBselect.SQL.Add('select cod from FORNECEDOR where cnpj = :cnpj' );
-  dm.IBselect.ParamByName('cnpj').AsString := fornec[0];
+  dm.IBselect.ParamByName('cnpj').AsString := StrNum(fornec[0]);
   dm.IBselect.Open;
 
   Result := '0';
@@ -201,7 +201,7 @@ begin
   dm.IBQuery4.SQL.Add('update or insert into FORNECEDOR(cod, nome, endereco, cep, fone, cidade, estado, bairro, cnpj,'  +
   'ies, cod_mun, tipo) values(:cod, :nome, :endereco, :cep, :fone, :cidade, :estado, :bairro, :cnpj,'  +
   ':ies, :cod_mun, :tipo)' );
-  dm.IBQuery4.ParamByName('cod').AsString      := cod;
+  dm.IBQuery4.ParamByName('cod').AsString      := strnum(cod);
   dm.IBQuery4.ParamByName('nome').AsString     := LeftStr(fornec[1], 40);
   dm.IBQuery4.ParamByName('endereco').AsString := LeftStr(fornec[3], 40);
   dm.IBQuery4.ParamByName('cep').AsString      := LeftStr(fornec[8], 10);
@@ -274,7 +274,7 @@ begin
       dm.IBQuery4.SQL.Add('update or insert into item_entrada(COD,codentrada, QUANT, P_COMPRA, DESTINO, USUARIO, NOTA, FORNEC,DATA, total, unid, unid2, CRED_ICMS, QTD_ENT)' +
       ' values(:COD,'+funcoes.novocod('entrada')+',:QUANT, :P_COMPRA, :DESTINO, :USUARIO,  :NOTA,:FORNEC, :DATA,:total, :unid, :unid2, :CRED_ICMS, :QTD_ENT) matching(codentrada)');
       dm.IBQuery4.ParamByName('data').AsDateTime     := form22.datamov;
-      dm.IBQuery4.ParamByName('cod').AsString        := ClientDataSet1.fieldbyname('codigo').AsString;
+      dm.IBQuery4.ParamByName('cod').AsString        := StrNum(ClientDataSet1.fieldbyname('codigo').AsString);
       dm.IBQuery4.ParamByName('nota').AsString       := ClientDataSet1.fieldbyname('nota').AsString;
       dm.IBQuery4.ParamByName('FORNEC').AsString     := fornecedor;
       dm.IBQuery4.ParamByName('quant').AsFloat       := quant1 + ClientDataSet1.fieldbyname('QUANTIDADE_NFE').AsFloat;
@@ -387,7 +387,7 @@ begin
       dm.IBselect.Close;
       dm.IBselect.SQL.Clear;
       dm.IBselect.SQL.Add('select cod from produto where cod = :cod');
-      dm.IBselect.ParamByName('cod').AsString := ClientDataSet1.fieldbyname('codigo').AsString;
+      dm.IBselect.ParamByName('cod').AsString := strnum(ClientDataSet1.fieldbyname('codigo').AsString);
       dm.IBselect.Open;
 
       if dm.IBselect.IsEmpty then
@@ -443,7 +443,7 @@ begin
       dm.IBselect.Close;
       dm.IBselect.SQL.Clear;
       dm.IBselect.SQL.Add('select cod from produto where cod = :cod');
-      dm.IBselect.ParamByName('cod').AsString := ClientDataSet1.fieldbyname('codigo').AsString;
+      dm.IBselect.ParamByName('cod').AsString := strnum(ClientDataSet1.fieldbyname('codigo').AsString);
       dm.IBselect.Open;
 
       if dm.IBselect.IsEmpty then
@@ -945,7 +945,7 @@ begin
   dm.IBselect.Close;
   dm.IBselect.SQL.Clear;
   dm.IBselect.SQL.Add('select nome, cod, codbar, p_venda, unid, unid2, aliquota, p_compra from produto where cod = :cod');
-  dm.IBselect.ParamByName('cod').AsString := cod;
+  dm.IBselect.ParamByName('cod').AsString := strnum(cod);
   dm.IBselect.Open;
 
   codTMP := ClientDataSet1.RecNo -1;
@@ -1477,7 +1477,7 @@ begin
         dm.IBselect.SQL.Add
         ('select cod, nome, unid2, aliquota, unid, p_venda, codbar, refori from produto where REFNFE = :cod');
         dm.IBselect.ParamByName('cod').AsString :=
-        copy(ClientDataSet1.FieldByName('REF_NFE').AsString, 1, 25);
+        strnum(copy(ClientDataSet1.FieldByName('REF_NFE').AsString, 1, 25));
         dm.IBselect.Open;
 
         axx := '0';
