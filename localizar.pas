@@ -809,7 +809,7 @@ begin
 
      if trim(campoLocate) <> '' then
        begin
-         if (campoLocate = 'cod') and (trim(keyLocate) <> '')  then
+         if (trim(keyLocate) <> '')  then
          if DBGrid1.DataSource.DataSet.Locate(campoLocate, keyLocate, []) then  DBGrid1.SetFocus;
        end;
 

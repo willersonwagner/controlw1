@@ -5518,10 +5518,14 @@ end;
 
 procedure TForm2.ControledeEntrada1Click(Sender: TObject);
 begin
+  while true do begin
+
+
   nota := funcoes.dialogo('generico', 0, '1234567890,.' + #8, 100, false, '',
     'Relatório de Entradas', 'Qual o Número da Nota ?', '');
-  if (nota = '*') or (nota = '') then
-    exit;
+  if (nota = '*') then exit;
+  if nota = '' then nota := '-1';
+  
 
   dm.ibselect.Close;
   dm.ibselect.SQL.Text :=
@@ -5533,20 +5537,8 @@ begin
   begin
     dm.ibselect.Close;
     ShowMessage('Venda Não Encontrada!');
-    exit;
-  end;
-
-  { dm.IBselect.Close;
-    dm.IBselect.SQL.Text := 'select i.nota, i.data, i.cod, p.nome, i.quant from item_venda i'+
-    ' left join produto p on (p.cod = i.cod) where i.nota = :nota';
-    dm.IBselect.ParamByName('nota').AsString := nota;
-    dm.IBselect.Open;
-
-    dm.IBQuery2.Close;
-    dm.IBQuery2.SQL.Text := 'select i.nota, i.DATA_ENTREGA, i.cod, p.nome, i.quant from CONT_ENTREGA ' +
-    'i left join produto p on (i.cod = p.cod) where i.nota = :nota';
-    dm.IBQuery2.ParamByName('nota').AsString := nota;
-    dm.IBQuery2.Open; }
+  end
+  else begin
 
   form44 := TForm44.Create(self);
   form44.Label1.Caption := 'Produtos Entregues F4-Imprimir Entregues';
@@ -5564,6 +5556,8 @@ begin
   form44.Free;
   dm.IBQuery2.Close;
   dm.ibselect.Close;
+  end;
+  end;
 end;
 
 procedure TForm2.ControledeEntregaMadematoClick(Sender: TObject);
@@ -10779,6 +10773,7 @@ begin
     funcoes.deletaRegistroVendaDoDiaDuplicado(StrToDate(ini));
   end;
 
+
   dm.ibselect.Close;
   dm.ibselect.SQL.Clear;
   dm.ibselect.SQL.Text := 'SELECT V.cancelado, u.nome as nomeusuario,v.nota, v.data, v.data_canc, v.codhis, f.nome as nomepagto, v.cliente, '+
@@ -10809,7 +10804,6 @@ begin
   end;
 
 
-
   if his <> '' then
     h1 := ' and (formpagto=' + his + ')';
 
@@ -10833,6 +10827,7 @@ begin
   dm.ibselect.ParamByName('v2').AsDateTime := StrToDate(fim);
   dm.ibselect.Open;
   dm.ibselect.FetchAll;
+
   // ShowMessage(IntToStr(dm.IBselect.RecordCount) + #13 + 'H2=' + h2 + 'H1=' + h1+ 'H4=' + h4 + 'grupo=' + grupo);
 
   totais.Add('out=0');
@@ -10883,6 +10878,7 @@ begin
         VLR_ICM := dm.ibselect.FieldByName('entrada').AsCurrency;
       end;
     end; //if dm.ibselect.FieldByName('tipo').AsString <> 'E' then begin}
+
 
     if form22.Pgerais.Values['nota'] = 'T' then
     begin
@@ -11008,7 +11004,7 @@ begin
       if StrToCurrDef(totais.Values[totais.Names[b]], 0) <> 0 then
         addRelatorioForm19(funcoes.CompletaOuRepete(strzero(totais.Names[b], 3) + ' - ' +
           copy(funcoes.BuscaNomeBD(dm.IBQuery1, 'nome', 'formpagto',
-          'where cod=' + totais.Names[b]), 1, 15), '', ' ',
+          'where cod=' + StrNum(totais.Names[b])), 1, 15), '', ' ',
           27) + funcoes.CompletaOuRepete('-', FormatCurr('#,###,###0.00',
           StrToCurr(totais.Values[totais.Names[b]])), ' ', 14) + #13 + #10);
     end;
@@ -11021,12 +11017,14 @@ begin
       ' ', 27) + funcoes.CompletaOuRepete('-', FormatCurr('#,###,###0.00',
       pendentes), ' ', 14) + #13 + #10))));
   end;
+
   form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((#13 + #10))));
   form19.RichEdit1.Perform(EM_REPLACESEL, 1,
     Longint(PChar(('TOTAL GERAL: ' + funcoes.CompletaOuRepete('',
     FormatCurr('#,###,###0.00', TotalGeralFormas), ' ',
     15) + funcoes.CompletaOuRepete(' ( SOMENTE   VENDAS )', '', ' ', 32) + #13
     + #10))));
+
   form19.RichEdit1.Perform(EM_REPLACESEL, 1,
     Longint(PChar(('TOTAL GERAL: ' + funcoes.CompletaOuRepete('',
     FormatCurr('#,###,###0.00', totalgeral), ' ', 15) + funcoes.CompletaOuRepete
@@ -11043,6 +11041,7 @@ begin
 
   addRelatorioForm19('EMISSAO: ' + FormatDateTime('DD/MM/YY', now) + ' ' + data
     + CRLF + CRLF);
+
 
   if h4 = '' then
   begin

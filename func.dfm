@@ -53,11 +53,6 @@ object funcoes: Tfuncoes
     Left = 48
     Top = 32
   end
-  object RxCalculator1: TRxCalculator
-    Title = 'Calculadora'
-    Left = 16
-    Top = 32
-  end
   object IdFTP1: TIdFTP
     IPVersion = Id_IPv4
     NATKeepAlive.UseKeepAlive = False

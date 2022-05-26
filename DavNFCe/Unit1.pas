@@ -304,7 +304,9 @@ begin
   try
     RichEdit1.Clear;
     sinal(1);
+
     LerDadosArquivo;
+
     inicio := 0;
     inicioPgerais := 0;
     contAtualizacao := 2000;
@@ -359,7 +361,6 @@ begin
     except
     end;
 
-
   finally
     Timer2.Enabled := true;
     totEnvia := 1;
@@ -369,6 +370,7 @@ begin
   if FileExists(ExtractFileDir(ParamStr(0)) + '\davXXX.rca') then begin
     Timer3.Enabled := true;
   end;
+
 end;
 
 procedure TForm1.FormHide(Sender: TObject);
@@ -381,8 +383,9 @@ begin
   Timer2.Enabled := false;
   Timer1.Enabled := true;
 
-  if usaMinimize then
-    Application.Minimize
+  if usaMinimize then begin
+    Application.Minimize;
+  end
   else begin
     Hide;
     TrayIcon1.Visible := true;
@@ -639,8 +642,10 @@ end;
 
 procedure TForm1.FormShow(Sender: TObject);
 begin
+  ShowMessage('9.1');
   Label3.Caption := 'Versão: '+ FileAgeCreate(ParamStr(0));
   TrayIcon1.Visible := false;
+  ShowMessage('9.2');
 end;
 
 procedure TrimAppMemorySize;

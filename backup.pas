@@ -83,7 +83,7 @@ begin
       dm.IBselect.Close;
       dm.IBselect.SQL.Clear;
       dm.IBselect.SQL.Add('select p.cod, c.nome, p.quant, p.p_compra, p.total from item_entrada p, produto c where (c.cod = p.cod) and (p.nota = :nota)');
-      dm.IBselect.ParamByName('nota').AsString := DBGrid1.DataSource.DataSet.fieldbyname('nota').AsString;
+      dm.IBselect.ParamByName('nota').AsString := StrNum(DBGrid1.DataSource.DataSet.fieldbyname('nota').AsString);
       dm.IBselect.Open;
       funcoes.FormataCampos(dm.ibselect, 2,'',2);
       exit;
@@ -92,7 +92,7 @@ begin
   dm.IBselect.Close;
   dm.IBselect.SQL.Clear;
   dm.IBselect.SQL.Add('select p.cod, c.nome, p.quant, p.p_venda, p.total from item_venda p, produto c where (c.cod = p.cod) and (p.nota = :nota)');
-  dm.IBselect.ParamByName('nota').AsString := DBGrid1.DataSource.DataSet.fieldbyname('nota').AsString;
+  dm.IBselect.ParamByName('nota').AsString := strnum(DBGrid1.DataSource.DataSet.fieldbyname('nota').AsString);
   dm.IBselect.Open;
   funcoes.FormataCampos(dm.ibselect, 2,'',2);
 end;
@@ -102,7 +102,7 @@ begin
   dm.IBselect.Close;
   dm.IBselect.SQL.Text := ('select p.cod, p.codbar, c.nome, p.quant, p.p_venda, p.total from item_venda p, produto c where (c.cod = p.cod) and (p.nota = :nota)');
   
-  dm.IBselect.ParamByName('nota').AsString := DBGrid1.DataSource.DataSet.fieldbyname('NUMVENDA').AsString;
+  dm.IBselect.ParamByName('nota').AsString := strnum(DBGrid1.DataSource.DataSet.fieldbyname('NUMVENDA').AsString);
   dm.IBselect.Open;
   funcoes.FormataCampos(dm.ibselect, 2,'',2);
 
@@ -723,3 +723,4 @@ begin
 end;
 
 end.
+

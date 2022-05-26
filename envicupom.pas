@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, RxGIF, ExtCtrls, StdCtrls, Buttons, funcoesdav, func;
+  Dialogs, ExtCtrls, StdCtrls, Buttons, funcoesdav, func;
 
 type
   TForm58 = class(TForm)

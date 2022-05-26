@@ -69,6 +69,9 @@ begin
           desabilitaCampos;
 
           b := funcoes.busca(dm.IBquery4, a, 'historico', 'codmov', '');
+          if StrNum(b) = '0' then exit;
+
+
           dm.IBselect.Locate('codmov', b,[]) ;
 
           dm.IBQuery4.Close;

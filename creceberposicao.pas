@@ -499,7 +499,8 @@ begin
     if valorb >= DBGrid1.DataSource.DataSet.FieldByName('valor').AsCurrency then begin
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Clear;
-      dm.IBQuery1.SQL.Add('update contasreceber set valor=0,pago=:valor, ult_usu_alterado = :ult_usu_alterado, datamov = :data where cod='+DBGrid1.DataSource.DataSet.FieldByName('cod').AsString);
+      dm.IBQuery1.SQL.Add('update contasreceber set CODHIS = :CODHIS, valor=0,pago=:valor, ult_usu_alterado = :ult_usu_alterado, datamov = :data where cod='+DBGrid1.DataSource.DataSet.FieldByName('cod').AsString);
+      dm.IBQuery1.ParamByName('CODHIS').AsInteger   := StrToIntDef(formapagto, 1);
       dm.IBQuery1.ParamByName('valor').AsCurrency := DBGrid1.DataSource.DataSet.FieldByName('valor').AsCurrency;
       dm.IBQuery1.ParamByName('ult_usu_alterado').AsInteger   := StrToInt(StrNum(form22.codusario));
       dm.IBQuery1.ParamByName('data').AsDate                  := form22.datamov;
@@ -528,7 +529,8 @@ begin
 
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Clear;
-      dm.IBQuery1.SQL.Add('update contasreceber set valor = :valor, datamov = :data, ult_usu_alterado = :ult_usu_alterado where cod='+DBGrid1.DataSource.DataSet.FieldByName('cod').AsString);
+      dm.IBQuery1.SQL.Add('update contasreceber set CODHIS = :CODHIS, valor = :valor, datamov = :data, ult_usu_alterado = :ult_usu_alterado where cod='+DBGrid1.DataSource.DataSet.FieldByName('cod').AsString);
+      dm.IBQuery1.ParamByName('CODHIS').AsInteger   := StrToIntDef(formapagto, 1);
       dm.IBQuery1.ParamByName('valor').AsCurrency := DBGrid1.DataSource.DataSet.FieldByName('valor').AsCurrency - valorb;
       dm.IBQuery1.ParamByName('data').AsDate      := form22.datamov;
       dm.IBQuery1.ParamByName('ult_usu_alterado').AsInteger   := StrToInt(StrNum(form22.codusario));
@@ -604,6 +606,8 @@ begin
     exit;
   end;
 
+
+
   //atualizacao 18/12/2018 Wagner
   //se for maior dá uma mensagem que excedeu o valor da conta
   if StrToCurr(funcoes.ConverteNumerico(valorbaixado)) > DBGrid1.DataSource.DataSet.FieldByName('valor').AsCurrency then begin
@@ -636,7 +640,7 @@ begin
   //if valorb = v1 then begin
     dm.IBQuery2.Close;
     dm.IBQuery2.SQL.Clear;
-    dm.IBQuery2.SQL.Add('update contasreceber set FORMPAGTO = :FORMPAGTO, valor = valor - :valor, pago = pago + :pago, datamov = :datamov, ult_usu_alterado = :ult_usu_alterado where cod='+cod);
+    dm.IBQuery2.SQL.Add('update contasreceber set codhis = :FORMPAGTO, valor = valor - :valor, pago = pago + :pago, datamov = :datamov, ult_usu_alterado = :ult_usu_alterado where cod='+cod);
     dm.IBQuery2.ParamByName('FORMPAGTO').AsString           := strnum(formapagto);
     dm.IBQuery2.ParamByName('valor').AsCurrency := StrToCurr(funcoes.ConverteNumerico(valorBaixado));
 

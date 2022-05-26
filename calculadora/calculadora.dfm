@@ -1,4 +1,4 @@
-object Form1: TForm1
+object calculadora1: Tcalculadora1
   Left = 0
   Top = 0
   BorderIcons = [biSystemMenu]
@@ -13,7 +13,9 @@ object Form1: TForm1
   Font.Style = []
   KeyPreview = True
   OldCreateOrder = False
+  Position = poScreenCenter
   OnKeyDown = FormKeyDown
+  OnKeyUp = FormKeyUp
   PixelsPerInch = 96
   TextHeight = 13
   object um: TSpeedButton

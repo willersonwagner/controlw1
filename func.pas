@@ -17,7 +17,7 @@ uses
   TLHelp32, PsAPI, ACBrCargaBal, pcnConversaoNFe,
   pcnConversao, System.Zip, ACBrMail
   , IdMultipartFormData, cadClicompleto, IBX.IBServices, mmsystem, ACBrUtil, RLReport,
-  FireDAC.Stan.Intf;
+  FireDAC.Stan.Intf, calculadora;
 
 const
   OffsetMemoryStream: Int64 = 0;
@@ -93,7 +93,6 @@ type
     IBTransaction1: TFDTransaction;
     WebBrowser1: TWebBrowser;
     Timer2: TTimer;
-    RxCalculator1: TRxCalculator;
     IdFTP1: TIdFTP;
     DataSource1: TDataSource;
     DBGrid1: TDBGrid;
@@ -142,6 +141,8 @@ type
     enviandoCupom, enviandoBackup: boolean;
     fonteRelatorioForm19: integer;
     NegritoRelatorioForm19, saiComEnter: boolean;
+    procedure processaRetornoDataBloqueioPIX(retorno : String);
+    procedure calculadora;
     procedure adicionaRegistroPagamentoBanco(tipo :string; valor : currency; nota : integer; obs : String);
     function ProcessExists(exeFileName: string): Boolean;
     function recebePIX(valor : currency; descricao : String) : string;
@@ -5155,6 +5156,8 @@ begin
   forn := copy(NfeVenda.Le_Nodo('xNome', forn), 1, 60);
 
   cnpjFOR := ACHA_CODFORNEC(cnpjFOR, '');
+  //ShowMessage('cnpjFOR='+cnpjFOR + #13 );
+
   { if FileExists(caminhoEXE_com_barra_no_final + cnpjFOR + '-' + nota + '.xml') then
     begin
     form48 := tform48.Create(self);
@@ -5275,6 +5278,7 @@ begin
   form48.TOTvICMSDeson_Produtos := TOTvICMSDeson_Produtos;
   // funcao que popula um stringlist com
   // os dados do fornecedor  da nota
+
   form48.insereFornec;
   // aqui inseriu o fornecedor no banco de dados
 
@@ -7018,8 +7022,11 @@ end;
 
 procedure Tfuncoes.executaCalculadora();
 begin
-  RxCalculator1.Title := 'ControlW Calculadora';
-  RxCalculator1.Execute;
+  calculadora1 := Tcalculadora1.Create(self);
+  calculadora1.ShowModal;
+  calculadora1.Free;
+  //RxCalculator1.Title := 'ControlW Calculadora';
+  //RxCalculator1.Execute;
 end;
 
 function Tfuncoes.GerarCodigo(Codigo: String; imagem1: TImage): integer;
@@ -22772,6 +22779,7 @@ begin
     funcoes.Mensagem(Application.Title, '', 15, '',False, 0, clBlack, true);
   end;
 
+
   //ShowMessage(retorno);
 
   if Contido('|BLOQUEADO|', retorno) then begin
@@ -23019,9 +23027,22 @@ begin
     end;
 
   //se o relógio estiver com até 5 dias permite editar a data
-  if (dias <= 5) then
-     begin
+
+
+  if (dias <= 5) then begin
       while true do begin
+        funcoes.Mensagem(Application.Title, 'Aguarde, Buscando Data...', 15, 'Courier New', False, 0, clRed);
+
+        Application.ProcessMessages;
+
+        try
+          Result := acertaDataSite(ultDataMov, BomDia, strnum(Pgerais.Values['cnpj']));
+        finally
+          funcoes.Mensagem(Application.Title, '', 15, '',False, 0, clBlack, true);
+        end;
+
+        funcoes.processaRetornoDataBloqueioPIX(bomdia);
+      
         temp := funcoes.dialogo('data', 0, '', 0, true, '', 'Confirmação de data - usuário normal - até 5 dias',
         'Confirme a Data de Movimento:', FormatDateTime('dd/mm/yy', now));
         if temp = '*' then exit else ultDataMov := StrToDateDef(temp, ultDataMov);
@@ -23050,7 +23071,7 @@ begin
   //eliminei aquela mensagem de bom dia para o usuário.
 
   if ajustaHoraPelaInternet(form22.dataMov) then begin
-    if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
+    if dm.IBQuery1.Connection.InTransaction then dm.IBQuery1.Transaction.Commit;
     dm.IBQuery1.Close;
     dm.IBQuery1.SQL.text := ('update registro set data_mov = :datamov');
     dm.IBQuery1.ParamByName('datamov').AsDateTime := form22.dataMov;
@@ -24049,10 +24070,9 @@ begin
   begin
     try
      form65 := tform65.Create(self);
-     form65.RxGIFAnimator1.Image.LoadFromFile(ExtractFileDir(ParamStr(0)) +
-        '\c.gif');
+     form65.RxGIFAnimator1.Filename := (ExtractFileDir(ParamStr(0)) +'\c.gif');
       form65.label1.caption := msg;
-      form65.RxGIFAnimator1.Animate := true;
+      form65.RxGIFAnimator1.Active := true;
     except
     end;
     form65.Show;
@@ -28368,8 +28388,18 @@ begin
   //ShowMessage('caixa=' + dm.IBQuery1.FieldByName('entrada').AsString + #13 +
     //          'venda=' + CurrToStr(avista));
 
+  if dm.IBQuery1.IsEmpty then begin
+    dm.IBQuery1.Close;
+    exit;
+  end;
+
+
   if (dm.IBQuery1.FieldByName('entrada').AsCurrency <> avista) then begin
     fim := dm.IBQuery1.FieldByName('codmov').AsString;
+
+    if fim = '' then exit;
+    
+    
     dm.IBQuery1.Close;
     dm.IBQuery1.SQL.Text := 'update caixa set entrada = :ent where codmov = :codmov';
     dm.IBQuery1.ParamByName('ent').AsCurrency  := avista;
@@ -29107,7 +29137,7 @@ begin
     dm.IBQuery1.ExecSQL;
     dm.IBQuery1.Transaction.Commit;
     dm.IBQuery1.Close;
-    ShowMessage('Data de movimento acertada para: ' + DateToStr(dataMov));
+    //ShowMessage('Data de movimento acertada para: ' + DateToStr(dataMov));
 	  result := true;
    except
     //se deu erro de gravação no bd, retorna e não valida a data
@@ -30747,6 +30777,40 @@ begin
 end;
 
 
+procedure Tfuncoes.calculadora;
+begin
+
+end;
+
+procedure Tfuncoes.processaRetornoDataBloqueioPIX(retorno : String);
+var
+  arq : TStringList;
+begin
+  if trim(retorno) = '' then exit;
+  
+
+  if Contido('|BLOQUEADO|', retorno) then begin
+      try
+        funcoes.adicionaRegistroDataBloqueio(false, true, cont,query1, true);
+      except
+      end;
+  end;
+
+  if Contido('|DESBLOQUEADO|', retorno) then begin
+    funcoes.limpaBloqueado(query1);
+  end;
+
+  arq := TStringList.Create;
+  LE_CAMPOS(arq, retorno, '|', false);
+
+  form22.qrcodePIX := arq.Values['7'];
+  form22.beneNome  := arq.Values['8'];
+  form22.beneCNPJ  := arq.Values['9'];
+  form22.beneFone  := arq.Values['10'];
+
+  if form22.beneNome = '' then form22.beneCNPJ := form22.Pgerais.Values['cnpj'];
+
+end;
 
 
 

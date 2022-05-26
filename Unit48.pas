@@ -171,7 +171,7 @@ begin
   dm.IBselect.Close;
   dm.IBselect.SQL.Clear;
   dm.IBselect.SQL.Add('select cod from FORNECEDOR where cnpj = :cnpj' );
-  dm.IBselect.ParamByName('cnpj').AsString := StrNum(fornec[0]);
+  dm.IBselect.ParamByName('cnpj').AsString := fornec[0];
   dm.IBselect.Open;
 
   Result := '0';

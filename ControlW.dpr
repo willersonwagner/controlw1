@@ -122,7 +122,8 @@ uses
   qrcodePIX in 'qrcodePIX.pas' {Form84},
   declaracaoImportacao in 'declaracaoImportacao.pas' {Form85},
   troco in 'troco.pas' {Form86},
-  infNutri in 'infNutri.pas' {Form87};
+  infNutri in 'infNutri.pas' {Form87},
+  calculadora in 'calculadora\calculadora.pas' {calculadora1};
 
 {$R *.res}
 
@@ -149,6 +150,7 @@ begin
   Application.CreateForm(TForm85, Form85);
   Application.CreateForm(TForm86, Form86);
   Application.CreateForm(TForm87, Form87);
+  Application.CreateForm(Tcalculadora1, calculadora1);
   //Application.CreateForm(TForm83, Form83);
   //Application.CreateForm(TForm82, Form82);
   //Application.CreateForm(TForm81, Form81);
