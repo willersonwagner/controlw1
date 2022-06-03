@@ -1037,7 +1037,7 @@ var
   TMP, temp, descr: string;
   novo: boolean;
 begin
-  if ((p_vendaAtual > p_venda.getValor) and (length(form22.Pgerais.Values['acessousu']) > 0)) then begin
+  if ((p_vendaAtual > p_venda.getValor) and (length(form22.Pgerais.Values['acessousu']) > 1)) then begin
     ShowMessage('Usuário Bloqueado para Redução do Preço de Venda:' + #13 +
                 'Preço Antigo: ' + FormatCurr('#,###,###0.000',p_vendaAtual) + #13 +
                 'Preço   Novo: ' + FormatCurr('#,###,###0.000',p_venda.getValor) + #13 +
@@ -2111,6 +2111,8 @@ begin
     Application.Terminate;
   end;
 
+
+
   dm.IBselect.Close;
   dm.IBselect.SQL.Text := 'select * from produto where cod = :cod';
   dm.IBselect.ParamByName('cod').AsInteger := cod1;
@@ -2128,58 +2130,32 @@ begin
     (' values(:cod,:nome,:unid,:igual,:codbar,:localiza,:fornec,:fabric,:aliquota,:refori,:classif,:aplic,:grupo,');
   dm.IBQuery1.SQL.Add
     (':serie,:is_pis,:emb,:desc_atac,:p_venda, :p_venda1,:p_compra,:lucro,:quant,:deposito,:comissao,:credicm,:basecred,:debicm,:basedeb,:frete,:encargos,:fracao,:agregado,:sal,:sad,:sugestao,:compra,:dev_icm, :equiva, :usuario, :DATA_DELETED) matching(cod)');
-  dm.IBQuery1.ParamByName('cod').AsInteger := dm.IBselect.fieldbyname('cod')
-    .AsInteger;
-  dm.IBQuery1.ParamByName('nome').AsString :=
-    dm.IBselect.fieldbyname('nome').AsString;
-  dm.IBQuery1.ParamByName('unid').AsString :=
-    dm.IBselect.fieldbyname('unid').AsString;
-  dm.IBQuery1.ParamByName('igual').AsString :=
-    dm.IBselect.fieldbyname('igual').AsString;
-  dm.IBQuery1.ParamByName('codbar').AsString :=
-    dm.IBselect.fieldbyname('codbar').AsString;
-  dm.IBQuery1.ParamByName('localiza').AsString :=
-    dm.IBselect.fieldbyname('localiza').AsString;
-  dm.IBQuery1.ParamByName('refori').AsString :=
-    dm.IBselect.fieldbyname('refori').AsString;
-  dm.IBQuery1.ParamByName('fornec').AsString :=
-    dm.IBselect.fieldbyname('fornec').AsString;
-  dm.IBQuery1.ParamByName('fabric').AsString :=
-    dm.IBselect.fieldbyname('fabric').AsString;
-  dm.IBQuery1.ParamByName('aliquota').AsString :=
-    dm.IBselect.fieldbyname('aliquota').AsString;
-  dm.IBQuery1.ParamByName('classif').AsString :=
-    dm.IBselect.fieldbyname('classif').AsString;
-  dm.IBQuery1.ParamByName('aplic').AsString :=
-    dm.IBselect.fieldbyname('aplic').AsString;
-  dm.IBQuery1.ParamByName('grupo').AsString :=
-    dm.IBselect.fieldbyname('grupo').AsString;
-  dm.IBQuery1.ParamByName('serie').AsString :=
-    dm.IBselect.fieldbyname('serie').AsString;
-  dm.IBQuery1.ParamByName('is_pis').AsString :=
-    dm.IBselect.fieldbyname('is_pis').AsString;
-  dm.IBQuery1.ParamByName('emb').AsString :=
-    dm.IBselect.fieldbyname('emb').AsString;
-  dm.IBQuery1.ParamByName('desc_atac').AsString :=
-    dm.IBselect.fieldbyname('desc_atac').AsString;
-  dm.IBQuery1.ParamByName('p_venda').AsCurrency :=
-    dm.IBselect.fieldbyname('p_venda').AsCurrency;
-  dm.IBQuery1.ParamByName('p_venda1').AsCurrency :=
-    dm.IBselect.fieldbyname('p_venda1').AsCurrency;
-  dm.IBQuery1.ParamByName('p_compra').AsCurrency :=
-    dm.IBselect.fieldbyname('p_compra').AsCurrency;
-  dm.IBQuery1.ParamByName('lucro').AsCurrency :=
-    dm.IBselect.fieldbyname('lucro').AsCurrency;
-  dm.IBQuery1.ParamByName('quant').AsCurrency :=
-    dm.IBselect.fieldbyname('quant').AsCurrency;
-  dm.IBQuery1.ParamByName('deposito').AsCurrency :=
-    dm.IBselect.fieldbyname('deposito').AsCurrency;
-  dm.IBQuery1.ParamByName('comissao').AsCurrency :=
-    dm.IBselect.fieldbyname('comissao').AsCurrency;
-  dm.IBQuery1.ParamByName('credicm').AsCurrency :=
-    dm.IBselect.fieldbyname('credicm').AsCurrency;
-  dm.IBQuery1.ParamByName('basecred').AsCurrency :=
-    dm.IBselect.fieldbyname('basecred').AsCurrency;
+  dm.IBQuery1.ParamByName('cod').AsInteger := dm.IBselect.fieldbyname('cod').AsInteger;
+  dm.IBQuery1.ParamByName('nome').AsString := dm.IBselect.fieldbyname('nome').AsString;
+  dm.IBQuery1.ParamByName('unid').AsString := dm.IBselect.fieldbyname('unid').AsString;
+  dm.IBQuery1.ParamByName('igual').AsString := dm.IBselect.fieldbyname('igual').AsString;
+  dm.IBQuery1.ParamByName('codbar').AsString := dm.IBselect.fieldbyname('codbar').AsString;
+  dm.IBQuery1.ParamByName('localiza').AsString := dm.IBselect.fieldbyname('localiza').AsString;
+  dm.IBQuery1.ParamByName('refori').AsString := dm.IBselect.fieldbyname('refori').AsString;
+  dm.IBQuery1.ParamByName('fornec').AsInteger := dm.IBselect.fieldbyname('fornec').AsInteger;
+  dm.IBQuery1.ParamByName('fabric').AsInteger := dm.IBselect.fieldbyname('fabric').AsInteger;
+  dm.IBQuery1.ParamByName('aliquota').AsString := dm.IBselect.fieldbyname('aliquota').AsString;
+  dm.IBQuery1.ParamByName('classif').AsString := dm.IBselect.fieldbyname('classif').AsString;
+  dm.IBQuery1.ParamByName('aplic').AsString := dm.IBselect.fieldbyname('aplic').AsString;
+  dm.IBQuery1.ParamByName('grupo').AsString := strnum(dm.IBselect.fieldbyname('grupo').AsString);
+  dm.IBQuery1.ParamByName('serie').AsString := dm.IBselect.fieldbyname('serie').AsString;
+  dm.IBQuery1.ParamByName('is_pis').AsString := dm.IBselect.fieldbyname('is_pis').AsString;
+  dm.IBQuery1.ParamByName('emb').AsString :=dm.IBselect.fieldbyname('emb').AsString;
+  dm.IBQuery1.ParamByName('desc_atac').AsString := dm.IBselect.fieldbyname('desc_atac').AsString;
+  dm.IBQuery1.ParamByName('p_venda').AsCurrency := dm.IBselect.fieldbyname('p_venda').AsCurrency;
+  dm.IBQuery1.ParamByName('p_venda1').AsCurrency := dm.IBselect.fieldbyname('p_venda1').AsCurrency;
+  dm.IBQuery1.ParamByName('p_compra').AsCurrency := dm.IBselect.fieldbyname('p_compra').AsCurrency;
+  dm.IBQuery1.ParamByName('lucro').AsCurrency := dm.IBselect.fieldbyname('lucro').AsCurrency;
+  dm.IBQuery1.ParamByName('quant').AsCurrency := dm.IBselect.fieldbyname('quant').AsCurrency;
+  dm.IBQuery1.ParamByName('deposito').AsCurrency := dm.IBselect.fieldbyname('deposito').AsCurrency;
+  dm.IBQuery1.ParamByName('comissao').AsCurrency := dm.IBselect.fieldbyname('comissao').AsCurrency;
+  dm.IBQuery1.ParamByName('credicm').AsCurrency := dm.IBselect.fieldbyname('credicm').AsCurrency;
+  dm.IBQuery1.ParamByName('basecred').AsCurrency := dm.IBselect.fieldbyname('basecred').AsCurrency;
   dm.IBQuery1.ParamByName('debicm').AsCurrency :=
     dm.IBselect.fieldbyname('debicm').AsCurrency;
   dm.IBQuery1.ParamByName('basedeb').AsCurrency :=

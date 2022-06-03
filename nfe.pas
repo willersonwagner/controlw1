@@ -1456,8 +1456,10 @@ begin
 
   for i := 0 to destinatario.Count -1 do begin
     email := destinatario.ValueFromIndex[i];
-    dm.ACBrMail1.AddAddress(email, email);
+    dm.ACBrMail1.AddAddress(email, 'ControlW Sistemas');
   end;
+
+  dm.ACBrMail1.AddAddress(form22.emailEnviar, 'ControlW Sistemas');
 
 
   dm.ACBrMail1.Subject := 'NFe ' + nf + ' ' + LeftStr(form22.Pgerais.Values['empresa'], 25);
@@ -4365,11 +4367,13 @@ begin
 
       reStartGenerator(generator, ACBrNFe.NotasFiscais[0].NFe.Ide.nNF + 1);
       insereRegistroDaNotaNaTabelaNFE(IntToStr(ACBrNFe.NotasFiscais[0].NFe.Ide.nNF), chaveNF, ci, ACBrNFe.NotasFiscais[0].NFe.Ide.dEmi, arq);
+      //ok1
       AtualizaCfop(cod_op);
 
+      //ok2
       funcoes.GRAVA_MOV(IntToStr(ACBrNFe.NotasFiscais[0].NFe.Ide.cNF), Form22.datamov, IntToStr(ACBrNFe.NotasFiscais[0].NFe.Ide.nNF), '90', dest, false, ci);
 
-      SendPostData(Form72.IdHTTP1, arq, 'E', IntToStr(csta));
+      //SendPostData(Form72.IdHTTP1, arq, 'E', IntToStr(csta));
 
       imprimirNFe();
 

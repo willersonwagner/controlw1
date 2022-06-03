@@ -151,8 +151,8 @@ object Form1: TForm1
     Options.AutoStop = False
     Options.StopOptions = [xoIfCmdsInactive]
     Connection = BD_Servidor
-    Left = 64
-    Top = 140
+    Left = 16
+    Top = 124
   end
   object IBQueryServer2: TFDQuery
     Connection = BD_Servidor
@@ -284,7 +284,7 @@ object Form1: TForm1
     Top = 168
   end
   object IdAntiFreeze1: TIdAntiFreeze
-    Left = 376
+    Left = 360
     Top = 8
   end
   object FinalizaTimer: TTimer
@@ -343,7 +343,7 @@ object Form1: TForm1
   end
   object FDGUIxWaitCursor1: TFDGUIxWaitCursor
     Provider = 'Forms'
-    Left = 320
-    Top = 64
+    Left = 472
+    Top = 320
   end
 end

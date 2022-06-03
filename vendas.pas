@@ -5931,6 +5931,12 @@ begin
   totVenda := 0;
   totVolumes := 0;
   total_A_Limitar := 0;
+
+  //if dm.IBTransaction7.TransactionIntf then
+  
+
+  if dm.bd.InTransaction then dm.bd.commit;
+
   //for ini := 1 to ClientDataSet1.RecordCount do
   while not ClientDataSet1.Eof do begin
     //ClientDataSet1.RecNo := ini;
@@ -5963,7 +5969,7 @@ begin
     end;
 
     dm.IBQuery1.ParamByName('data').AsDateTime := form22.datamov;
-    dm.IBQuery1.ParamByName('cod').AsString := ClientDataSet1CODIGO.AsString;
+    dm.IBQuery1.ParamByName('cod').AsString := StrNum(ClientDataSet1CODIGO.AsString);
     dm.IBQuery1.ParamByName('codbar').AsString :=
       funcoes.BuscaNomeBD(dm.IBQuery2, 'codbar', 'produto',
       'where cod=' + ClientDataSet1CODIGO.AsString);
@@ -6021,8 +6027,7 @@ begin
       dm.IBQuery1.ExecSQL;
     except
       on e: exception do begin
-        ShowMessage(e.Message);
-
+        ShowMessage('erro 6024:'+e.Message);
           if Contido('UNQ1_ITEM_VENDA', e.Message) = false then begin
             exit;
           end;

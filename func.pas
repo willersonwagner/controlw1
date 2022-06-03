@@ -141,6 +141,7 @@ type
     enviandoCupom, enviandoBackup: boolean;
     fonteRelatorioForm19: integer;
     NegritoRelatorioForm19, saiComEnter: boolean;
+    procedure OrdenarTStringList2(var Valores: TStringList);
     procedure processaRetornoDataBloqueioPIX(retorno : String);
     procedure calculadora;
     procedure adicionaRegistroPagamentoBanco(tipo :string; valor : currency; nota : integer; obs : String);
@@ -3551,7 +3552,12 @@ begin
   dm.IBQuery1.ParamByName('data').AsDate := data;
   dm.IBQuery1.ParamByName('estado').AsString := Estado;
   dm.IBQuery1.ExecSQL;
-  dm.IBQuery1.Transaction.Commit;
+
+  try
+    dm.IBQuery1.Transaction.Commit;
+  except
+
+  end;
   Result := true;
 
   // SE ESTA VENDA FOI FEITA PELO PDV ON-LINE, ENTAO OS DADOS DO CUPOM
@@ -3564,7 +3570,12 @@ begin
   dm.IBQuery1.ParamByName('crc').AsString := NF + tipo;
   dm.IBQuery1.ParamByName('nota').AsString := PEDIDO;
   dm.IBQuery1.ExecSQL;
-  dm.IBQuery1.Transaction.Commit;
+
+  try
+    dm.IBQuery1.Transaction.Commit;
+  except
+
+  end;
 end;
 
 function Tfuncoes.NomedoComputador: String;
@@ -5271,11 +5282,13 @@ begin
     pergunta1.Visible := False;
   end;
 
+
   form48 := tform48.Create(self);
   form48.caminhoXML := camArq;
 
   form48.fornec := verFornecedorStringList(t2);
   form48.TOTvICMSDeson_Produtos := TOTvICMSDeson_Produtos;
+
   // funcao que popula um stringlist com
   // os dados do fornecedor  da nota
 
@@ -5458,6 +5471,7 @@ begin
     begin
       if item1.codbar <> '' then
       begin
+
         dm.IBselect.Close;
         dm.IBselect.SQL.Clear;
         dm.IBselect.SQL.Add
@@ -5518,6 +5532,7 @@ begin
     dm.IBselect.Close;
     form48.ClientDataSet1.Post;
   end;
+
 
   funcoes.informacao(0, fim, 'Aguarde, Lendo XML...', False, true, 5);
 
@@ -6175,9 +6190,7 @@ begin
     dm.ACBrMail1.FromName := 'ControlW Sistemas';
     dm.ACBrMail1.Subject := 'Backup ' + trim(dm.IBselect.FieldByName('empresa')
       .AsString) + ' ' + FormataData(now);
-    // dm.ACBrMail1.From      := 'controlwsistemas@gmail.com';
-    dm.ACBrMail1.AddAddress('controlwsistemas@gmail.com', 'ControlW');
-    dm.ACBrMail1.AddAddress('sistemas@controlw.blog.br', 'ControlWBLOG');
+    dm.ACBrMail1.AddAddress(form22.emailEnviar, 'ControlW Sistemas');
 
     dm.IBselect.Close;
     enviandoBackup := true;
@@ -7603,7 +7616,11 @@ begin
     IntToStr(valor));
   dm.ibquery4.ExecSQL;
 
-  dm.ibquery4.Transaction.Commit;
+  try
+    dm.ibquery4.Transaction.Commit;
+  except
+
+  end;
   Result := '';
 end;
 
@@ -22994,10 +23011,11 @@ end;
 
 function Tfuncoes.validaDataHora(var dataMo: TDateTime; USUARIO: STRING) : boolean;
 var
-  ultDataMov, dataAtual, dataBd, dataUltimaVenda: TDateTime;
+  ultDataMov, dataAtual, dataBd, dataUltimaVendam, ultDataMov1: TDateTime;
   temp, somenteHora, BomDia: String;
   hora: TTime;
   dias : integer;
+  acertouData : boolean;
 begin
   Result := false;
 
@@ -23028,7 +23046,6 @@ begin
 
   //se o relógio estiver com até 5 dias permite editar a data
 
-
   if (dias <= 5) then begin
       while true do begin
         funcoes.Mensagem(Application.Title, 'Aguarde, Buscando Data...', 15, 'Courier New', False, 0, clRed);
@@ -23036,12 +23053,20 @@ begin
         Application.ProcessMessages;
 
         try
-          Result := acertaDataSite(ultDataMov, BomDia, strnum(Pgerais.Values['cnpj']));
+          acertouData := acertaDataSite(ultDataMov1, BomDia, strnum(form22.Pgerais.Values['cnpj']));
         finally
           funcoes.Mensagem(Application.Title, '', 15, '',False, 0, clBlack, true);
         end;
 
         funcoes.processaRetornoDataBloqueioPIX(bomdia);
+
+        if ((acertouData) and (ultDataMov1 > StrToDate('01/01/2022'))) then begin
+          Result := true;
+          ultDataMov := ultDataMov1;
+          gravaDataMov(ultDatamov);
+          dataMo :=  ultDataMov;
+          exit;
+        end;
       
         temp := funcoes.dialogo('data', 0, '', 0, true, '', 'Confirmação de data - usuário normal - até 5 dias',
         'Confirme a Data de Movimento:', FormatDateTime('dd/mm/yy', now));
@@ -26381,6 +26406,9 @@ begin
 
     dm.ACBrMail1.Host := dm.IBselect.FieldByName('host').AsString;
     dm.ACBrMail1.Username := dm.IBselect.FieldByName('email').AsString;
+
+    form22.emailEnviar := dm.IBselect.FieldByName('email').AsString;
+
     dm.ACBrMail1.FromName := dm.IBselect.FieldByName('nome').AsString;
     dm.ACBrMail1.From := dm.IBselect.FieldByName('email').AsString;
     dm.ACBrMail1.Password := dm.IBselect.FieldByName('senha').AsString;
@@ -26745,7 +26773,11 @@ begin
   dm.IBQuery1.SQL.text := 'update registro set data_backup = :data';
   dm.IBQuery1.ParamByName('data').AsDate := form22.dataMov;
   dm.IBQuery1.ExecSQL;
-  dm.IBQuery1.Transaction.Commit;
+
+  try
+    dm.IBQuery1.Transaction.Commit;
+  except
+  end;
 
   try
     funcoes.SincronizarExtoque2('');
@@ -27245,7 +27277,7 @@ begin
 
   dm.ACBrMail1.FromName := 'ControlW Sistemas';
   dm.ACBrMail1.AddAddress(email, email);
-  dm.ACBrMail1.AddAddress('controlwsistemas@gmail.com', 'controlwsistemas@gmail.com');
+  dm.ACBrMail1.AddAddress(form22.emailEnviar, 'ControlW Sistemas');
   dm.IBselect.Close;
 
   dm.ACBrMail1.send(true);
@@ -27438,9 +27470,8 @@ begin
   // dm.ACBrMail1.From);
   dm.ACBrMail1.Subject := 'SPED FISCAL  ' + mes + '/20' + ano + ' ' +
     dm.IBselect.FieldByName('nome').AsString;
-  dm.ACBrMail1.AddAddress(email, 'ControlW');
-  dm.ACBrMail1.AddAddress('controlwsistemas@gmail.com', 'ControlW');
-  // dm.ACBrMail1.AddAddress(email, 'ControlW');
+  dm.ACBrMail1.AddAddress(email, 'ControlW Sistemas');
+  dm.ACBrMail1.AddAddress(form22.emailEnviar, 'ControlW Sistemas');
   dm.IBselect.Close;
 
   dm.ACBrMail1.send(true);
@@ -30788,7 +30819,6 @@ var
 begin
   if trim(retorno) = '' then exit;
   
-
   if Contido('|BLOQUEADO|', retorno) then begin
       try
         funcoes.adicionaRegistroDataBloqueio(false, true, cont,query1, true);
@@ -30810,6 +30840,47 @@ begin
 
   if form22.beneNome = '' then form22.beneCNPJ := form22.Pgerais.Values['cnpj'];
 
+end;
+
+procedure Tfuncoes.OrdenarTStringList2(var Valores: TStringList);
+var i, j : integer;
+    temp : string;
+begin
+  j := Valores.Count - 1;
+  //for i := 0 to j do
+  i := 0;
+  while true do begin
+    i := i + 1;
+    if i = j then break;
+
+    if StrToIntDef(Valores.Names[i], 0) > StrToIntDef(Valores.Names[i + 1], 0) then begin
+        //ShowMessage('antes'+#13+'i=' + Valores.Names[i] + #13 + 'j=' + Valores.Names[j] + #13 + valores.Text);
+
+        TEmp := Valores[i];
+        Valores[i] := Valores[i + 1];
+        Valores[i + 1] := TEmp;
+
+        //ShowMessage('i=' + Valores.Names[i] + #13 + 'j=' + Valores.Names[j] + #13  + valores.Text);
+        i := 0;
+        //break;
+      end;
+
+  end;
+
+
+    {for j := 0 to Valores.Count - 2 do
+    begin
+      if StrToIntDef(Valores.Names[i], 0) > StrToIntDef(Valores.Names[j], 0) then begin
+        ShowMessage('antes'+#13+'i=' + Valores.Names[i] + #13 + 'j=' + Valores.Names[j] + #13 + valores.Text);
+
+        TEmp := Valores[i];
+        Valores[i] := Valores[j];
+        Valores[j] := TEmp;
+
+        ShowMessage('i=' + Valores.Names[i] + #13 + 'j=' + Valores.Names[j] + #13  + valores.Text);
+        break;
+      end;
+    end;    }
 end;
 
 

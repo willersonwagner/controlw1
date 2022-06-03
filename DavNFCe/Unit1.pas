@@ -317,16 +317,6 @@ begin
       usaMinimize := true;
     end;
 
-    { with Nid do
-      begin
-      cbSize := SizeOf(Nid);
-      Wnd := Handle;
-      uID := 0;
-      uFlags := NIF_MESSAGE + NIF_ICON + NIF_TIP;
-      uCallbackMessage := WM_ICONTRAY;
-      hIcon := Application.Icon.Handle;
-      StrPCopy(szTip, Application.Title);
-      end; }
 
     caminhoComBarraNoFinal := ExtractFileDir(ParamStr(0)) + '\';
 
@@ -642,10 +632,8 @@ end;
 
 procedure TForm1.FormShow(Sender: TObject);
 begin
-  ShowMessage('9.1');
   Label3.Caption := 'Versão: '+ FileAgeCreate(ParamStr(0));
   TrayIcon1.Visible := false;
-  ShowMessage('9.2');
 end;
 
 procedure TrimAppMemorySize;

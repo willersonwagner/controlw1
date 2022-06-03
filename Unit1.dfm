@@ -18,7 +18,7 @@ object dm: Tdm
   end
   object IBQuery2: TFDQuery
     Connection = bd
-    Transaction = IBTransaction3
+    Transaction = IBTransaction7
     SQL.Strings = (
       
         'select ITEM_ENTRADA.cod,ITEM_ENTRADA.nota,ITEM_ENTRADA.data,ENTR' +
@@ -62,15 +62,13 @@ object dm: Tdm
     Top = 2
   end
   object IBTransaction2: TFDTransaction
-    Options.AutoStop = False
-    Options.StopOptions = [xoIfCmdsInactive]
     Connection = bd
     Left = 8
     Top = 47
   end
   object formpagttable: TFDQuery
     Connection = bd
-    Transaction = IBTransaction2
+    Transaction = IBTransaction7
     SQL.Strings = (
       'select * from formpagto ')
     Left = 176
@@ -148,7 +146,7 @@ object dm: Tdm
   end
   object produto: TFDQuery
     Connection = bd
-    Transaction = IBTransaction5
+    Transaction = IBTransaction2
     SQL.Strings = (
       
         'select codbar,nome as Descricao,p_venda as Preco,quant as estoqu' +
@@ -164,7 +162,7 @@ object dm: Tdm
   end
   object produtotemp: TFDQuery
     Connection = bd
-    Transaction = IBTransaction5
+    Transaction = IBTransaction2
     SQL.Strings = (
       
         'select codbar,nome as Descricao,p_venda as Preco,quant as estoqu' +
@@ -186,31 +184,31 @@ object dm: Tdm
   end
   object ProdutoQY: TFDQuery
     Connection = bd
-    Transaction = IBTransaction1
+    Transaction = IBTransaction2
     Left = 224
     Top = 240
   end
   object IBQuery3: TFDQuery
     Connection = bd
-    Transaction = IBTransaction2
+    Transaction = IBTransaction1
     Left = 392
     Top = 56
   end
   object IBQuery4: TFDQuery
     Connection = bd
-    Transaction = IBTransaction2
+    Transaction = IBTransaction1
     Left = 392
     Top = 160
   end
   object IBTable1: TFDTable
     Connection = bd
-    Transaction = IBTransaction2
+    Transaction = IBTransaction7
     Left = 96
   end
   object TabelaOrdem: TFDTable
     OnCalcFields = TabelaOrdemCalcFields
     Connection = bd
-    Transaction = IBTransaction2
+    Transaction = IBTransaction7
     UpdateOptions.UpdateTableName = 'SERVICO'
     TableName = 'SERVICO'
     Left = 96
@@ -517,7 +515,7 @@ object dm: Tdm
     AutoCalcFields = False
     Filtered = True
     Connection = bd
-    Transaction = IBTransaction4
+    Transaction = IBTransaction7
     Left = 96
     Top = 98
   end
@@ -530,14 +528,14 @@ object dm: Tdm
   end
   object IBStoredProc1: TFDStoredProc
     Connection = bd
-    Transaction = IBTransaction2
+    Transaction = IBTransaction7
     Left = 376
     Top = 240
   end
   object IBScript1: TFDScript
     SQLScripts = <>
     Connection = bd
-    Transaction = IBTransaction2
+    Transaction = IBTransaction7
     Params = <>
     Macros = <>
     Left = 584
@@ -552,7 +550,7 @@ object dm: Tdm
   end
   object IBcid: TFDQuery
     Connection = bd
-    Transaction = IBTransaction6
+    Transaction = IBTransaction7
     SQL.Strings = (
       
         'select ITEM_ENTRADA.cod,ITEM_ENTRADA.nota,ITEM_ENTRADA.data,ENTR' +

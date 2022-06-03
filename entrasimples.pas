@@ -701,7 +701,7 @@ begin
   dm.IBselect.ParamByName('cod').AsString := codigoProd;
   dm.IBselect.Open;
 
-  if ((dm.IBselect.FieldByName('p_venda').AsCurrency > p_venda.getValor) and (length(form22.Pgerais.Values['acessousu']) > 0)) then begin
+  if ((dm.IBselect.FieldByName('p_venda').AsCurrency > p_venda.getValor) and (length(form22.Pgerais.Values['acessousu']) > 1)) then begin
     ShowMessage('Usuário Bloqueado para Redução do Preço de Venda:' + #13 +
                 'Preço Antigo: ' + FormatCurr('#,###,###0.000',dm.IBselect.FieldByName('p_venda').AsCurrency) + #13 +
                 'Preço   Novo: ' + FormatCurr('#,###,###0.000',p_venda.getValor) + #13 +

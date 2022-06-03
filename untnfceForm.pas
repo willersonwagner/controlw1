@@ -920,7 +920,10 @@ begin
   query1.ParamByName('cliente').AsInteger := dados.cliente;
   query1.ParamByName('adic').AsString := dados.adic;
   query1.ExecSQL;
-  query1.Transaction.Commit;
+  try
+    query1.Transaction.Commit;
+  except
+  end;
 end;
 
 procedure insereNotaBD2(var dados: Tvenda; GravaMudancaDeChave: boolean = true);
@@ -964,7 +967,11 @@ begin
   query1.ParamByName('serie').AsString := copy(dados.chave, 23, 3);
   query1.ParamByName('chave').AsString := dados.chave;
   query1.ExecSQL;
-  query1.Transaction.Commit;
+  try
+   query1.Transaction.Commit;
+  except
+
+  end;
 
   // adiciona e altera o registro da chave atual
   query1.Close;
@@ -1006,7 +1013,11 @@ begin
   query1.ParamByName('crc').AsString := buscaCRCdaChave(strnum(dados.chave));
   query1.ParamByName('nota').AsInteger := dados.nota;
   query1.ExecSQL;
-  query1.Transaction.Commit;
+  try
+    query1.Transaction.Commit;
+  except
+
+  end;
 end;
 
 procedure inicializaVariaveis();
@@ -4023,7 +4034,12 @@ begin
             query1.ParamByName('chave').AsString      := buscaChaveErroDeDuplicidade(ACBrNFe.WebServices.Consulta.XMotivo, true);
             query1.ParamByName('chavevelha').AsString := ACBrNFe.WebServices.Consulta.NFeChave;
             query1.ExecSQL;
-            query1.Transaction.Commit;
+
+            try
+              query1.Transaction.Commit;
+            except
+
+            end;
 
             richED.Lines.Add('xMotivo=' + ACBrNFe.WebServices.Consulta.xmotivo);
             richED.Lines.Add('Cstat=613');
@@ -4190,7 +4206,11 @@ begin
             query1.ParamByName('chave').AsString := ssChaveVelha;
             try
               query1.ExecSQL;
-              query1.Transaction.Commit;
+              try
+                query1.Transaction.Commit;
+              except
+
+              end;
               estado := 'Marcada Como DENEGADA! CHAVE: ' + ssChaveVelha;
             except
               On e: Exception do
@@ -4214,7 +4234,11 @@ begin
             query1.ParamByName('chave').AsString := ssChaveVelha;
             try
               query1.ExecSQL;
-              query1.Transaction.Commit;
+              try
+               query1.Transaction.Commit;
+              except
+
+              end;
               estado := 'Marcada Como Inutilizada! CHAVE: ' + ssChaveVelha;
             except
               On e: Exception do
@@ -4238,7 +4262,11 @@ begin
             query1.ParamByName('chave').AsString := CHAVENF;
             try
               query1.ExecSQL;
-              query1.Transaction.Commit;
+              try
+                query1.Transaction.Commit;
+              except
+
+              end;
             except
               On e: Exception do
               begin
@@ -4430,7 +4458,12 @@ begin
     query1.ParamByName('chave').AsString      := buscaChaveErroDeDuplicidade(ACBrNFe.WebServices.Consulta.XMotivo, true);
     query1.ParamByName('chavevelha').AsString := ACBrNFe.WebServices.Consulta.NFeChave;
     query1.ExecSQL;
+
+    try
     query1.Transaction.Commit;
+    except
+
+    end;
 
     ShowMessage('Troca de Chave ok: ' + #13 + #13 +
     'Chave Velha: ' + ACBrNFe.WebServices.Consulta.NFeChave + #13 +
@@ -4695,7 +4728,11 @@ begin
       query1.ExecSQL;
     end;
 
-    query1.Transaction.Commit;
+    try
+      query1.Transaction.Commit;
+    except
+
+    end;
 
     if POS('-' + IntToStr(cstat) + '-', '-101-135-') > 0 then begin
       criaPasta(pastaControlW + 'NFCE\EVENTO\CANC\' + copy(chave, 3, 4) + '\');
@@ -6246,7 +6283,10 @@ begin
     query1.ParamByName('nova').AsString  := CHAVENF;
     query1.ParamByName('velha').AsString := chaveRecria;
     query1.ExecSQL;
-    query1.Transaction.Commit;
+    try
+     query1.Transaction.Commit;
+    except
+    end;
   end;
 end;
 
@@ -7412,6 +7452,10 @@ begin
     query1.ParamByName('chave').AsString := chavt;
     try
       query1.ExecSQL;
+    except
+    end;
+
+    try
       query1.Transaction.Commit;
     except
     end;
@@ -7483,7 +7527,12 @@ begin
           'update nfce set adic = ''CANC'', EXPORTADO = 0 where chave = :chave';
         query1.ParamByName('chave').AsString := chavb.chave;
         query1.ExecSQL;
-        query1.Transaction.Commit;
+
+        try
+          query1.Transaction.Commit;
+        except
+
+        end;
 
         try
           richedt.Lines.Add('((MARCADO COMO CANCELADO!))');
@@ -7502,7 +7551,11 @@ begin
           'update nfce set adic = ''DENEGADA'', EXPORTADO = 1 where chave = :chave';
         query1.ParamByName('chave').AsString := chavb.chave;
         query1.ExecSQL;
-        query1.Transaction.Commit;
+        try
+          query1.Transaction.Commit;
+        except
+
+        end;
 
         try
           richedt.Lines.Add('((MARCADO COMO DENEGADO!))');
@@ -7573,7 +7626,11 @@ begin
   query1.SQL.Add('ALTER SEQUENCE ' + nome + ' RESTART WITH ' + IntToStr(Valor));
   query1.ExecSQL;
 
-  query1.Transaction.Commit;
+  try
+    query1.Transaction.Commit;
+  except
+
+  end;
   Result := '';
 end;
 
@@ -7792,7 +7849,8 @@ begin
   Result := false;
   query1.Close;
   query1.SQL.text :=
-    'select chave,data from nfce where (adic = ''OFF'') and (right(extract(YEAR from current_date), 2) = substring(chave from 3 for 2)) and (substring(chave from 23 for 3) = :serie) order by data';
+    //'select chave,data from nfce where (adic = ''OFF'') and (right(extract(YEAR from current_date), 2) = substring(chave from 3 for 2)) and (substring(chave from 23 for 3) = :serie) order by data';
+    'select chave,data from nfce where (adic = ''OFF'') and (substring(chave from 23 for 3) = :serie) order by data';
   query1.ParamByName('serie').AsString := strzero(getSerieNFCe, 3);
   query1.Open;
 
@@ -7804,9 +7862,11 @@ begin
 
   notas := '';
   while not query1.Eof do begin
-    notas := notas + #13 + query1.fieldbyname('chave').AsString + ' ' +
-      FormatDateTime('dd/mm/yyy', query1.fieldbyname('data').AsDateTime);
-    query1.Next;
+    if FormatDateTime('yyyy', now) = FormatDateTime('yyyy', query1.FieldByName('data').AsDateTime) then begin
+      notas := notas + #13 + query1.fieldbyname('chave').AsString + ' ' +
+       FormatDateTime('dd/mm/yyy', query1.fieldbyname('data').AsDateTime);
+    end;
+     query1.Next;
   end;
 
   dias := StrToIntDef(pgerais.Values['79'], 2);
@@ -8371,7 +8431,12 @@ begin
   query1.ParamByName('DATA').AsDate := Data;
   query1.ParamByName('SERIE').AsString := serie;
   query1.ExecSQL;
-  query1.Transaction.Commit;
+
+  try
+    query1.Transaction.Commit;
+  except
+
+  end;
 end;
 
 function retornaDescontoDoItem(descontoItem: currency): currency;
@@ -8743,7 +8808,11 @@ begin
       ' where chave = ' + QuotedStr(chaveVelha1);
     try
       query1.ExecSQL;
-      query1.Transaction.Commit;
+      try
+        query1.Transaction.Commit;
+      except
+
+      end;
     except
       on e: Exception do
       begin
@@ -8758,7 +8827,11 @@ begin
       QuotedStr(chaveVelha1);
     try
       query1.ExecSQL;
+      try
       query1.Transaction.Commit;
+      finally
+
+      end;
     except
       on e: Exception do
       begin

@@ -65,7 +65,7 @@ type
     Pgerais, nomesServico : TStringList;
     datamov: tdatetime;
     superUsu : integer;
-    UnidInteiro, qrcodePIX,beneNome, beneCNPJ, beneFone : String;
+    UnidInteiro, qrcodePIX,beneNome, beneCNPJ, beneFone, emailEnviar : String;
     procedure TrimAppMemorySize;
     procedure EventoErro(Sender: TObject; E: Exception);
     function enviNFCe(const perg : String = ''; nnf : String = ''; recebido : currency = 0) : boolean;
@@ -483,6 +483,7 @@ procedure Tform22.FormCreate(Sender: TObject);
 var
   age : integer;
 begin
+  emailEnviar := 'sistema@controlw.blog.br';
   VersaoExe := '0.1';
   Application.OnException := EventoErro;
   caminhoEXE_com_barra_no_final := copy(ParamStr(0),1,funcoes.PosFinal('\',ParamStr(0)));
@@ -520,11 +521,14 @@ var
   cont : integer;
   arq : TStringList;
 begin
+  ShowMessage(FormatDateTime('yyyy', now));
+
+  exit;
   valor := InputBox('','','');
  {
   cont := 0;
   while True do begin
-    inc(cont);
+    inc(cont);                  qu
     cb1 := criarQrcode(StrToCurr(valor), 'VENDA 10', 'CHAVE');
 
     if Contido('|200|', cb1) then break;
