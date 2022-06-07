@@ -1590,11 +1590,12 @@ begin
   if abrir then begin
     form65 := tform65.create(Application);
     try
-      form65.RxGIFAnimator1.Image.LoadFromFile(ExtractFileDir(ParamStr(0)) + '\c.gif');
+      form65.RxGIFAnimator1.LoadFromFile(ExtractFileDir(ParamStr(0)) + '\c.gif');
       form65.Label1.Caption         := msg;
-      form65.RxGIFAnimator1.Animate := true;
+      form65.RxGIFAnimator1.Active := true;
     except
     end;
+
     form65.Show;
   end;
 

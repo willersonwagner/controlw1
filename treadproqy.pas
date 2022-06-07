@@ -37,9 +37,16 @@ end;
 procedure TTWThreadOcioso.Execute;
 var
   query : TFDQuery;
+  transact : TFDTransaction;
 begin
-  query := TFDQuery.Create(nil);
+  query    := TFDQuery.Create(nil);
+  {transact := TFDTransaction.Create(nil);
+  transact.Connection := dm.bd;
+  transact.Options.AutoCommit := true;
+  query.Transaction := transact;}
   query.Connection := dm.bd;
+
+  query.Transaction := dm.IBTransaction7;
 
   query.SQL.Text := 'SELECT CAST (''NOW'' AS TIMESTAMP) as DATA FROM RDB$DATABASE';
   query.Open;

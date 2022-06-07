@@ -607,6 +607,7 @@ object dm: Tdm
   object ACBrNCMs1: TACBrNCMs
     ProxyPort = '8080'
     UrlConsulta = 'http://www4.receita.fazenda.gov.br/simulador/PesquisarNCM.jsp?'
+    CacheArquivo = 'ACBrNCM.json'
     Left = 496
     Top = 232
   end
@@ -700,5 +701,10 @@ object dm: Tdm
     DadosAutomacao.AutoAtendimento = False
     Left = 520
     Top = 368
+  end
+  object ACBrPixCD1: TACBrPixCD
+    Recebedor.CodCategoriaComerciante = 0
+    Left = 616
+    Top = 224
   end
 end

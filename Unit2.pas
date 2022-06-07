@@ -2428,8 +2428,7 @@ begin
 
   dm.IBQuery2.Close;
   dm.IBQuery2.SQL.Clear;
-  dm.IBQuery2.SQL.Add
-    ('select frete, basecred, basedeb from produto where cod = :cod');
+  dm.IBQuery2.SQL.Add('select frete, basecred, basedeb from produto where cod = :cod');
 
   if ICM_VENDA then
   begin
@@ -2881,10 +2880,12 @@ end;
 
 procedure TForm2.AlfabticaPFornecedor2Click(Sender: TObject);
 var
-  sim, imp_pre, h2, h1: string;
+  sim, imp_pre, h2, h1, h3, h4, CODINI, CODFIM: string;
 begin
   h1 := '';
   h2 := '';
+  h3 := '';
+  h4 := '';
   grupo := funcoes.dialogo('generico', 100, '1234567890' + #8, 100, false, '',
     'Control For Windows',
     'Se Deseja Separação por GRUPO, Informe um Cód.:', '');
@@ -2913,6 +2914,25 @@ begin
   if imp_pre = '*' then
     exit;
 
+  CODINI := funcoes.dialogo('generico', 90, '1234567890' + #8, 90, false, '',
+    'Control For Windows', 'Qual o Cód. Inicial?', '');
+  if CODINI = '*' then
+    exit;
+
+  CODFIM := funcoes.dialogo('generico', 90, '1234567890' + #8, 90, false, '',
+    'Control For Windows', 'Qual o Cód. Final?', '');
+  if CODFIM = '*' then
+    exit;
+
+
+  if CODINI <> '' then begin
+    h3 := ' and (cod >= ' + strnum(CODINI) + ')';
+  end;
+
+  if CODFIM <> '' then begin
+    h4 := ' and (cod <= ' + strnum(CODFIM) + ')';
+  end;
+
   b := 98;
   form19.RichEdit1.Clear;
   addRelatorioForm19('|' + #15 + '|' + CRLF);
@@ -2935,7 +2955,7 @@ begin
     'select cod,unid as UN,emb,codbar,nome as DESCRICAO, ' +
     IfThen(imp_pre = '1', 'p_venda', 'p_venda1') +
     ' as Preco, quant as ESTOQUE,fabric,fornec,grupo from produto where (cod > 0) '
-    + h1 + h2 + ' order by nome';
+    + h1 + h2 + h3 + h4 + ' order by nome';
   dm.ProdutoQY.Open;
   dm.ProdutoQY.FetchAll;
 

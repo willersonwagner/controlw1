@@ -3326,8 +3326,6 @@ begin
     if tipoIMPRESSAO = 1 then
     begin
       DANFEEscPos.vTroco := DANFE.vTroco;
-      if DANFEEscPos.vTroco < 0 then
-        DANFEEscPos.vTroco := 0;
     end;
 
     query1.Close;
@@ -3602,7 +3600,7 @@ begin
           // if EscPos then
           if tipoIMPRESSAO = 1 then
           begin
-            DANFEEscPos.vTroco := recebido;
+            //DANFEEscPos.vTroco := recebido;
             imprimirNfceESCPOS;
           end
           else
@@ -3706,7 +3704,7 @@ begin
     begin
       if tipoIMPRESSAO = 1 then
       begin
-        DANFEEscPos.vTroco := recebido;
+        //DANFEEscPos.vTroco := recebido;
         imprimirNfceESCPOS;
       end
       else

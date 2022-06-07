@@ -16,7 +16,8 @@ uses
   Graphics,  ACBrDFeReport, ACBrDFeDANFeReport, ACBrNCMs,
   ACBrTEFAPIComum, ACBrTEFAPI, ACBrTEFD, FireDAC.Stan.Param, FireDAC.DatS,
   FireDAC.DApt.Intf, FireDAC.DApt, FireDAC.Comp.ScriptCommands,
-  FireDAC.Stan.Util, ACBrNFeDANFEFR, FireDAC.Comp.Script, FireDAC.Comp.DataSet;
+  FireDAC.Stan.Util, ACBrNFeDANFEFR, FireDAC.Comp.Script, FireDAC.Comp.DataSet,
+  ACBrPIXCD;
 
 
 type
@@ -105,6 +106,7 @@ type
     ACBrNCMs1: TACBrNCMs;
     ACBrTEFD1: TACBrTEFD;
     ACBrTEFAPI1: TACBrTEFAPI;
+    ACBrPixCD1: TACBrPixCD;
     procedure TabelaOrdemCalcFields(DataSet: TDataSet);
     procedure ACBrNFeGerarLog(const Mensagem: String);
     procedure DataModuleCreate(Sender: TObject);
