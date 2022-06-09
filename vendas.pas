@@ -276,7 +276,7 @@ begin
 
   dm.IBselect.Close;
   dm.IBselect.SQL.Text :=
-    'select codseq ,o.cod, o.quant, o.p_venda, p.p_venda1,p.codbar, o.total, p.nome, o.vendedor, p.unid from os_itens o left join produto p on (o.cod = p.cod) where nota = :nota';
+    'select codseq ,o.cod, o.quant, o.p_venda, p.p_venda1,p.codbar, o.total, p.nome, o.vendedor, p.unid from os_itens o left join produto p on (o.cod = p.cod) where nota = :nota order by data';
   dm.IBselect.ParamByName('nota').AsString := nota;
   dm.IBselect.Open;
 
@@ -287,13 +287,13 @@ begin
   end;
 
   vendOS := 0;
-  dm.IBQuery1.Close;
-  dm.IBQuery1.SQL.Text := 'select vendedor from os_venda where nota = :nota';
-  dm.IBQuery1.ParamByName('nota').AsInteger := StrToIntDef(nota, 0);
-  dm.IBQuery1.Open;
+  dm.IBselect1.Close;
+  dm.IBselect1.SQL.Text := 'select vendedor from os_venda where nota = :nota';
+  dm.IBselect1.ParamByName('nota').AsInteger := StrToIntDef(nota, 0);
+  dm.IBselect1.Open;
 
-  vendOS := dm.IBQuery1.FieldByName('vendedor').AsInteger;
-  dm.IBQuery1.Close;
+  vendOS := dm.IBselect1.FieldByName('vendedor').AsInteger;
+  dm.IBselect1.Close;
 
   while not dm.IBselect.Eof do
   begin
@@ -348,14 +348,16 @@ begin
 
   finalizouServico := 1;
   vende := '';
-  dm.IBQuery1.Close;
-  dm.IBQuery1.SQL.Text := 'select vendedor from os_venda where nota = :nota';
-  dm.IBQuery1.ParamByName('nota').AsString := COD_SERVICO;
-  dm.IBQuery1.Open;
+  dm.IBselect1.Close;
+  dm.IBselect1.SQL.Text := 'select vendedor from os_venda where nota = :nota';
+  dm.IBselect1.ParamByName('nota').AsString := COD_SERVICO;
+  dm.IBselect1.Open;
 
-  vende := dm.IBQuery1.FieldByName('vendedor').AsString;
+  vende := dm.IBselect1.FieldByName('vendedor').AsString;
   if strnum(vende) = '0' then
     vende := form22.Pgerais.Values['codvendedor'];
+
+  dm.IBselect1.Close;
 
   dm.IBQuery1.Close;
   dm.IBQuery1.SQL.Text :=
@@ -380,12 +382,9 @@ begin
         + ' values(:nota, :COD, :QUANT, :P_VENDA, :TOTAL, :vendedor, gen_id(ositens, 1), :DATA)';
       dm.IBQuery1.ParamByName('nota').AsString := COD_SERVICO;
       dm.IBQuery1.ParamByName('COD').AsString := ClientDataSet1CODIGO.AsString;
-      dm.IBQuery1.ParamByName('QUANT').AsCurrency :=
-        ClientDataSet1QUANT.AsCurrency;
-      dm.IBQuery1.ParamByName('P_VENDA').AsCurrency :=
-        ClientDataSet1PRECO.AsCurrency;
-      dm.IBQuery1.ParamByName('TOTAL').AsCurrency :=
-        ClientDataSet1TOTAL.AsCurrency;
+      dm.IBQuery1.ParamByName('QUANT').AsCurrency := ClientDataSet1QUANT.AsCurrency;
+      dm.IBQuery1.ParamByName('P_VENDA').AsCurrency := ClientDataSet1PRECO.AsCurrency;
+      dm.IBQuery1.ParamByName('TOTAL').AsCurrency := ClientDataSet1TOTAL.AsCurrency;
       dm.IBQuery1.ParamByName('vendedor').AsString := strnum(JsEdit2.Text);
       dm.IBQuery1.ParamByName('data').AsDateTime := DateOf(form22.datamov) +
         TimeOf(NOW);
@@ -408,7 +407,7 @@ begin
     ClientDataSet1.Next;
   end;
 
-  if dm.bd.InTransaction then dm.bd.commit;
+  dm.IBQuery1.Transaction.Commit;
 end;
 
 procedure TForm20.habilitaDBGRIDs(const tr: boolean);
@@ -1354,13 +1353,12 @@ begin
     ClientDataSet1DESCRICAO.AsString :=
       dm.produto.FieldByName('descricao').AsString;
 
-    dm.IBQuery2.Close;
-    dm.IBQuery2.SQL.Text := 'select cod, unid from produto where cod = :cod';
-    dm.IBQuery2.ParamByName('cod').AsInteger := dm.produto.FieldByName('cod')
-      .AsInteger;
-    dm.IBQuery2.Open;
+    dm.IBselect1.Close;
+    dm.IBselect1.SQL.Text := 'select cod, unid from produto where cod = :cod';
+    dm.IBselect1.ParamByName('cod').AsInteger := dm.produto.FieldByName('cod').AsInteger;
+    dm.IBselect1.Open;
 
-    ClientDataSet1unid.AsString := dm.IBQuery2.FieldByName('unid').AsString;
+    ClientDataSet1unid.AsString := dm.IBselect1.FieldByName('unid').AsString;
     ClientDataSet1Refori.AsString := dm.produto.FieldByName('codbar').AsString;
     ClientDataSet1QUANT.AsCurrency := quanti;
     ClientDataSet1PRECO.AsCurrency := valor;

@@ -3096,19 +3096,26 @@ begin
     Result := th;
     IdHTTP1.Disconnect;
 
-    if Contido('DESBLOQUEADO', th) then begin
-      LE_CAMPOS(arq, th, '|', true);
-      dm.IBselect.Close;
-      dm.IBselect.SQL.text := 'select * from email';
-      dm.IBselect.Open;
+    LE_CAMPOS(arq, th, '|', true);
 
-      funcoes.limpaBloqueado(query1);
+    //ShowMessage(arq.Text);
+    dm.IBselect.Close;
+    dm.IBselect.SQL.text := 'select * from email';
+    dm.IBselect.Open;
 
-      if ((dm.IBselect.FieldByName('cod').AsString <> arq.Values['7']) and
+
+    if ((dm.IBselect.FieldByName('cod').AsString <> arq.Values['7']) and
         (trim(arq.Values['7']) <> '')) then
       begin
         buscaConfigEmail;
       end;
+
+
+    if Contido('DESBLOQUEADO', th) then begin
+
+      funcoes.limpaBloqueado(query1);
+
+
 
       if arq.Values['3'] = '1' then begin
         MessageDlg('O Sistema Precisa ser Atualizado! Deseja Atualizar Agora ?', mtInformation, [mbOK], 1);
@@ -7792,6 +7799,8 @@ begin
   Result := dm.IBQuery1.FieldByName('venda').AsString;
 
   dm.IBQuery1.Close;
+
+  dm.IBQuery1.Transaction.Commit;
 end;
 
 procedure Tfuncoes.MeuKeyPress1(Sender: TObject; var Key: Char);

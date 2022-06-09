@@ -137,6 +137,8 @@ begin
   Result := query.fieldbyname('venda').AsString;
 
   query.Close;
+
+  query.Transaction.Commit;
 end;
 
 class function jsedit.RetornaIndiceDoUltimoCampo(formi:string) : Integer;
@@ -688,7 +690,7 @@ begin
     arq.SaveToFile(ExtractFileDir(ParamStr(0)) + '\sql.text');
     arq.Free;
 
-    if query.Transaction.Active then query.Transaction.Commit;
+    if query.Connection.InTransaction then query.Transaction.Commit;
 
     if msgErro = false then begin
       query.ExecSQL;
@@ -704,7 +706,7 @@ begin
       end;
     end;
 
-    if query.Transaction.Active then query.Transaction.Commit;
+    if query.Connection.InTransaction then query.Transaction.Commit;
     LimpaCampos(form.Name);
 end;
 
@@ -1023,6 +1025,9 @@ begin
    Result := false;
   end
     else Result := true;
+
+  query.Connection.commit;
+
 end;
 
 

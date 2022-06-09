@@ -205,12 +205,14 @@ object calculadora1: Tcalculadora1
     Top = 199
     Width = 49
     Height = 41
+    Caption = '%'
     Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWindowText
+    Font.Color = clRed
     Font.Height = -19
     Font.Name = 'Tahoma'
     Font.Style = [fsBold]
     ParentFont = False
+    OnClick = SpeedButton14Click
   end
   object virgula: TSpeedButton
     Left = 118

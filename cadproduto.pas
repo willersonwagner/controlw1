@@ -305,15 +305,15 @@ function TForm9.addCodBar(cod, codbar: String): boolean;
 begin
   Result := false;
 
-  dm.IBQuery4.Close;
-  dm.IBQuery4.SQL.Clear;
-  dm.IBQuery4.SQL.Add
+  dm.IBQuery1.Close;
+  dm.IBQuery1.SQL.Clear;
+  dm.IBQuery1.SQL.Add
     ('update or insert into CODBARRAS(cod,codbar) values(:cod,:codbar) MATCHING(cod, codbar)');
-  dm.IBQuery4.ParamByName('cod').AsString := cod;
-  dm.IBQuery4.ParamByName('codbar').AsString := codbar;
+  dm.IBQuery1.ParamByName('cod').AsString := cod;
+  dm.IBQuery1.ParamByName('codbar').AsString := codbar;
 
-  dm.IBQuery4.ExecSQL;
-  dm.IBQuery4.Transaction.Commit;
+  dm.IBQuery1.ExecSQL;
+  dm.IBQuery1.Transaction.Commit;
   Result := true;
 end;
 
@@ -329,15 +329,15 @@ begin
     exit;
   end;
 
-  dm.IBQuery3.Close;
-  dm.IBQuery3.SQL.Clear;
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Clear;
   // dm.IBQuery3.SQL.Add('select p.cod, p.codbar, (select nome from produto where cod = p.cod) from codbarras p where (p.codbar = :cod) ');
-  dm.IBQuery3.SQL.Add
+  dm.IBselect.SQL.Add
     ('select p.cod, p.codbar, (c.nome) from codbarras p left join produto c on (p.cod = c.cod) where (p.codbar = :cod) ');
-  dm.IBQuery3.ParamByName('cod').AsString := codBar2;
-  dm.IBQuery3.Open;
+  dm.IBselect.ParamByName('cod').AsString := codBar2;
+  dm.IBselect.Open;
 
-  if dm.IBQuery3.IsEmpty then
+  if dm.IBselect.IsEmpty then
   begin
     // dm.IBQuery3.Close;
     // ShowMessage('Nenhum Registro Encontrado');
@@ -360,40 +360,40 @@ begin
   form33.ClientDataSet1.LogChanges := false;
   form33.campobusca := 'DESCRICAO';
 
-  while not dm.IBQuery3.Eof do
+  while not dm.IBselect.Eof do
   begin
     form33.ClientDataSet1.Open;
     form33.ClientDataSet1.Insert;
     form33.ClientDataSet1.fieldbyname('cod').AsInteger :=
-      dm.IBQuery3.fieldbyname('cod').AsInteger;
+      dm.IBselect.fieldbyname('cod').AsInteger;
     form33.ClientDataSet1.fieldbyname('nome').AsString :=
-      dm.IBQuery3.fieldbyname('nome').AsString;
+      dm.IBselect.fieldbyname('nome').AsString;
     form33.ClientDataSet1.fieldbyname('CODBAR').AsString :=
-      dm.IBQuery3.fieldbyname('CODBAR').AsString;
+      dm.IBselect.fieldbyname('CODBAR').AsString;
     form33.ClientDataSet1.Post;
-    dm.IBQuery3.Next;
+    dm.IBselect.Next;
   end;
 
   // nome1 := dm.IBQuery3.fieldbyname('nome').AsString;
-  dm.IBQuery3.Close;
-  dm.IBQuery3.SQL.Clear;
-  dm.IBQuery3.SQL.Add
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Clear;
+  dm.IBselect.SQL.Add
     ('select p.cod, p.nome, p.codbar from produto p where p.codbar = :cod ');
-  dm.IBQuery3.ParamByName('cod').AsString := codBar2;
-  dm.IBQuery3.Open;
+  dm.IBselect.ParamByName('cod').AsString := codBar2;
+  dm.IBselect.Open;
 
-  while not dm.IBQuery3.Eof do
+  while not dm.IBselect.Eof do
   begin
     form33.ClientDataSet1.Open;
     form33.ClientDataSet1.Insert;
     form33.ClientDataSet1.fieldbyname('cod').AsInteger :=
-      dm.IBQuery3.fieldbyname('cod').AsInteger;
+      dm.IBselect.fieldbyname('cod').AsInteger;
     form33.ClientDataSet1.fieldbyname('nome').AsString :=
-      dm.IBQuery3.fieldbyname('nome').AsString;
+      dm.IBselect.fieldbyname('nome').AsString;
     form33.ClientDataSet1.fieldbyname('CODBAR').AsString :=
-      dm.IBQuery3.fieldbyname('CODBAR').AsString;
+      dm.IBselect.fieldbyname('CODBAR').AsString;
     form33.ClientDataSet1.Post;
-    dm.IBQuery3.Next;
+    dm.IBselect.Next;
   end;
 
   { form33.ClientDataSet1.Open;
@@ -403,12 +403,12 @@ begin
     form33.ClientDataSet1.FieldByName('CODBARRAS').AsString := dm.IBQuery3.fieldbyname('CODBAR').AsString;
     form33.ClientDataSet1.Post;
   }
-  dm.IBQuery3.Close;
+  dm.IBselect.Close;
   form33.campobusca := 'codbar1';
 
   form33.ShowModal;
   form33.Free;
-  dm.IBQuery3.Close;
+  dm.IBselect.Close;
 
   { dm.IBQuery3.Close;
     dm.IBQuery3.SQL.Clear;
@@ -416,7 +416,7 @@ begin
     dm.IBQuery3.ParamByName('cod').AsString := codbar1;
     dm.IBQuery3.Open;
   }
-  Result := not dm.IBQuery3.IsEmpty;
+  Result := not dm.IBselect.IsEmpty;
 
   // form33 := TForm33.Create(self);
   // form33.campobusca := 'codbar';
@@ -974,7 +974,7 @@ begin
   end;
 
   codbar1 := TStringList.Create;
-  JsEdit.SetTabelaDoBd(self, 'produto', dm.IBQuery4);
+  JsEdit.SetTabelaDoBd(self, 'produto', dm.IBQuery1);
 
   if RecuperarCadastro = false then
     unid.Text := 'UN';
@@ -1145,9 +1145,19 @@ begin
       aliquota.Text + '|';
 
     codUlt := cod.Text;
+
+    if dm.bd.InTransaction then dm.bd.commit;
+
+    sleep(1);
+
     valorRetorno := JsEdit.GravaNoBD(self);
+    sleep(1);
     atualizaCodBarAdicionais(valorRetorno);
+    sleep(1);
     insereIgualProduto(valorRetorno, descr);
+    sleep(1);
+
+    if dm.bd.InTransaction then dm.bd.commit;
 
     if funcoes.buscaParamGeral(30, '') = 'S' then
     begin

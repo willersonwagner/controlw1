@@ -50,6 +50,7 @@ type
     procedure igualClick(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure SpeedButton14Click(Sender: TObject);
   private
     valor1 : real;
     valor2 : real;
@@ -105,6 +106,12 @@ begin
     abort;
   end;
 
+  if (ssShift in Shift) and (Key = 53) then begin
+    key := 0;
+    SpeedButton14.Click;
+    abort;
+  end;
+
 
   if key = 8 then porcentagem.Click
   else if key = 27 then begin
@@ -144,7 +151,7 @@ end;
 
 procedure Tcalculadora1.igualClick(Sender: TObject);
 var
-  a : String;
+  a, b : String;
 begin
   tmp := existeOperacao;
   if ((tmp = 0) or (tmp = 2)) then exit;
@@ -152,8 +159,10 @@ begin
 
   
   a := visor.Text;
+  b := '';
 
 
+  //ShowMessage(funcao + #13 + IntToStr(tmp) + #13 + 'val1='+copy(a, 1, pos(funcao, a) -1) + #13 + 'val2='+ copy(a, pos(funcao, a) + 1, length(a)  ));
   //ShowMessage('val1='+copy(a, 1, pos(funcao, a) -1) + #13 +
   //            'val2='+ copy(a, pos(funcao, a) + 1, length(a)  ));
 
@@ -166,14 +175,25 @@ begin
    end;
   end;
 
+  if Pos('%', copy(a, pos(funcao, a) + 1, length(a)  )) > 0 then begin
+    b := '%';
+    a := LeftStr(a, Length(a) -1);
+  end;
+
   try
-   valor2 := StrToFloat(copy(a, pos(funcao, a) + 1, length(a)  ));
+   if b = '%' then valor2 := StrToFloat(copy(a, pos(funcao, a) + 1, length(a)))
+     else valor2 := StrToFloat(copy(a, pos(funcao, a) + 1, length(a)  ));
   except
    on e:exception do begin
      ShowMessage('Verifique os Valores ' + e.Message);
      exit;
    end;
   end;
+
+  if b = '%' then begin
+    valor2 := valor2 /100 * valor1;
+  end;
+
 
   if pos('+', visor.Text) > 0 then begin
     visor.Text := FloatToStr(valor1 + valor2);
@@ -186,8 +206,12 @@ begin
   end
   else if pos('/', visor.Text) > 0 then begin
     visor.Text := FloatToStr(valor1 / valor2);
+  end
+  else if pos('%', visor.Text) > 0 then begin
+    visor.Text := FloatToStr(valor1/ 100 * valor2);
   end;
 
+  funcao := '';
 
 
 end;
@@ -274,6 +298,31 @@ begin
   visor.Text := visor.Text + '7';
 end;
 
+procedure Tcalculadora1.SpeedButton14Click(Sender: TObject);
+var
+  acc : integer;
+begin
+  if Length(visor.Text) = 0 then exit;
+
+  tmp := existeOperacao;
+
+  //ShowMessage(IntToStr(tmp));
+  if tmp = 4 then exit;
+
+
+  //if tmp = 2 then porcentagem.Click;
+
+  acc := 0;
+  acc := acc + pos('-', visor.Text);
+  acc := acc + pos('+', visor.Text);
+  acc := acc + pos('*', visor.Text);
+  acc := acc + pos('/', visor.Text);
+
+  visor.Text := visor.Text + '%';
+
+  if acc = 0 then funcao :='%';
+end;
+
 procedure Tcalculadora1.tresClick(Sender: TObject);
 begin
   if visor.Text = '0' then visor.Text := '';
@@ -311,6 +360,19 @@ end;
 function Tcalculadora1.existeOperacao : integer;
 begin
   Result := 0;
+
+  if pos('%', visor.Text) > 0 then begin
+   if (pos('-', visor.Text) > 0) and (pos('+', visor.Text) > 0) and (pos('*', visor.Text) > 0) and (pos('/', visor.Text) > 0) then begin
+     Result := 3;
+     exit;
+   end;
+
+   Result := 4;
+   if RightStr(visor.Text, 1) = '%' then Result := 1;
+   exit;
+  end;
+
+
   if pos('-', visor.Text) > 0 then begin
    Result := 1;
    if RightStr(visor.Text, 1) = '-' then Result := 2;
@@ -334,6 +396,8 @@ begin
    if RightStr(visor.Text, 1) = '+' then Result := 2;
    exit;
   end;
+
+
 end;
 
 end.
