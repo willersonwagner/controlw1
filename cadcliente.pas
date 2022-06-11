@@ -641,14 +641,18 @@ end;
 
 procedure TForm16.nomeEnter(Sender: TObject);
 begin
+  if cod.Text = '' then cod.Text := '0';
+  
+
   setMask();
 
   dm.IBselect.Close;
   dm.IBselect.SQL.Clear;
   dm.IBselect.SQL.Add('select cnpj from cliente where cod = :cod');
-  dm.IBselect.ParamByName('cod').AsString := cod.Text;
+  dm.IBselect.ParamByName('cod').AsString := StrNum(cod.Text);
   dm.IBselect.Open;
   cnpj.Text := dm.IBselect.fieldbyname('cnpj').AsString;
+
 
 
   if cod.Text <> '0' then begin

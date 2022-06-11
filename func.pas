@@ -11457,14 +11457,67 @@ begin
      end;
 
 
-     if not VerSeExisteTRIGGERPeloNome('INSERE_CAIXA_CONTAS_RECEBER1') then begin
+     {if not VerSeExisteTRIGGERPeloNome('INSERE_CAIXA_CONTAS_RECEBER1') then begin
       dm.IBScript1.SQLScripts.Clear;
       dm.IBScript1.SQLScripts.Add.SQL.Text := ('CREATE TRIGGER INSERE_CAIXA_CONTAS_RECEBER1 FOR CONTASRECEBER ' +
       ' ACTIVE BEFORE UPDATE POSITION 0 AS declare variable valor numeric(10, 2); declare variable codmov integer; begin ' +
       ' valor = 0; valor = old.valor - new.valor; '+
       ' if (new.ULT_USU_ALTERADO > 0) then begin ' +
       ' insert into caixa(formpagto,documento, codgru,codmov,codhis,data,datamov,historico,entrada,usuario, tipo, fornec, codentradasaida) ' +
-      ' values(new.codhis, new.documento ,1, gen_id(movcaixa, 1) ,1,cast(current_date as date) + cast(current_time as time),new.data,new.historico,:valor, new.ULT_USU_ALTERADO, ''R'', 1, new.cod); ' +
+      ' values(new.codhis, new.documento ,1, gen_id(movcaixa, 1) ,2,cast(current_date as date) + cast(current_time as time),new.data,new.historico,:valor, new.ULT_USU_ALTERADO, ''R'', 1, new.cod); ' +
+      ' END '+
+      ' END;');
+      dm.IBScript1.ExecuteAll;
+    end;  }
+
+
+     if not VerificaCampoTabela('ultvalor', 'CONTASRECEBER') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('ALTER TABLE CONTASRECEBER ADD ultvalor numeric(10,2) DEFAULT 0 ');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+     end;
+
+     if VerSeExisteTRIGGERPeloNome('INSERE_CAIXA_CONTAS_RECEBER1') then begin
+       dm.IBQuery1.Close;
+       dm.IBQuery1.SQL.Clear;
+       dm.IBQuery1.SQL.Text := ('DROP TRIGGER INSERE_CAIXA_CONTAS_RECEBER1');
+       if execSqlMostraErro(dm.IBQuery1) = false then exit;
+       dm.IBQuery1.Transaction.Commit;
+     end;
+
+     if VerSeExisteTRIGGERPeloNome('INSERE_CAIXA_CONTAS_RECEBER2') then begin
+       dm.IBQuery1.Close;
+       dm.IBQuery1.SQL.Clear;
+       dm.IBQuery1.SQL.Text := ('DROP TRIGGER INSERE_CAIXA_CONTAS_RECEBER2');
+       if execSqlMostraErro(dm.IBQuery1) = false then exit;
+       dm.IBQuery1.Transaction.Commit;
+     end;
+
+    { if not VerSeExisteTRIGGERPeloNome('INSERE_CAIXA_CONTAS_RECEBER2') then begin
+      dm.IBScript1.SQLScripts.Clear;
+      dm.IBScript1.SQLScripts.Add.SQL.Text := ('CREATE TRIGGER INSERE_CAIXA_CONTAS_RECEBER2 FOR CONTASRECEBER ' +
+      ' ACTIVE before UPDATE POSITION 0 AS declare variable valor numeric(10, 2); declare variable codmov integer; begin ' +
+      ' valor = 0; '+
+      ' if (new.ULT_USU_ALTERADO > 0) then begin ' +
+      ' new.valor = new.ultvalor - new.valor; '  +
+      ' valor = new.ultvalor - new.valor;  insert into caixa(formpagto,documento, codgru,codmov,codhis,data,datamov,historico,entrada,usuario, tipo, fornec, codentradasaida) ' +
+      ' values(new.codhis, new.documento ,1, gen_id(movcaixa, 1) ,2,cast(current_date as date) + cast(current_time as time),new.data,new.historico,:valor, new.ULT_USU_ALTERADO, ''R'', 1, new.cod); ' +
+      ' END '+
+      ' END;');
+      dm.IBScript1.ExecuteAll;
+    end;  }
+
+    if not VerSeExisteTRIGGERPeloNome('INSERE_CAIXA_CONTAS_RECEBER3') then begin
+      dm.IBScript1.SQLScripts.Clear;
+      dm.IBScript1.SQLScripts.Add.SQL.Text := ('CREATE TRIGGER INSERE_CAIXA_CONTAS_RECEBER3 FOR CONTASRECEBER ' +
+      ' ACTIVE before UPDATE POSITION 0 AS declare variable valor numeric(10, 2); declare variable codmov integer; begin ' +
+      ' valor = 0; '+
+      ' if (new.ULT_USU_ALTERADO > 0) then begin ' +
+      ' new.valor = new.ultvalor - new.valor; '  +
+      ' valor = new.ultvalor - new.valor;  insert into caixa(formpagto,documento, codgru,codmov,codhis,data,datamov,historico,entrada,usuario, tipo, fornec, codentradasaida) ' +
+      ' values(new.codhis, new.documento ,1, gen_id(movcaixa, 1) ,2,cast(current_date as date) + cast(current_time as time),new.data,new.historico,:valor, new.ULT_USU_ALTERADO, ''R'', 1, new.cod); ' +
       ' END '+
       ' END;');
       dm.IBScript1.ExecuteAll;

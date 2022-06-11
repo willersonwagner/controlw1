@@ -7546,7 +7546,7 @@ begin
         end
         else begin
           resuC.Insert;
-          resuC.FieldByName('cod').AsString := dm.ibselect.FieldByName('codhis').AsString;
+          resuC.FieldByName('cod').AsString := StrNum(dm.ibselect.FieldByName('codhis').AsString);
           resuC.FieldByName(tab).AsCurrency := (dm.ibselect.FieldByName(tab).AsCurrency * mult);
           resuC.Post;
         end;
@@ -7936,7 +7936,7 @@ begin
         end
         else begin
           resuC.Insert;
-          resuC.FieldByName('cod').AsString := dm.ibselect.FieldByName('codhis').AsString;
+          resuC.FieldByName('cod').AsString := StrNum(dm.ibselect.FieldByName('codhis').AsString);
           resuC.FieldByName(tab).AsCurrency := (dm.ibselect.FieldByName(tab).AsCurrency * mult);
           resuC.Post;
         end;

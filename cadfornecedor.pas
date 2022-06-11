@@ -244,6 +244,8 @@ end;
 
 procedure TForm8.nomeEnter(Sender: TObject);
 begin
+  if cod.Text = '' then cod.Text := '0';
+
   if ((cod.Text <> '') or (cod.Text <> '0')) then
     begin
       valor_a_retornar := cod.Text;
@@ -252,7 +254,7 @@ begin
   dm.IBselect.Close;
   dm.IBselect.SQL.Clear;
   dm.IBselect.SQL.Add('select cnpj from fornecedor where cod = :cod');
-  dm.IBselect.ParamByName('cod').AsString := cod.Text;
+  dm.IBselect.ParamByName('cod').AsString := strnum(cod.Text);
   dm.IBselect.Open;
 
   if Length(StrNum(dm.IBselect.fieldbyname('cnpj').AsString)) = 14 then tipo.Text := '2';
