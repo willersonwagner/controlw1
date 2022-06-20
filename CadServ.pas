@@ -155,6 +155,8 @@ var
   sim, vende : string;
   limite : currency;
 begin
+  if cod.Text = '' then cod.Text := '0';
+
   if funcoes.buscaParamGeral(126, 'N') = 'S' then begin
     limite := funcoes.ver_limites(cliente.Text, 0);
 

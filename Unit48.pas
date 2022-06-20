@@ -890,6 +890,8 @@ end;
 
 procedure TForm48.ClientDataSet1AfterPost(DataSet: TDataSet);
 begin
+  salvarArq();
+
  { if self.Showing then
     begin
       DeleteFile(caminhoEXE_com_barra_no_final + fornecedor + '-' + nota + '.xml');

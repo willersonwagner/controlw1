@@ -136,7 +136,7 @@ type
     Authenticated: boolean;
     IsDownloading: boolean;
     IsUploading: boolean;
-    caminhoRaiz, cnpj, pastaControlWXML_NFCE, SenhaFB : String;
+    caminhoRaiz, cnpj, pastaControlWXML_NFCE, SenhaFB, caminhoBD, hostBD : String;
     proximoBackup : TDateTime;
     pastaInicial : TTMSFMXCloudItem;
     listaProxBackup, gdriveini : TStringList;
@@ -291,13 +291,27 @@ begin
   IsUploading := true;
   try
 
-  if FDConnection1.Connected = false then begin
-   FDConnection1.ConnectionName := caminhoRaiz + 'bd.fdb';
+  if trim(caminhoBD) = '' then caminhoBD := caminhoRaiz + 'bd.fdb';
+
    FDConnection1.Params.Clear;
+  if FDConnection1.Connected = false then begin
+   if hostBD <> '' then begin
+    FDConnection1.ConnectionName := hostBD + ':'+ caminhoBD;
+    FDConnection1.Params.Add('Database='+hostBD + ':'+ caminhoBD);
+    FDIBBackup1.Database := caminhoBD;
+    FDIBBackup1.Protocol := TIBProtocol.ipTCPIP;
+   end
+   else begin
+    FDConnection1.ConnectionName :=  caminhoBD;
+    FDConnection1.Params.Add('Database='+caminhoBD);
+    FDIBBackup1.Database := caminhoBD;
+    FDIBBackup1.Protocol := TIBProtocol.ipLocal;
+   end;
+
    FDConnection1.Params.Add('DriverID=FB');
    FDConnection1.Params.Add('password=masterkey');
    FDConnection1.Params.Add('user_name=sysdba');
-   FDConnection1.Params.Add('Database='+caminhoRaiz+'BD.FDB');
+   FDConnection1.Params.Add('Database='+caminhoBD);
 
    if conectar = false then begin
      timerativaBackup.Interval := 10000;
@@ -335,14 +349,23 @@ begin
 
   //FDConnection1.Connected := false;
 
-  if DirectoryExists(caminhoRaiz + 'SisBackup/') = false then ForceDirectories(caminhoRaiz + 'SisBackup/');
+  if DirectoryExists(caminhoRaiz + 'SisBackup\') = false then ForceDirectories(caminhoRaiz + 'SisBackup\');
 
-  FDIBBackup1.Database := caminhoRaiz + 'bd.fdb';
+  FDIBBackup1.Port     := 3050;
   FDIBBackup1.UserName := 'sysdba';
   FDIBBackup1.Password := SenhaFB;
+  FDIBBackup1.Host     := hostBD;
   FDIBBackup1.BackupFiles.Clear;
-  FDIBBackup1.BackupFiles.Add(caminhoRaiz + 'SisBackup/' + 'BD.fbk');
-  FDIBBackup1.Backup;
+  FDIBBackup1.BackupFiles.Add(caminhoRaiz + 'SisBackup\' + 'BD.fbk');
+  try
+    FDIBBackup1.Backup;
+  except
+    on e:exception do begin
+      Memo1.Lines.Add('erro352: ' + e.Message + #13 + caminhoBD);
+      exit;
+    end;
+
+  end;
 
   Memo1.Lines.Add('');
   Memo1.Lines.Add('');
@@ -591,7 +614,8 @@ begin
   rdg := 0;
   TMSFMXCloudTreeViewAdapter1.TreeView := TreeView1;
 
-  caminhoRaiz := ExtractFileDir(ParamStr(0)) + '/';
+  caminhoRaiz := ExtractFileDir(ParamStr(0)) + '\';
+
 end;
 
 procedure TForm4.FormShow(Sender: TObject);
@@ -898,6 +922,8 @@ begin
   LE_CAMPOS(listaProxBackup, gdriveini.Values['BKP'], '|', false);
 
   pastaControlWXML_NFCE := gdriveini.Values['PASTA_CONTROLW_NFCE'];
+  caminhoBD             := gdriveini.Values['BD'];
+  hostBD                := gdriveini.Values['HOST'];
 end;
 
 procedure TForm4.buscaHoraProxBackup;

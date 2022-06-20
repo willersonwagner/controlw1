@@ -141,6 +141,7 @@ type
     enviandoCupom, enviandoBackup: boolean;
     fonteRelatorioForm19: integer;
     NegritoRelatorioForm19, saiComEnter: boolean;
+    function buscaNomePC : String;
     procedure OrdenarTStringList2(var Valores: TStringList);
     procedure processaRetornoDataBloqueioPIX(retorno : String);
     procedure calculadora;
@@ -11523,6 +11524,46 @@ begin
       dm.IBScript1.ExecuteAll;
     end;
 
+
+    if not VerificaCampoTabela('usu_receb', 'venda') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('ALTER TABLE venda ADD usu_receb varchar(4) DEFAULT '''' ');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+     end;
+
+    if not VerificaCampoTabela('dth_receb', 'venda') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('ALTER TABLE venda ADD dth_receb TIMESTAMP ');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
+    if NOT verSeExisteTabela('PC') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.text := 'CREATE TABLE PC (COD INTEGER NOT NULL, NOME VARCHAR(50))';
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.text := 'alter table PC add constraint PK_PC primary key (COD)';
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.text := 'CREATE sequence PC';
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+    end;
+
+    if not VerificaCampoTabela('pc_receb', 'venda') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('ALTER TABLE venda ADD pc_receb varchar(2) DEFAULT '''' ');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
     atualizaAtivoCliente;
 
     //VerificaVersao_do_bd
@@ -19888,6 +19929,8 @@ var
   ini, fim: integer;
 begin
   ini := pos('[chNFe:', erro) + 7;
+  if ini < 10 then ini := pos('[', erro) + 1;
+
   fim := pos(']', erro);
   Result := copy(erro, ini, fim - ini);
 end;
@@ -30943,6 +30986,28 @@ begin
         break;
       end;
     end;    }
+end;
+
+
+function Tfuncoes.buscaNomePC : String;
+begin
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select * from pc where nome = :nome';
+  dm.IBselect.ParamByName('nome').AsString := LeftStr(NomedoComputador, 50);
+  dm.IBselect.Open;
+
+  if dm.IBselect.IsEmpty = false then begin
+    Result := dm.IBselect.FieldByName('cod').AsString;
+    dm.IBselect.Close;
+    exit;
+  end;
+
+  Result := Incrementa_Generator('pc', 1);
+  dm.IBQuery1.Close;
+  dm.IBQuery1.SQL.Text := 'insert into pc(cod, nome) values('+Result+', :nome)';
+  dm.IBQuery1.ParamByName('nome').AsString := LeftStr(NomedoComputador, 50);
+  dm.IBQuery1.ExecSQL;
+  dm.IBQuery1.Transaction.Commit;
 end;
 
 

@@ -66,6 +66,7 @@ type
     datamov: tdatetime;
     superUsu : integer;
     UnidInteiro, qrcodePIX,beneNome, beneCNPJ, beneFone, emailEnviar : String;
+    COD_PC : STRING;
     procedure TrimAppMemorySize;
     procedure EventoErro(Sender: TObject; E: Exception);
     function enviNFCe(const perg : String = ''; nnf : String = ''; recebido : currency = 0) : boolean;
@@ -268,7 +269,8 @@ if key=#27 then
        if funcoes.LerConfig(form22.Pgerais.Values['configu'], 18) = 'S' then begin
          Pgerais.Values['acesso'] := acs;
        end;
-       
+
+       COD_PC := funcoes.buscaNomePC;
 
        try
          funcoes.lerConfigIMPRESSORA();

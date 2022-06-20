@@ -1271,12 +1271,18 @@ begin
         if Contido('|' + emit + '|',  '|217||613|') then begin
           pergunta1.Visible := false;
           funcoes.Mensagem(Application.Title ,'Aguarde, Enviando NFe...',15,'Courier New',false,0,clred, false);
+
+         { if Contido('|' + emit + '|',  '|613|') then begin
+            trataDuplicidadeNFe();
+          end;}
+
+
           try
             ACBrNFe.Enviar(0,false, true);
           except
             on e:exception do begin
               pergunta1.Visible := false;
-              MessageDlg('Erro: ' + e.Message, mtError, [mbOK], 1);
+              MessageDlg('Erro1285: ' + e.Message, mtError, [mbOK], 1);
               exit;
             end;
           end;
@@ -2349,7 +2355,7 @@ end;
 
 function TNfeVenda.ConsultarNFe1(nf1 : String = '') : string;
 var
-  texto, nf, just, erro : string;
+  texto, nf, just, erro, novaChave : string;
 begin
   carregaConfigsNFe;
   if nf1 <> '' then begin
@@ -2398,12 +2404,12 @@ begin
       end;
     end;
 
-    if Contido('DigestValue', erro) then begin
+    {if Contido('DigestValue', erro) then begin
       ACBrNFe.Configuracoes.WebServices.Visualizar := false;
       if ACBrNFe.Consultar(nf) then begin
         ACBrNFe.NotasFiscais[0].NFe.procNFe.digVal := ACBrNFe.WebServices.Consulta.protNFe.digVal;
       end;
-    end;
+    end;}
   end;
 
 
@@ -2412,9 +2418,6 @@ begin
     ACBrNFe.NotasFiscais[0].GravarXML(pastaNFE_ControlW + 'NFE\EMIT\' + IfThen(Contido('-nfe', nf), nf, nf + '-nfe') + '.xml');
     ACBrNFe.Configuracoes.WebServices.Visualizar := false;
 
-    if acbrnfe.WebServices.Consulta.cStat = 613 then begin
-
-    end;
 
 
     {ShowMessage('Consulta de NFe ' + #13 +
@@ -2427,9 +2430,26 @@ begin
       begin
         MessageDlg('ERRO: ' + e.Message + #13 + ' Tente Novamente.',
                   mtError,[mbOK],0);
-        exit;
+        //exit;
       end;
   end;
+
+  if acbrnfe.WebServices.Consulta.cStat = 613 then begin
+      novaChave := buscaChaveErroDeDuplicidade(ACBrNFe.WebServices.Consulta.XMotivo);
+      if Length(novaChave) <> 44 then begin
+        ShowMessage('Chave Invalida: ' + novaChave);
+        exit;
+      end;
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := 'update nfe set chave = :chave where chave = :chav1';
+      dm.IBQuery1.ParamByName('chave').AsString := novaChave;
+      dm.IBQuery1.ParamByName('chav1').AsString := LeftStr(nf, 44);
+      dm.IBQuery1.ExecSQL;
+
+      ShowMessage('Chave atualizada, faça uma nova consulta!');
+      exit;
+    end;
 
   pergunta1.Visible := false;
 end;

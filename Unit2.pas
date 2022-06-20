@@ -13686,13 +13686,15 @@ begin
 
       dm.IBQuery1.Close;
       if atualizarData then begin
-        dm.IBQuery1.SQL.Text := ('update venda set data = :data, ok =' + QuotedStr(conf) + ', codhis = :codhis, entrada = :entrada, usuario = :usu where nota = :nota');
+        dm.IBQuery1.SQL.Text := ('update venda set data = :data,pc_receb = :pc, dth_receb = :dth_receb, ok =' + QuotedStr(conf) + ', codhis = :codhis, entrada = :entrada, usuario = :usu, usu_receb = :usu where nota = :nota');
         dm.IBQuery1.ParamByName('data').AsDate  := form22.datamov;
       end
       else begin
-        dm.IBQuery1.SQL.Text := ('update venda set ok =' + QuotedStr(conf) + ', codhis = :codhis, entrada = :entrada, usuario = :usu where nota = :nota');
+        dm.IBQuery1.SQL.Text := ('update venda set pc_receb = :pc, dth_receb = :dth_receb,ok =' + QuotedStr(conf) + ', codhis = :codhis, entrada = :entrada, usuario = :usu, usu_receb = :usu where nota = :nota');
       end;
 
+      dm.IBQuery1.ParamByName('pc').AsString      := strnum(form22.COD_PC);
+      dm.IBQuery1.ParamByName('dth_receb').AsDateTime := DateOf(form22.datamov) + TimeOf(NOW);
       dm.IBQuery1.ParamByName('nota').AsString      := strnum(nota);
       dm.IBQuery1.ParamByName('codhis').AsString    := strnum(formpagto);
       dm.IBQuery1.ParamByName('entrada').AsCurrency := entrada;

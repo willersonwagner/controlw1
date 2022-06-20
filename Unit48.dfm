@@ -172,6 +172,7 @@ object Form48: TForm48
   object ClientDataSet1: TClientDataSet
     Aggregates = <>
     Params = <>
+    AfterPost = ClientDataSet1AfterPost
     Left = 360
     Top = 128
   end

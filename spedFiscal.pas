@@ -5405,8 +5405,10 @@ begin
       TOT_PIS    := TOT_PIS    + _PIS;
       TOT_COFINS := TOT_COFINS + _COFINS;
 
+
       CST_PIS := buscaCST_PIS_Por_ISPIS(ISPIS, COD_ISPIS, item.vpis);
       if item.vpis = 0 then item.vCOFINS := 0;
+
       item.CST_PIS := CST_PIS;
 
       //SE NAO TEM PIS/COFINS, ACUMULA NO TOTALIZADOR DE PIS/COFINS NAO TRIBUTADO PARA O RELATORIO DE APURACAO
@@ -5553,7 +5555,7 @@ begin
       listaTOT_PIS[fi].cofins := listaTOT_PIS[fi].cofins + produto.vCOFINS;
       listaTOT_PIS[fi].total  := listaTOT_PIS[fi].total  + produto.total;
       //if (StrToIntDef(trim(produto.CST_PIS), 2) <= 2) and (produto.BASE_PIS > 0) then begin
-        listaTOT_PIS[fi].Base := listaTOT_PIS[fi].Base + produto.BASE_PIS;
+      listaTOT_PIS[fi].Base := listaTOT_PIS[fi].Base + produto.BASE_PIS;
       //end;
     end
   else
@@ -5589,6 +5591,7 @@ begin
       listPis[fi].cofins := listPis[fi].cofins + vCOFINS;
       listPis[fi].icms   := listPis[fi].icms   + TOT_ICM;
       listPis[fi].total  := listPis[fi].total  + total;
+      if prod_CST_PIS = '01' then listPis[fi].Base := listPis[fi].Base + total;
     end
   else
     begin
@@ -5599,6 +5602,7 @@ begin
       listPis[fi].cofins := vCOFINS;
       listPis[fi].CST    := prod_CST_PIS;
       listPis[fi].CFOP   := prod_CFOP;
+      if prod_CST_PIS = '01' then listPis[fi].Base := total;
     end;
 
   fi := listaTOT_PIS.Find(prod_CST_PIS + cod_ispis1);
@@ -5607,6 +5611,7 @@ begin
       listaTOT_PIS[fi].pis    := listaTOT_PIS[fi].pis    + ArredondaFinanceiro(total * (TRIB_ALIQ_PIS / 100)   , 2);
       listaTOT_PIS[fi].cofins := listaTOT_PIS[fi].cofins + ArredondaFinanceiro(total * (TRIB_ALIQ_COFINS / 100), 2);
       listaTOT_PIS[fi].total  := listaTOT_PIS[fi].total  + total;
+      if prod_CST_PIS = '01' then listaTOT_PIS[fi].base := listaTOT_PIS[fi].base + total;
     end
   else
     begin
@@ -5617,6 +5622,7 @@ begin
       listaTOT_PIS[fi].total  := total;
       listaTOT_PIS[fi].CST    := prod_CST_PIS;
       listaTOT_PIS[fi].CFOP   := prod_CFOP;
+      if prod_CST_PIS = '01' then listaTOT_PIS[fi].base := total;
     end;
 end;
 

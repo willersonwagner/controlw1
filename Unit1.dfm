@@ -56,7 +56,10 @@ object dm: Tdm
       'User_Name=sysdba'
       'Password=SYSTEMA1'
       'Database=F:\ControlW\bd.fdb'
+      'CharacterSet=NONE'
       'DriverID=FB')
+    ResourceOptions.AssignedValues = [rvParamCreate, rvMacroExpand, rvParamExpand]
+    ResourceOptions.MacroExpand = False
     LoginPrompt = False
     Left = 8
     Top = 2

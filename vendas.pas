@@ -5939,7 +5939,7 @@ begin
   while not ClientDataSet1.Eof do begin
     //ClientDataSet1.RecNo := ini;
 
-    recnoItem_venda  :=  QuotedStr(novocod + IntToStr(ClientDataSet1.RecNo));
+    recnoItem_venda  :=  QuotedStr(novocod +'-'+ IntToStr(ClientDataSet1.RecNo));
     //recnoItem_venda  :=  QuotedStr(novocod + IntToStr(1));
 
     totProd := StrToCurr(ClientDataSet1TOTAL.AsString);
@@ -5948,6 +5948,7 @@ begin
     cod := ClientDataSet1CODIGO.AsString;
     dm.IBQuery1.Close;
 
+    //ShowMessage(recnoItem_venda);
 
   if LeftStr(tipoV, 1) = 'V' then
     begin

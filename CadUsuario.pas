@@ -114,7 +114,7 @@ begin
       dm.IBselect.ParamByName('configu').AsString := config;
       try
         dm.IBselect.ExecSQL;
-        dm.IBselect.Transaction.Commit;
+        //dm.IBselect.Transaction.Commit;
         cod.Enabled := true;
         nome.Text     := '';
         senha.Text    := '';
