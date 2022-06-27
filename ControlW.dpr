@@ -123,7 +123,10 @@ uses
   declaracaoImportacao in 'declaracaoImportacao.pas' {Form85},
   troco in 'troco.pas' {Form86},
   infNutri in 'infNutri.pas' {Form87},
-  calculadora in 'calculadora\calculadora.pas' {calculadora1};
+  calculadora in 'calculadora\calculadora.pas' {calculadora1},
+  Unit88 in 'Unit88.pas' {Form88},
+  Unit89 in 'Unit89.pas' {Form89},
+  Unit90 in 'Unit90.pas' {Form90};
 
 {$R *.res}
 
@@ -151,6 +154,9 @@ begin
   Application.CreateForm(TForm86, Form86);
   Application.CreateForm(TForm87, Form87);
   Application.CreateForm(Tcalculadora1, calculadora1);
+  Application.CreateForm(TForm90, Form90);
+  //Application.CreateForm(TForm89, Form89);
+  //Application.CreateForm(TForm88, Form88);
   //Application.CreateForm(TForm83, Form83);
   //Application.CreateForm(TForm82, Form82);
   //Application.CreateForm(TForm81, Form81);

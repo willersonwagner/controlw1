@@ -1019,7 +1019,17 @@ begin
   query.Close;
   query.SQL.Text := 'select ' + primarykey + ' from ' + tabela + ' where ' + primarykey +
   ' = ' + cod;
-  query.Open;
+
+  try
+    query.Open;
+  except
+    on e:exception do begin
+      ShowMessage('Erro1027: ' + e.Message + #13 + query.SQL.Text);
+    end;
+
+  end;
+
+
 
   if query.IsEmpty then begin
    Result := false;

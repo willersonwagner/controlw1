@@ -413,6 +413,9 @@ type
     ConfernciadePorduto1: TMenuItem;
     NiveldeAcessoUsuario1: TMenuItem;
     CadastrodeInformaesNutricionais1: TMenuItem;
+    CadastrodeEntregador1: TMenuItem;
+    ControledeEntregador1: TMenuItem;
+    Entregador1: TMenuItem;
     procedure LimparBloqueios1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure CadastrarUsurio1Click(Sender: TObject);
@@ -713,6 +716,9 @@ type
     procedure ConfernciadePorduto1Click(Sender: TObject);
     procedure NiveldeAcessoUsuario1Click(Sender: TObject);
     procedure CadastrodeInformaesNutricionais1Click(Sender: TObject);
+    procedure CadastrodeEntregador1Click(Sender: TObject);
+    procedure ControledeEntregador1Click(Sender: TObject);
+    procedure Entregador1Click(Sender: TObject);
   private
     b, cont: integer;
     ini: Smallint;
@@ -753,7 +759,7 @@ uses CadUsuario, StrUtils, Math, dialog, cadfrabricante, cadfornecedor,
   cadReducaoZ, untMovto, acerto1, Unit56, envicupom, Unit59, cadCestNCM,
   PROMOC, cadNotasFiscais, U_Principal, ConsultaCPF, Unit67, Unit68, param1,
   Unit71, uConsultaCNPJ, Unit74, Unit77, Unit78, dadosnfe, cadmecanico, Unit83,
-  qrcodePIX;
+  qrcodePIX, Unit88, Unit89;
 
 {$R *.dfm}
 
@@ -819,8 +825,7 @@ end;
 
 procedure TForm2.formatarExecute(Sender: TObject);
 begin
-  TcurrencyField(dm.Produto.FieldByName('estoque')).DisplayFormat :=
-    '###,##0.00';
+  TcurrencyField(dm.Produto.FieldByName('estoque')).DisplayFormat :='###,##0.00';
   TcurrencyField(dm.Produto.FieldByName('preco')).DisplayFormat := '###,##0.00';
 end;
 
@@ -861,10 +866,8 @@ var
   ini, fim, cod, nom, LISTA_PROD, NOMCLI, CODCLI, venda: String;
   fim1: integer;
   TOTCLI, TOT: currency;
-
 begin
-  cod := funcoes.dialogo('generico', 100, '1234567890' + #8, 100, false, '',
-    application.Title, 'Qual o Cód. do Fornecedor ?', '');
+  cod := funcoes.dialogo('generico', 100, '1234567890' + #8, 100, false, '',application.Title, 'Qual o Cód. do Fornecedor ?', '');
   if cod = '*' then
     exit;
 
@@ -872,8 +875,7 @@ begin
   if ini = '*' then
     exit;
 
-  fim := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,
-    'Qual a Data Final?', '');
+  fim := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,'Qual a Data Final?', '');
   if fim = '*' then
     exit;
 
@@ -1089,6 +1091,11 @@ begin
   RelatrioTcnicoOS1.Caption       := 'Relatório ' + nomeMecanico + '/OS';
   RelatrioTcnicoProdutos1.Caption := 'Relatório ' + nomeMecanico + '/Produtos';
 
+  if contido('CAMALEAO', UpperCase(form22.Pgerais.Values['empresa'])) = false then begin
+    ControledeEntregador1.Visible := false;
+  end;
+
+
   { btnNFE1.Caption         := 'F2' + #13 + 'NFE';
     btnConsultaProd.Caption := 'F3' + #13 + 'PRODUTOS';
     btnCadCliente.Caption   := 'F4' + #13 + 'CLIENTES';
@@ -1177,7 +1184,7 @@ begin
   end
   else begin
     ControledeEntregaMademato.Visible := false;
-  end;   }
+  end;}
 
   if funcoes.LerConfig(form22.Pgerais.Values['configu'], 15) = 'S' then begin
     Reimpresso1.Visible := true;
@@ -5577,6 +5584,25 @@ begin
   dm.ibselect.Close;
   end;
   end;
+end;
+
+procedure TForm2.ControledeEntregador1Click(Sender: TObject);
+var
+  ini, fim : String;
+begin
+  ini := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,'Qual a Data Inicial?', formataDataDDMMYY(form22.datamov));
+  if ini = '*' then
+    exit;
+
+  fim := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,'Qual a Data Final?', formataDataDDMMYY(form22.datamov));
+  if fim = '*' then
+    exit;
+
+  form89 := TForm89.Create(self);
+  form89.dini := ini;
+  form89.dfim := fim;
+  form89.ShowModal;
+  form89.Free;
 end;
 
 procedure TForm2.ControledeEntregaMadematoClick(Sender: TObject);
@@ -19923,6 +19949,86 @@ begin
   form19.showmodal;
 end;
 
+procedure TForm2.Entregador1Click(Sender: TObject);
+var
+  tempo, ini, fim, tipoPreco, h1, entregatual : String;
+  preco, totVenda, totCusto: currency;
+begin
+  ini := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,'Qual a Data Inicial?', formataDataDDMMYY(form22.datamov));
+  if ini = '*' then
+    exit;
+
+  fim := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,'Qual a Data Final?', formataDataDDMMYY(form22.datamov));
+  if fim = '*' then
+    exit;
+
+  nota := funcoes.dialogo('generico', 0, '1234567890,.' + #8, 100, false, '',
+    'Relatório de Entradas', 'Qual o Código do Entregador ?', '');
+  if (nota = '*') then exit;
+
+  h1 := '';
+  if nota <> '' then h1 := ' and (c.usuario_baixa = '+strnum(nota)+') ';
+
+
+  dm.ibselect.Close;
+  dm.ibselect.SQL.Text := 'select v.nota, d.nome, c.usuario_baixa, v.total, v.data, v.hora as hora_venda, v.ende_entrega, e.endereco, e.cliente, e.telefone, c.data_entrega, c.valor from venda v left join ENTREGA e on (e.cod = v.ende_entrega)'+
+  'left join entrega_novo c on (c.numvenda = v.nota) left join entregador d on (d.cod = c.usuario_baixa)  where ((cast(c.data_entrega as date) >= :ini) and (cast(c.data_entrega as date) <= :fim)) '+
+  'and v.ende_entrega > 0 and not(c.data_entrega is null)'+h1+' order by c.usuario_baixa,c.data_entrega desc';
+  dm.IBselect.ParamByName('ini').AsDateTime := StrToDate(ini);
+  dm.IBselect.ParamByName('fim').AsDateTime := StrToDate(fim);
+  dm.ibselect.Open;
+  dm.ibselect.FetchAll;
+
+  if dm.ibselect.IsEmpty then
+  begin
+    dm.ibselect.Close;
+    ShowMessage('Nenhum Registro Encontrado!');
+    exit;
+  end;
+
+  form19.RichEdit1.Clear;
+  // addRelatorioForm19('|#15|' + CRLF);
+  //addRelatorioForm19('%');
+
+  totVenda := 0;
+  totCusto := 0;
+
+  entregatual := 'x';
+
+  while not dm.ibselect.Eof do
+  begin
+    if ((entregatual <> dm.IBselect.FieldByName('usuario_baixa').AsString) and (entregatual <> 'x'))  then begin
+      addRelatorioForm19(CompletaOuRepete('', '', '-', 80) + CRLF);
+      addRelatorioForm19(CompletaOuRepete('Total', formataCurrency(totVenda), '.', 80) + CRLF);
+      addRelatorioForm19(CompletaOuRepete('', '', '-', 80) + CRLF+ CRLF);
+      totVenda := 0;
+    end;
+
+    if entregatual <> dm.IBselect.FieldByName('usuario_baixa').AsString  then begin
+      entregatual := dm.IBselect.FieldByName('usuario_baixa').AsString;
+
+      addRelatorioForm19(funcoes.RelatorioCabecalho(funcoes.LerValorPGerais('empresa', form22.Pgerais),'RELATORIO DE ENTREGAS ' + entregatual+'-' + dm.IBselect.FieldByName('nome').AsString, 80));
+      addRelatorioForm19('Nota          Data Hora       Total Venda Endereco                         Valor'+ CRLF);
+      addRelatorioForm19(CompletaOuRepete('', '', '-', 80) + CRLF);
+    end;
+
+    totVenda := totVenda + dm.IBselect.FieldByName('valor').AsCurrency;
+    if true then begin
+      addRelatorioForm19(CompletaOuRepete(dm.IBselect.FieldByName('nota').AsString,'', ' ', 8)+' '+ CompletaOuRepete(FormatDateTime('c', dm.IBselect.FieldByName('data_entrega').AsDateTime) ,'', ' ', 19)+ ' '+
+      CompletaOuRepete('' ,formataCurrency(dm.IBselect.FieldByName('total').AsCurrency), ' ', 10)+' '+ CompletaOuRepete(LeftStr(dm.IBselect.FieldByName('cliente').AsString + '-' + dm.IBselect.FieldByName('endereco').AsString, 27) ,'', ' ', 27)+' '+completaOuRepete('' ,formataCurrency(dm.IBselect.FieldByName('valor').AsCurrency), ' ', 12) + CRLF);
+    end;
+
+
+    dm.ibselect.Next;
+  end;
+
+  addRelatorioForm19(CompletaOuRepete('', '', '-', 80) + CRLF);
+  addRelatorioForm19(CompletaOuRepete('Total', formataCurrency(totVenda), '.', 80) + CRLF);
+  addRelatorioForm19(CompletaOuRepete('', '', '-', 80) + CRLF);
+  form19.showmodal;
+
+end;
+
 procedure TForm2.FichadeEstoque1Click(Sender: TObject);
 var
   te: String;
@@ -20865,6 +20971,13 @@ begin
   cadECF1.Free;
 end;
 
+procedure TForm2.CadastrodeEntregador1Click(Sender: TObject);
+begin
+  form88 := tform88.Create(self);
+  form88.showmodal;
+  form88.Free;
+end;
+
 procedure TForm2.CadastrodeInformaesNutricionais1Click(Sender: TObject);
 begin
   funcoes.localizar('Alterar Validades', 'produto',
@@ -21009,7 +21122,6 @@ begin
 
 
   form19.ShowModal;
-
 end;
 
 procedure TForm2.EntradadeXML1Click(Sender: TObject);

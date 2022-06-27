@@ -11564,6 +11564,30 @@ begin
       dm.IBQuery1.Transaction.Commit;
     end;
 
+    if NOT verSeExisteTabela('ENTREGADOR') then
+    begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.text := 'CREATE TABLE ENTREGADOR (COD INTEGER NOT NULL, NOME VARCHAR(30),OBS VARCHAR(60))';
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.text := 'alter table ENTREGADOR add constraint PK_ENTREGADOR primary key (COD)';
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.text := 'create sequence ENTREGADOR ';
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+    end;
+
+    if not VerificaCampoTabela('valor', 'entrega_novo') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('ALTER TABLE entrega_novo ADD valor numeric(4,2) ');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
     atualizaAtivoCliente;
 
     //VerificaVersao_do_bd

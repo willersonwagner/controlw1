@@ -11858,6 +11858,10 @@ object Form2: TForm2
           Caption = 'Pendentes de Entrega'
           OnClick = PendentesdeEntrega1Click
         end
+        object Entregador1: TMenuItem
+          Caption = 'Entregador'
+          OnClick = Entregador1Click
+        end
       end
       object ResumoMensal1: TMenuItem
         Caption = 'Resumo Mensal'
@@ -12106,6 +12110,10 @@ object Form2: TForm2
       object Cadastrode1: TMenuItem
         Caption = 'Cadastro de'
         OnClick = Cadastrode1Click
+      end
+      object CadastrodeEntregador1: TMenuItem
+        Caption = 'Cadastro de Entregador'
+        OnClick = CadastrodeEntregador1Click
       end
     end
     object Utilitarios1: TMenuItem
@@ -12565,6 +12573,10 @@ object Form2: TForm2
         object ConfiguraodeFormulrios1: TMenuItem
           Caption = 'Configura'#231#227'o de Formul'#225'rios'
           OnClick = ConfiguraodeFormulrios1Click
+        end
+        object ControledeEntregador1: TMenuItem
+          Caption = 'Controle de Entregador'
+          OnClick = ControledeEntregador1Click
         end
       end
       object ParmetrosGerais1: TMenuItem

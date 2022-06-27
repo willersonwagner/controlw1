@@ -4797,8 +4797,7 @@ begin
     total_A_Limitar := ver_limites(JsEdit3.Text, total1);
     if total_A_Limitar = 0 then
     begin
-      cliente := funcoes.dialogo('generico', 3, '1234567890' + #8, 50, false,
-        '', application.Title, 'Qual o Código do Cliente?', '');
+      cliente := funcoes.dialogo('generico', 3, '1234567890' + #8, 50, false,'', application.Title, 'Qual o Código do Cliente?', '');
       if (cliente = '') then
       begin
         cliente := funcoes.localizar('Localizar Cliente', 'cliente',

@@ -814,7 +814,7 @@ begin
       lancaDesconto(desconto, tot_ge, configu, form1.pgerais.Values['2'], acessoUsuVenda, 0, totalTemp);
       desconto := - desconto;
       PainelTotal.Caption := formataCurrency(tot_ge);
-    end;
+  end;
 
   if buscaClienteCompleto = 1 then exit;
 

@@ -73,7 +73,6 @@ procedure TForm13.codEnter(Sender: TObject);
 begin
   ulticod.Caption := IntToStr(JsEdit.UltimoCodigoDaTabela(self.Name));
   info.Caption := ' F5 - Consulta';
-
 end;
 
 procedure TForm13.codKeyPress(Sender: TObject; var Key: Char);
