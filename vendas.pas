@@ -1507,7 +1507,7 @@ end;
 
 procedure TForm20.ImprimeNota(tipoNota: String = '');
 var
-  tipo, txt, refOriCodbar, imprRef, imprRefxx, codigo1, nomevol: string;
+  tipo, txt, refOriCodbar, imprRef, imprRefxx, codigo1, nomevol, tmp: string;
   total, sub, entrada, total_item, desc1, p_venda0, subtotal: currency;
   i, l, tam, tamDescri, linFim: integer;
   descItem, ImpSepara: boolean;
@@ -1559,9 +1559,18 @@ begin
 
     if funcoes.LerConfig(form22.Pgerais.Values['configu'], 9) = 'X' then
     begin
-      if MessageDlg('Deseja Imprimir o Orçamento ?', mtConfirmation,
-        [mbyes, mbNo], 1) = idno then
-        exit;
+      if contido('CAMALEAO', UpperCase(form22.Pgerais.Values['empresa'])) then begin
+
+        tmp := funcoes.dialogo('generico', 0, 'SN' + #8, 50, true, 'S', application.Title, 'Deseja Separar as Peças do Orçamento ? S-SIM N-NAO', '');
+        if tmp = 'N' then begin
+           imprime1.imprime.impOrcamentoSegundaImp := 'N';
+        end;
+
+
+      end
+      else begin
+        if MessageDlg('Deseja Imprimir o Orçamento ?', mtConfirmation,[mbyes, mbNo], 1) = idno then exit;
+      end;
     end;
 
   end;
@@ -6065,6 +6074,11 @@ begin
   dm.IBQuery1.ParamByName('pagto').AsInteger := StrToIntDef(codhis, 0);
   dm.IBQuery1.ParamByName('desc').AsCurrency := Desconto;
 
+
+  if dm.IBQuery1.ParamByName('pagto').AsInteger = 1 then begin
+    JsEdit1.Text := '0';
+  end;
+
   JsEdit1.Text := IntToStr(StrToIntDef(JsEdit1.Text, 0));
   if ((length(trim(JsEdit1.Text)) >= 3) or (JsEdit1.Text = '')) then
     JsEdit1.Text := '30';
@@ -6448,6 +6462,8 @@ begin
           if CLIENTE_ENTREGA = '*' then CLIENTE_ENTREGA := '0';
           if (CLIENTE_ENTREGA = '') then CLIENTE_ENTREGA := funcoes.localizar('Localizar Cliente', 'cliente', 'cod,nome,telres,telcom,cnpj,bairro', 'cod,nome', '', 'nome', 'nome', true, false, false, '', 0, nil);
         end;
+
+
 
         if gravaVenda = false then begin
            exit;

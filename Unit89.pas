@@ -20,11 +20,13 @@ type
     procedure DBGrid2KeyPress(Sender: TObject; var Key: Char);
     procedure DBGrid1KeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   private
     procedure abreDataSet();
     procedure abreDataSetConcluidos();
     procedure lancaEntrega;
     procedure somamov;
+    procedure pagamento;
     { Private declarations }
   public
     dini, dfim : string;
@@ -44,7 +46,7 @@ procedure TForm89.abreDataSet();
 begin
   dm.IBselect.Close;
   dm.IBselect.SQL.Text := 'select v.nota, v.total, v.hora as hora_venda, v.data, v.ende_entrega, e.endereco, e.cliente, e.telefone, c.data_entrega from venda v left join ENTREGA e on (e.cod = v.ende_entrega)'+
-  'left join entrega_novo c on (c.numvenda = v.nota) where ((v.data >= :ini) and (v.data <= :fim)) and v.ende_entrega > 0 and c.data_entrega is null order by nota desc';
+  'left join entrega_novo c on (c.numvenda = v.nota) where ((v.data >= :ini) and (v.data <= :fim)) and ((v.total = 0.01) or (v.total >= 50)) and (v.ende_entrega > 0) and (c.data_entrega is null) and (v.cancelado = 0) order by nota desc';
   dm.IBselect.ParamByName('ini').AsDateTime := StrToDate(dini);
   dm.IBselect.ParamByName('fim').AsDateTime := StrToDate(dfim);
   dm.IBselect.Open;
@@ -61,7 +63,7 @@ begin
   dm.IBselect1.Close;
   dm.IBselect1.SQL.Text := 'select v.nota, d.nome, c.usuario_baixa, v.total, v.data, v.hora as hora_venda, v.ende_entrega, e.endereco, e.cliente, e.telefone, c.data_entrega, c.valor from venda v left join ENTREGA e on (e.cod = v.ende_entrega)'+
   'left join entrega_novo c on (c.numvenda = v.nota) left join entregador d on (d.cod = c.usuario_baixa)  where ((cast(c.data_entrega as date) >= :ini) and (cast(c.data_entrega as date) <= :fim)) '+
-  'and v.ende_entrega > 0 and not(c.data_entrega is null) order by c.data_entrega desc';
+  'and v.ende_entrega > 0 and not(c.data_entrega is null) and (c.finalizado is null) and (v.cancelado = 0) order by c.data_entrega desc';
   dm.IBselect1.ParamByName('ini').AsDateTime := StrToDate(dini);
   dm.IBselect1.ParamByName('fim').AsDateTime := StrToDate(dfim);
   dm.IBselect1.Open;
@@ -105,14 +107,51 @@ begin
 end;
 
 procedure TForm89.DBGrid2KeyPress(Sender: TObject; var Key: Char);
+var
+  id : integer;
+  cod_entreg : String;
 begin
   if UpCase(key) = 'T' then begin
     somamov;
   end;
 
+  if key = #13 then begin
+    id := MessageDlg('Deseja Concluir a Entrega da Venda '  + dm.IBselect1.FieldByName('nota').AsString +' ?', mtConfirmation, [mbYes, mbNo],1, mbNo);
+    if id = IDNO then exit;
+
+    cod_entreg := funcoes.localizar1('Localizar Entregador','entregador','cod,nome','cod','','nome','nome',false,false,false,'cod', dm.IBselect1.FieldByName('usuario_baixa').AsString ,300,NIL);
+    if ((cod_entreg = '') or (cod_entreg = '*')) then exit;
+
+    dm.IBQuery1.Close;
+    dm.IBQuery1.SQL.Text := 'update entrega_novo set finalizado = ''1'', usuario_baixa = '+StrNum(cod_entreg)+'  where numvenda = '+ dm.IBselect1.FieldByName('nota').AsString;
+    dm.IBQuery1.ExecSQL;
+    dm.IBQuery1.Transaction.Commit;
+
+    abreDataSetConcluidos;
+  end;
+
 end;
 
 {$R *.dfm}
+
+procedure TForm89.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if key = 113 then begin
+    funcoes.relEntregador;
+    abreDataSet;
+    abreDataSetConcluidos;
+  end;
+
+  if key = 114 then begin
+    pagamento;
+  end;
+
+  if key = 116 then begin
+    abreDataSet;
+    abreDataSetConcluidos;
+  end;
+end;
 
 procedure TForm89.FormKeyPress(Sender: TObject; var Key: Char);
 begin
@@ -138,6 +177,8 @@ procedure TForm89.lancaEntrega;
 var
   cod_entreg, valor : String;
 begin
+  if dm.IBselect.IsEmpty then exit;
+  
   cod_entreg := funcoes.localizar('Localizar Entregador','entregador','cod,nome','cod','','nome','nome',false,false,false,'',300,NIL);
   if cod_entreg = '*' then exit;
   if cod_entreg = '' then exit;
@@ -176,7 +217,9 @@ var
   lista, nomes : TStringList;
   i : integer;
   codentr, rel : String;
+  total : currency;
 begin
+  total := 0;
   lista := TStringList.Create;
   nomes := TStringList.Create;
   i := dm.IBselect1.RecNo;
@@ -189,6 +232,8 @@ begin
     lista.Values[codentr] := CurrToStr(StrToCurrDef(lista.Values[codentr], 0) + dm.IBselect1.FieldByName('valor').AsCurrency);
     if nomes.Values[codentr] = '' then nomes.Values[codentr] := dm.IBselect1.FieldByName('nome').AsString;
 
+    total := total + dm.IBselect1.FieldByName('valor').AsCurrency;
+
     dm.IBselect1.Next;
   end;
 
@@ -197,11 +242,85 @@ begin
 
   rel := '';
   for i := 0 to lista.Count -1 do begin
-    rel := rel + CompletaOuRepete(leftstr(lista.Names[i]+'-' + nomes.Values[lista.Names[i]], 30), '', '.', 30) + ' ' + CompletaOuRepete('', formataCurrency(StrToCurrDef(lista.ValueFromIndex[i], 0)), ' ', 13) + #13;
+    rel := rel + CompletaOuRepete(leftstr(lista.Names[i]+'-' + nomes.Values[lista.Names[i]], 30), '', '.', 30)  + CompletaOuRepete('', formataCurrency(StrToCurrDef(lista.ValueFromIndex[i], 0)), '.', 13) + #13;
   end;
 
   //ShowMessage(lista.Text + #13 + #13  + nomes.Text);
   funcoes.Mensagem('Soma Por Entregador - ControlW Sistemas', rel,9,'Courier New',true,0,clBlack, false);
+end;
+
+procedure TForm89.pagamento;
+var
+  ini, fim, cod, ultcod, hist, pagto, mincod : String;
+  valor : currency;
+  id : integer;
+begin
+  ini := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,'Qual a Data Inicial?', formataDataDDMMYY(form22.datamov));
+  if ini = '*' then
+    exit;
+
+  fim := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,'Qual a Data Final?', formataDataDDMMYY(form22.datamov));
+  if fim = '*' then
+    exit;
+
+  dm.IBselect2.Close;
+  dm.IBselect2.SQL.Text := 'select e.usuario_baixa as entregador, c.nome, min(e.cod) as cod1, max(e.cod) as cod, sum(e.valor) as valor  from entrega_novo e left join entregador c on (c.cod = e.usuario_baixa) where ((cast(e.data_entrega as date) >= :ini) and '+
+  '(cast(e.data_entrega as date) <= :fim)) and (DATAHPAGTO is null) group by e.usuario_baixa, c.nome';
+  dm.IBselect2.ParamByName('ini').AsDateTime := StrToDate(ini);
+  dm.IBselect2.ParamByName('fim').AsDateTime := StrToDate(fim);
+  dm.IBselect2.Open;
+
+  dm.IBselect2.FieldByName('cod').Visible := false;
+  dm.IBselect2.FieldByName('cod1').Visible := false;
+
+  ini := funcoes.busca(dm.IBselect2, 'entregador1', 'entregador', 'entregador', '');
+  ultcod := dm.IBselect2.FieldByName('cod').AsString;
+  mincod := dm.IBselect2.FieldByName('cod1').AsString;
+  valor  := dm.IBselect2.FieldByName('valor').AsCurrency;
+
+  if ini = '' then exit;
+
+  id := MessageDlg('Deseja Efetuar o Pagamento de ' + formataCurrency(valor)+ ' para ' + dm.IBselect2.FieldByName('cod').AsString +'-' + dm.IBselect2.FieldByName('nome').AsString +' ?', mtConfirmation, [mbYes, mbNo],1, mbNo);
+
+  if id = IDNO then begin
+    dm.IBselect2.Close;
+    exit;
+  end;
+
+  hist  := 'PAGAMENTO ENTREGADOR '+ ini + '-' + dm.IBselect2.FieldByName('nome').AsString;
+  //pagto := funcoes.LerFormPato(1, 'Forma de Pagamento', false);
+  pagto := funcoes.LerFormPato(0, 'Forma de Pagamento', false);
+
+  dm.IBQuery1.Close;
+  dm.IBQuery1.SQL.Text := 'insert into caixa(formpagto,codgru,codmov,codentradasaida,data,documento,vencimento,codhis,historico,saida,usuario, tipo, fornec)'+
+      ' values (:pagto,1,gen_id(movcaixa, 1),'+ultcod+',:data,'+StrNum(ini)+',''01.01.1900'',1,'+QuotedStr(hist)+',:pago,'+StrNum(form22.codusario)+', ''X'', '+StrNum(mincod)+')';
+  dm.IBQuery1.ParamByName('pagto').AsInteger := StrToIntDef(pagto, 1);
+  dm.IBQuery1.ParamByName('data').AsDateTime := DateOf(form22.datamov) + timeof(now) ;
+  dm.IBQuery1.ParamByName('pago').AsCurrency := valor;
+  try
+    dm.IBQuery1.ExecSQL;
+  except
+    exit;
+  end;
+
+  dm.IBQuery1.Close;
+  dm.IBQuery1.SQL.Text := 'update entrega_novo set DATAHPAGTO = :data, USUARIOPAGTO = ' + StrNum(form22.codusario) + ' where usuario_baixa = :usu and cod <= :cod';
+  dm.IBQuery1.ParamByName('data').AsDateTime := DateOf(form22.datamov) + timeof(now) ;
+  dm.IBQuery1.ParamByName('usu').AsInteger := StrToIntDef(ini, 0);
+  dm.IBQuery1.ParamByName('cod').AsInteger := StrToIntDef(ultcod, 0);
+  try
+    dm.IBQuery1.ExecSQL;
+  except
+    on e:exception do begin
+      dm.IBQuery1.Transaction.Rollback;
+      ShowMessage('erro288: ' + e.Message);
+      exit;
+    end;
+  end;
+  dm.IBQuery1.Transaction.Commit;
+
+
+  //ShowMessage(ini + #13 + ultcod + #13 + CurrToStr(valor));
 end;
 
 

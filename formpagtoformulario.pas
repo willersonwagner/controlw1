@@ -46,17 +46,17 @@ begin
   begin
   if ListBox1.Items.Count = 0 then
   begin
-    dm.IBQuery2.Close;
-    dm.IBQuery2.SQL.Text := 'select cod, nome from FORMPAGTO order by cod';
-    dm.IBQuery2.Open;
+    dm.IBselect3.Close;
+    dm.IBselect3.SQL.Text := 'select cod, nome from FORMPAGTO order by cod';
+    dm.IBselect3.Open;
 
-    while not (dm.IBQuery2.Eof) do
+    while not (dm.IBselect3.Eof) do
      begin
-        ListBox1.Items.Add(dm.IBQuery2.fieldbyname('cod').AsString+'- '+dm.IBQuery2.fieldbyname('nome').AsString);
-        dm.IBQuery2.Next;
+        ListBox1.Items.Add(dm.IBselect3.fieldbyname('cod').AsString+'- '+dm.IBselect3.fieldbyname('nome').AsString);
+        dm.IBselect3.Next;
      end;
 
-    dm.IBQuery2.Close;
+    dm.IBselect3.Close;
     if valorlistbox <> null then ListBox1.ItemIndex := valorlistbox;
   end;
 end;

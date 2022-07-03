@@ -13,6 +13,7 @@ object Form89: TForm89
   KeyPreview = True
   OldCreateOrder = False
   Position = poScreenCenter
+  OnKeyDown = FormKeyDown
   OnKeyPress = FormKeyPress
   OnShow = FormShow
   PixelsPerInch = 96
@@ -24,8 +25,8 @@ object Form89: TForm89
     Height = 31
     Align = alClient
     Alignment = taCenter
-    Caption = 'Vendas Conclu'#237'das'
-    ExplicitWidth = 89
+    Caption = 'Vendas Conclu'#237'das F2-Relatorio Grande F3-Pagamento F5-Atualizar'
+    ExplicitWidth = 323
     ExplicitHeight = 13
   end
   object DBGrid1: TDBGrid

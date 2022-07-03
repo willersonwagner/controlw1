@@ -11292,7 +11292,6 @@ object Form2: TForm2
     Height = 25
     Caption = 'ok'
     TabOrder = 3
-    Visible = False
     OnClick = Button2Click
   end
   object Button3: TButton

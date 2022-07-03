@@ -203,7 +203,7 @@ type
     negrito : boolean;
     fontDif, imprimiu : boolean;
     tamaFonte, tamFontePadrao : integer;
-    cod, espac_dire, nomeSegundaImpressora : String;
+    cod, espac_dire, nomeSegundaImpressora, impOrcamentoSegundaImp : String;
     procedure impTxtMatricialUSB(ImplinhasFinal : boolean = true);
     procedure impTxtTAP(var texto : TStringList);
     procedure AtivarACBrETQ ;
@@ -716,7 +716,12 @@ begin
   if funcoes.le_configTerminalWindows(0,'', 'IMP2') <> '' then begin
     try
       nomeSegundaImpressora := funcoes.le_configTerminalWindows(0,'', 'IMP2');
+      if impOrcamentoSegundaImp = 'N' then begin
+        impOrcamentoSegundaImp := '';
+        exit;
+      end;
       textx1(arquivo, ImplinhasFinal);
+      impOrcamentoSegundaImp := '';
     finally
       nomeSegundaImpressora := '';
     end;

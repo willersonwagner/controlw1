@@ -1093,6 +1093,25 @@ begin
 
   if contido('CAMALEAO', UpperCase(form22.Pgerais.Values['empresa'])) = false then begin
     ControledeEntregador1.Visible := false;
+    Entregador1.Visible := false;
+  end;
+
+  if funcoes.LerConfig(form22.Pgerais.Values['configu'], 19) = 'S' then begin
+    OutrasRotinas1.Visible := true;
+
+    EntradadeXML1.Visible := false;
+    CriarCdigosdeBarras1.Visible := false;
+    Promoes1.Visible := false;
+    GerarCargaBalana1.Visible := false;
+    AlterarValidadesProdutosdePesagem1.Visible := false;
+    CadastrodeInformaesNutricionais1.Visible := false;
+    ConsultarCNPJ1.Visible := false;
+    ConsultarCPF1.Visible := false;
+    ConsultaCadastros1.Visible := false;
+    ConfiguraodeFormulrios1.Visible := false;
+
+    ControledeEntregador1.Visible := true;
+    Entregador1.Visible           := true;
   end;
 
 
@@ -3963,10 +3982,8 @@ begin
 end;
 
 procedure TForm2.Button2Click(Sender: TObject);
-var
-  op : TOpenDialog;
 begin
-  funcoes.imprimeVendaFortesA4(InputBox('','',''));
+  funcoes.RotinaImportarListaMWM;
 end;
 
 procedure TForm2.RefOriginalGrupo1Click(Sender: TObject);
@@ -9995,6 +10012,7 @@ begin
     form36.teclas.Add('SN'); // 16
     form36.teclas.Add('1234567890' + #8); //17
     form36.teclas.Add('SN'); // 18
+    form36.teclas.Add('SN'); // 18
 
     form36.tipo.Add('numero');
     form36.tipo.Add('generico');
@@ -10015,6 +10033,7 @@ begin
     form36.tipo.Add('generico'); // 16
     form36.tipo.Add('generico');   //17
     form36.tipo.Add('generico');   //18
+    form36.tipo.Add('generico');   //19
 
 
     form36.troca.Add('');
@@ -10034,6 +10053,7 @@ begin
     form36.troca.Add('S'); // 14
     form36.troca.Add('S'); // 15
     form36.troca.Add('S'); // 16
+    form36.troca.Add('S');
     form36.troca.Add('S');
     form36.troca.Add('S');
 
@@ -10063,6 +10083,7 @@ begin
     form36.ListBox1.Items.Add('16-Permitir uso da Rotina de Cancelamento de NFe ?');
     form36.ListBox1.Items.Add('17-Quantas Casas Decimais no Preço de Venda na Rotina de Vendas(Padrao 3) ?');
     form36.ListBox1.Items.Add('18-Usar Nivel de Acesso Personalizado ?');
+    form36.ListBox1.Items.Add('19-Gerenciamento de Entregador ?');
 
 
     form36.configu := dm.ibselect.FieldByName('configu').AsString;
@@ -11081,8 +11102,8 @@ begin
     form19.RichEdit1.Perform(EM_REPLACESEL, 1,
       Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10))));
 
-  funcoes.acertaVendaDoDiaAVistaNoCaixa(ini, fim,
-    StrToCurr(totais.Values['1']) - totEntradaCaixaNaVenda);
+  //altera vendas do dia no caixa
+  //funcoes.acertaVendaDoDiaAVistaNoCaixa(ini, fim,StrToCurr(totais.Values['1']) - totEntradaCaixaNaVenda);
 
   addRelatorioForm19('EMISSAO: ' + FormatDateTime('DD/MM/YY', now) + ' ' + data
     + CRLF + CRLF);
@@ -13521,7 +13542,7 @@ begin
       dm.ibselect.Close;
       dm.ibselect.SQL.Clear;
       dm.ibselect.SQL.Add
-        ('select p.cod, c.nome, p.quant, p.p_venda, p.total from item_venda p, produto c where (c.cod = p.cod) and (p.nota = :nota)');
+        ('select p.cod, c.nome, p.quant, p.p_venda, p.total from item_venda p left join produto c on (c.cod = p.cod) where (p.nota = :nota)');
       dm.ibselect.ParamByName('nota').AsString := StrNum(dm.IBQuery2.FieldByName('nota').AsString);
       dm.ibselect.Open;
 
@@ -13732,7 +13753,7 @@ begin
       try
         if MessageBox(handle, 'Deseja Emitir Cupom para Esta Venda','Cupom Eletrônico', MB_YESNO + MB_DEFBUTTON2) = idyes then begin
          form22.enviNFCe(nota, '', recebido);
-      end;
+        end;
       except
         ShowMessage('Ocorreu um Erro. Tente Novamente');
       end;
@@ -19950,83 +19971,8 @@ begin
 end;
 
 procedure TForm2.Entregador1Click(Sender: TObject);
-var
-  tempo, ini, fim, tipoPreco, h1, entregatual : String;
-  preco, totVenda, totCusto: currency;
 begin
-  ini := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,'Qual a Data Inicial?', formataDataDDMMYY(form22.datamov));
-  if ini = '*' then
-    exit;
-
-  fim := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,'Qual a Data Final?', formataDataDDMMYY(form22.datamov));
-  if fim = '*' then
-    exit;
-
-  nota := funcoes.dialogo('generico', 0, '1234567890,.' + #8, 100, false, '',
-    'Relatório de Entradas', 'Qual o Código do Entregador ?', '');
-  if (nota = '*') then exit;
-
-  h1 := '';
-  if nota <> '' then h1 := ' and (c.usuario_baixa = '+strnum(nota)+') ';
-
-
-  dm.ibselect.Close;
-  dm.ibselect.SQL.Text := 'select v.nota, d.nome, c.usuario_baixa, v.total, v.data, v.hora as hora_venda, v.ende_entrega, e.endereco, e.cliente, e.telefone, c.data_entrega, c.valor from venda v left join ENTREGA e on (e.cod = v.ende_entrega)'+
-  'left join entrega_novo c on (c.numvenda = v.nota) left join entregador d on (d.cod = c.usuario_baixa)  where ((cast(c.data_entrega as date) >= :ini) and (cast(c.data_entrega as date) <= :fim)) '+
-  'and v.ende_entrega > 0 and not(c.data_entrega is null)'+h1+' order by c.usuario_baixa,c.data_entrega desc';
-  dm.IBselect.ParamByName('ini').AsDateTime := StrToDate(ini);
-  dm.IBselect.ParamByName('fim').AsDateTime := StrToDate(fim);
-  dm.ibselect.Open;
-  dm.ibselect.FetchAll;
-
-  if dm.ibselect.IsEmpty then
-  begin
-    dm.ibselect.Close;
-    ShowMessage('Nenhum Registro Encontrado!');
-    exit;
-  end;
-
-  form19.RichEdit1.Clear;
-  // addRelatorioForm19('|#15|' + CRLF);
-  //addRelatorioForm19('%');
-
-  totVenda := 0;
-  totCusto := 0;
-
-  entregatual := 'x';
-
-  while not dm.ibselect.Eof do
-  begin
-    if ((entregatual <> dm.IBselect.FieldByName('usuario_baixa').AsString) and (entregatual <> 'x'))  then begin
-      addRelatorioForm19(CompletaOuRepete('', '', '-', 80) + CRLF);
-      addRelatorioForm19(CompletaOuRepete('Total', formataCurrency(totVenda), '.', 80) + CRLF);
-      addRelatorioForm19(CompletaOuRepete('', '', '-', 80) + CRLF+ CRLF);
-      totVenda := 0;
-    end;
-
-    if entregatual <> dm.IBselect.FieldByName('usuario_baixa').AsString  then begin
-      entregatual := dm.IBselect.FieldByName('usuario_baixa').AsString;
-
-      addRelatorioForm19(funcoes.RelatorioCabecalho(funcoes.LerValorPGerais('empresa', form22.Pgerais),'RELATORIO DE ENTREGAS ' + entregatual+'-' + dm.IBselect.FieldByName('nome').AsString, 80));
-      addRelatorioForm19('Nota          Data Hora       Total Venda Endereco                         Valor'+ CRLF);
-      addRelatorioForm19(CompletaOuRepete('', '', '-', 80) + CRLF);
-    end;
-
-    totVenda := totVenda + dm.IBselect.FieldByName('valor').AsCurrency;
-    if true then begin
-      addRelatorioForm19(CompletaOuRepete(dm.IBselect.FieldByName('nota').AsString,'', ' ', 8)+' '+ CompletaOuRepete(FormatDateTime('c', dm.IBselect.FieldByName('data_entrega').AsDateTime) ,'', ' ', 19)+ ' '+
-      CompletaOuRepete('' ,formataCurrency(dm.IBselect.FieldByName('total').AsCurrency), ' ', 10)+' '+ CompletaOuRepete(LeftStr(dm.IBselect.FieldByName('cliente').AsString + '-' + dm.IBselect.FieldByName('endereco').AsString, 27) ,'', ' ', 27)+' '+completaOuRepete('' ,formataCurrency(dm.IBselect.FieldByName('valor').AsCurrency), ' ', 12) + CRLF);
-    end;
-
-
-    dm.ibselect.Next;
-  end;
-
-  addRelatorioForm19(CompletaOuRepete('', '', '-', 80) + CRLF);
-  addRelatorioForm19(CompletaOuRepete('Total', formataCurrency(totVenda), '.', 80) + CRLF);
-  addRelatorioForm19(CompletaOuRepete('', '', '-', 80) + CRLF);
-  form19.showmodal;
-
+  funcoes.relEntregador;
 end;
 
 procedure TForm2.FichadeEstoque1Click(Sender: TObject);
@@ -21255,6 +21201,9 @@ begin
       arq.LoadFromFile(pstaNfe + dm.ibselect.FieldByName('chave').AsString +
         '-nfe.xml');
       sit := Le_Nodo('cStat', arq.GetText);
+
+      if dm.IBselect.FieldByName('estado').AsString = 'C' then sit := '135';
+
       if ((sit = '100') or (sit = '150')) then
       begin
         sit := 'AUTORIZADA';
@@ -21317,6 +21266,9 @@ begin
       begin
         arq.Text := dm.ibselect.FieldByName('xml').AsString;
         sit := Le_Nodo('cStat', arq.GetText);
+
+        if dm.IBselect.FieldByName('estado').AsString = 'C' then sit := '135';
+
         if ((sit = '100') or (sit = '150')) then
         begin
           sit := 'AUTORIZADA';
@@ -21582,6 +21534,9 @@ begin
         if cnpjXML = cnpj then
         begin
           sit := Le_Nodo('cStat', arq.GetText);
+
+          if dm.IBselect.FieldByName('estado').AsString = 'C' then sit := '135';
+
           if sit = '100' then
             sit := 'AUTORIZADA'
           else if sit = '101' then

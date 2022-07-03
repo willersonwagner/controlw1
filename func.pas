@@ -21,6 +21,62 @@ uses
 
 const
   OffsetMemoryStream: Int64 = 0;
+  xlAddIn                       = 18;    // Microsoft Excel 97-2003 Add-In *.xla
+  xlAddIn8                      = 18;    // Microsoft Excel 97-2003 Add-In *.xla
+  xlCSV                         = 6;     // CSV *.csv
+  xlCSVMac                      = 22;    // Macintosh CSV *.csv
+  xlCSVMSDOS                    = 24;    // MSDOS CSV *.csv
+  xlCSVUTF8                     = 62;    // UTF8 CSV *.csv
+  xlCSVWindows                  = 23;    // Windows CSV *.csv
+  xlCurrentPlatformText         = -4158; // Current Platform Text *.txt
+  xlDBF2                        = 7;     // Dbase 2 format *.dbf
+  xlDBF3                        = 8;     // Dbase 3 format *.dbf
+  xlDBF4                        = 11;    // Dbase 4 format *.dbf
+  xlDIF                         = 9;     // Data Interchange format *.dif
+  xlExcel12                     = 50;    // Excel Binary Workbook *.xlsb
+  xlExcel2                      = 16;    // Excel version 2.0 (1987) *.xls
+  xlExcel2FarEast               = 27;    // Excel version 2.0 far east (1987) *.xls
+  xlExcel3                      = 29;    // Excel version 3.0 (1990) *.xls
+  xlExcel4                      = 33;    // Excel version 4.0 (1992) *.xls
+  xlExcel4Workbook              = 35;    // Excel version 4.0. Workbook format (1992) *.xlw
+  xlExcel5                      = 39;    // Excel version 5.0 (1994) *.xls
+  xlExcel7                      = 39;    // Excel 95 (version 7.0) *.xls
+  xlExcel8                      = 56;    // Excel 97-2003 Workbook *.xls
+  xlExcel9795                   = 43;    // Excel version 95 and 97 *.xls
+  xlHtml                        = 44;    // HTML format *.htm; *.html
+  xlIntlAddIn                   = 26;    // International Add-In
+  xlIntlMacro                   = 25;    // International Macro
+  xlOpenDocumentSpreadsheet     = 60;    // OpenDocument Spreadsheet *.ods
+  xlOpenXMLAddIn                = 55;    // Open XML Add-In *.xlam
+  xlOpenXMLStrictWorkbook       = 61;    // Strict Open XML file *.xlsx
+  xlOpenXMLTemplate             = 54;    // Open XML Template *.xltx
+  xlOpenXMLTemplateMacroEnabled = 53;    // Open XML Template Macro Enabled *.xltm
+  xlOpenXMLWorkbook             = 51;    // Open XML Workbook *.xlsx
+  xlOpenXMLWorkbookMacroEnabled = 52;    // Open XML Workbook Macro Enabled *.xlsm
+  xlSYLK                        = 2;     // Symbolic Link format *.slk
+  xlTemplate                    = 17;    // Excel Template format *.xlt
+  xlTemplate8                   = 17;    // Template 8 *.xlt
+  xlTextMac                     = 19;    // Macintosh Text *.txt
+  xlTextMSDOS                   = 21;    // MSDOS Text *.txt
+  xlTextPrinter                 = 36;    // Printer Text *.prn
+  xlTextWindows                 = 20;    // Windows Text *.txt
+  xlUnicodeText                 = 42;    // Unicode Text
+  xlWebArchive                  = 45;    // Web Archive *.mht; *.mhtml
+  xlWJ2WD1                      = 14;    // Japanese 1-2-3 *.wj2
+  xlWJ3                         = 40;    // Japanese 1-2-3 *.wj3
+  xlWJ3FJ3                      = 41;    // Japanese 1-2-3 format *.wj3
+  xlWK1                         = 5;     // Lotus 1-2-3 format *.wk1
+  xlWK1ALL                      = 31;    // Lotus 1-2-3 format *.wk1
+  xlWK1FMT                      = 30;    // Lotus 1-2-3 format *.wk1
+  xlWK3                         = 15;    // Lotus 1-2-3 format *.wk3
+  xlWK3FM3                      = 32;    // Lotus 1-2-3 format *.wk3
+  xlWK4                         = 38;    // Lotus 1-2-3 format *.wk4
+  xlWKS                         = 4;     // Lotus 1-2-3 format *.wks
+  xlWorkbookDefault             = 51;    // Workbook default *.xlsx
+  xlWorkbookNormal              = -4143; // Workbook normal *.xls
+  xlWorks2FarEast               = 28;    // Microsoft Works 2.0 far east format *.wks
+  xlWQ1                         = 34;    // Quattro Pro format *.wq1
+  xlXMLSpreadsheet              = 46;    // XML Spreadsheet *.xml
 
 type
   Ptr_Item = ^Item_pagamento;
@@ -141,7 +197,9 @@ type
     enviandoCupom, enviandoBackup: boolean;
     fonteRelatorioForm19: integer;
     NegritoRelatorioForm19, saiComEnter: boolean;
+    procedure RotinaImportarListaMWM;
     function buscaNomePC : String;
+    procedure ConvertExcelFile(const ExcelFile, OutFile: string; Format: Integer = xlCSV);
     procedure OrdenarTStringList2(var Valores: TStringList);
     procedure processaRetornoDataBloqueioPIX(retorno : String);
     procedure calculadora;
@@ -614,6 +672,8 @@ type
     function verificaSeExisteVenda(const nota: string): boolean;
     function verificaSePodeVenderFracionado(cod: integer; unid: String;
       quant: currency): boolean;
+    procedure relEntregador();
+
   end;
 
 var
@@ -696,6 +756,7 @@ const
   site: String = 'http://controlw.zz.vc';
   site1: String = 'http://controlw.blog.br';
   site2: String = 'http://controlw.blog.br';
+
 
 implementation
 
@@ -1058,6 +1119,15 @@ begin
   dm.IBQuery1.ParamByName('canc').AsString := LeftStr(form22.codusario, 2);
   dm.IBQuery1.ParamByName('nota').AsString := nota1;
   dm.IBQuery1.ExecSQL;
+
+  try
+  dm.IBQuery1.Close;
+  dm.IBQuery1.SQL.Text := ('delete from entrega_novo where (numvenda = :nota) and  (finalizado is null)');
+  dm.IBQuery1.ParamByName('nota').AsString := nota1;
+  dm.IBQuery1.ExecSQL;
+  except
+
+  end;
 
   dm.IBQuery2.Close;
   dm.IBQuery2.SQL.Clear;
@@ -5871,6 +5941,7 @@ begin
 
       exit;
     end;
+
     if sim = 'S' then
     begin
       form19.RichEdit1.Clear;
@@ -11212,7 +11283,7 @@ begin
     end;
 
 
-    if not VerSeExisteTRIGGERPeloNome('ALTERA_CAIXA_VENDA_AVISTA') then begin
+   { if not VerSeExisteTRIGGERPeloNome('ALTERA_CAIXA_VENDA_AVISTA') then begin
       //dm.IBScript1.Close;
       dm.IBScript1.SQLScripts.Clear;
       dm.IBScript1.SQLScripts.Add.SQL.Text := (
@@ -11248,7 +11319,7 @@ begin
           ShowMessage('Erro 11146: ' + e.Message);
         end;
       end;
-    end;
+    end;   }
 
     if not VerSeExisteTRIGGERPeloNome('ALTERA_CAIXA_VENDA_AVIST1') then begin
       //dm.IBScript1.Close;
@@ -11587,6 +11658,73 @@ begin
       if execSqlMostraErro(dm.IBQuery1) = false then exit;
       dm.IBQuery1.Transaction.Commit;
     end;
+
+    if not VerificaCampoTabela('datahpagto', 'entrega_novo') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('ALTER TABLE entrega_novo ADD datahpagto timestamp ');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
+    if not VerificaCampoTabela('usuariopagto', 'entrega_novo') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('ALTER TABLE entrega_novo ADD usuariopagto smallint ');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
+    if not VerificaCampoTabela('finalizado', 'entrega_novo') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('ALTER TABLE entrega_novo ADD finalizado varchar(1) ');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
+    if VerSeExisteTRIGGERPeloNome('ALTERA_CAIXA_VENDA_AVIST1') then begin
+       dm.IBQuery1.Close;
+       dm.IBQuery1.SQL.Clear;
+       dm.IBQuery1.SQL.Text := ('DROP TRIGGER ALTERA_CAIXA_VENDA_AVIST1');
+       if execSqlMostraErro(dm.IBQuery1) = false then exit;
+       dm.IBQuery1.Transaction.Commit;
+     end;
+
+     if VerSeExisteTRIGGERPeloNome('ALTERA_CAIXA_VENDA_AVISTA') then begin
+       dm.IBQuery1.Close;
+       dm.IBQuery1.SQL.Clear;
+       dm.IBQuery1.SQL.Text := ('DROP TRIGGER ALTERA_CAIXA_VENDA_AVISTA');
+       if execSqlMostraErro(dm.IBQuery1) = false then exit;
+       dm.IBQuery1.Transaction.Commit;
+     end;
+
+
+    if not VerSeExisteTRIGGERPeloNome('ALTERA_CAIXA_VENDA_AVIST2') then begin
+      //dm.IBScript1.Close;
+      dm.IBScript1.SQLScripts.Clear;
+      dm.IBScript1.SQLScripts.Add.SQL.Text := (
+      'CREATE TRIGGER altera_caixa_venda_avist2 FOR venda ACTIVE after INSERT POSITION 0 AS declare variable valor numeric(10, 2); declare variable codmov integer; begin ' +
+      ' valor = 0; ' +
+      ' if (new.codhis = 1) then begin '+
+      ' valor = new.total; end ' +
+
+      'if ((new.codhis = 2) and (new.entrada > 0)) then begin valor = new.entrada; end '+
+      ' select first 1 codmov from caixa where (historico = ''VENDAS DO DIA A VISTA'') and (cast(data as date) = new.data) into :codmov; ' +
+
+      ' if (valor > 0) then BEGIN if (codmov > 0) then begin  ' +
+      ' update caixa set entrada = entrada + :valor where codmov = :codmov; end else begin ' +
+      ' insert into caixa(formpagto,codgru,codmov,codhis,data,datamov,historico,entrada) values(new.codhis ,1, gen_id(movcaixa, 1) ,1,cast(new.data as date) + cast(current_time as time),new.data,''VENDAS DO DIA A VISTA'',:valor); '+
+      ' END end end;');
+      try
+        dm.IBScript1.ExecuteAll;
+      except
+        on e:exception do begin
+          ShowMessage('Erro 11146: ' + e.Message);
+        end;
+      end;
+    end;
+
 
     atualizaAtivoCliente;
 
@@ -17313,7 +17451,8 @@ begin
 
   if UpperCase(campobusca) = 'CODMOV' then
     Panel1.Free;
-  dataset.Close;
+
+  if busca <> 'entregador1' then dataset.Close;
   Result := retornobusca;
   form33.Free;
   // a.Close;
@@ -31035,6 +31174,250 @@ begin
 end;
 
 
+procedure Tfuncoes.relEntregador();
+var
+  tempo, ini, fim, tipoPreco, h1, entregatual, nota : String;
+  preco, totVenda, totCusto: currency;
+begin
+  ini := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,'Qual a Data Inicial?', formataDataDDMMYY(form22.datamov));
+  if ini = '*' then
+    exit;
+
+  fim := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,'Qual a Data Final?', formataDataDDMMYY(form22.datamov));
+  if fim = '*' then
+    exit;
+
+  nota := funcoes.dialogo('generico', 0, '1234567890,.' + #8, 100, false, '',
+    'Relatório de Entradas', 'Qual o Código do Entregador ?', '');
+  if (nota = '*') then exit;
+
+  h1 := '';
+  if nota <> '' then h1 := ' and (c.usuario_baixa = '+strnum(nota)+') ';
+
+
+  dm.ibselect.Close;
+  dm.ibselect.SQL.Text := 'select v.nota, d.nome, c.USUARIOPAGTO, c.FINALIZADO, c.usuario_baixa, v.total, v.data, v.hora as hora_venda, v.ende_entrega, e.endereco, e.cliente, e.telefone, c.data_entrega, c.valor from venda v left join ENTREGA e on (e.cod = v.ende_entrega)'+
+  'left join entrega_novo c on (c.numvenda = v.nota) left join entregador d on (d.cod = c.usuario_baixa)  where ((cast(c.data_entrega as date) >= :ini) and (cast(c.data_entrega as date) <= :fim)) '+
+  'and v.ende_entrega > 0 and not(c.data_entrega is null)'+h1+' order by c.usuario_baixa,c.data_entrega desc';
+  dm.IBselect.ParamByName('ini').AsDateTime := StrToDate(ini);
+  dm.IBselect.ParamByName('fim').AsDateTime := StrToDate(fim);
+  dm.ibselect.Open;
+  dm.ibselect.FetchAll;
+
+  if dm.ibselect.IsEmpty then
+  begin
+    dm.ibselect.Close;
+    ShowMessage('Nenhum Registro Encontrado!');
+    exit;
+  end;
+
+  form19.RichEdit1.Clear;
+  // addRelatorioForm19('|#15|' + CRLF);
+  //addRelatorioForm19('%');
+
+  totVenda := 0;
+  totCusto := 0;
+
+  entregatual := 'x';
+
+  while not dm.ibselect.Eof do
+  begin
+    if ((entregatual <> dm.IBselect.FieldByName('usuario_baixa').AsString) and (entregatual <> 'x'))  then begin
+      addRelatorioForm19(CompletaOuRepete('', '', '-', 80) + CRLF);
+      addRelatorioForm19(CompletaOuRepete('Total', formataCurrency(totVenda), '.', 80) + CRLF);
+      addRelatorioForm19(CompletaOuRepete('', '', '-', 80) + CRLF+ CRLF);
+      totVenda := 0;
+    end;
+
+    if entregatual <> dm.IBselect.FieldByName('usuario_baixa').AsString  then begin
+      entregatual := dm.IBselect.FieldByName('usuario_baixa').AsString;
+
+      addRelatorioForm19(funcoes.RelatorioCabecalho(funcoes.LerValorPGerais('empresa', form22.Pgerais),'RELATORIO DE ENTREGAS ' + entregatual+'-' + dm.IBselect.FieldByName('nome').AsString, 80));
+      addRelatorioForm19('Nota          Data Hora       Total Venda Endereco                  PG      Valor'+ CRLF);
+      addRelatorioForm19(CompletaOuRepete('', '', '-', 80) + CRLF);
+    end;
+
+    totVenda := totVenda + dm.IBselect.FieldByName('valor').AsCurrency;
+    if true then begin
+      addRelatorioForm19(CompletaOuRepete(dm.IBselect.FieldByName('nota').AsString,'', ' ', 8)+' '+ CompletaOuRepete(FormatDateTime('c', dm.IBselect.FieldByName('data_entrega').AsDateTime) ,'', ' ', 19)+ ' '+
+      CompletaOuRepete('' ,formataCurrency(dm.IBselect.FieldByName('total').AsCurrency), ' ', 10)+' '+ CompletaOuRepete(LeftStr(dm.IBselect.FieldByName('cliente').AsString + '-' + dm.IBselect.FieldByName('endereco').AsString, 27) ,'', ' ', 27)+' '+ IfThen(dm.IBselect.FieldByName('USUARIOPAGTO').IsNull = false, 'OK', '  ')  +' '+completaOuRepete('' ,formataCurrency(dm.IBselect.FieldByName('valor').AsCurrency), ' ', 9) + CRLF);
+    end;
+
+
+    dm.ibselect.Next;
+  end;
+
+  addRelatorioForm19(CompletaOuRepete('', '', '-', 80) + CRLF);
+  addRelatorioForm19(CompletaOuRepete('Total', formataCurrency(totVenda), '.', 80) + CRLF);
+  addRelatorioForm19(CompletaOuRepete('', '', '-', 80) + CRLF);
+  form19.showmodal;
+end;
+
+procedure Tfuncoes.ConvertExcelFile(const ExcelFile, OutFile: string; Format: Integer = xlCSV);
+var
+  excelApp: OleVariant;
+begin
+  CoInitialize(nil);
+  try
+    excelApp := CreateOleObject('Excel.Application');
+    if VarIsEmpty( excelApp ) then
+      exit;
+
+    excelApp.DisplayAlerts := False;
+    excelApp.Visible := False;
+    excelApp.Workbooks.Open( ExcelFile,
+                             false,   // ConfirmConversions
+                             true );  // ReadOnly
+
+    excelApp.ActiveWorkbook.SaveAs( OutFile, Format );
+
+    excelApp.ActiveWorkbook.Saved := True; // Prevent prompt
+
+  finally
+    excelApp.Quit;
+    excelApp := Unassigned;
+    CoUninitialize;
+  end;
+end;
+
+procedure Tfuncoes.RotinaImportarListaMWM;
+var
+  op : TOpenDialog;
+  novoarq, lin, atu : String;
+  i : integer;
+  arq, lis, prod : TStringList;
+  marc : char;
+  cds : TClientDataSet;
+begin
+  op := TOpenDialog.Create(self);
+  op.Filter := 'Arquivos Excel (*.xlsx)|*.xlsx';
+  op.Title  := 'Procura Tabela do Excel MWM - ControlW';
+  op.Execute;
+
+  novoarq :=  ChangeFileExt(op.FileName, '.csv');
+  novoarq := ExtractFileDir(op.FileName) + '\' + 'lista.csv';
+  funcoes.ConvertExcelFile(op.FileName, novoarq, 6);
+
+  arq := TStringList.Create;
+  lis := TStringList.Create;
+  prod := TStringList.Create;
+  arq.LoadFromFile(novoarq);
+
+  if Contido('MWM MOTORES', arq[0]) = false then begin
+    ShowMessage('Lista Inválida de Preços inválida!');
+    arq.Free;
+    lis.Free;
+    op.Free;
+    exit;
+  end;
+
+ { dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select cod, codbar, nome, p_venda from produto';
+  dm.IBselect.Open;
+
+  while not dm.IBselect.Eof do begin
+    prod.Add(dm.IBselect.FieldByName('codbar').AsString + ''+ dm.IBselect.FieldByName('cod').AsString);
+
+    dm.IBselect.Next;
+  end;   }
+
+  cds := TClientDataSet.Create(self);
+  cds.FieldDefs.Add('CODIGO', ftInteger);
+  cds.FieldDefs.Add('DESCRICAO_ATUAL', ftString, 60);
+  cds.FieldDefs.Add('REF_ATUAL', ftString, 30);
+  cds.FieldDefs.Add('PRECO_ATUAL', ftFloat);
+  cds.FieldDefs.Add('COD_FORNEC', ftString, 30);
+  cds.FieldDefs.Add('DESCRICAO_FORNECEDOR', ftString, 60);
+  cds.FieldDefs.Add('PRECO_FORNEC', ftFloat);
+  cds.CreateDataSet;
+
+  TcurrencyField(cds.FieldByName('PRECO_ATUAL')).DisplayFormat  :='###,##0.00';
+  TcurrencyField(cds.FieldByName('PRECO_FORNEC')).DisplayFormat :='###,##0.00';
+
+  marc := '0';
+  for i := 0 to arq.Count -1 do begin
+    lin := ';'+arq[i]+';';
+
+    LE_CAMPOS(lis, lin, ';', false);
+
+    if marc = '1' then begin
+      dm.IBselect.Close;
+      dm.IBselect.SQL.Text := 'select cod, codbar, nome, p_venda from produto where ((codbar = :codbar) or (refori = :codbar))';
+      dm.IBselect.ParamByName('codbar').AsString := ifthen(lis.Values['1'] = '', '-1', lis.Values['1']);
+      dm.IBselect.Open;
+
+
+      cds.Append;
+      cds.FieldByName('DESCRICAO_FORNECEDOR').AsString := LeftStr(REMOVE_ACENTO(lis.Values['2']), 60);
+      cds.FieldByName('COD_FORNEC').AsString           := LeftStr(lis.Values['1'], 30);
+      cds.FieldByName('PRECO_FORNEC').AsCurrency       := StrToCurrDef(trim(StringReplace(lis.Values['4'], '.', '', [rfReplaceAll])), 0);
+      if dm.IBselect.IsEmpty = false then begin
+        cds.FieldByName('CODIGO').AsString := dm.IBselect.FieldByName('cod').AsString;
+        cds.FieldByName('DESCRICAO_ATUAL').AsString  := dm.IBselect.FieldByName('nome').AsString;
+        cds.FieldByName('PRECO_ATUAL').AsCurrency    := dm.IBselect.FieldByName('p_venda').AsCurrency;
+        cds.FieldByName('REF_ATUAL').AsString  := dm.IBselect.FieldByName('codbar').AsString;
+      end;
+
+      cds.Post;
+    end;
+
+
+    if Contido('ELETRÔNICO', lin) then marc := '1';
+    if Contido('CATIVOS', lin) and (i > 5) then marc := '1';
+  end;
+
+  //cds.IndexFieldNames := 'CODIGO desc';
+  with cds.IndexDefs.AddIndexDef do begin
+    Name := 'codigo';
+    Fields := 'codigo';
+    Options := [ixDescending, ixCaseInsensitive];
+  end;
+
+  cds.IndexName := 'codigo';
+  cds.First;
+
+  form33 := tform33.Create(self);
+  form33.campobusca := 'codigo';
+  form33.DataSource1.DataSet := cds;
+  form33.DBGrid1.DataSource := form33.DataSource1;
+  form33.ShowModal;
+  form33.Free;
+
+
+  atu := funcoes.dialogo('generico', 0, 'SN' + #8, 50, true, 'S', application.Title, 'Deseja ATUALIZAR os PREÇOS pela tabela da MWM ? S-SIM N-NAO', '');
+  if ((atu = '*') or (atu = 'N')) then exit;
+
+  cds.First;
+  form19.RichEdit1.Clear;
+  addRelatorioForm19(funcoes.RelatorioCabecalho(form22.Pgerais.Values['empresa'], 'Relatório de Mudanca de Precos de Estoques', 80));
+  addRelatorioForm19(CompletaOuRepete('|', 'COD|', ' ', 6) + CompletaOuRepete('DESCRICAO', '|', ' ', 34) + CompletaOuRepete('', 'PRECO ATUAL|', ' ', 14) + CompletaOuRepete('', 'PRECO NOVO|', ' ', 14) + CompletaOuRepete('', 'DIFERENCA|', ' ', 12) + CRLF);
+  addRelatorioForm19(CompletaOuRepete('', '', '-', 80) + CRLF);
+
+
+  while not cds.Eof do begin
+    if ((StrNum(cds.FieldByName('codigo').AsString) <> '0') and (cds.FieldByName('PRECO_ATUAL').AsCurrency <> cds.FieldByName('PRECO_FORNEC').AsCurrency) and (cds.FieldByName('PRECO_FORNEC').AsCurrency > 0)) then begin
+      addRelatorioForm19(funcoes.CompletaOuRepete('', cds.FieldByName('codigo').AsString, ' ',
+          6) + ' ' + funcoes.CompletaOuRepete(LeftStr(cds.FieldByName('DESCRICAO_ATUAL').AsString, 33), '', ' ',
+          33) + funcoes.CompletaOuRepete('', FormatCurr('##,###,###0.000',
+          cds.FieldByName('PRECO_ATUAL').AsCurrency), ' ', 14) + funcoes.CompletaOuRepete('',
+          FormatCurr('##,###,###0.000', cds.FieldByName('PRECO_FORNEC').AsCurrency), ' ', 14) +
+          funcoes.CompletaOuRepete('', FormatCurr('0.00',
+          cds.FieldByName('PRECO_FORNEC').AsCurrency - cds.FieldByName('PRECO_ATUAL').AsCurrency), ' ', 12) +
+          #13 + #10);
+    end;
+
+    cds.Next;
+  end;
+
+  addRelatorioForm19(CompletaOuRepete('', '', '-', 80) + CRLF);
+  form19.ShowModal;
+
+
+
+  //ShowMessage(cds.FieldByName('DESCRICAO_ATUAL').AsString);
+  //busca(tfdquery(cds), 'CODIGO', 'CODIGO', 'CODIGO', 'CODIGO');
+
+end;
 
 
 end.

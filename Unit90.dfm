@@ -13,6 +13,7 @@ object Form90: TForm90
   Font.Style = []
   OldCreateOrder = False
   Position = poScreenCenter
+  OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
@@ -46,7 +47,6 @@ object Form90: TForm90
     OnKeyPress = ComboBox1KeyPress
     Items.Strings = (
       '7,00'
-      '10,00'
-      '')
+      '10,00')
   end
 end

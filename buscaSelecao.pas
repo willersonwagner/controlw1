@@ -284,7 +284,7 @@ begin
     begin
       tot := tot + DBGrid1.Columns.Items[i].Width + 20;
     end;
-  if tot <> 0 then self.Width := tot + 500;
+  if tot <> 0 then self.Width := tot + 530;
   funcoes.aumentaFonte(self, true, 0, true);
 
   ShowScrollBar(DbGrid1.Handle, SB_VERT, FALSE);

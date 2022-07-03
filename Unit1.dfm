@@ -716,4 +716,16 @@ object dm: Tdm
     Left = 392
     Top = 216
   end
+  object IBselect2: TFDQuery
+    Connection = bd
+    Transaction = IBTransaction2
+    Left = 392
+    Top = 272
+  end
+  object IBselect3: TFDQuery
+    Connection = bd
+    Transaction = IBTransaction2
+    Left = 448
+    Top = 216
+  end
 end

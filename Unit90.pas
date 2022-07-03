@@ -11,6 +11,7 @@ type
     ComboBox1: TComboBox;
     Label1: TLabel;
     procedure ComboBox1KeyPress(Sender: TObject; var Key: Char);
+    procedure FormShow(Sender: TObject);
   private
     { Private declarations }
   public
@@ -19,7 +20,7 @@ type
   end;
 
 var
-  Form90: TForm90;
+  Form90 : TForm90;
 
 implementation
 
@@ -32,6 +33,15 @@ begin
     retorno := 'N';
     close;
   end;
+end;
+
+procedure TForm90.FormShow(Sender: TObject);
+begin
+  if FileExists(ExtractFileDir(ParamStr(0)) + '\taxa.dat') then begin
+   ComboBox1.Items.LoadFromFile(ExtractFileDir(ParamStr(0)) + '\taxa.dat');
+   ComboBox1.ItemIndex := 0;
+  end;
+
 end;
 
 end.

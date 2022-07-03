@@ -58,7 +58,7 @@ var
 implementation
 
 
-uses Unit1, principal;
+uses Unit1, principal, Unit89;
 
 {$R *.dfm}
 function TForm44.getRetorno : TStringList;
@@ -91,7 +91,7 @@ begin
 
   dm.IBselect.Close;
   dm.IBselect.SQL.Clear;
-  dm.IBselect.SQL.Add('select p.cod, c.nome, p.quant, p.p_venda, p.total from item_venda p, produto c where (c.cod = p.cod) and (p.nota = :nota)');
+  dm.IBselect.SQL.Add('select p.cod, c.nome, p.quant, p.p_venda, p.total from item_venda p left join produto c on (c.cod = p.cod) where (p.nota = :nota)');
   dm.IBselect.ParamByName('nota').AsString := strnum(DBGrid1.DataSource.DataSet.fieldbyname('nota').AsString);
   dm.IBselect.Open;
   funcoes.FormataCampos(dm.ibselect, 2,'',2);
@@ -373,6 +373,18 @@ procedure TForm44.FormKeyDown(Sender: TObject; var Key: Word;
 begin
   if ((ssCtrl in Shift) and (chr(Key) in [#46])) then begin
     limpaVendas;
+  end;
+
+  if ((key = 121) and (opcao = 1)) then begin
+    if Contido('CAMALEAO', form22.Pgerais.Values['empresa']) then begin
+      form89 := TForm89.Create(self);
+      form89.dini := formataDataDDMMYY(form22.datamov);
+      form89.dfim := formataDataDDMMYY(form22.datamov);
+      form89.ShowModal;
+      form89.Free;
+
+       abreDataSet(true);
+    end;
   end;
 end;
 

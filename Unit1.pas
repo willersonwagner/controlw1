@@ -108,6 +108,8 @@ type
     ACBrTEFAPI1: TACBrTEFAPI;
     ACBrPixCD1: TACBrPixCD;
     IBselect1: TFDQuery;
+    IBselect2: TFDQuery;
+    IBselect3: TFDQuery;
     procedure TabelaOrdemCalcFields(DataSet: TDataSet);
     procedure ACBrNFeGerarLog(const Mensagem: String);
     procedure DataModuleCreate(Sender: TObject);

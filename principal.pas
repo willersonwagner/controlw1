@@ -247,6 +247,7 @@ if key=#27 then
        except                                          // com ip do computador que este pc vai buscar a hora e atualizar a hora do windows
        end;
 
+
        funcoes.GeraTemas; //funcao que le os temas do BD, imagem da tela principal e outras configuracoes
 
        codusario      := dm.IBQuery1.fieldbyname('cod').AsString ;
@@ -266,6 +267,7 @@ if key=#27 then
        except
        end;
 
+       
        if funcoes.LerConfig(form22.Pgerais.Values['configu'], 18) = 'S' then begin
          Pgerais.Values['acesso'] := acs;
        end;
@@ -277,6 +279,7 @@ if key=#27 then
        except
        end;
 
+      
        UnidInteiro := funcoes.buscaUnidadesFracionadas;
 
        try
@@ -304,6 +307,7 @@ if key=#27 then
            end;
        end;
 
+     
        if acs <> '' then
          begin
                 //ShowMessage('Verifique os Níveis de Acesso em Ultilitários > Níveis de Acesso');
@@ -518,83 +522,11 @@ end;
 
 procedure Tform22.Button2Click(Sender: TObject);
 var
-  //op : TOpenDialog;
-  codbar, cb1, nPAG, valor : string;
-  cont : integer;
   arq : TStringList;
+  op : TOpenDialog;
+  novoarq : String;
 begin
-  ShowMessage(FormatDateTime('yyyy', now));
-
-  exit;
-  valor := InputBox('','','');
- {
-  cont := 0;
-  while True do begin
-    inc(cont);                  qu
-    cb1 := criarQrcode(StrToCurr(valor), 'VENDA 10', 'CHAVE');
-
-    if Contido('|200|', cb1) then break;
-
-    //gera um novo token
-    if Contido('|401|', cb1) then cb1 := gerarAcessToken;
-    if cont = 4 then break;
-  end;
-
-  if Contido('|-1|', cb1) then begin
-    ShowMessage('Retorno Inválido, Verifique a Internet!');
-    exit;
-  end;
-
-
-
-  LE_CAMPOS(arq, cb1,'|', true);
-
-
-
-  qrcodePIX := arq.Values['2'];
-  form84.Label2.Caption := arq.Values['4'];
-  form84.txid := arq.Values['0'];
-  form84.Label2.Caption := 'AGUARDANDO PAGAMENTO..';
-  //form84.Label3.Visible := false;
-
-
-
-  form84.cont := 3;
-  //form84.Show;
-
-  exit;       }
-
-  arq := TStringList.Create;
-  cont := 0;
-  while True do begin
-    inc(cont);
-
-    funcoes.PIXcriarCobranca(StrToCurr(valor), 'TESTE DE SISTEMA 1', 'a1f4102e-a446-4a57-bcce-6fa48899c1d1', arq);
-    qrcodePIX := arq.Values['qrcode'];
-    form84.Label2.Caption := 'Estado: ...' ;
-    form84.txid := arq.Values['txid'];
-
-    if (arq.Values['ret'] = '200') or (arq.Values['ret'] = '201') then break;
-    if cont = 3 then break;
-
-
-    if arq.Values['ret'] = '401' then begin
-      funcoes.PIXacessToken;
-      arq.Clear;
-    end;
-
-    sleep(1000);
-  end;
-
-  if qrcodePIX  = '' then begin
-    ShowMessage('sem informação de cobrança');
-    exit;
-  end;
-
-  form84.Label3.Caption := 'Aguardando Pagamento';
-  form84.cont := 3;
-  Form84.ShowModal;
-  arq.Free;
+  funcoes.RotinaImportarListaMWM;
 end;
 
 procedure Tform22.Button3Click(Sender: TObject);
