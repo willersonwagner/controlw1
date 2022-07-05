@@ -1972,8 +1972,7 @@ begin
   form33.ClientDataSet1.FieldByName('cont').Visible := False;
   form33.ClientDataSet1.First;
 
-  TCurrencyField(form33.ClientDataSet1.FieldByName('preco')).DisplayFormat :=
-    '#,###,###0.00';
+  TCurrencyField(form33.ClientDataSet1.FieldByName('preco')).DisplayFormat :='#,###,###0.00';
   TCurrencyField(form33.ClientDataSet1.FieldByName('quant')).DisplayFormat :=
     '#,###,###0.00';
   TCurrencyField(form33.ClientDataSet1.FieldByName('saldo')).DisplayFormat :=
@@ -31114,11 +31113,14 @@ procedure Tfuncoes.OrdenarTStringList2(var Valores: TStringList);
 var i, j : integer;
     temp : string;
 begin
+ 
   j := Valores.Count - 1;
+  if j = 0 then exit;
+  
   //for i := 0 to j do
   i := 0;
   while true do begin
-    i := i + 1;
+
     if i = j then break;
 
     if StrToIntDef(Valores.Names[i], 0) > StrToIntDef(Valores.Names[i + 1], 0) then begin
@@ -31133,6 +31135,7 @@ begin
         //break;
       end;
 
+    i := i + 1;
   end;
 
 
@@ -31307,6 +31310,7 @@ begin
     ShowMessage('Lista Inválida de Preços inválida!');
     arq.Free;
     lis.Free;
+    prod.Free;
     op.Free;
     exit;
   end;
@@ -31383,10 +31387,6 @@ begin
   form33.ShowModal;
   form33.Free;
 
-
-  atu := funcoes.dialogo('generico', 0, 'SN' + #8, 50, true, 'S', application.Title, 'Deseja ATUALIZAR os PREÇOS pela tabela da MWM ? S-SIM N-NAO', '');
-  if ((atu = '*') or (atu = 'N')) then exit;
-
   cds.First;
   form19.RichEdit1.Clear;
   addRelatorioForm19(funcoes.RelatorioCabecalho(form22.Pgerais.Values['empresa'], 'Relatório de Mudanca de Precos de Estoques', 80));
@@ -31394,8 +31394,10 @@ begin
   addRelatorioForm19(CompletaOuRepete('', '', '-', 80) + CRLF);
 
 
+  i := 0;
   while not cds.Eof do begin
     if ((StrNum(cds.FieldByName('codigo').AsString) <> '0') and (cds.FieldByName('PRECO_ATUAL').AsCurrency <> cds.FieldByName('PRECO_FORNEC').AsCurrency) and (cds.FieldByName('PRECO_FORNEC').AsCurrency > 0)) then begin
+      i := i + 1;
       addRelatorioForm19(funcoes.CompletaOuRepete('', cds.FieldByName('codigo').AsString, ' ',
           6) + ' ' + funcoes.CompletaOuRepete(LeftStr(cds.FieldByName('DESCRICAO_ATUAL').AsString, 33), '', ' ',
           33) + funcoes.CompletaOuRepete('', FormatCurr('##,###,###0.000',
@@ -31409,9 +31411,52 @@ begin
     cds.Next;
   end;
 
+  if i = 0 then begin
+    ShowMessage('Nenhum produto Encontrado pra atualizar!');
+    arq.Free;
+    lis.Free;
+    prod.Free;
+    op.Free;
+    exit;
+  end;
+
   addRelatorioForm19(CompletaOuRepete('', '', '-', 80) + CRLF);
   form19.ShowModal;
 
+  atu := funcoes.dialogo('generico', 0, 'SN' + #8, 50, true, 'S', application.Title, 'Deseja ATUALIZAR os PREÇOS pela tabela da MWM ? S-SIM N-NAO', '');
+  if ((atu = '*') or (atu = 'N')) then begin
+    arq.Free;
+    lis.Free;
+    prod.Free;
+    op.Free;
+    exit;
+  end;
+
+  cds.First;
+  i := 0;
+  while not cds.Eof do begin
+    if ((StrNum(cds.FieldByName('codigo').AsString) <> '0') and (cds.FieldByName('PRECO_ATUAL').AsCurrency <> cds.FieldByName('PRECO_FORNEC').AsCurrency) and (cds.FieldByName('PRECO_FORNEC').AsCurrency > 0)) then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := 'update produto set p_venda = :p_venda where cod = :cod';
+      dm.IBQuery1.ParamByName('p_venda').AsCurrency := cds.FieldByName('PRECO_FORNEC').AsCurrency;
+      dm.IBQuery1.ParamByName('cod').AsInteger      := StrToIntDef(cds.FieldByName('codigo').AsString, 0);
+      dm.IBQuery1.ExecSQL;
+      i := i + 1;
+    end;
+
+    cds.Next;
+  end;
+
+  arq.Free;
+  lis.Free;
+  prod.Free;
+  op.Free;
+
+  if i > 0  then begin
+    dm.IBQuery1.Transaction.Commit;
+  end;
+
+  ShowMessage(inttostr(i)+' Preços de produtos atualizados!');
 
 
   //ShowMessage(cds.FieldByName('DESCRICAO_ATUAL').AsString);

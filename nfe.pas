@@ -1230,6 +1230,10 @@ begin
   nf := funcoes.dialogo('generico',0,'1234567890'+#8,50,false,'','Control For Windows','Informe o Número da Nota Fiscal Eletrônica:', te);
   if nf = '*' then exit;
 
+  serie := funcoes.dialogo('not', 0, '1234567890' + #8 + #32, 50, true, '',application.Title, 'Qual a Série ?', IntToStr(SerieNFe));
+  if serie = '*' then exit;
+
+
   {dm.IBselect.Close;
   dm.IBselect.SQL.Clear;
   dm.IBselect.SQL.Add('select * from nfe where nota = :nota');
@@ -1249,13 +1253,18 @@ begin
   }
 
   nf1 := nf;
-  nf  := funcoes.recuperaChaveNFe(nf);
+  nf  := funcoes.recuperaChaveNFe(nf, serie);
 
   if nf = '' then
     begin
       ShowMessage('Não foi Encontrado NFe com este Número de Nota');
       exit;
     end;
+
+  generator := 'NFE';
+
+  if StrToIntDef(getSerieNFe, 0) > 1 then generator := generator + getSerieNFe;
+
 
   contador := 0;
   funcoes.Mensagem(Application.Title ,'Aguarde, Consultando NFe...',15,'Courier New',false,0,clred, false);
@@ -1287,8 +1296,8 @@ begin
             end;
           end;
 
-          if StrToInt(Incrementa_Generator('nfe', 0)) = ACBrNFe.NotasFiscais[0].NFe.Ide.nNF then begin
-            Incrementa_Generator('nfe', 1);
+          if StrToInt(Incrementa_Generator(generator, 0)) = ACBrNFe.NotasFiscais[0].NFe.Ide.nNF then begin
+            Incrementa_Generator(generator, 1);
           end;
 
           pergunta1.Visible := false;
@@ -1307,9 +1316,9 @@ begin
           end;
       end;
 
-    if StrToInt(Incrementa_Generator('nfe', 0)) = ACBrNFe.NotasFiscais[0].NFe.Ide.nNF then
+    if StrToInt(Incrementa_Generator(generator, 0)) = ACBrNFe.NotasFiscais[0].NFe.Ide.nNF then
       begin
-        Incrementa_Generator('nfe', 1);
+        Incrementa_Generator(generator, 1);
       end;
 
     imprimirNFe();
@@ -4368,8 +4377,13 @@ begin
         //fecha a tela de carregando
         funcoes.mensagemEnviandoNFCE('', false, true);
 
+
         if ((funcoes.Contido('DUPLICIDADE DE NF-E', UpperCase(erro_dados))) or (csta = 204) or (csta = 539)) THEN begin
-          trataDuplicidadeNFe(dm.ACBrNFe.WebServices.Retorno.xMotivo, true);
+
+          erro_dados := ACBrNFe.WebServices.Enviar.xMotivo;
+          if trim(erro_dados) = '' then erro_dados := ACBrNFe.WebServices.Consulta.XMotivo;
+
+          trataDuplicidadeNFe(erro_dados, true);
 
           erro_dados := '';
 
@@ -4839,6 +4853,8 @@ begin
 
   chaveRecuperada := chavb.chave;
 
+
+  //ShowMessage('chavb=' + chavb.chave);
   //if chavb.nnf
   {if not FileExists(pastaControlW+ 'nfe\emit\' + chavb.chave + '-nfe.xml')  then
     begin

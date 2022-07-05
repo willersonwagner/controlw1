@@ -416,6 +416,7 @@ type
     CadastrodeEntregador1: TMenuItem;
     ControledeEntregador1: TMenuItem;
     Entregador1: TMenuItem;
+    AtualizarPreoMWM1: TMenuItem;
     procedure LimparBloqueios1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure CadastrarUsurio1Click(Sender: TObject);
@@ -719,6 +720,7 @@ type
     procedure CadastrodeEntregador1Click(Sender: TObject);
     procedure ControledeEntregador1Click(Sender: TObject);
     procedure Entregador1Click(Sender: TObject);
+    procedure AtualizarPreoMWM1Click(Sender: TObject);
   private
     b, cont: integer;
     ini: Smallint;
@@ -10013,6 +10015,7 @@ begin
     form36.teclas.Add('1234567890' + #8); //17
     form36.teclas.Add('SN'); // 18
     form36.teclas.Add('SN'); // 18
+    form36.teclas.Add('SN'); // 20
 
     form36.tipo.Add('numero');
     form36.tipo.Add('generico');
@@ -10033,6 +10036,7 @@ begin
     form36.tipo.Add('generico'); // 16
     form36.tipo.Add('generico');   //17
     form36.tipo.Add('generico');   //18
+    form36.tipo.Add('generico');   //19
     form36.tipo.Add('generico');   //19
 
 
@@ -10056,6 +10060,7 @@ begin
     form36.troca.Add('S');
     form36.troca.Add('S');
     form36.troca.Add('S');
+    form36.troca.Add('S');//20
 
     form36.ListBox1.Items.Add
       ('0-Qual o Desconto Máximo Permitido (de 0 a 99%)?');
@@ -10084,6 +10089,7 @@ begin
     form36.ListBox1.Items.Add('17-Quantas Casas Decimais no Preço de Venda na Rotina de Vendas(Padrao 3) ?');
     form36.ListBox1.Items.Add('18-Usar Nivel de Acesso Personalizado ?');
     form36.ListBox1.Items.Add('19-Gerenciamento de Entregador ?');
+    form36.ListBox1.Items.Add('20-Permitir Exclusao de Cliente ?');
 
 
     form36.configu := dm.ibselect.FieldByName('configu').AsString;
@@ -15517,6 +15523,11 @@ begin
   application.Terminate;
 end;
 
+procedure TForm2.AtualizarPreoMWM1Click(Sender: TObject);
+begin
+  funcoes.RotinaImportarListaMWM;
+end;
+
 procedure TForm2.AtualizarTabelaIBPT1Click(Sender: TObject);
 begin
   funcoes.atualizaTabelaIBPT(true);
@@ -15576,9 +15587,6 @@ procedure TForm2.RecuperarNota1Click(Sender: TObject);
 begin
   NfeVenda := TNfeVenda.Create(self);
   try
-    if funcoes.buscaParamGeral(36, '') <> 'N' then
-      NfeVenda.RecuperarNota('')
-    else
       NfeVenda.RecuperarNota1('');
   except
     on e: exception do

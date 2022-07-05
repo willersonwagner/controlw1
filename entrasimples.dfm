@@ -534,7 +534,7 @@ object Form17: TForm17
         Caption = 
           'F3-Reajustar Pre'#231'o Venda F8-Consulta/F6-Altera Dados Nota/F5-Con' +
           'sulta Produtos/F9-Recebe Nota'#13#10'F10-Import. NFE/F11 Recalcular En' +
-          'tradas/F12-Contas a Pagar'
+          'tradas/F12-Contas a Pagar/F5-Atualiza Pre'#231'o MWM'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = -11

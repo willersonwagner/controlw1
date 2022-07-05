@@ -25,6 +25,7 @@ object Form33: TForm33
     Width = 556
     Height = 290
     Align = alClient
+    BorderStyle = bsNone
     DataSource = DataSource1
     Font.Charset = ANSI_CHARSET
     Font.Color = clWindowText
@@ -40,6 +41,7 @@ object Form33: TForm33
     TitleFont.Height = -11
     TitleFont.Name = 'MS Sans Serif'
     TitleFont.Style = []
+    StyleElements = [seFont, seClient]
     OnDrawColumnCell = DBGrid1DrawColumnCell
     OnKeyDown = DBGrid1KeyDown
     OnKeyPress = DBGrid1KeyPress

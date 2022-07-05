@@ -11292,6 +11292,7 @@ object Form2: TForm2
     Height = 25
     Caption = 'ok'
     TabOrder = 3
+    Visible = False
     OnClick = Button2Click
   end
   object Button3: TButton
@@ -12576,6 +12577,10 @@ object Form2: TForm2
         object ControledeEntregador1: TMenuItem
           Caption = 'Controle de Entregador'
           OnClick = ControledeEntregador1Click
+        end
+        object AtualizarPreoMWM1: TMenuItem
+          Caption = 'Atualizar Pre'#231'o MWM'
+          OnClick = AtualizarPreoMWM1Click
         end
       end
       object ParmetrosGerais1: TMenuItem

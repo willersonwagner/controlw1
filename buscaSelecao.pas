@@ -56,6 +56,21 @@ var
   val, total, ent : currency;
   query : TFDQuery;
 begin
+  
+  if campolocalizaca = 'entregador' then begin
+   if key = #13 then begin
+     funcoes.retornoLocalizar := DBGrid1.DataSource.DataSet.FieldByName('entregador').AsString;
+     close;
+   end;
+
+   if key = #27 then begin
+     funcoes.retornoLocalizar := '*';
+     close;
+   end;
+   exit;
+ end;
+
+
 
   if campobusca = 'dataVenda' then begin
     if key = #13 then begin
@@ -87,6 +102,7 @@ begin
    end;
 
    if key = #27 then begin
+
      funcoes.retornoLocalizar := '';
      close;
    end;
@@ -286,6 +302,8 @@ begin
     end;
   if tot <> 0 then self.Width := tot + 530;
   funcoes.aumentaFonte(self, true, 0, true);
+
+  Width := Width + 30;
 
   ShowScrollBar(DbGrid1.Handle, SB_VERT, FALSE);
   ShowScrollBar(DbGrid1.Handle, SB_HORZ, false);

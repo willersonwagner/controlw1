@@ -546,9 +546,9 @@ begin
   end;
 
   query1.Close;
-  query1.SQL.text := 'select * from nfe where nota = :nota';
-  query1.ParamByName('nota').AsString :=
-    IntToStr(ACBrNFe.NotasFiscais[0].nfe.Ide.nnf);
+  query1.SQL.text := 'select * from nfe where (nota = :nota) and (substring(chave from 23 for 3) = :serie)';
+  query1.ParamByName('nota').AsString  := IntToStr(ACBrNFe.NotasFiscais[0].nfe.Ide.nnf);
+  query1.ParamByName('serie').AsString := CompletaOuRepete('',IntToStr(ACBrNFe.NotasFiscais[0].nfe.Ide.serie), '0', 3);
   query1.Open;
 
   if trim(query1.fieldbyname('ESTADO').AsString) = 'C' then

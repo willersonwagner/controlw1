@@ -1341,6 +1341,11 @@ end;
 procedure TForm17.FormKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
+  if key = 116 then begin
+     funcoes.RotinaImportarListaMWM;
+  end;
+
+
   if key = 117 then //F6
      begin
        codbar.Text := '';

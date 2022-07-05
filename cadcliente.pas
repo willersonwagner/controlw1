@@ -245,7 +245,7 @@ begin
   if verificaCadastroExiste(true) = false then exit;
   
   ies.Text := StrNum(ies.Text);
-  att := ativo.Enabled;
+  att      := ativo.Enabled;
   ativo.Enabled := true;
   email.Text := LowerCase(email.Text);
   valor_a_retornar := JsEdit.GravaNoBD(self);
@@ -258,11 +258,16 @@ var
   val : currency;
 begin
    val := VERIFICA_CONTAS_PENDENTES_TRUE_TEM;
-   if val > 0 then
-     begin
-       ShowMessage('Este Usuário nâo pode Ser Excluído' + #13 + 'Contas Não Pagas R$: ' + formataCurrency(val));
-       exit;
-     end;
+   if val > 0 then begin
+     ShowMessage('Este Cliente nâo pode Ser Excluído' + #13 + 'Contas Não Pagas R$: ' + formataCurrency(val));
+     exit;
+   end;
+
+   if funcoes.LerConfig(form22.Pgerais.Values['configu'], 20) = 'N' then begin
+     ShowMessage('Usuário sem permissão para Exclusão de cliente!');
+     exit;
+   end;
+
    jsedit.ExcluiDoBD(self.Name);
 end;
 

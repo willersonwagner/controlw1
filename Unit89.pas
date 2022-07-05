@@ -40,7 +40,7 @@ var
 
 implementation
 
-uses Unit1, principal, func, Unit90;
+uses Unit1, principal, func, Unit90, buscaSelecao;
 
 procedure TForm89.abreDataSet();
 begin
@@ -272,15 +272,32 @@ begin
 
   dm.IBselect2.FieldByName('cod').Visible := false;
   dm.IBselect2.FieldByName('cod1').Visible := false;
+  TCurrencyField(dm.IBselect2.FieldByName('valor')).DisplayFormat :='#,###,###0.00';
 
-  ini := funcoes.busca(dm.IBselect2, 'entregador1', 'entregador', 'entregador', '');
+  //ini := funcoes.busca(dm.IBselect2, 'entregador1', 'entregador', 'entregador', '');
+  form33 := tform33.Create(self);
+  form33.campolocalizaca := 'entregador';
+  funcoes.CtrlResize(TForm(form33));
+  form33.DataSource1.DataSet := dm.IBselect2;
+  form33.DBGrid1.DataSource := form33.DataSource1;
+  form33.ShowModal;
+
+  if funcoes.retornoLocalizar = '*' then begin
+    form33.Free;
+    exit;
+  end;
+
+  form33.Free;
+  
+
+  ini    := dm.IBselect2.FieldByName('entregador').AsString;
   ultcod := dm.IBselect2.FieldByName('cod').AsString;
   mincod := dm.IBselect2.FieldByName('cod1').AsString;
   valor  := dm.IBselect2.FieldByName('valor').AsCurrency;
 
   if ini = '' then exit;
 
-  id := MessageDlg('Deseja Efetuar o Pagamento de ' + formataCurrency(valor)+ ' para ' + dm.IBselect2.FieldByName('cod').AsString +'-' + dm.IBselect2.FieldByName('nome').AsString +' ?', mtConfirmation, [mbYes, mbNo],1, mbNo);
+  id := MessageDlg('Deseja Efetuar o Pagamento de ' + formataCurrency(valor)+ ' para ' + dm.IBselect2.FieldByName('entregador').AsString +'-' + dm.IBselect2.FieldByName('nome').AsString +' ?', mtConfirmation, [mbYes, mbNo],1, mbNo);
 
   if id = IDNO then begin
     dm.IBselect2.Close;
@@ -317,6 +334,7 @@ begin
       exit;
     end;
   end;
+
   dm.IBQuery1.Transaction.Commit;
 
 
