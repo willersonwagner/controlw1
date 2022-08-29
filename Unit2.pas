@@ -2873,7 +2873,7 @@ begin
   dm.ibselect.Close;
   dm.ibselect.SQL.Clear;
   dm.ibselect.SQL.Add
-    ('SELECT SUM(QUANT * P_COMPRA) AS QUANT_COMPRA, SUM(QUANT * P_VENDA) AS QUANT_VENDA, SUM(DEPOSITO * P_VENDA) AS DEP_VENDA, SUM(DEPOSITO * P_COMPRA) AS DEP_COMPRA FROM PRODUTO');
+    ('SELECT SUM(iif(quant > 0, (QUANT * P_COMPRA), 0)) AS QUANT_COMPRA, SUM(iif(quant > 0, '+'(QUANT * P_VENDA), 0)) AS QUANT_VENDA, SUM(iif(DEPOSIto > 0, (DEPOSITO * P_VENDA), 0)) AS DEP_VENDA, SUM(iif(DEPOSIto > 0, (DEPOSITO * P_COMPRA), 0)) AS DEP_COMPRA FROM PRODUTO');
   dm.ibselect.Open;
 
   addRelatorioForm19(funcoes.CompletaOuRepete
@@ -2937,8 +2937,8 @@ begin
   if sim = '*' then
     exit;
 
-  imp_pre := funcoes.dialogo('generico', 0, '12', 0, false, 'S',
-    'Control For Windows', 'Imprimir Preço (1-Varejo 2-Atacado)?', '1');
+  imp_pre := funcoes.dialogo('generico', 0, '123', 0, false, 'S',
+    'Control For Windows', 'Imprimir Preço (1-Varejo 2-Atacado 3-Não)?', '1');
   if imp_pre = '*' then
     exit;
 
@@ -2982,7 +2982,7 @@ begin
   dm.ProdutoQY.SQL.Text :=
     'select cod,unid as UN,emb,codbar,nome as DESCRICAO, ' +
     IfThen(imp_pre = '1', 'p_venda', 'p_venda1') +
-    ' as Preco, quant as ESTOQUE,fabric,fornec,grupo from produto where (cod > 0) '
+    ' as Preco, quant as ESTOQUE,fabric,fornec,grupo, localiza from produto where (cod > 0) '
     + h1 + h2 + h3 + h4 + ' order by nome';
   dm.ProdutoQY.Open;
   dm.ProdutoQY.FetchAll;
@@ -3009,14 +3009,10 @@ begin
     try
       addRelatorioForm19(funcoes.CompletaOuRepete('',
         dm.ProdutoQY.FieldByName('COD').AsString, '0', 6) + '  ' +
-        funcoes.CompletaOuRepete(LeftStr(dm.ProdutoQY.FieldByName('DESCRICAO')
-        .AsString, 39), '|', '_', 41) + funcoes.CompletaOuRepete('',
+        funcoes.CompletaOuRepete(LeftStr(dm.ProdutoQY.FieldByName('DESCRICAO').AsString, 39), '|', '_', 41) + funcoes.CompletaOuRepete('',
         IfThen(sim = 'S', FormatCurr('#,###,###0.000',
         StrToCurr(dm.ProdutoQY.FieldByName('estoque').AsString)), '') + ' |',
-        IfThen(sim = 'S', ' ', '_'), 17) + funcoes.CompletaOuRepete(' ',
-        FormatCurr('#,###,###0.00', StrToCurr(dm.ProdutoQY.FieldByName('PRECO')
-        .AsString)) + ' |', ' ', 17) + funcoes.CompletaOuRepete('_', '|', '_',
-        20) + funcoes.CompletaOuRepete('_', '|', '_', 30) + CRLF);
+        IfThen(sim = 'S', ' ', '_'), 17) + funcoes.CompletaOuRepete(' ',IfThen(imp_pre <> '3', FormatCurr('#,###,###0.00', StrToCurr(dm.ProdutoQY.FieldByName('PRECO').AsString)), '') + ' |', IfThen(imp_pre <> '3', ' ', '_'), 17) + funcoes.CompletaOuRepete('_', '|', '_',20) + IfThen(imp_pre <> '3', funcoes.CompletaOuRepete('_', '|', '_', 30), funcoes.CompletaOuRepete('_', '|', '_', 20) + funcoes.CompletaOuRepete(dm.ProdutoQY.FieldByName('localiza').AsString, '|', ' ', 10)) + CRLF);
       addRelatorioForm19(funcoes.CompletaOuRepete('|', '|', ' ', 49) +
         funcoes.CompletaOuRepete(' ', '|', ' ', 17) + funcoes.CompletaOuRepete
         (' ', '|', ' ', 17) + funcoes.CompletaOuRepete(' ', '|', ' ', 20) +
@@ -11109,7 +11105,7 @@ begin
       Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10))));
 
   //altera vendas do dia no caixa
-  //funcoes.acertaVendaDoDiaAVistaNoCaixa(ini, fim,StrToCurr(totais.Values['1']) - totEntradaCaixaNaVenda);
+  funcoes.acertaVendaDoDiaAVistaNoCaixa(ini, fim,StrToCurr(totais.Values['1']) - totEntradaCaixaNaVenda);
 
   addRelatorioForm19('EMISSAO: ' + FormatDateTime('DD/MM/YY', now) + ' ' + data
     + CRLF + CRLF);

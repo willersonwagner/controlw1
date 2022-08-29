@@ -509,8 +509,14 @@ var
   mu, codTMP : integer;
   cod, cod1 : String;
 begin
-  cod := //funcoes.localizar('Localizar Unidades', 'unid', 'UNID_ENT, UNID_SAI', 'UNID_ENT, UNID_SAI', '', 'UNID_ENT', 'UNID_ENT', false, false, false, '', 0, nil);
-  funcoes.localizar1('Localizar Unidades','unid','UNID_ENT, UNID_SAI' ,'UNID_ENT, UNID_SAI' ,'' ,'UNID_ENT','UNID_ENT',false,false,false,'UNID_ENT', unidadeTemp,0, nil);
+  try
+    cod := funcoes.localizar1('Localizar Unidades','unid','UNID_ENT, UNID_SAI' ,'UNID_ENT, UNID_SAI' ,'' ,'UNID_ENT','UNID_ENT',false,false,false,'UNID_ENT', unidadeTemp,0, nil);
+  except
+    on e:exception do begin
+      ShowMessage('erro516: ' + e.Message);
+      exit;
+    end;
+  end;
 
   if ((cod = '*') or (cod = '')) then exit;
 
@@ -530,7 +536,14 @@ begin
   dm.IBselect.Open;
   }
 
-  qtd := funcoes.verValorUnidade(cod);
+  try
+    qtd := funcoes.verValorUnidade(cod);
+  except
+    on e:exception do begin
+      ShowMessage('erro543: ' + e.Message);
+      exit;
+    end;
+  end;
   //dm.IBselect.Close;
 
   unidadeTemp := cod;

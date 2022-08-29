@@ -352,7 +352,6 @@ object Form4: TForm4
     PersistTokens.Section = 'TOKENS'
     PersistTokens.Key = '.\DTOKENS.INI'
     Logging = True
-    LogLevel = llDetail
     OnUploadProgress = TMSFMXCloudDropBox1UploadProgress
     OnConnected = TMSFMXCloudDropBox1Connected
     AuthFormSettings.CloseButtonCaption = 'Close'
@@ -360,6 +359,7 @@ object Form4: TForm4
     AuthFormSettings.Width = 900
     AuthFormSettings.Height = 600
     OnAuthFormClose = TMSFMXCloudDropBox1AuthFormClose
+    Language = dlPortuguese
     UploadMode = umOverwrite
     Left = 96
     Top = 240
@@ -379,8 +379,8 @@ object Form4: TForm4
     AuthFormSettings.Width = 900
     AuthFormSettings.Height = 600
     OnAuthFormClose = TMSFMXCloudDropBox1AuthFormClose
-    Left = 240
-    Top = 264
+    Left = 280
+    Top = 288
   end
   object TMSFMXCloudGDrive1: TTMSFMXCloudGDrive
     Agent = 'Mozilla/5.001 (windows; U; NT4.0; en-US; rv:1.0) Gecko/25250101'
@@ -401,6 +401,7 @@ object Form4: TForm4
     AuthFormSettings.Width = 900
     AuthFormSettings.Height = 600
     OnAuthFormClose = TMSFMXCloudDropBox1AuthFormClose
+    Locale = lcPortuguese
     Left = 240
     Top = 24
   end
@@ -567,8 +568,8 @@ object Form4: TForm4
     AuthFormSettings.Width = 900
     AuthFormSettings.Height = 600
     OnAuthFormClose = TMSFMXCloudDropBox1AuthFormClose
-    Left = 41
-    Top = 336
+    Left = 89
+    Top = 128
   end
   object FDIBBackup1: TFDIBBackup
     DriverLink = FDPhysFBDriverLink1

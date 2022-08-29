@@ -1902,6 +1902,7 @@ begin
     strnum(query1.fieldbyname('telres').AsString);
   dadosEmitente.Values['cid'] := query1.fieldbyname('cid').AsString;
 
+
   if nnf <> '' then
   begin
     codNF := StrToIntDef(strnum(nnf), 0);
@@ -1933,7 +1934,7 @@ begin
     query1.Close;
     query1.SQL.Clear;
     query1.SQL.Add('select * from cliente where cod = :cod');
-    query1.ParamByName('cod').AsString := codDest;
+    query1.ParamByName('cod').AsString := StrNum(codDest);
     query1.Open;
     dadosDest.Values['cod'] := '*';
   end
@@ -3305,15 +3306,18 @@ begin
     except
       on e: Exception do
       begin
+        ShowMessage('erro3308:' +e.Message);
         gravaERRO_LOG1('', e.Message,
           'ACBrNFe.Configuracoes.Geral.FormaEmissao := teNormal; LINHA 2590');
       end;
     end;
 
+
     serie1 := IntToStr(serie2);
     /// //GERAR NFC-e:
 
     xml := GerarNFCeTexto(nota, cliente1);
+
 
     GravarTexto(buscaPastaNFCe(CHAVENF, false) + CHAVENF + '-nfe.xml', xml);
 
@@ -6274,7 +6278,7 @@ begin
   // Result := 'NFe' + Result;
 
   CHAVENF := Result;
-
+ 
   if ((a = 1) and (chaveRecria <> CHAVENF)) then begin
     query1.Close;
     query1.SQL.Text := 'update nfce set chave = :nova where chave = :velha';
@@ -7313,6 +7317,7 @@ begin
   Result := '';
   Result := query1.fieldbyname('venda').AsString;
 
+  query1.Transaction.Commit;
   query1.Close;
 end;
 

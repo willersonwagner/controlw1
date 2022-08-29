@@ -384,7 +384,7 @@ begin
   Application.ProcessMessages;
 
   rdg := 1;//gdrive
-  rdg := 0;//dropbox
+  //rdg := 0;//dropbox
   ConnectBtnClick(self);
 
   Memo1.Lines.Add(FormatDateTime('hh:mm:ss', now) + ' Conectado com Sucesso!');
@@ -488,8 +488,8 @@ begin
   {TMSFMXCloudgdrive1.App.Key := '494112256923-r3j76nefc21jnli6osumv5p8dro5qeg4.apps.googleusercontent.com';
   TMSFMXCloudgdrive1.App.Secret := 'lxsTV-P-xR09EI6CERjG_yjk';}
 
-  TMSFMXCloudgdrive1.App.Key := '972879408805-2nebleqb8ufv2pvsghc1pk1n0use86g2.apps.googleusercontent.com';
-  TMSFMXCloudgdrive1.App.Secret := 'Rrn2ZM1hS0CctvKV8GHJbAE3';
+  TMSFMXCloudgdrive1.App.Key := '494112256923-r3j76nefc21jnli6osumv5p8dro5qeg4.apps.googleusercontent.com';
+  TMSFMXCloudgdrive1.App.Secret := 'lxsTV-P-xR09EI6CERjG_yjk';
   TMSFMXCloudgdrive1.PersistTokens.Key := fn + 'gdrive.ini';
 
   TMSFMXCloudBoxNetDrive1.App.Key := BoxNetAppKey;

@@ -310,7 +310,7 @@ begin
   try
   dtmMain.IBQuery1.Close;
   dtmMain.IBQuery1.SQL.Text := 'select cliente, total, desconto, codhis, vendedor from venda where nota = :nota';
-  dtmMain.IBQuery1.ParamByName('nota').AsString := nota_venda;
+  dtmMain.IBQuery1.ParamByName('nota').AsString := strnum(nota_venda);
   dtmMain.IBQuery1.Open;
 
   if dtmMain.IBQuery1.IsEmpty then
@@ -322,7 +322,7 @@ begin
 
   dtmMain.IBQuery2.Close;
   dtmMain.IBQuery2.SQL.Text := 'select nome from vendedor where cod = :cod';
-  dtmMain.IBQuery2.ParamByName('cod').AsString := dtmMain.IBQuery1.fieldbyname('vendedor').AsString;
+  dtmMain.IBQuery2.ParamByName('cod').AsString := strnum(dtmMain.IBQuery1.fieldbyname('vendedor').AsString);
   dtmMain.IBQuery2.Open;
 
   if not dtmMain.IBQuery2.IsEmpty then
@@ -333,7 +333,7 @@ begin
 
   dtmMain.IBQuery2.Close;
   dtmMain.IBQuery2.SQL.Text := 'select nome, cnpj, ende from cliente where cod = :cod';
-  dtmMain.IBQuery2.ParamByName('cod').AsString := dtmMain.IBQuery1.fieldbyname('cliente').AsString;
+  dtmMain.IBQuery2.ParamByName('cod').AsString := strnum(dtmMain.IBQuery1.fieldbyname('cliente').AsString);
   dtmMain.IBQuery2.Open;
 
   //aqui ja abriu cupom com ou sem os dados do cliente  
@@ -342,7 +342,7 @@ begin
   dtmMain.IBQuery2.SQL.Text := 'select i.unid,i.cod, i.codbar, i.quant, i.p_venda, p.p_compra as compra, p.p_venda as venda, i.total, p.nome, a.aliq, a.cod as cod_aliq from item_venda i ' +
   '  left join produto p on (p.cod = i.cod) left join aliq a on (a.cod = iif(trim(p.aliquota) = '''', 2, cast(p.aliquota as integer)))' +
   ' where nota = :nota';
-  dtmMain.IBQuery2.ParamByName('nota').AsString := nota_venda;
+  dtmMain.IBQuery2.ParamByName('nota').AsString := strnum(nota_venda);
   dtmMain.IBQuery2.Open;
 
   tot_ge      := 0;
@@ -405,7 +405,7 @@ begin
   except
     on e:exception do
       begin
-        MessageDlg('Erro: ' + e.Message, mtError, [mbOK], 1);
+        MessageDlg('Erro408: ' + e.Message, mtError, [mbOK], 1);
         exit;
       end;
   end;

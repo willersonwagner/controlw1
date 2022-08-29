@@ -184,12 +184,13 @@ begin
     NfeVenda.TAG_DI := TAG_DI;
 
     NfeVenda.frete.Values['0'] := funcoes.StrNum(FretePorConta.Text);
-    NfeVenda.tipo_frete := StrToInt(funcoes.StrNum(FretePorConta.Text));
+    NfeVenda.tipo_frete := StrToIntDef(funcoes.StrNum(FretePorConta.Text), 9);
     NfeVenda.TotalFrete := 0;
-    if FretePorConta.Text <> '9' then NfeVenda.TotalFrete := StrToCurr(funcoes.ConverteNumerico(vFrete));
+    if FretePorConta.Text <> '9' then NfeVenda.TotalFrete := StrToCurrDef(funcoes.ConverteNumerico(vFrete), 0);
    except
     on e:exception do begin
       ShowMessage('erro166: ' + e.Message);
+      exit;
     end;
   end;
 
@@ -212,6 +213,7 @@ begin
    except
     on e:exception do begin
       ShowMessage('erro188: ' + e.Message);
+      NfeVenda.Free;
     end;
   end;
 

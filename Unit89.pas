@@ -177,11 +177,23 @@ procedure TForm89.lancaEntrega;
 var
   cod_entreg, valor : String;
 begin
+  dm.IBselect3.Close;
+  dm.IBselect3.SQL.Text := 'select numvenda from entrega_novo where numvenda = :nota';
+  dm.IBselect3.ParamByName('nota').AsInteger := dm.IBselect.FieldByName('nota').AsInteger;
+  dm.IBselect3.Open;
+
+  if dm.IBselect3.IsEmpty = false then begin
+    abreDataSet;
+    abreDataSetConcluidos;
+    exit;
+  end;
+
   if dm.IBselect.IsEmpty then exit;
-  
+
   cod_entreg := funcoes.localizar('Localizar Entregador','entregador','cod,nome','cod','','nome','nome',false,false,false,'',300,NIL);
   if cod_entreg = '*' then exit;
   if cod_entreg = '' then exit;
+
 
   form90 := tform90.create(self);
   form90.ShowModal;

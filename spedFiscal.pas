@@ -1251,7 +1251,7 @@ begin
       dm.IBselect.SQL.Clear;
       dm.IBselect.Params.Clear;
       //dm.IBselect.SQL.Add('select i.cod,p.aliquota, i.CRED_ICMS, i.quant, i.p_compra, trim(i.unid)as unid, p.tipo_item from item_entrada i left join produto p on (p.cod = i.cod)'+
-      dm.IBselect.SQL.Add('select i.cod,p.aliquota, i.CRED_ICMS, i.quant, i.p_compra, trim(i.unid)as unid, p.tipo_item from item_entrada i left join produto p on (p.cod = i.cod)'+
+      dm.IBselect.SQL.Add('select i.cod,p.aliquota, i.CRED_ICMS, i.quant, i.p_compra, trim(i.unid)as unid, p.tipo_item, i.basecalculo from item_entrada i left join produto p on (p.cod = i.cod)'+
       ' where (i.nota = :nott) and (i.fornec = :fornec)');
       dm.IBselect.ParamByName('nott').AsInteger   := nota;
       dm.IBselect.ParamByName('fornec').AsInteger := COD_FOR;
@@ -1276,6 +1276,15 @@ begin
               tmp1 := listaProdutos.Add(TregProd.Create);
               ACUMULA_COD(dm.IBselect.fieldbyname('cod').AsString, UNID);
               VE_UNIDADE(unid);
+
+
+              if dm.IBselect.fieldbyname('basecalculo').AsCurrency > 0 then begin
+                listaProdutos[tmp1].BASE_ICM := dm.IBselect.fieldbyname('basecalculo').AsCurrency;
+              end;
+
+
+
+
               listaProdutos[tmp1].tipo_item := dm.IBselect.fieldbyname('tipo_item').AsString;
               listaProdutos[tmp1].cod       := dm.IBselect.fieldbyname('cod').AsInteger;
               listaProdutos[tmp1].quant    := quant;
@@ -1290,11 +1299,20 @@ begin
               listaProdutos[tmp1].descNT   := 0;
               listaProdutos[tmp1].descNT   := 0;
               listaProdutos[tmp1].aliqCred := dm.IBselect.fieldbyname('CRED_ICMS').AsCurrency;
+       
             end
           else
             begin
               listaProdutos[tmp1].quant := listaProdutos[tmp1].quant + quant;
               listaProdutos[tmp1].total := listaProdutos[tmp1].total + TOT_ITEM;
+
+
+              if dm.IBselect.fieldbyname('basecalculo').AsCurrency > 0 then begin
+                listaProdutos[tmp1].BASE_ICM := listaProdutos[tmp1].BASE_ICM + dm.IBselect.fieldbyname('basecalculo').AsCurrency;
+              end;
+
+
+
             end;
 
           TOT := TOT + TOT_ITEM;
@@ -1302,7 +1320,8 @@ begin
           dm.IBselect.Next;
         end;
 
-      //FreeAndNil(prod);
+
+    //FreeAndNil(prod);
 
       // A MATRIZ DADOS_ADIC JÁ ESTA POPULADA COM OS 7 VALORES DE DADOS ADICIONAIS
       // 1-FRETE, 2-SEGURO 3-DESCONTO, 4-DESC. NAO TRIB, 5-DESP. ACESS., 6-PIS ST, 7-COFINS ST
@@ -1431,6 +1450,11 @@ begin
        if DADOS_ADIC[11] > 0 then begin //credICMS Reais dados adicionais
          PERC_ICMS := listaProdutos[ini].PERC_ICM;
          BASE_ICM  := listaProdutos[ini].total - listaProdutos[ini].descCom;
+         if listaProdutos[ini].BASE_ICM > 0 then begin
+           BASE_ICM := listaProdutos[ini].BASE_ICM;
+         end;
+
+
          TRIB      := '00';
        end
        else begin
@@ -1439,6 +1463,10 @@ begin
          //BASE_ICM := IfThen(TRIB = '00', TOT_ITEM - dsProduto.fieldbyname('descCom').AsCurrency, 0);//MAT_ITENS[INI, 4] - MAT_ITENS[INI, 6], 0) //TIRANDO APENAS DESCONTO COMERCIAL DA BASE DE CALCULO
          BASE_ICM := IfThen(TRIB = '00', TOT_ITEM - listaProdutos[ini].descCom, 0);//MAT_ITENS[INI, 4] - MAT_ITENS[INI, 6], 0) //TIRANDO APENAS DESCONTO COMERCIAL DA BASE DE CALCULO
          if COD_ALIQ = '0' then COD_ALIQ := '2';
+
+         if listaProdutos[ini].BASE_ICM > 0 then begin
+           BASE_ICM := listaProdutos[ini].BASE_ICM;
+         end;
 
 	       //VERIFICA SE FOI INFORMADA ALIQUOTA DE CREDITO DE ICMS EM DADOS ADICIONAIS DA NF (TERMO 8) E O PRODUTO É TRIBUTADO
 	       //CALCULA O CREDITO POR ESTA ALIQUOTA INFORMADA EM DADOS_ADICIONAIS
@@ -1450,6 +1478,11 @@ begin
        if listaProdutos[ini].aliqCred > 0 then begin
          PERC_ICMS := listaProdutos[ini].aliqCred;
          BASE_ICM  := listaProdutos[ini].total - listaProdutos[ini].descCom;
+
+         if listaProdutos[ini].BASE_ICM > 0 then begin
+           BASE_ICM := listaProdutos[ini].BASE_ICM;
+         end;
+
          TRIB      := '00';
        end;
 

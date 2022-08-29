@@ -1341,7 +1341,7 @@ end;
 procedure TForm17.FormKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
-  if key = 116 then begin
+  if key = 115 then begin
      funcoes.RotinaImportarListaMWM;
   end;
 

@@ -66,7 +66,9 @@ procedure Tmfd.BitBtn1Click(Sender: TObject);
 var
   im : TPrintDialog;
 begin
-  if tipoIMPRESSAO = 1 then
+  //ShowMessage();
+
+  if ((tipoIMPRESSAO = 1) and (FileExists(ExtractFileDir(ParamStr(0))  + '\impnormal.dat') = false)) then
     begin
       imprimeESCPOS;
       exit;
@@ -84,7 +86,7 @@ var
   ini, fim  : integer;
   PrintText : TextFile;
 begin
-  if tipoIMPRESSAO = 1 then
+  if ((tipoIMPRESSAO = 1) and (FileExists(ExtractFileDir(ParamStr(0))  + '\impnormal.dat') = false)) then
     begin
       imprimeESCPOS;
       exit;

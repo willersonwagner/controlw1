@@ -1544,7 +1544,7 @@ end;
 
 function TNfeVenda.Reimpressao1 : string;
 var
-  texto, nf, just, nfOri, serie, nomeGen : string;
+  texto, nf, just, nfOri, serie, nomeGen, homolog : string;
 begin
   nf := IntToStr(StrToIntDef(funcoes.BuscaNumeracaoNFeSerie(nomeGen), 1) -1);
   nf := funcoes.dialogo('generico',0,'1234567890'+#8,50,false,'','Control For Windows','Informe o Número da Nota Fiscal Eletrônica:', nf);
@@ -1553,7 +1553,10 @@ begin
   serie := funcoes.dialogo('not', 0, '1234567890' + #8 + #32, 50, true, '',application.Title, 'Qual a Série ?', IntToStr(SerieNFe));
   if serie = '*' then exit;
 
-  nf := funcoes.buscaChaveNFe(nf, serie);
+  homolog := funcoes.dialogo('generico',0,'12'+#8,50,false,'S','Control For Windows','Qual o Tipo(1-Produção 2-Homologação)', '1');
+  if homolog = '*' then exit;
+
+  nf := funcoes.buscaChaveNFe(nf, serie, homolog);
 
   if nf = '' then nf := funcoes.buscaNFEsPorCPF_CNPJ('');
 

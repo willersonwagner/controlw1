@@ -6375,11 +6375,11 @@ begin
       if ((codhis = '2') and (Parcelamento.Count = 0)) then
       begin
         Parcelamento := funcoes.Parcelamento(total1, '*', JsEdit1.Text);
+        entrada := StrToCurrDef(Parcelamento.Values['entrada'], 0);
       end;
 
       EXPORTADO := 0;
       // inicia exportado com zero( EXPORTADO = 0, NAO FOI EXPORTADO PARA O PAF. EXPORTADO = 1, FOI EXPORTADO PARA O PAF)
-
 
       if separaPecas then
       begin

@@ -66,6 +66,7 @@ object Form2: TForm2
     OnCellClick = DBGrid2CellClick
   end
   object Venda: TFDQuery
+    Connection = dtmMain.bd
     Transaction = dtmMain.IBTransaction1
     SQL.Strings = (
       
@@ -76,6 +77,7 @@ object Form2: TForm2
     Top = 96
   end
   object itens: TFDQuery
+    Connection = dtmMain.bd
     Transaction = dtmMain.IBTransaction1
     Left = 272
     Top = 136

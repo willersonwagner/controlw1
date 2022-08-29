@@ -766,7 +766,7 @@ begin
      dm.IBQuery1.Open;
      except
        on e:exception do begin
-         ShowMessage('erro757: ' + e.Message);
+         ShowMessage('erro757: ' + e.Message + #13 + #13 + dm.IBQuery1.SQL.Text);
        end;
      end;
 

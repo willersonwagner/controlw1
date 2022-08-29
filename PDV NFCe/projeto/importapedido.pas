@@ -46,6 +46,8 @@ uses untDtmMain;
 {$R *.dfm}
 procedure TForm2.abreVenda(const nota : String);
 begin
+  venda.Close;
+  venda.SQL.Text := 'select nota, data, cliente, (select nome from cliente c where  c.cod = v.cliente) as nome, total from venda v where ok = '''' order by nota desc';
   venda.Open;
   FormataCampos(venda, 2, '',2);
   if nota <> '' then venda.Locate('nota', nota, []);
@@ -76,7 +78,7 @@ begin
   itens.Close;
   itens.SQL.Text := 'select i.cod, (select nome from produto p where p.cod = i.cod) as nome, i.p_venda as preco, i.total from item_venda i where nota = :nota';
   try
-    itens.ParamByName('nota').AsString := venda.fieldbyname('nota').AsString;
+    itens.ParamByName('nota').AsString := StrNum(venda.fieldbyname('nota').AsString);
     itens.Open;
   except
   end;
