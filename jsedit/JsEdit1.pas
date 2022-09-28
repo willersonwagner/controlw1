@@ -600,7 +600,7 @@ end;
 class function JsEdit.GravaNoBD(form:tform; usaGen : boolean = true; genName : string = ''; msgErro : boolean = true) : string;
 var
   ini, fim, ultCod, codAtual, tmp : integer; stringSql, PKTabela, 
-  sqlUpdate, condicao : String;
+  sqlUpdate, condicao, campos : String;
   arq : TStringList;
 begin
   //ultima atualização tirar verificação de código (codatual >= 0)and(codatual<=ultcod)
@@ -640,10 +640,12 @@ begin
     fim := RetornaIndiceDoUltimoCampo(form.Name);
     //pega os nomes dos campos
     tmp := RetornaIndiceDoPrimeiroCampo(form.Name);
+    campos := '-';
     for ini := tmp to fim do
       begin
-        if (JsEdit(lista.Items[ini]).Enabled) or (ini = tmp) then
+        if (((JsEdit(lista.Items[ini]).Enabled) or (ini = tmp)) and (pos('-'+JsEdit(lista.Items[ini]).Name+'-', campos) = 0)) then
           begin
+            campos := campos + JsEdit(lista.Items[ini]).Name + '-';
             stringSql := stringSql + JsEdit(lista.Items[ini]).Name;
             if (ini <> fim) then stringSql := stringSql + ', ';
           end;
@@ -651,10 +653,13 @@ begin
 
     stringSql := stringSql + ' ) values (';
     //pega os conteúdos dos campos
+
+    campos := '-';
     for ini := tmp to fim do
       begin
-        if (JsEdit(lista.Items[ini]).Enabled) or (ini = tmp) then
+        if (((JsEdit(lista.Items[ini]).Enabled) or (ini = tmp)) and (pos('-'+JsEdit(lista.Items[ini]).Name+'-', campos) = 0)) then
           begin
+            campos := campos + JsEdit(lista.Items[ini]).Name + '-';
             stringSql := stringSql + JsEdit.ConteudoDelimitado(lista.Items[ini]);
             if (ini <> fim) then stringSql := stringSql + ', ';
           end;

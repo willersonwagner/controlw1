@@ -2547,7 +2547,9 @@ begin
           cont := cont + 1;
           try
             dtmMain.ACBrPosPrinter1.AbrirGaveta;
-            break;
+
+            //if cont > 5 then
+             break;
           finally
           end;
 

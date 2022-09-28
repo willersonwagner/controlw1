@@ -12582,6 +12582,10 @@ object Form2: TForm2
           Caption = 'Atualizar Pre'#231'o MWM'
           OnClick = AtualizarPreoMWM1Click
         end
+        object CorrigirNCMsInvlidos1: TMenuItem
+          Caption = 'Corrigir NCMs Inv'#225'lidos'
+          OnClick = CorrigirNCMsInvlidos1Click
+        end
       end
       object ParmetrosGerais1: TMenuItem
         Caption = 'Par'#226'metros Gerais'

@@ -15,6 +15,7 @@ object Form58: TForm58
   KeyPreview = True
   OldCreateOrder = False
   Position = poScreenCenter
+  OnClose = FormClose
   OnKeyDown = FormKeyDown
   OnShow = FormShow
   PixelsPerInch = 96

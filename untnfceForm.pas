@@ -7875,7 +7875,7 @@ begin
   dias := StrToIntDef(pgerais.Values['79'], 2);
   if dias < 2 then dias := 2;
 
-  if abs(DaysBetween(query1.fieldbyname('data').AsDateTime, now)) >= dias then begin
+  if ((abs(DaysBetween(query1.fieldbyname('data').AsDateTime, now)) >= dias) and (notas <> '')) then begin
     MessageDlg('O Sistema só pode Emitir NFCe quando As Notas Forem Enviadas: '
       + #13 + notas, mtInformation, [mbOK], 1);
     exit;
@@ -9142,8 +9142,7 @@ begin
     if cnpj <> '' then site := 'http://controlw.blog.br/si2/data.php?cnpj=' + cnpj
     else site := 'http://controlw.blog.br/si2/data.php'  ;
 
-    Form72.IdHTTP1.Request.UserAgent :=
-      'Mozilla/5.0 (Windows NT 5.1; rv:2.0b8) Gecko/20100101 Firefox/4.0b8';
+    Form72.IdHTTP1.Request.UserAgent := 'Mozilla/5.0 (Windows NT 5.1; rv:2.0b8) Gecko/20100101 Firefox/4.0b8';
     Form72.IdHTTP1.HTTPOptions := [hoForceEncodeParams];
     th := Form72.IdHTTP1.Get(site);
     Form72.IdHTTP1.Disconnect;
@@ -9160,6 +9159,8 @@ begin
     Result := true;
     arq := TStringList.Create;
     LE_CAMPOS(arq, th, '|', false);
+
+    //arq.SaveToFile('1.txt');
 
     Data := EncodeDate(StrToInt(arq.Values['2']), StrToInt(arq.Values['1']),
       StrToInt(arq.Values['0'])) + EncodeTime(StrToInt(arq.Values['3']),

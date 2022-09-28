@@ -4557,6 +4557,8 @@ begin
 
   funcoes.ImprimirPedidoVias(1, Modo_Orcamento);
 
+  //imprime.notaVenda := novocod;
+
   if ((funcoes.buscaParamGeral(118, 'N') = 'S') and (Modo_Venda) and (tipo = 'T')) then begin
     funcoes.imprimeEnderecoEntregaCodEndereco(novocod, ENDE_ENTREGA);
   end;
@@ -6569,6 +6571,7 @@ begin
       begin
         IF NOT separaPecas THEN
         begin
+          //param 23 é pra voltar pro login
           if saidaDeEstoque <> true then
             //funcoes.voltarLogin(TForm(self));
             form2.nota := 'SAI';
@@ -9400,6 +9403,11 @@ procedure TForm20.impNovo(TIPO1 : SMALLINT = 1);
 var
   tipo : String;
 begin
+  funcoes.ultimaVenda := novocod;
+  if Modo_Orcamento then funcoes.tipo1       := 2
+  else if Modo_Venda then funcoes.tipo1      := 1;
+       
+
 
   tipo := form22.Pgerais.Values['nota'];
 

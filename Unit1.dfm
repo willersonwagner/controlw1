@@ -728,4 +728,17 @@ object dm: Tdm
     Left = 448
     Top = 216
   end
+  object FDTransaction1: TFDTransaction
+    Options.AutoStop = False
+    Options.StopOptions = [xoIfCmdsInactive]
+    Connection = bd
+    Left = 704
+    Top = 87
+  end
+  object queryThread: TFDQuery
+    Connection = bd
+    Transaction = FDTransaction1
+    Left = 704
+    Top = 32
+  end
 end

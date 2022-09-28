@@ -25,6 +25,7 @@ type
     procedure segnTimer(Sender: TObject);
     procedure timerThreadTimer(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
     { Private declarations }
 
@@ -50,6 +51,14 @@ begin
   //form84 := form84.Create(Application);
   form84.Show;
   //form84.Free;
+end;
+
+procedure TForm58.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  try
+    threadDesbloqueio.Terminate;
+  except
+  end;
 end;
 
 procedure TForm58.FormKeyDown(Sender: TObject; var Key: Word;

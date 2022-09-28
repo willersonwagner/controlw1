@@ -183,14 +183,14 @@ type
   public
     arqPIX : TStringList;
     retornobusca: string;
-    inicio1: Smallint;
+    inicio1, tipo1: Smallint;
     cds1: TClientDataSet;
     botao: TsButton;
     lista1, notaNFe, fornecNFe: string;
     valordg: string;
     formpato: string;
     info, infadic: string;
-    retornoLocalizar, bloq: string;
+    retornoLocalizar, bloq, ultimaVenda, reimpressaoPNorte : string;
     ReParcelamento: tstringList;
     OK: boolean;
     Simbolos: array [0 .. 4] of String;
@@ -219,7 +219,7 @@ type
     procedure salvaRicheditForm19comoPDF;
     procedure enviaArquivoGdrive(arq : string);
     function ver_limites(CodUsu: string;AserAdicionadoNaContaDoClitente: currency): currency;
-    procedure imprimeVendaFortesA4(numVenda1 : String;venda : SmallInt = 1);
+    procedure imprimeVendaFortesA4(numVenda1 : String;venda : SmallInt = 1; setImpressora : boolean = true);
     procedure imprimeCompraFortesA4(numVenda1 : String;venda : SmallInt = 1);
     procedure DownloadSincronizacaoDeEstoqueOnline;
     procedure sincronizacaoDeEstoqueOnline;
@@ -609,6 +609,8 @@ type
     procedure atualizaBD;
     procedure adicionaConfig(valorQueProvavelmenteExiste, NovoValor: string);
     function verificaPermissaoPagamento(const abreTelaBloqueado
+      : boolean = true; abrirDialogo : boolean = true): String;
+    function   verificaPermissaoPagamentoThread(const abreTelaBloqueado
       : boolean = true; abrirDialogo : boolean = true): String;
     FUNCTION IMP_CODBAR(const cod: String): boolean;
     FUNCTION IMP_CODBAR1(const cod: String): boolean;
@@ -3152,9 +3154,9 @@ begin
 
   //ShowMessage(th);
 
-   {arq := TStringList.Create;
-   arq.Text := th;
-   arq.SaveToFile(ExtractFileDir(ParamStr(0) + '\tex.txt'));}
+   arq := TStringList.Create;
+   {arq.Text := th;
+   arq.SaveToFile(ExtractFileDir(ParamStr(0)) + '\tex.txt');  }
 
   dm.IBselect.Close;
   try
@@ -3166,7 +3168,8 @@ begin
     Result := th;
     IdHTTP1.Disconnect;
 
-    LE_CAMPOS(arq, th, '|', true);
+    arq.Clear;
+    LE_CAMPOS(arq, th, '|', false);
 
     //ShowMessage(arq.Text);
     dm.IBselect.Close;
@@ -7373,6 +7376,7 @@ var
 begin
   query := TFDQuery.Create(self);
   query.Connection := dm.bd;
+  query.Transaction := dm.IBQuery1.Transaction;
   Result := '';
 
   if demo then exit;
@@ -7380,6 +7384,8 @@ begin
   try
     tmpi := '';
     tmpi := funcoes.addRegSite('', query, abrirDialogo);
+
+    //ShowMessage(tmpi);
 
     if tmpi = '' then
       exit;
@@ -7394,6 +7400,86 @@ begin
     begin
       funcoes.limpaBloqueado(query1);
     end;
+
+
+    if funcoes.Contido('-BLOQUEADO-', tmpi) then
+    begin
+      if funcoes.Contido('-2-', tmpi) then
+      begin
+        adicionaRegistrosBloqueio;
+      end;
+
+
+      try
+        dias := StrToIntDef(tmt.Values['3'], 15);
+        if dias = 0 then
+          dias := 15;
+      except
+        dias := 15;
+      end;
+
+
+      funcoes.adicionaRegistroDataBloqueio(abreTelaBloqueado, true, dias,query, true);
+    end;
+
+    if funcoes.Contido('-DESBLOQUEADO-', tmpi) then
+    begin
+      funcoes.limpaBloqueado(query);
+    end;
+
+
+  except
+   on e:exception do begin
+     try
+       pergunta1.close;
+     finally
+     end;
+     query.Free;
+     Result := 'ERRO: ' + e.Message;
+     exit;
+   end;
+  end;
+
+  query.Free;
+end;
+
+function Tfuncoes.verificaPermissaoPagamentoThread(const abreTelaBloqueado
+  : boolean = true; abrirDialogo : boolean = true): String;
+var
+  th, tmt: tstringList;
+  arquivo1: TFileStream;
+  tst: boolean;
+  i, a, dias: integer;
+  tft, tmpi: string;
+  query: TFDQuery;
+begin
+  query := TFDQuery.Create(self);
+  query.Connection  := dm.bd;
+  query.Transaction := dm.IBQuery1.Transaction;
+  Result := '';
+
+  if demo then exit;
+
+  try
+    tmpi := '';
+    tmpi := funcoes.addRegSite('', query, abrirDialogo);
+
+    //ShowMessage(tmpi);
+
+    if tmpi = '' then
+      exit;
+
+    if funcoes.Contido('-4-', tmpi) then
+    begin
+      Result := '4';
+      exit;
+    end;
+
+    if funcoes.Contido('-6-', tmpi) then
+    begin
+      funcoes.limpaBloqueado(query1);
+    end;
+
 
     if funcoes.Contido('-BLOQUEADO-', tmpi) then
     begin
@@ -7410,6 +7496,7 @@ begin
         dias := 15;
       end;
 
+
       funcoes.adicionaRegistroDataBloqueio(abreTelaBloqueado, true, dias,query, true);
     end;
 
@@ -7418,14 +7505,17 @@ begin
       funcoes.limpaBloqueado(query);
     end;
 
+
   except
-    try
-     pergunta1.close;
-    finally
-    end;
-    query.Free;
-    Result := 'ERRO';
-    exit;
+   on e:exception do begin
+     try
+       pergunta1.close;
+     finally
+     end;
+     query.Free;
+     Result := 'ERRO: ' + e.Message;
+     exit;
+   end;
   end;
 
   query.Free;
@@ -11305,7 +11395,7 @@ begin
           ShowMessage('Erro 11146: ' + e.Message);
         end;
       end;
-    end;   }
+    end;
 
     if not VerSeExisteTRIGGERPeloNome('ALTERA_CAIXA_VENDA_AVIST1') then begin
       //dm.IBScript1.Close;
@@ -11328,7 +11418,7 @@ begin
           ShowMessage('Erro 11146: ' + e.Message);
         end;
       end;
-    end;
+    end;    }
 
     if not VerificaCampoTabela('ult_usu_alterado', 'CONTASRECEBER') then
     begin
@@ -11719,7 +11809,7 @@ begin
           ShowMessage('Erro 11146: ' + e.Message);
         end;
       end;
-    end;}
+    end;
 
     if not VerSeExisteTRIGGERPeloNome('ALTERA_CAIXA_VENDA_AVIST3') then begin
       //dm.IBScript1.Close;
@@ -11744,7 +11834,7 @@ begin
           ShowMessage('Erro 11146: ' + e.Message);
         end;
       end;
-    end;
+    end;      }
 
 
      if not VerificaCampoTabela('basecalculo', 'item_entrada') then begin
@@ -15563,8 +15653,7 @@ begin
 
       imprime.textx('texto.txt');
     end
-    else
-      form19.ShowModal;
+    else if EnviarImpressora = 'N' then form19.ShowModal;
   end;
 
   if tipo = 'V' then
@@ -16424,8 +16513,7 @@ begin
         funcoes.imprimeEnderecoEntregaCodEndereco(numNota, ENDE_ENTREGA);
       end;
     end
-    else
-      form19.ShowModal;
+    else if EnviarImpressora = 'N' then form19.ShowModal;
 
   end;
 
@@ -18957,7 +19045,6 @@ var
   too: integer;
   data: TDate;
 begin
-
   quer.Close;
   quer.SQL.text :=
     'select * from acesso where (acesso = ''diaBloq'') or (acesso = ''bloq'')';
@@ -18984,6 +19071,7 @@ begin
       quer.ExecSQL;
 
       quer.Transaction.Commit;
+
     end;
   end
   else
@@ -18995,7 +19083,6 @@ begin
         'update acesso set nfe = :nfe where (acesso = ''diaBloq'') or (acesso = ''bloq'')';
       quer.ParamByName('nfe').AsInteger := dias;
       quer.ExecSQL;
-
       quer.Transaction.Commit;
     end;
   end;
@@ -19019,6 +19106,7 @@ begin
     form58.Label2.caption := IntToStr(IfThen(too < 0, 0, too)) +
       ' dias Restantes';
     quer.Close;
+
 
     form58.ShowModal;
 
@@ -23368,15 +23456,19 @@ begin
 
   if (dias <= 5) then begin
       while true do begin
+        //ShowMessage('1');
         funcoes.Mensagem(Application.Title, 'Aguarde, Buscando Data...', 15, 'Courier New', False, 0, clRed);
 
-        Application.ProcessMessages;
+        //Application.ProcessMessages;
 
         try
           acertouData := acertaDataSite(ultDataMov1, BomDia, strnum(form22.Pgerais.Values['cnpj']));
-        finally
+          funcoes.Mensagem(Application.Title, '', 15, '',False, 0, clBlack, true);
+        except
           funcoes.Mensagem(Application.Title, '', 15, '',False, 0, clBlack, true);
         end;
+
+        //ShowMessage('data=' +DateToStr(ultDataMov1));
 
         funcoes.processaRetornoDataBloqueioPIX(bomdia);
 
@@ -30025,7 +30117,7 @@ begin
   end;
 end;
 
-procedure Tfuncoes.imprimeVendaFortesA4(numVenda1 : String;venda : SmallInt = 1);
+procedure Tfuncoes.imprimeVendaFortesA4(numVenda1 : String;venda : SmallInt = 1; setImpressora : boolean = true);
 var
   cliente, preview, nomevol, vendedor, entrada, nomeImp : String;
   arq : TStringList;
@@ -30037,6 +30129,7 @@ begin
   dm.IBselect.SQL.Text := 'select * from registro';
   dm.IBselect.Open;
 
+  imprime1.imprime.pedidoVendaA4.Clear;
   imprime1.imprime.RLLabel38.Caption := form22.Pgerais.Values['empresa'];
   imprime1.imprime.RLLabel39.Caption := dm.IBselect.FieldByName('ende').AsString + ' - ' + dm.IBselect.FieldByName('bairro').AsString + ' ' + dm.IBselect.FieldByName('cid').AsString + ' / ' +dm.IBselect.FieldByName('est').AsString;
   imprime1.imprime.RLLabel43.Caption := 'Fone: ' + dm.IBselect.FieldByName('telres').AsString + ' Cel: ' + dm.IBselect.FieldByName('telcom').AsString ;
@@ -30113,8 +30206,9 @@ begin
     if arq.Values['pd'] = 'N' then printDialog := false;
     if trim(preview) = '' then preview := 'S';
 
-    imprime1.imprime.pedidoVendaA4.Margins.LeftMargin := StrToIntDef(arq.Values['l'], 2);
-    imprime1.imprime.pedidoVendaA4.Margins.TopMargin  := StrToIntDef(arq.Values['t'], 10);
+    imprime1.imprime.pedidoVendaA4.Margins.LeftMargin  := StrToIntDef(arq.Values['l'], 2);
+    imprime1.imprime.pedidoVendaA4.Margins.RightMargin := StrToIntDef(arq.Values['r'], 2);
+    imprime1.imprime.pedidoVendaA4.Margins.TopMargin   := StrToIntDef(arq.Values['t'], 10);
   end
   else begin
     preview := 'S';
@@ -30213,13 +30307,15 @@ begin
 
   imprime1.imprime.DataSource1.DataSet := dm.ProdutoQY;
 
-  try
-    nomeImp := funcoes.LerConfig(form22.Pgerais.Values['imp'], 15);
-    //printer.PrinterIndex := StrToIntDef(funcoes.LerConfig(form22.Pgerais.Values['imp'], 0), 0);
-    setPrinterNOME(StrToIntDef(funcoes.LerConfig(form22.Pgerais.Values['imp'], 0), 0), nomeImp);
-    //setPrinter(StrToIntDef(funcoes.LerConfig(form22.Pgerais.Values['imp'], 0), 0), nomeImp);
-  except
+  if setImpressora then begin
+    try
+      nomeImp := funcoes.LerConfig(form22.Pgerais.Values['imp'], 15);
+      //printer.PrinterIndex := StrToIntDef(funcoes.LerConfig(form22.Pgerais.Values['imp'], 0), 0);
+      setPrinterNOME(StrToIntDef(funcoes.LerConfig(form22.Pgerais.Values['imp'], 0), 0), nomeImp);
+      //setPrinter(StrToIntDef(funcoes.LerConfig(form22.Pgerais.Values['imp'], 0), 0), nomeImp);
+    except
 
+    end;
   end;
 
   if funcoes.buscaParamGeral(5, 'N') = 'S' then begin
@@ -30236,6 +30332,7 @@ begin
   end;
 
 
+  //imprime1.imprime.pedidoVendaA4.
   // imprime1.imprime.RLReport2.PrintDialog := false;
   if preview = 'S' then begin
     imprime1.imprime.pedidoVendaA4.PreviewModal;

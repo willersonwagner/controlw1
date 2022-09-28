@@ -56,7 +56,32 @@ var
   val, total, ent : currency;
   query : TFDQuery;
 begin
-  
+  if campobusca = 'ncmclassif' then begin
+    if key = #13 then begin
+      doc := funcoes.dialogo('normal',0,'',2,true,'',Application.Title,'Qual o Novo NCM ?', '');
+      if length(trim(doc)) <> 8 then begin
+        ShowMessage('NCM Inválido!');
+        exit;
+      end;
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := 'update produto set classif = :cla where cod = :cod';
+      dm.IBQuery1.ParamByName('cla').AsString  := doc;
+      dm.IBQuery1.ParamByName('cod').AsInteger := DBGrid1.DataSource.DataSet.FieldByName('cod').AsInteger;
+      dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
+
+      DBGrid1.DataSource.DataSet.Delete;
+
+      form2.dataset.SaveToFile('ncm.xml');
+
+      exit;
+    end;
+  end;
+
+
+
+
   if campolocalizaca = 'entregador' then begin
    if key = #13 then begin
      funcoes.retornoLocalizar := DBGrid1.DataSource.DataSet.FieldByName('entregador').AsString;

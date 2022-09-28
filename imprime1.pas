@@ -6,7 +6,7 @@ uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, Printers,
   StdCtrls, ExtCtrls, imprNovo, ComCtrls, Richedit, charprinter, unit1, ACBrETQ, ACBrDevice,
   RLReport, RLBarcode, funcoesdav, RLRichText, Data.DB, RLPreviewForm,
-  RLFilters, RLPDFFilter, Vcl.Imaging.pngimage, ACBrETQClass;
+  RLFilters, RLPDFFilter, Vcl.Imaging.pngimage, ACBrETQClass, RLPrinters;
 
 type
 
@@ -203,7 +203,8 @@ type
     negrito : boolean;
     fontDif, imprimiu : boolean;
     tamaFonte, tamFontePadrao : integer;
-    cod, espac_dire, nomeSegundaImpressora, impOrcamentoSegundaImp : String;
+    cod, espac_dire, nomeSegundaImpressora, impOrcamentoSegundaImp, notaVenda : String;
+    fonteSegundaImp : integer;
     procedure impTxtMatricialUSB(ImplinhasFinal : boolean = true);
     procedure impTxtTAP(var texto : TStringList);
     procedure AtivarACBrETQ ;
@@ -464,6 +465,9 @@ begin
   if funcoes.LerConfig(tmp, 5) = 'S' then printer.Canvas.Font.Style := [fsbold];
   printer.Canvas.Font.Charset := OEM_CHARSET;
 
+  if nomeSegundaImpressora <> '' then printer.Canvas.Font.Size  := fonteSegundaImp;
+
+
   //for ini := 0 to StrToIntDef(funcoes.LerConfig(tmp, 7), 0) do form19.RichEdit1.Lines.Insert(0,'');
 
   //fim := Memo1.Lines.Count -1;
@@ -710,16 +714,45 @@ begin
 end;
 
 procedure timprime.textx(arquivo:string; ImplinhasFinal : boolean = true; nomeImpressora : String = '');
+var
+ tipoIMP2 : String;
+ tipo1 : SmallInt;
 begin
   textx1(arquivo, ImplinhasFinal);
 
   if funcoes.le_configTerminalWindows(0,'', 'IMP2') <> '' then begin
     try
       nomeSegundaImpressora := funcoes.le_configTerminalWindows(0,'', 'IMP2');
+      tipoIMP2              := funcoes.le_configTerminalWindows(0,'', 'tipoIMP2');
+      fonteSegundaImp       := StrToIntDef(funcoes.le_configTerminalWindows(0,'', 'TamFonteIMP2'), 10);
+
+      if ((funcoes.reimpressaoPNorte = '1') and (tipoIMP2 <> '')) then begin
+        funcoes.reimpressaoPNorte := '';
+        exit;
+      end;
+
+      if tipoIMP2 <> '' then begin
+        if tipoIMP2 = 'B' then begin
+          if funcoes.tipo1 = 2 then exit;
+          
+
+          RLPrinter.PrinterName := nomeSegundaImpressora;
+          funcoes.imprimeVendaFortesA4(funcoes.ultimaVenda, funcoes.tipo1, false);
+        end
+        else begin
+          funcoes.GeraNota(funcoes.ultimaVenda, tipoIMP2, 'X', 1);
+          textx1(arquivo, ImplinhasFinal);
+        end;
+        nomeSegundaImpressora := '';
+        exit;
+      end;
+
       if impOrcamentoSegundaImp = 'N' then begin
         impOrcamentoSegundaImp := '';
         exit;
       end;
+
+
       textx1(arquivo, ImplinhasFinal);
       impOrcamentoSegundaImp := '';
     finally

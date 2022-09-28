@@ -1282,9 +1282,6 @@ begin
                 listaProdutos[tmp1].BASE_ICM := dm.IBselect.fieldbyname('basecalculo').AsCurrency;
               end;
 
-
-
-
               listaProdutos[tmp1].tipo_item := dm.IBselect.fieldbyname('tipo_item').AsString;
               listaProdutos[tmp1].cod       := dm.IBselect.fieldbyname('cod').AsInteger;
               listaProdutos[tmp1].quant    := quant;
@@ -3887,7 +3884,13 @@ begin
           DATA_EMI := dm.IBselect.fieldbyname('data').AsDateTime;
 
           listaProdutos.Clear;
-          LE_XMLNFCE(dm.IBselect.fieldbyname('chave').AsString, listaProdutos, dm.IBQuery4, DadosNfe, TRIB_ALIQ_PIS, TRIB_ALIQ_COFINS);
+          try
+            LE_XMLNFCE(dm.IBselect.fieldbyname('chave').AsString, listaProdutos, dm.IBQuery4, DadosNfe, TRIB_ALIQ_PIS, TRIB_ALIQ_COFINS);
+          except
+           on e:exception do begin
+             ShowMessage('Erro3901: ' + e.Message + #13 + 'Num NFCe: ' + copy(dm.IBselect.fieldbyname('chave').AsString, 26, 9) + #13 + dm.IBselect.fieldbyname('chave').AsString);
+           end;
+          end;
           DATA_EMI := DadosNfe.data;
 
           if listaProdutos.Count > 0 then
