@@ -1324,6 +1324,8 @@ begin
 
     setQueryNFCe(lista);
 
+    versaoExecutavel := 'ControlW';
+
     LerConfiguracaoNFCe();
     dm.ACBrNFeDANFeRL1.MostraPreview := preview;
 
@@ -10958,8 +10960,7 @@ begin
         dm.IBQuery1.Close;
         dm.IBQuery1.SQL.Text :=
           'select f.nome, p.formapagto, p.valor from PAGAMENTOVENDA p left join FORMPAGTO f'
-          + ' on (f.cod = p.formapagto) where nota = ' + dm.ibselect.FieldByName
-          ('nota').AsString;
+          + ' on (f.cod = p.formapagto) where nota = ' + dm.ibselect.FieldByName('nota').AsString;
         dm.IBQuery1.Open;
 
         if dm.IBQuery1.IsEmpty = false then
@@ -10967,10 +10968,7 @@ begin
           i := 1;
           while not dm.IBQuery1.Eof do
           begin
-            totais.Values[dm.IBQuery1.FieldByName('formapagto').AsString] :=
-              CurrToStr(StrToCurrDef(totais.Values
-              [dm.IBQuery1.FieldByName('formapagto').AsString], 0) +
-              dm.IBQuery1.FieldByName('valor').AsCurrency);
+            totais.Values[dm.IBQuery1.FieldByName('formapagto').AsString] := CurrToStr(StrToCurrDef(totais.Values[dm.IBQuery1.FieldByName('formapagto').AsString], 0) + dm.IBQuery1.FieldByName('valor').AsCurrency);
 
             addRelatorioForm19
               ('>>> ' + strzero(dm.IBQuery1.FieldByName('formapagto').AsString,
@@ -23766,7 +23764,14 @@ begin
     formas.Add('11=Vale Refeicao');
     formas.Add('12=Vale Presente');
     formas.Add('13=Vale Combustivel');
-    formas.Add('99=Outro');
+    formas.Add('14=Duplicata Mercantil');
+    formas.Add('15=Boleto Bancario');
+    formas.Add('16=Deposito Bancario');
+    formas.Add('17=Pagamento Instantaneo(PIX)');
+    formas.Add('18=Transferencia bancaria, Carteira Digital');
+    formas.Add('19=Programa de fidelidade, Cashback, Credito Virtual');
+    formas.Add('90=Sem Pagamento');
+    formas.Add('99=Outros');
 
     arq.Clear;
     TOT := 0;

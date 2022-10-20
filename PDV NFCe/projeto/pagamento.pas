@@ -1,4 +1,4 @@
-ï»¿unit pagamento;
+unit pagamento;
 
 interface
 
@@ -6,7 +6,7 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Data.DB,
   Datasnap.DBClient, Vcl.Grids, Vcl.DBGrids, Vcl.ExtCtrls, Vcl.Buttons,
-  JsBotao1, JsEdit1, JsEditNumero1, func, ShellApi, FireDAC.Comp.Client;
+  JsBotao1, JsEdit1, JsEditNumero1, func, ShellApi;
 
 type
   TForm82 = class(TForm)
@@ -39,10 +39,8 @@ type
       Shift: TShiftState);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormKeyPress(Sender: TObject; var Key: Char);
-    procedure DBGrid1KeyPress(Sender: TObject; var Key: Char);
-    procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
-    restoRecebido : currency;
+
     function buscaForma(cod : String) : boolean;
     procedure adicionaFormaDePagamento();
     procedure buscaPagamentos;
@@ -53,7 +51,6 @@ type
     totalVenda : Currency;
     finalizou : Char;
     nota : integer;
-    query : TFDQuery;
     function somaTotal : currency;
     { Public declarations }
   end;
@@ -65,6 +62,10 @@ implementation
 
 {$R *.dfm}
 
+uses untVendaPDV, dmecf;
+
+
+
 procedure TForm82.somenteNumeros(var Key: Char);
 begin
   if Contido(Key, '1234567890' + #8 + #13 + #27) = False then
@@ -74,7 +75,6 @@ begin
 end;
 
 
-
 procedure TForm82.Edit1KeyPress(Sender: TObject; var Key: Char);
 begin
   somenteNumeros(key);
@@ -82,31 +82,26 @@ begin
 
   if key = #13 then begin
     if tedit(sender).Text = '' then begin
-      tedit(sender).Text := funcoes.LerFormPato(0, 'Forma de Pagamento', true );
+      tedit(sender).Text := form3.LerFormPato(0, 'Forma de Pagamento', true );
       if tedit(sender).Text = '*' then tedit(sender).Text := '';
     end;
 
     if tedit(sender).Text <> '' then begin
-      query.Close;
-      query.SQL.Text := 'select nome from FORMPAGTO where cod = :cod';
-      query.ParamByName('cod').AsInteger := StrToIntDef(tedit(sender).Text, 0);
-      query.Open;
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := 'select nome from FORMPAGTO where cod = :cod';
+      dm.IBQuery1.ParamByName('cod').AsInteger := StrToIntDef(tedit(sender).Text, 0);
+      dm.IBQuery1.Open;
 
-      if query.IsEmpty then begin
+      if dm.IBQuery1.IsEmpty then begin
         Label4.Caption := 'Forma Pagto Desconhecida';
         edit1.SelectAll;
         exit;
       end;
 
-      Label4.Caption := query.FieldByName('nome').AsString;
+      Label4.Caption := dm.IBQuery1.FieldByName('nome').AsString;
       JsEditNumero1.SetFocus;
     end;
   end;
-end;
-
-procedure TForm82.FormClose(Sender: TObject; var Action: TCloseAction);
-begin
-  JsEdit.LiberaMemoria(self);
 end;
 
 procedure TForm82.FormKeyDown(Sender: TObject; var Key: Word;
@@ -119,7 +114,7 @@ begin
 
   {if key = 113 then begin //f2
     if (somaTotal + JsEditNumero1.getValor) <> totalVenda then begin
-      if MessageDlg('O valor Pago Ã© diferente do Valor Recebido, Deseja Finalizar Mesmo Assim ?', mtConfirmation, [mbyes, mbno], 1, mbno) = mrno then exit;
+      if MessageDlg('O valor Pago é diferente do Valor Recebido, Deseja Finalizar Mesmo Assim ?', mtConfirmation, [mbyes, mbno], 1, mbno) = mrno then exit;
       finalizou := 'N';
     end
     else finalizou := 'S';
@@ -131,24 +126,24 @@ procedure TForm82.FormKeyPress(Sender: TObject; var Key: Char);
 begin
   if key = #27 then begin
     if (somaTotal + JsEditNumero1.getValor) <> totalVenda then begin
-      if MessageDlg('O valor Pago Ã© diferente do Valor Recebido, Deseja Finalizar Mesmo Assim ?', mtConfirmation, [mbyes, mbno], 1, mbno) = mrno then exit;
+      if MessageDlg('O valor Pago é diferente do Valor Recebido, Deseja Finalizar Mesmo Assim ?', mtConfirmation, [mbyes, mbno], 1, mbno) = mrno then exit;
       finalizou := 'N';
     end
     else begin
-      if checaPIX then begin
+     { if checaPIX then begin
 
         if funcoes.ProcessExists('PIX.EXE') = false then begin
           //ShowMessage('ini');
           ShellExecute(handle, 'open', PChar(ExtractFileDir(ParamStr(0)) +'\PIX.exe'), '', '', SW_SHOWNORMAL);
         end;
 
-        IF funcoes.recebePIX(ClientDataSet1valor.AsCurrency, 'VENDA '+ IntToStr(nota)) = 'OK' then begin
+        IF recebePIX(ClientDataSet1valor.AsCurrency, 'VENDA '+ IntToStr(nota)) = 'OK' then begin
           ShowMessage('PIX Recebido com Sucessso!');
         end
         else begin
           ShowMessage('PIX Nao Confirmado!');
           exit;
-        end;
+        end;     }
       end;
 
 
@@ -162,18 +157,16 @@ end;
 
 procedure TForm82.FormShow(Sender: TObject);
 begin
-  label8.Caption := 'Restante:';
-
   ClientDataSet1.Close;
   ClientDataSet1.CreateDataSet;
   ClientDataSet1.LogChanges := false;
 
-  query.Close;
-  query.SQL.Text := 'select total from venda where nota = :nota';
-  query.ParamByName('nota').AsInteger := nota;
-  query.Open;
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select total from venda where nota = :nota';
+  dm.IBselect.ParamByName('nota').AsInteger := nota;
+  dm.IBselect.Open;
 
-  if query.IsEmpty = false then totalVenda := query.FieldByName('total').AsCurrency;
+  if dm.IBselect.IsEmpty = false then totalVenda := dm.IBselect.FieldByName('total').AsCurrency;
 
   p_venda.Caption := formataCurrency(totalVenda);
   p_restante.Caption := formataCurrency(totalVenda);
@@ -215,13 +208,7 @@ begin
 
   ClientDataSet1.First;
   p_pago.Caption     := formataCurrency(Result);
-  restoRecebido      := totalVenda - Result;
-  p_restante.Caption := formataCurrency(restoRecebido);
-  {
-  if restoRecebido < 0 then begin
-    label8.Caption := 'Troco:';
-    p_restante.Caption := formataCurrency(abs(restoRecebido));
-  end;    }
+  p_restante.Caption := formataCurrency(totalVenda - Result);
 end;
 
 
@@ -286,34 +273,26 @@ begin
   end;
 end;
 
-procedure TForm82.DBGrid1KeyPress(Sender: TObject; var Key: Char);
-begin
-  if key = #13 then begin
-    if DBGrid1.DataSource.DataSet.IsEmpty then edit1.SetFocus;
-
-  end;
-end;
-
 procedure TForm82.buscaPagamentos;
 begin
-  query.Close;
-  query.SQL.Text := 'select p.formapagto as cod, p.valor, f.nome from PAGAMENTOVENDA p left join formpagto f on (f.cod = p.formapagto) where p.nota = :nota';
-  query.ParamByName('nota').AsInteger := nota;
-  query.Open;
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select p.formapagto as cod, p.valor, f.nome from PAGAMENTOVENDA p left join formpagto f on (f.cod = p.formapagto) where p.nota = :nota';
+  dm.IBselect.ParamByName('nota').AsInteger := nota;
+  dm.IBselect.Open;
 
-  if query.IsEmpty then begin
-    query.Close;
+  if dm.IBselect.IsEmpty then begin
+    dm.IBselect.Close;
     exit;
   end;
 
-  while not query.Eof do begin
+  while not dm.IBselect.Eof do begin
     ClientDataSet1.Append;
-    ClientDataSet1.FieldByName('cod').AsString     := query.FieldByName('cod').AsString;
-    ClientDataSet1.FieldByName('nome').AsString    := query.FieldByName('nome').AsString;
-    ClientDataSet1.FieldByName('valor').AsCurrency := query.FieldByName('valor').AsCurrency;
+    ClientDataSet1.FieldByName('cod').AsString     := dm.IBselect.FieldByName('cod').AsString;
+    ClientDataSet1.FieldByName('nome').AsString    := dm.IBselect.FieldByName('nome').AsString;
+    ClientDataSet1.FieldByName('valor').AsCurrency := dm.IBselect.FieldByName('valor').AsCurrency;
     ClientDataSet1.Post;
 
-    query.Next;
+    dm.IBselect.Next;
   end;
 
   somaTotal;

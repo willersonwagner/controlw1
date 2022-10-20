@@ -1792,7 +1792,7 @@ begin
   // TRANSFERÊNCIAS
   // soma os lançamentos anteriores à data inicial no saldo anterior
   // primeiro as transferências para LOJA
-  dm.IBselect.Close;
+  {dm.IBselect.Close;
   dm.IBselect.SQL.Clear;
   dm.IBselect.SQL.Add
     ('SELECT SUM(QUANT) AS saldoanterior from transferencia where (data < :ini) and'
@@ -1805,24 +1805,50 @@ begin
       ('saldoanterior').AsCurrency;
     saldoAnteriorDeposito := saldoAnteriorDeposito - dm.IBselect.FieldByName
       ('saldoanterior').AsCurrency;
-  end;
+  end;  }
 
   // agora as transferências para DEPOSITO
   dm.IBselect.Close;
   dm.IBselect.SQL.Clear;
   dm.IBselect.SQL.Add
-    ('SELECT SUM(QUANT) AS saldoanterior from transferencia where (data < :ini) and'
-    + ' (destino = 2) and (cod = ' + te + ')');
+    ('SELECT QUANT AS saldoanterior, destino from transferencia where (data < :ini)'
+    + ' and (cod = ' + te + ')');
   dm.IBselect.ParamByName('ini').AsDateTime := datini;
   dm.IBselect.Open;
-  if pos('2', origem) > 0 then
-  begin
-    saldoAnteriorLoja := saldoAnteriorLoja - dm.IBselect.FieldByName
-      ('saldoanterior').AsCurrency;
-    saldoAnteriorDeposito := saldoAnteriorDeposito + dm.IBselect.FieldByName
-      ('saldoanterior').AsCurrency;
+
+  while not dm.IBselect.Eof do begin
+
+  if pos('2', origem) > 0 then begin
+    if dm.IBselect.FieldByName('destino').AsString = '2' then
+      begin
+       saldoAnteriorLoja := saldoAnteriorLoja - dm.IBselect.FieldByName('saldoanterior').AsCurrency;
+       saldoAnteriorDeposito := saldoAnteriorDeposito + dm.IBselect.FieldByName('saldoanterior').AsCurrency;
+      end;
+
+    if dm.IBselect.FieldByName('destino').AsString = '1' then
+      begin
+        saldoAnteriorLoja := saldoAnteriorLoja + dm.IBselect.FieldByName('saldoanterior').AsCurrency;
+        saldoAnteriorDeposito := saldoAnteriorDeposito - dm.IBselect.FieldByName('saldoanterior').AsCurrency;
+      end;
   end;
 
+  if pos('1', origem) > 0 then
+  begin
+    if dm.IBselect.FieldByName('destino').AsString = '2' then
+      begin
+       saldoAnteriorLoja := saldoAnteriorLoja - dm.IBselect.FieldByName('saldoanterior').AsCurrency;
+       saldoAnteriorDeposito := saldoAnteriorDeposito + dm.IBselect.FieldByName('saldoanterior').AsCurrency;
+      end;
+
+    if dm.IBselect.FieldByName('destino').AsString = '1' then
+      begin
+        saldoAnteriorLoja := saldoAnteriorLoja + dm.IBselect.FieldByName('saldoanterior').AsCurrency;
+        saldoAnteriorDeposito := saldoAnteriorDeposito - dm.IBselect.FieldByName('saldoanterior').AsCurrency;
+      end;
+  end;
+
+    dm.IBselect.Next;
+  end;
   dm.IBselect.Close;
   dm.IBselect.SQL.Clear;
   dm.IBselect.SQL.Add
@@ -1842,8 +1868,10 @@ begin
     // se é pra mostrar o movimento de origem
     if Contido('1', origem) then
     begin
-      DEST := ' PARA DEPOSITO';
-      fat := -1;
+      if dm.IBselect.FieldByName('destino').AsString = '2' then begin
+        DEST := ' DE LOJA';
+        fat := -1;
+      end;
 
       if dm.IBselect.FieldByName('destino').AsString = '1' then
       begin
@@ -1869,11 +1897,16 @@ begin
     // se é pra mostrar o movimento de destino
     if Contido('2', origem) then
     begin
-      DEST := ' PARA DEPOSITO';
-      fat := 1;
+
+      if dm.IBselect.FieldByName('destino').AsString = '2' then begin
+        DEST := ' PARA DEPOSITO';
+        fat := 1;
+      end;
+
+
       if dm.IBselect.FieldByName('destino').AsString = '1' then
       begin
-        DEST := ' PARA LOJA';
+        DEST := ' DE DEPOSITO ';
         fat := -1;
       end;
 
@@ -1883,8 +1916,7 @@ begin
       form33.ClientDataSet1.FieldByName('historico').AsString :=
         'TRANSFERENCIA ' + dm.IBselect.FieldByName('documento').AsString + DEST;
       form33.ClientDataSet1.FieldByName('preco').AsCurrency := 0;
-      form33.ClientDataSet1.FieldByName('quant').AsCurrency :=
-        fat * dm.IBselect.FieldByName('quant').AsCurrency;
+      form33.ClientDataSet1.FieldByName('quant').AsCurrency := fat * dm.IBselect.FieldByName('quant').AsCurrency;
       form33.ClientDataSet1.FieldByName('saldo').AsCurrency := geral;
       form33.ClientDataSet1.FieldByName('cont').AsInteger :=
         form33.ClientDataSet1.RecordCount + 1;
@@ -23523,10 +23555,11 @@ begin
     exit;
   end;
 
-  //se chegou até aqui, então a data de relógio é inválida
-  MessageDlg('2-Data Inválida: ' + DateToStr(now) + #13 + #10 + 'Verifique a data deste computador ou procure o suporte. ' +
+  if DateOf(now) <> DateOf(ultDataMov) then begin
+    //se chegou até aqui, então a data de relógio é inválida
+    MessageDlg('2-Data Inválida: ' + DateToStr(now) + #13 + #10 + 'Verifique a data deste computador ou procure o suporte. ' +
     #13 + #10 + 'Última data de movimento válida: ' + DateToStr(ultDataMov), mtError, [mbOK], 1);
-
+  end;
 
  end;
 
@@ -23679,8 +23712,7 @@ begin
         dm.IBQuery2.ParamByName('nnf').AsString := STRZERO(cont, 9);
         dm.IBQuery2.Open;
 
-        if dm.IBQuery2.IsEmpty then
-        begin
+        if dm.IBQuery2.IsEmpty then begin
           erro := '1: Não Existe Essa Numeração No BD!';
 
           dm.IBQuery2.Close;
@@ -23701,11 +23733,8 @@ begin
             acc := acc + IntToStr(cont) + ' - ';
             pulos := pulos + IntToStr(cont) + ' - ';
           end
-        end
-        else
-        begin
-          erro := '2: NFCe Encontrada no dia ' + FormatDateTime('dd/mm/yy',
-            dm.IBQuery2.FieldByName('data').AsDateTime);
+        end else begin
+          erro := '2: NFCe Encontrada no dia ' + FormatDateTime('dd/mm/yy', dm.IBQuery2.FieldByName('data').AsDateTime);
         end;
 
         dm.IBQuery2.Close;
@@ -29773,6 +29802,7 @@ function Tfuncoes.leformaDePagamentoMista(nota : integer; valor : currency) : TS
 begin
   Result := TStringList.Create;
   form82 := tform82.Create(self);
+  form82.query := dm.IBselect;
   form82.nota := nota;
   form82.ShowModal;
   if form82.finalizou <> 'S' then begin
@@ -29788,12 +29818,12 @@ begin
 
   form82.ClientDataSet1.First;
 
-  if form82.somatotal <> form82.totalVenda then begin
+  {if form82.somatotal <> form82.totalVenda then begin
     ShowMessage('A soma dos pagamentos difere do total da venda!');
     //ShowMessage('Soma=' + CurrToStr(form82.somatotal) + #13 +
    // 'totVenda=' + CurrToStr(form82.totalVenda));
     exit;
-  end;
+  end; }
  {
   ShowMessage('Soma=' + CurrToStr(form82.somatotal) + #13 +
     'totVenda=' + CurrToStr(form82.totalVenda));

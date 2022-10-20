@@ -1,4 +1,4 @@
-ï»¿unit pagamento;
+unit pagamento;
 
 interface
 
@@ -40,7 +40,6 @@ type
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormKeyPress(Sender: TObject; var Key: Char);
     procedure DBGrid1KeyPress(Sender: TObject; var Key: Char);
-    procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
     restoRecebido : currency;
     function buscaForma(cod : String) : boolean;
@@ -104,11 +103,6 @@ begin
   end;
 end;
 
-procedure TForm82.FormClose(Sender: TObject; var Action: TCloseAction);
-begin
-  JsEdit.LiberaMemoria(self);
-end;
-
 procedure TForm82.FormKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
@@ -119,7 +113,7 @@ begin
 
   {if key = 113 then begin //f2
     if (somaTotal + JsEditNumero1.getValor) <> totalVenda then begin
-      if MessageDlg('O valor Pago Ã© diferente do Valor Recebido, Deseja Finalizar Mesmo Assim ?', mtConfirmation, [mbyes, mbno], 1, mbno) = mrno then exit;
+      if MessageDlg('O valor Pago é diferente do Valor Recebido, Deseja Finalizar Mesmo Assim ?', mtConfirmation, [mbyes, mbno], 1, mbno) = mrno then exit;
       finalizou := 'N';
     end
     else finalizou := 'S';
@@ -130,9 +124,12 @@ end;
 procedure TForm82.FormKeyPress(Sender: TObject; var Key: Char);
 begin
   if key = #27 then begin
-    if (somaTotal + JsEditNumero1.getValor) <> totalVenda then begin
-      if MessageDlg('O valor Pago Ã© diferente do Valor Recebido, Deseja Finalizar Mesmo Assim ?', mtConfirmation, [mbyes, mbno], 1, mbno) = mrno then exit;
+    {if (somaTotal + JsEditNumero1.getValor) <> totalVenda then begin
+      if MessageDlg('O valor Pago é diferente do Valor Recebido, Deseja Finalizar Mesmo Assim ?', mtConfirmation, [mbyes, mbno], 1, mbno) = mrno then exit;
       finalizou := 'N';
+    end}
+    if false then begin
+
     end
     else begin
       if checaPIX then begin
@@ -217,21 +214,21 @@ begin
   p_pago.Caption     := formataCurrency(Result);
   restoRecebido      := totalVenda - Result;
   p_restante.Caption := formataCurrency(restoRecebido);
-  {
+
   if restoRecebido < 0 then begin
     label8.Caption := 'Troco:';
     p_restante.Caption := formataCurrency(abs(restoRecebido));
-  end;    }
+  end;
 end;
 
 
 procedure TForm82.adicionaFormaDePagamento();
 begin
-  if (somaTotal + JsEditNumero1.getValor) > totalVenda then begin
+  {if (somaTotal + JsEditNumero1.getValor) > totalVenda then begin
     MessageDlg('Valor Recebido Maior que o valor da Venda', mtError, [mbok], 1);
     JsEditNumero1.SetFocus;
     exit;
-  end;
+  end; }
 
   if edit1.Text = '' then begin
     edit1.SetFocus;

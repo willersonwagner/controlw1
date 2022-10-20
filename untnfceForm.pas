@@ -320,7 +320,7 @@ var
   indxImpressoraNFE, serie2, SerieNFe, tipoImp: integer;
 
   glbCFOP, glbNuCheque, glbNumeroDAV, glbNumeroIP, cliente, serie, cod_OP,
-    NomeGeneratorSerie: string;
+    NomeGeneratorSerie, versaoExecutavel: string;
   gTipoEmissao, listaCFOP: string;
   gTipoAmbiente: string;
   gUFComerciante: String;
@@ -394,7 +394,7 @@ end;
 
 procedure lerVenda(const nota1: String);
 var
-  i: integer;
+  i, cont: integer;
   total, entrada: currency;
 begin
   query1.Close;
@@ -421,6 +421,46 @@ begin
 
   entrada := query1.fieldbyname('entrada').AsCurrency;
   query1.Close;
+
+  cont := 0;
+  if ((Contido('-'+versaoExecutavel+'-', '-ControlW-')) and (venda.codForma = '99')) then begin
+    query1.Close;
+    query1.SQL.Clear;
+    query1.SQL.Add('select f.formapagto, f.valor, v.nome, v.codgru as codform from PAGAMENTOVENDA f left join formpagto v  on (v.cod = f.formapagto) where f.nota = :nota');
+    query1.ParamByName('nota').AsString := nota1;
+    query1.Open;
+
+    while not query1.Eof do begin
+      if trim(query1.FieldByName('codform').AsString) = '' then begin
+        listaPagamentos.Clear;
+        cont := -1;
+        break;
+      end;
+
+    
+      i := listaPagamentos.Find(query1.FieldByName('codform').AsString);
+      if i = -1 then
+      begin
+        cont := cont + 1;
+        i := listaPagamentos.Add(TacumPis.Create);
+        listaPagamentos[i].cod   := trim(query1.FieldByName('codform').AsString);
+        listaPagamentos[i].CST   := query1.FieldByName('nome').AsString;
+        listaPagamentos[i].total := query1.FieldByName('valor').AsCurrency;
+      end
+      else
+      begin
+        listaPagamentos[i].total := listaPagamentos[i].total + query1.FieldByName('valor').AsCurrency;
+      end;
+      
+      query1.Next;
+    end;
+
+    //gravaErrosNoArquivo(listaPagamentos.getText, 'testeformas', '111', 'nfce');
+  
+  end;
+
+  
+  if (cont <= 0) then begin  
 
   try
     total := venda.total;
@@ -473,6 +513,7 @@ begin
     end;
   except
 
+  end;
   end;
 end;
 
@@ -610,9 +651,9 @@ begin
     exit;
   end;
 
-  DANFE.MostraStatus := false;
-  DANFE.tipoDanfe := tiNFCe;
-  ACBrNFe.DANFE := DANFE;
+  DANFE.MostraStatus        := false;
+  DANFE.tipoDanfe           := tiNFCe;
+  ACBrNFe.DANFE             := DANFE;
   DANFE.ImprimeNomeFantasia := true;
 
   try

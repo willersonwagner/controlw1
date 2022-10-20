@@ -13,7 +13,6 @@ object Form82: TForm82
   KeyPreview = True
   OldCreateOrder = False
   Position = poScreenCenter
-  OnClose = FormClose
   OnKeyDown = FormKeyDown
   OnKeyPress = FormKeyPress
   OnShow = FormShow
@@ -303,7 +302,6 @@ object Form82: TForm82
     TitleFont.Name = 'Tahoma'
     TitleFont.Style = []
     OnKeyDown = DBGrid1KeyDown
-    OnKeyPress = DBGrid1KeyPress
   end
   object ClientDataSet1: TClientDataSet
     Aggregates = <>
