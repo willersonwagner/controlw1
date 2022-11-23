@@ -61,6 +61,8 @@ type
     { Public declarations }
   end;
 
+function ApagaNCM_Na_Tabela_invalido(NCM: String): boolean;
+function retornaIndiceProdutoErroNoNCM(erro11 : String) : integer;
 function conectaBD2(var bd: TFDConnection; silencioso: boolean = false): boolean;
 function conectaBD2BuscaArquivo(var bd: TFDConnection; silencioso: boolean = false): boolean;
 function FileAgeCreate(const fileName: string): String;
@@ -78,7 +80,7 @@ function usaNFe4ouMaior(): boolean;
 procedure atualizaRegistroNFCe(chaveVelha1, chaveNova1: String);
 function CodificaDataPelaChave(chave: String): TDateTime;
 function manifestoDestinatarioNFe(chave: string): boolean;
-procedure validaNCM_NaNFCe(chave1: String);
+procedure validaNCM_NaNFCe(chave1: String; indice : integer);
 procedure validaDescricaoFormaPagto(chave1: String);
 procedure validaTroco_NaNFCe(chave1: String);
 function GravaConfigNaPastaDoControlW(Const config_name: String;
@@ -2890,6 +2892,8 @@ begin
       DANFE_Rave.logo := DANFELogomarca;
 
       DANFE_Rave.CasasDecimais.qCom := ini.ReadInteger('SERVER','casasDecimais', 2);
+     // DANFE_Rave.ImprimeTotalLiquido := true;
+      //DANFE_Rave.ImprimeDescPorPercentual := false;
 
       if FileExists(DANFELogomarca) then
       begin
@@ -4210,7 +4214,12 @@ begin
 
           if ((csta = 778) or (false)) then
           begin
-            validaNCM_NaNFCe('');
+            try
+             richED.Lines.Add('>>>Validando Todos NCMS 4214>>>>' + ACBrNFe.WebServices.Enviar.xmotivo+ '>>>');
+            except
+            end;
+
+            validaNCM_NaNFCe('', retornaIndiceProdutoErroNoNCM(ACBrNFe.WebServices.Enviar.xmotivo));
             exit;
           end;
 
@@ -7796,6 +7805,34 @@ begin
   end;
 end;
 
+function ApagaNCM_Na_Tabela_invalido(NCM: String): boolean;
+var
+  ini, fim: integer;
+  tmp: String;
+  arq : TStringList;
+begin
+  Result := false;
+  NCM := trim(strnum(NCM));
+
+  arq := TStringList.Create;
+  arq.LoadFromFile(ExtractFileDir(ParamStr(0)) + '\IBPT.csv');
+
+  fim := arq.Count - 1;
+  for ini := 0 to fim do begin
+
+    tmp := copy(arq.Strings[ini], 1, POS(';', arq.Strings[ini]) - 1);
+    //if length(tmp) = 8 then begin
+    if Contido(tmp, NCM) and (length(ncm) = 8) then begin
+      arq.Delete(ini);
+      break;
+    end;
+  end;
+
+  arq.SaveToFile(ExtractFileDir(ParamStr(0)) + '\IBPT.csv');
+  arq.Free;
+end;
+
+
 function ve_unidTributavel(DEST_NFE, NCM, Unidade: string): String;
 begin
   if trim(Unidade) = '' then
@@ -8622,13 +8659,22 @@ begin
     ACBrNFe.NotasFiscais[0].GerarXML);
 end;
 
-procedure validaNCM_NaNFCe(chave1: String);
+procedure validaNCM_NaNFCe(chave1: String; indice : integer);
 var
   ini, fim: integer;
+  ncmAntigo : String;
 begin
+  indice := indice -1;
+
   fim := ACBrNFe.NotasFiscais[0].nfe.Det.Count - 1;
   for ini := 0 to fim do
   begin
+    if indice = ini then begin
+      ncmAntigo := ACBrNFe.NotasFiscais[0].nfe.Det[ini].Prod.NCM;
+      ACBrNFe.NotasFiscais[0].nfe.Det[ini].Prod.NCM := '96089989';
+      ApagaNCM_Na_Tabela_invalido(ncmAntigo);
+    end;
+
     ACBrNFe.NotasFiscais[0].nfe.Det[ini].Prod.NCM :=
       verNCM(StrToInt(strnum(ACBrNFe.NotasFiscais[0].nfe.Det[ini].Prod.cProd)));
     query1.Close;
@@ -9300,6 +9346,15 @@ begin
     end;
 
   raise Exception.Create(erro);
+end;
+
+
+function retornaIndiceProdutoErroNoNCM(erro11 : String) : integer;
+var
+  i : integer;
+begin
+  i := pos('[', erro11) + 7;
+  Result := StrToIntDef(copy(erro11, i, length(erro11) - i ), 0);
 end;
 
 

@@ -1,5 +1,6 @@
 unit imprime1;
 
+
 interface
 
 uses
@@ -719,6 +720,12 @@ var
  tipo1 : SmallInt;
 begin
   textx1(arquivo, ImplinhasFinal);
+
+  if nomeImpressora = 'x1' then begin
+    nomeImpressora := '';
+    exit;
+  end;
+
 
   if funcoes.le_configTerminalWindows(0,'', 'IMP2') <> '' then begin
     try

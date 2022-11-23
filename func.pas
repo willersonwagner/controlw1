@@ -2099,12 +2099,19 @@ begin
     dm.IBselect.ParamByName('cod').AsInteger := ordem.USUARIO;
     dm.IBselect.Open;
 
-    usu := IntToStr(ordem.USUARIO) + '-' + dm.IBselect.FieldByName
-      ('nome').AsString;
+    usu := IntToStr(ordem.USUARIO) + '-' + dm.IBselect.FieldByName('nome').AsString;
+
+    dm.IBselect.Close;
+    dm.IBselect.SQL.Clear;
+    dm.IBselect.SQL.Add('select telres, telcom, obs from registro');
+    dm.IBselect.Open;
 
     addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 40) + #13 + #10);
-    addRelatorioForm19(funcoes.centraliza(form22.Pgerais.Values['empresa'], ' ',
-      40) + #13 + #10);
+    addRelatorioForm19(funcoes.centraliza(form22.Pgerais.Values['empresa'], ' ',40) + #13 + #10);
+    addRelatorioForm19(funcoes.CompletaOuRepete('Tel: ' + dm.IBselect.FieldByName('telres').AsString +'/'+dm.IBselect.FieldByName('telcom').AsString, '', ' ', 40) + CRLF);
+    addRelatorioForm19(funcoes.CompletaOuRepete(LeftStr(dm.IBselect.FieldByName('obs').AsString, 40), '', ' ', 40) + CRLF);
+
+
     addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 40) + #13 + #10);
     addRelatorioForm19(funcoes.CompletaOuRepete('DATA: ' +
       FormatDateTime('dd/mm/yy', form22.dataMov),
@@ -2321,6 +2328,7 @@ begin
         ordem.pago := dm.IBselect.FieldByName('pago').AsCurrency;
       end;
     end;
+
     // faltou forma de pagamento
 
     addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 40) + CRLF);
@@ -2344,7 +2352,6 @@ begin
     addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 40) + CRLF);
 
 
-
     if orcamento then begin
       addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 40) + CRLF);
       addRelatorioForm19('     *  *  O R C A M E N T O *  *      ' + CRLF);
@@ -2364,7 +2371,9 @@ begin
       exit;
 
     if sim = 'S' then
-      imprime.textx('')
+
+      if orcamento then imprime.textx('', true, 'x1')
+      else imprime.textx('', true, '')
     else
       form19.ShowModal;
 
@@ -5883,6 +5892,7 @@ begin
 
     try
       dm.IBQuery1.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
     except
       on e: exception do
       begin
@@ -5935,7 +5945,7 @@ begin
     end;
   end;
 
-  try
+  {try
     if dm.IBQuery1.Transaction.Active then
       dm.IBQuery1.Transaction.Commit;
   except
@@ -5943,7 +5953,7 @@ begin
     begin
       ShowMessage('Ocorreu um erro. Tente Novamente: ' + #13 + e.Message);
     end;
-  end;
+  end; }
 
   restartGeneratorPelaTabelaMax('produto', 'produto');
   restartGeneratorPelaTabelaMax('fornecedor', 'fornecedor');
@@ -11877,6 +11887,22 @@ begin
       dm.IBQuery1.Transaction.Commit;
     end;
 
+    if not VerificaCampoTabela('tot_origi', 'item_venda') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('ALTER TABLE item_venda ADD tot_origi numeric(10, 3) ');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
+  {  if not VerificaCampoTabela('tot_origi', 'item_orcamento') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('ALTER TABLE item_orcamento ADD tot_origi numeric(10, 3) ');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+    end;    }
+
 
     atualizaAtivoCliente;
 
@@ -15354,7 +15380,7 @@ begin
 
     if opcao = 1 then
       dm.IBQuery2.SQL.Add
-        ('select cod,p_venda, total, quant, nome from item_venda where nota='
+        ('select cod,p_venda, total, quant, nome, tot_origi from item_venda where nota='
         + numNota)
     else if opcao = 2 then
       dm.IBQuery2.SQL.Add('select * from item_orcamento where nota=' + numNota)
@@ -15504,6 +15530,20 @@ begin
           11) + CRLF);
         total := total + Arredonda(dm.IBQuery1.FieldByName('p_compra')
           .AsCurrency * dm.IBQuery2.FieldByName('quant').AsCurrency, 2);
+      end;
+
+      if funcoes.buscaParamGeral(133, 'N') = 'S' then begin
+        if opcao = 1 then begin
+          if dm.IBQuery2.FieldByName('tot_origi').AsCurrency > 0 then begin
+            addRelatorioForm19(funcoes.CompletaOuRepete('|-->Desconto R$', formataCurrency(dm.IBQuery2.FieldByName('tot_origi').AsCurrency - dm.IBQuery2.FieldByName('total').AsCurrency) + '|', ' ', tam) + CRLF);
+          end;
+        end;
+
+         if opcao = 2 then begin
+          if dm.IBQuery2.FieldByName('desconto').AsCurrency > 0 then begin
+            addRelatorioForm19(funcoes.CompletaOuRepete('|-->Desconto R$', formataCurrency(dm.IBQuery2.FieldByName('desconto').AsCurrency) + '|', ' ', tam) + CRLF);
+          end;
+         end;
       end;
 
 
@@ -16250,11 +16290,11 @@ begin
 
     if opcao = 1 then
       dm.IBQuery2.SQL.Add
-        ('select i.cod, i.p_venda,p.unid, i.total, iif(i.nome = '''', p.nome, i.nome) as nome, i.quant, p.codbar, p.refori, p.localiza, p.fracao from item_venda i left join produto p on (i.cod = p.cod) where nota = '
+        ('select i.cod, i.p_venda,p.unid, i.total, iif(i.nome = '''', p.nome, i.nome) as nome, i.quant, p.codbar, p.refori, p.localiza, p.fracao, i.tot_origi from item_venda i left join produto p on (i.cod = p.cod) where nota = '
         + numNota)
     else if opcao = 2 then
       dm.IBQuery2.SQL.Add
-        ('select i.cod, i.p_venda,p.nome, i.quant, p.codbar, p.refori, p.localiza, p.unid, p.fracao from item_orcamento i left join produto p on (i.cod = p.cod) where nota = '
+        ('select i.cod, i.p_venda,p.nome, i.quant, p.codbar, p.refori, p.localiza, p.unid, p.fracao, i.desconto from item_orcamento i left join produto p on (i.cod = p.cod) where nota = '
         + numNota)
     else if opcao = 3 then
       dm.IBQuery2.SQL.Add
@@ -16352,6 +16392,21 @@ begin
           dm.IBQuery2.FieldByName('p_venda').AsCurrency), ' ',
           13) + funcoes.CompletaOuRepete('', FormatCurr('0.00', tot_item), ' ',
           12) + #13 + #10);
+      end;
+
+
+      if funcoes.buscaParamGeral(133, 'N') = 'S' then begin
+         if (opcao = 1)  then begin
+           if dm.IBQuery2.FieldByName('tot_origi').AsCurrency > 0 then begin
+              addRelatorioForm19(funcoes.CompletaOuRepete('-->Desconto R$', formataCurrency(dm.IBQuery2.FieldByName('tot_origi').AsCurrency - dm.IBQuery2.FieldByName('total').AsCurrency), '.', 40) + CRLF);
+           end;
+         end;
+
+         if (opcao = 2)  then begin
+           if dm.IBQuery2.FieldByName('desconto').AsCurrency > 0 then begin
+            addRelatorioForm19(funcoes.CompletaOuRepete('-->Desconto R$', formataCurrency(dm.IBQuery2.FieldByName('desconto').AsCurrency), '.', 40) + CRLF);
+           end;
+         end;
       end;
 
       if funcoes.buscaParamGeral(109, 'N') = 'S' then begin
@@ -16491,12 +16546,17 @@ begin
 
     if tipo = 'T' then
     begin
+
       form19.RichEdit1.Perform(EM_REPLACESEL, 1,
         Longint(PChar((' ' + #13 + #10))));
+
+      if opcao = 1 then begin
+
       if funcoes.ExisteParcelamento(numNota) and
         (funcoes.buscaParamGeral(20, '') = 'S') then
         funcoes.ImprimeParcelamento('', '', FormatCurr('#,###,###0.00',
           entrada), numNota);
+      end;
     end;
 
     if tipo = 'TE' then
@@ -21496,6 +21556,7 @@ begin
   dm.IBQuery1.ParamByName('tipo').AsString := StrNum(arq.Values['15']);
   try
     dm.IBQuery1.ExecSQL;
+    dm.IBQuery1.Transaction.Commit;
   except
     on e: exception do
     begin
@@ -21527,6 +21588,7 @@ begin
   dm.IBQuery1.ParamByName('TIPO').AsString := arq.Values['5'];
   try
     dm.IBQuery1.ExecSQL;
+    dm.IBQuery1.Transaction.Commit;
   except
     on e: exception do
     begin
@@ -21579,21 +21641,20 @@ var
   genVaue: integer;
 begin
   genVaue := 0;
-  dm.IBQuery1.Close;
-  dm.IBQuery1.SQL.text := 'select (max(cod)) as cod from ' + tabela;
-  dm.IBQuery1.Open;
+  dm.IBselect.Close;
+  dm.IBselect.SQL.text := 'select (max(cod)) as cod from ' + tabela;
+  dm.IBselect.Open;
 
-  if dm.IBQuery1.IsEmpty = False then
-    genVaue := dm.IBQuery1.FieldByName('cod').AsInteger;
+  if dm.IBselect.IsEmpty = False then
+    genVaue := dm.IBselect.FieldByName('cod').AsInteger;
 
   dm.IBQuery1.Close;
   dm.IBQuery1.SQL.text := 'alter sequence ' + generator + ' restart with ' +
     IntToStr(genVaue);
-  if genVaue > 0 then
+  if genVaue > 0 then begin
     dm.IBQuery1.ExecSQL;
-
-  if dm.IBQuery1.Transaction.Active then
     dm.IBQuery1.Transaction.Commit;
+  end;
 end;
 
 function Tfuncoes.emiteNfe(nota: String = ''; simplificado: boolean = False;

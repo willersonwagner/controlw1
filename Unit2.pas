@@ -2432,9 +2432,7 @@ begin
   pstaNfe := caminhoEXE_com_barra_no_final + 'NFCE\EMIT\';
   if not DirectoryExists(pstaNfe) then
   begin
-    MessageDlg('Este Terminal não tem informações das Notas Emitidas', mtError,
-      [mbOK], 1);
-    exit;
+    ForceDirectories(pstaNfe);
   end;
   {
     dini := funcoes.dialogo('data',0,'',2,true,'',Application.Title,'Qual a Data Inicial?','');
@@ -4510,6 +4508,7 @@ begin
   form40.tipo.Add('130=generico');
   form40.tipo.Add('131=generico');
   form40.tipo.Add('132=generico');
+  form40.tipo.Add('133=generico');
 
   form40.troca := TStringList.Create;
   form40.troca.Add('0=S');
@@ -4648,6 +4647,7 @@ begin
   form40.troca.Add('130=S');
   form40.troca.Add('131=S');
   form40.troca.Add('132=S');
+  form40.troca.Add('133=S');
 
   form40.teclas := TStringList.Create;
   form40.teclas.Add('0=FT');
@@ -4785,6 +4785,7 @@ begin
   form40.teclas.Add('130=SN');
   form40.teclas.Add('131=SN');
   form40.teclas.Add('132=SN');
+  form40.teclas.Add('133=SN');
 
   form40.ListBox1.Clear;
   form40.ListBox1.Items.Add
@@ -5009,8 +5010,8 @@ begin
     ('130=Buscar Somente Registros de Venda Não Recebido da Data Atual Na Rotina de Forma de Pagamento ?');
   form40.ListBox1.Items.Add
     ('131=Habilitar conferência de entrega de mercadorias ?');
-  form40.ListBox1.Items.Add
-    ('132=Habilitar Rotina de Forma de Pagamento com Emissao de NFCe, NFe e NFe Simplificada ?');
+  form40.ListBox1.Items.Add('132=Habilitar Rotina de Forma de Pagamento com Emissao de NFCe, NFe e NFe Simplificada ?');
+  form40.ListBox1.Items.Add('133=Habilitar Impressao do desconto no pedido por Produto(Disponivel para impressao M e T) ?');
 
   form40.ListBox1.Selected[0] := true;
   form40.showmodal;
@@ -10214,8 +10215,9 @@ begin
     form36.teclas.Add('SN'); // 16
     form36.teclas.Add('1234567890' + #8); // 17
     form36.teclas.Add('SN'); // 18
-    form36.teclas.Add('SN'); // 18
+    form36.teclas.Add('SN'); // 19
     form36.teclas.Add('SN'); // 20
+    form36.teclas.Add('SN'); // 21
 
     form36.tipo.Add('numero');
     form36.tipo.Add('generico');
@@ -10237,7 +10239,8 @@ begin
     form36.tipo.Add('generico'); // 17
     form36.tipo.Add('generico'); // 18
     form36.tipo.Add('generico'); // 19
-    form36.tipo.Add('generico'); // 19
+    form36.tipo.Add('generico'); // 20
+    form36.tipo.Add('generico'); // 21
 
     form36.troca.Add('');
     form36.troca.Add('S');
@@ -10260,6 +10263,7 @@ begin
     form36.troca.Add('S');
     form36.troca.Add('S');
     form36.troca.Add('S'); // 20
+    form36.troca.Add('S'); // 21
 
     form36.ListBox1.Items.Add
       ('0-Qual o Desconto Máximo Permitido (de 0 a 99%)?');
@@ -10295,6 +10299,7 @@ begin
     form36.ListBox1.Items.Add('18-Usar Nivel de Acesso Personalizado ?');
     form36.ListBox1.Items.Add('19-Gerenciamento de Entregador ?');
     form36.ListBox1.Items.Add('20-Permitir Exclusao de Cliente ?');
+    form36.ListBox1.Items.Add('21-Permitir Exclusao de Entradas ?');
 
     form36.configu := dm.ibselect.FieldByName('configu').AsString;
     dm.ibselect.Close;
@@ -10426,14 +10431,14 @@ end;
 
 procedure TForm2.RequisioDepsoto1Click(Sender: TObject);
 begin
-  Form20 := Tform20.Create(self);
-  Form20.tipoV := 'D';
+  Form20                    := Tform20.Create(self);
+  Form20.tipoV              := 'D';
   Form20.LabelVenda.Caption := 'Requisição de Depósito';
-  Form20.Modo_Venda := true;
-  Form20.origem := 2;
-  Form20.saidaDeEstoque := false;
-  Form20.finaliza := false;
-  Form20.separaPecas := false;
+  Form20.Modo_Venda         := true;
+  Form20.origem             := 2;
+  Form20.saidaDeEstoque     := false;
+  Form20.finaliza           := false;
+  Form20.separaPecas        := false;
   funcoes.CtrlResize(TForm(Form20));
   Form20.showmodal;
   Form20.Free;
@@ -21936,9 +21941,10 @@ begin
     pstaNfe := caminhoEXE_com_barra_no_final + 'NFE\EMIT\';
     if not DirectoryExists(pstaNfe) then
     begin
-      MessageDlg('Este Terminal não tem informações das Notas Emitidas',
+      ForceDirectories(pstaNfe);
+     { MessageDlg('Este Terminal não tem informações das Notas Emitidas',
         mtError, [mbOK], 1);
-      exit;
+      exit;}
     end;
 
     { grupo := funcoes.dialogo('generico',0,'1234567890'+#8,50,false,'',Application.Title,'Qual o Cliente','');
@@ -22220,12 +22226,7 @@ begin
     estrangeiro: boolean;
   begin
     pstaNfe := caminhoEXE_com_barra_no_final + 'NFE\EMIT\';
-    if not DirectoryExists(pstaNfe) then
-    begin
-      MessageDlg('Este Terminal não tem informações das Notas Emitidas',
-        mtError, [mbOK], 1);
-      exit;
-    end;
+   
 
     grupo := funcoes.dialogo('generico', 0, '1234567890' + #8, 50, false, '',
       application.Title, 'Qual o Cliente', '');
@@ -23704,12 +23705,10 @@ begin
     pstaNfe := caminhoEXE_com_barra_no_final + 'NFCE\EMIT\';
     if not DirectoryExists(pstaNfe) then
     begin
-      MessageDlg('Este Terminal não tem informações das Notas Emitidas',
-        mtError, [mbOK], 1);
-      exit;
-    end;
+      ForceDirectories(pstaNfe);
+    end;{
 
-    { grupo := funcoes.dialogo('generico',0,'1234567890'+#8,50,false,'',Application.Title,'Qual o Cliente','');
+     grupo := funcoes.dialogo('generico',0,'1234567890'+#8,50,false,'',Application.Title,'Qual o Cliente','');
       if grupo = '*' then exit; }
 
     dini := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,
@@ -24520,9 +24519,7 @@ begin
   begin
     if not DirectoryExists(caminhoEXE_com_barra_no_final + 'NFCE\EMIT\') then
     begin
-      MessageDlg('Este Terminal não tem informações das Notas Emitidas',
-        mtError, [mbOK], 1);
-      exit;
+      ForceDirectories(caminhoEXE_com_barra_no_final + 'NFCE\EMIT\');
     end;
 
     { grupo := funcoes.dialogo('generico',0,'1234567890'+#8,50,false,'',Application.Title,'Qual o Cliente','');

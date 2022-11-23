@@ -862,6 +862,13 @@ var
   nota, cod, campo, unid : string;
   total, quant : currency;
 begin
+  if (VerificaAcesso_Se_Nao_tiver_Nenhum_bloqueio_true_senao_false = false) then begin
+    if (funcoes.LerConfig(form22.Pgerais.Values['configu'], 21) <> 'S') then begin
+      ShowMessage('Rotina Bloqueada para Este Usuário!');
+      exit;
+    end;
+  end;
+
  begin
     if messageDlg('Deseja Excluir?', mtConfirmation, [mbyes, mbNo], 0) = mrYes then
      begin

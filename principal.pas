@@ -522,11 +522,10 @@ end;
 
 procedure Tform22.Button2Click(Sender: TObject);
 var
-  arq : TStringList;
-  op : TOpenDialog;
-  novoarq : String;
+  err1 : String;
 begin
-  funcoes.RotinaImportarListaMWM;
+  err1 := InputBox('','','');
+  //ShowMessage(IntToStr(retornaIndiceProdutoErroNoNCM(err1)));
 end;
 
 procedure Tform22.Button3Click(Sender: TObject);

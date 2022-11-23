@@ -1,5 +1,5 @@
 object Form2: TForm2
-  Left = 231
+  Left = 244
   Top = 0
   BorderStyle = bsSingle
   Caption = 'Control Estoque'
@@ -14,7 +14,7 @@ object Form2: TForm2
   KeyPreview = True
   Menu = MainMenu1
   OldCreateOrder = False
-  Position = poScreenCenter
+  Position = poDesigned
   WindowState = wsMaximized
   OnClose = FormClose
   OnCreate = FormCreate

@@ -2047,8 +2047,8 @@ begin
               _CNPJ := StrNum(dm.IBselect.fieldbyname('cnpj').AsString);
             end;
 
-          if LENGTH(_CNPJ) < 3 then _CNPJ := '';
-          if LENGTH(_CPF) < 3 then   _CPF := '';
+          if LENGTH(_CNPJ) < 3 then  _CNPJ := '';
+          if LENGTH(_CPF)  < 3 then   _CPF := '';
 
           ies :=  StrNum(dm.IBselect.fieldbyname('ies').AsString);
           if ies = '0'  then ies := '';

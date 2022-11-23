@@ -363,6 +363,7 @@ object dm: Tdm
     CasasDecimais.MaskvUnCom = ',0.00'
     ACBrNFe = ACBrNFe
     TipoDANFE = tiNFCe
+    ImprimeTotalLiquido = True
     FormularioContinuo = True
     TamanhoLogoHeight = 0
     TamanhoLogoWidth = 0
@@ -387,7 +388,8 @@ object dm: Tdm
     Top = 328
   end
   object ACBrNFeDANFeRL1: TACBrNFeDANFeRL
-    Sistema = 'Projeto ACBr - www.projetoacbr.com.br'
+    MostraStatus = False
+    Sistema = 'ControlW Sistemas'
     MargemInferior = 0.700000000000000000
     MargemSuperior = 0.700000000000000000
     MargemEsquerda = 0.700000000000000000
@@ -403,6 +405,7 @@ object dm: Tdm
     CasasDecimais.vUnCom = 4
     CasasDecimais.MaskqCom = ',0.00'
     CasasDecimais.MaskvUnCom = ',0.00'
+    ImprimeDescPorPercentual = True
     ExibeCampoFatura = False
     TamanhoLogoHeight = 1
     TamanhoLogoWidth = 1
@@ -601,6 +604,7 @@ object dm: Tdm
     CasasDecimais.vUnCom = 2
     CasasDecimais.MaskqCom = ',0.00'
     CasasDecimais.MaskvUnCom = ',0.00'
+    ImprimeTotalLiquido = True
     EspessuraBorda = 1
     BorderIcon = [biSystemMenu, biMinimize, biMaximize]
     ThreadSafe = False

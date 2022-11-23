@@ -3064,6 +3064,13 @@ begin
           ' ', 9) + funcoes.CompletaOuRepete('', FormatCurr('0.00',
           totVenda) + '|', ' ', 11) + #13 + #10))));
       end;
+
+      if funcoes.buscaParamGeral(133, 'N') = 'S' then begin
+          if ClientDataSet1PRECO_ORIGI.AsCurrency <> ClientDataSet1TOTAL.AsCurrency then begin
+            addRelatorioForm19(funcoes.CompletaOuRepete('|-->Desconto R$', formataCurrency(ClientDataSet1PRECO_ORIGI.AsCurrency - ClientDataSet1TOTAL.AsCurrency) + '|', ' ', tam) + CRLF);
+          end;
+      end;
+
       // form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar(('|'+funcoes.CompletaOuRepete('',ClientDataSet1.fieldbyname('codigo').AsString+'|',' ',7)+funcoes.CompletaOuRepete('',dm.ibquery1.fieldbyname('unid').AsString+'|',' ',7)+funcoes.CompletaOuRepete('',FormatCurr('#,###,###0.000',ClientDataSet1.fieldbyname('quant').AsCurrency)+'|',' ',8)+funcoes.CompletaOuRepete(copy(dm.ibquery1.fieldbyname('nome').AsString,1,34),'|',' ',35)+funcoes.CompletaOuRepete('',FormatCurr('#,###,###0.00',ClientDataSet1.fieldbyname('preco').AsCurrency)+'|',' ',9)+funcoes.CompletaOuRepete('',FormatCurr('#,###,###0.00',ClientDataSet1.fieldbyname('total').AsCurrency)+'|',' ',13)+#13+#10))));
       // total := total + ClientDataSet1.fieldbyname('total').AsCurrency;
       total := total + totVenda;
@@ -4359,6 +4366,13 @@ begin
           ('', FormatCurr('0.00', total_item), ' ', 13) + #13 + #10);
       end;
 
+      if funcoes.buscaParamGeral(133, 'N') = 'S' then begin
+        if ClientDataSet1PRECO_ORIGI.AsCurrency <> ClientDataSet1TOTAL.AsCurrency then begin
+          addRelatorioForm19(funcoes.CompletaOuRepete('-->Desconto R$', formataCurrency(ClientDataSet1PRECO_ORIGI.AsCurrency - ClientDataSet1TOTAL.AsCurrency), '.', 40) + CRLF);
+        end;
+      end;
+
+
       dm.IBQuery2.Close;
       dm.IBQuery2.SQL.Text :=
         'select unid, fracao from produto where cod = :cod';
@@ -4397,13 +4411,10 @@ begin
       if Desconto < 0 then
       begin
         // form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar(('DESCONTO('+FormatCurr('#,###,###0.00',(desconto * 100)/ total)+'%) ---------->'+funcoes.CompletaOuRepete('',formatCurr('#,###,###0.00',desconto),' ',11)+#13+#10))));
-        addRelatorioForm19('VOCE ECONOMIZOU(' + FormatCurr('#,###,###0.00',
-          (Desconto * 100) / total) + '%) --->' + funcoes.CompletaOuRepete('',
-          FormatCurr('#,###,###0.00', Desconto), ' ', 11) + CRLF);
+        addRelatorioForm19('VOCE ECONOMIZOU(' + FormatCurr('#,###,###0.00',(Desconto * 100) / total) + '%) --->' + funcoes.CompletaOuRepete('',FormatCurr('#,###,###0.00', Desconto), ' ', 11) + CRLF);
       end;
       form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-        Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 40) + #13
-        + #10))));
+        Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 40) + #13+ #10))));
 
       if funcoes.buscaParamGeral(112, 'S') = 'S' then
       begin
@@ -4631,10 +4642,13 @@ begin
       StrToCurr(ClientDataSet1PRECO.AsString);
     dm.IBQuery1.ParamByName('total').AsCurrency :=
       StrToCurr(ClientDataSet1TOTAL.AsString);
-    dm.IBQuery1.ParamByName('DESCONTO').AsCurrency :=
-      ClientDataSet1TOT_ORIGI2.AsCurrency - ClientDataSet1TOTAL.AsCurrency;
+    dm.IBQuery1.ParamByName('DESCONTO').AsCurrency := ClientDataSet1TOT_ORIGI2.AsCurrency - ClientDataSet1TOTAL.AsCurrency;
+    dm.IBQuery1.ParamByName('DESCONTO').AsCurrency := ClientDataSet1TOT_ORIGI2.AsCurrency - ClientDataSet1TOTAL.AsCurrency;
     dm.IBQuery1.ParamByName('nome').AsString := nome1;
 
+   { if ClientDataSet1TOT_ORIGI2.AsCurrency = ClientDataSet1TOTAL.AsCurrency then dm.IBQuery1.ParamByName('TOT_ORIGI').AsCurrency := 0
+    else dm.IBQuery1.ParamByName('tot_origi').AsCurrency := (ClientDataSet1TOT_ORIGI2.AsCurrency);
+       }
     dm.IBQuery1.ExecSQL;
     ClientDataSet1.Next;
   end;
@@ -5963,18 +5977,18 @@ begin
   if LeftStr(tipoV, 1) = 'V' then
     begin
       dm.IBQuery1.SQL.Text :=
-        ('insert into item_venda(data,nota,COD, QUANT, p_venda,total,origem,p_compra,codbar,aliquota, unid, desconto, nome, vendedor, TIPO, cod_seq, recno)'
+        ('insert into item_venda(data,nota,COD, QUANT, p_venda,total,origem,p_compra,codbar,aliquota, unid, desconto, nome, vendedor, TIPO, cod_seq, recno, TOT_ORIGI)'
         + ' values(:data,' + novocod + ',:cod, :quant, :p_venda,:total,' +
         IntToStr(origem) +
-        ',:p_compra, :codbar,:aliq, :unid, :desconto, :nome, :vend, :tipo, gen_id(item_venda, 1), '+recnoItem_venda+')');
+        ',:p_compra, :codbar,:aliq, :unid, :desconto, :nome, :vend, :tipo, gen_id(item_venda, 1), '+recnoItem_venda+', :TOT_ORIGI)');
     end
     else
     begin
       dm.IBQuery1.SQL.Text :=
-        ('insert into item_venda(data,nota,COD, QUANT, p_venda,total,origem,p_compra,codbar,aliquota, unid, desconto, nome, vendedor, TIPO, cod_seq, recno)'
+        ('insert into item_venda(data,nota,COD, QUANT, p_venda,total,origem,p_compra,codbar,aliquota, unid, desconto, nome, vendedor, TIPO, cod_seq, recno, TOT_ORIGI)'
         + ' values(:data,' + novocod + ',:cod, :quant, :p_venda,:total,' +
         IntToStr(origem) +
-        ',:p_compra, :codbar,:aliq, :unid, :desconto, :nome, :vend, :tipo, gen_id(item_venda, 1), '+recnoItem_venda+')');
+        ',:p_compra, :codbar,:aliq, :unid, :desconto, :nome, :vend, :tipo, gen_id(item_venda, 1), '+recnoItem_venda+', :TOT_ORIGI)');
     end;
 
     dm.IBQuery1.ParamByName('data').AsDateTime := form22.datamov;
@@ -6011,8 +6025,7 @@ begin
 
     if funcoes.buscaParamGeral(71, 'N') = 'S' then
     begin
-      dm.IBQuery1.ParamByName('desconto').AsCurrency :=
-        (ClientDataSet1TOT_ORIGI2.AsCurrency - ClientDataSet1TOTAL.AsCurrency);
+      dm.IBQuery1.ParamByName('desconto').AsCurrency := (ClientDataSet1TOT_ORIGI2.AsCurrency - ClientDataSet1TOTAL.AsCurrency);
     end;
 
     codmov := '';
@@ -6024,8 +6037,11 @@ begin
     dm.IBQuery1.ParamByName('vend').AsString :=
       strnum(funcoes.retiraZerosEsquerda(ClientDataSet1vendedor.AsString));
     if dm.IBQuery1.ParamByName('vend').AsString = '0' then
-      dm.IBQuery1.ParamByName('vend').AsString :=
+    dm.IBQuery1.ParamByName('vend').AsString :=
         strnum(funcoes.retiraZerosEsquerda(JsEdit2.Text));
+
+    if ClientDataSet1TOT_ORIGI2.AsCurrency = ClientDataSet1TOTAL.AsCurrency then dm.IBQuery1.ParamByName('TOT_ORIGI').AsCurrency := 0
+    else dm.IBQuery1.ParamByName('TOT_ORIGI').AsCurrency := (ClientDataSet1TOT_ORIGI2.AsCurrency);
 
     //dm.IBQuery1.ParamByName('recno').AsString := novocod + IntToStr(ClientDataSet1.RecNo);
 
