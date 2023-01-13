@@ -1095,9 +1095,9 @@ begin
     if (Trim(codbar.Text) = '') then
     begin
       TMP := Trim(StrNum(cod.Text));
-      codbar.Text := DIGEAN('789000' + funcoes.CompletaOuRepete('',
+      codbar.Text := DIGEAN('789' + funcoes.CompletaOuRepete('',
         IfThen(TMP = '0', IntToStr(strtoint(Incrementa_Generator('produto', 0))
-        + 1), TMP), '0', 6));
+        + 1), TMP), '0', 9));
     end;
 
     if ((funcoes.buscaParamGeral(5, 'N') <> 'S') or (funcoes.buscaParamGeral(82, 'N') = 'S')) then

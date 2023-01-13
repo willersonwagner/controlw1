@@ -62,7 +62,7 @@ implementation
 
 {$R *.dfm}
 
-uses untVendaPDV, dmecf;
+uses untVendaPDV, dmecf, untDtmMain;
 
 
 
@@ -82,23 +82,23 @@ begin
 
   if key = #13 then begin
     if tedit(sender).Text = '' then begin
-      tedit(sender).Text := form3.LerFormPato(0, 'Forma de Pagamento', true );
+      tedit(sender).Text := func.LerFormPato(0, 'Forma de Pagamento', true );
       if tedit(sender).Text = '*' then tedit(sender).Text := '';
     end;
 
     if tedit(sender).Text <> '' then begin
-      dm.IBQuery1.Close;
-      dm.IBQuery1.SQL.Text := 'select nome from FORMPAGTO where cod = :cod';
-      dm.IBQuery1.ParamByName('cod').AsInteger := StrToIntDef(tedit(sender).Text, 0);
-      dm.IBQuery1.Open;
+      dtmMain.IBQuery1.Close;
+      dtmMain.IBQuery1.SQL.Text := 'select nome from FORMPAGTO where cod = :cod';
+      dtmMain.IBQuery1.ParamByName('cod').AsInteger := StrToIntDef(tedit(sender).Text, 0);
+      dtmMain.IBQuery1.Open;
 
-      if dm.IBQuery1.IsEmpty then begin
+      if dtmMain.IBQuery1.IsEmpty then begin
         Label4.Caption := 'Forma Pagto Desconhecida';
         edit1.SelectAll;
         exit;
       end;
 
-      Label4.Caption := dm.IBQuery1.FieldByName('nome').AsString;
+      Label4.Caption := dtmMain.IBQuery1.FieldByName('nome').AsString;
       JsEditNumero1.SetFocus;
     end;
   end;

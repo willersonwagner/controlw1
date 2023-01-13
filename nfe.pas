@@ -3803,7 +3803,7 @@ begin
                 //if (LeftStr(item.codbar, 3) <> '789') then cb := false;
 
                 if cb = false then begin
-                  item.codbar := DIGEAN('789000' + CompletaOuRepete('', query2.fieldbyname('cod').AsString ,'0',6));
+                  item.codbar := DIGEAN('789' + CompletaOuRepete('', query2.fieldbyname('cod').AsString ,'0',9));
                 end;
 
                  item.cod     := query2.fieldbyname('cod').AsInteger;

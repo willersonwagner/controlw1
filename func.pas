@@ -968,6 +968,11 @@ begin
   end
   else nota1 := nota;
 
+
+  if contido('CAMALEAO', form22.Pgerais.Values['empresa']) then begin
+    funcoes.GeraNota(nota1, form22.Pgerais.Values['nota'], 'N', 1);
+  end;
+
   Result     := nota1;
 
 
@@ -1053,7 +1058,7 @@ begin
   sim := '';
   while sim = '' do
     sim := funcoes.dialogo('generico', 0, 'SN' + #8, 30, False, 'S',
-      Application.Title, 'Confirma Cancelamento da Nota ' + nota1 +
+      Application.Title, 'Confirma o Cancelamento da Venda ' + nota1 +
       ' ? Sim ou Não (S/N)?', '');
   if (sim = 'N') or (sim = '') or (sim = '*') then
   begin
@@ -1381,7 +1386,8 @@ begin
   Dispose(prod1);
 end;
 
-procedure Tfuncoes.fichaDoProduto(sende1: TObject; var te: String;
+procedure Tfuncoes.fichaDoProduto
+(sende1: TObject; var te: String;
   const centroTipoLOJADEPOSITO: boolean);
 var
   cod1, dini, dfim, DEST, origem, Codigo, desti, orig: string;
@@ -1690,6 +1696,8 @@ begin
   lista := Tlist.Create;
   lista.Add(prod);
 
+  //ShowMessage(origem);
+
   // pega os lançamentos a partir da data inicial
   dm.IBselect.Close;
   dm.IBselect.SQL.Clear;
@@ -1723,12 +1731,15 @@ begin
 
     if dm.IBselect.FieldByName('data').AsDateTime < datini then begin //saldo anterior
       if dm.IBselect.FieldByName('cancelado').AsInteger <= 0 then begin
-        if origem = '1' then begin
+        if dm.IBselect.FieldByName('origem').AsString = '1' then begin
           saldoAnteriorLoja     := saldoAnteriorLoja - dm.IBselect.FieldByName('quant').AsCurrency;
         end
         else begin
           saldoAnteriorDeposito := saldoAnteriorDeposito - dm.IBselect.FieldByName('quant').AsCurrency;
         end;
+
+       // ShowMessage('nota=' + dm.IBselect.FieldByName('nota').AsString + #13 +
+       // 'loja=' + CurrToStr(saldoAnteriorLoja) + #13 + 'dep=' + CurrToStr(saldoAnteriorDeposito));
       end;
     end
     else begin
@@ -4942,18 +4953,18 @@ begin
     t1 := NfeVenda.Le_Nodo('infCad', xml);
 
   // '99.999.999/9999-99'
-  cnpj := IfThen(funcoes.Contido('<CNPJ>', xml), Le_Nodo('CNPJ', t1),
+  cnpj := IfThen(funcoes.Contido('<CNPJ>', t1), Le_Nodo('CNPJ', t1),
     Le_Nodo('CPF', t1));
   if length(cnpj) = 14 then
   begin
     cnpj := formataCNPJ(cnpj);
-    tipo := '1';
+    tipo := '2';
   end
   // else if Length(CPF_CNPJ) = 11 then cnpj := formataCNPJ(CPF_CNPJ)
   else
   begin
-    cnpj := formataCNPJ(cnpj);
-    tipo := '2';
+    cnpj := formataCPF(cnpj);
+    tipo := '1';
   end;
 
   tmp.Add(cnpj); // 0
@@ -5408,6 +5419,7 @@ begin
   form48.caminhoXML := camArq;
 
   form48.fornec := verFornecedorStringList(t2);
+
   form48.TOTvICMSDeson_Produtos := TOTvICMSDeson_Produtos;
 
   // funcao que popula um stringlist com
@@ -6582,8 +6594,8 @@ begin
 
     if Result = '' then
     begin
-      Result := DIGEAN('789000' + STRZERO(dm.ibquery3.FieldByName('cod')
-        .AsInteger, 6));
+      Result := DIGEAN('789' + STRZERO(dm.ibquery3.FieldByName('cod')
+        .AsInteger, 9));
 
       if buscaParamGeral(5, 'N') = 'N' then
       begin
@@ -27420,8 +27432,7 @@ begin
 
   //essa parte valida o codigo de barras
   //codbarValido    := checaCodbar(StrNum(_CB));
-  //if codbarValido = false then _CB := DIGEAN('789000' + CompletaOuRepete('', _cod ,'0',6));
-
+  
 
   { SET PRINTER TO TEXTO.TXT
     SET DEVICE TO PRINT
@@ -30430,16 +30441,22 @@ begin
     //imprime1.imprime.pedidoVendaA4.Preview;
   end
   else imprime1.imprime.pedidoVendaA4.Print;
+
+  imprime1.imprime.pedidoVendaA4.Clear;
 end;
 
 procedure Tfuncoes.imprimeCompraFortesA4(numVenda1 : String;venda : SmallInt = 1);
 var
-  cliente, preview, nomevol, vendedor, entrada, nomeImp : String;
+  cliente, preview, nomevol, vendedor, entrada, nomeImp, IMP_PRECO : String;
   arq : TStringList;
   fracao, sub : Double;
   fontHeight : integer;
   printDialog : boolean;
 begin
+  IMP_PRECO := funcoes.dialogo('generico', 0, 'SN', 0, false, 'S', 'Control for Windows:', 'Imprime os Preços das Mercadorias? S/N', 'N');
+  if IMP_PRECO = '*' then exit;
+
+
   dm.IBselect.Close;
   dm.IBselect.SQL.Text := 'select * from registro';
   dm.IBselect.Open;
@@ -30493,11 +30510,11 @@ begin
   imprime1.imprime.rldesconto.Caption := formataCurrency(dm.IBselect.FieldByName('desconto').AsCurrency);
   imprime1.imprime.rltotal.Caption    := formataCurrency(dm.IBselect.FieldByName('total').AsCurrency);
 
-  if venda = 3 then begin
+  {if venda = 3 then begin
     imprime1.imprime.rlsubtotal.Caption := '  ____________';
     imprime1.imprime.rldesconto.Caption := '  ____________';
     imprime1.imprime.rltotal.Caption    := '  ____________';
-  end;
+  end;}
 
 
   if funcoes.buscaParamGeral(5, 'N') = 'S' then begin
@@ -30641,14 +30658,13 @@ begin
     TcurrencyField(dm.ProdutoQY.FieldByName('total')).DisplayFormat :=
     '###,##0.00';
 
- if venda = 3 then begin
+ {if venda = 3 then begin
    TcurrencyField(dm.ProdutoQY.FieldByName('p_venda')).DisplayFormat :=
     '__________';
 
     TcurrencyField(dm.ProdutoQY.FieldByName('total')).DisplayFormat :=
     ' _________';
-
- end;
+ end;  }
 
   imprime1.imprime.RLLabel38.Caption := form22.Pgerais.Values['razaoS'];
   imprime1.imprime.RLLabel36.Caption := FormatDateTime('dd/mm/yy',dm.ProdutoQY.FieldByName('data').AsDateTime);
@@ -30674,6 +30690,20 @@ begin
 
   imprime1.imprime.DataSource1.DataSet := dm.ProdutoQY;
 
+  if IMP_PRECO = 'N' then begin
+    imprime1.imprime.RLDBText15.DisplayMask := '________ ';
+    imprime1.imprime.RLDBText17.DisplayMask := '__________';
+
+    imprime1.imprime.rlsubtotal.Caption := '  ____________';
+    imprime1.imprime.rldesconto.Caption := '  ____________';
+    imprime1.imprime.rltotal.Caption    := '  ____________';
+  end
+  else begin
+    imprime1.imprime.RLDBText15.DisplayMask := '###,##0.00';
+    imprime1.imprime.RLDBText17.DisplayMask := '###,##0.00';
+  end;
+
+
   try
     nomeImp := funcoes.LerConfig(form22.Pgerais.Values['imp'], 15);
     //printer.PrinterIndex := StrToIntDef(funcoes.LerConfig(form22.Pgerais.Values['imp'], 0), 0);
@@ -30689,6 +30719,8 @@ begin
     //imprime1.imprime.pedidoVendaA4.Preview;
   end
   else imprime1.imprime.pedidoVendaA4.Print;
+
+  imprime1.imprime.pedidoVendaA4.Clear;
 end;
 
 function Tfuncoes.ver_limites(CodUsu: string;AserAdicionadoNaContaDoClitente: currency): currency;

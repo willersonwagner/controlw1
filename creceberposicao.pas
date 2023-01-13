@@ -266,15 +266,18 @@ begin
       i:= DBGrid1.DataSource.DataSet.RecNo-1;
       DBGrid1.DataSource.DataSet.First;
 
+      a := 55;
       while not DBGrid1.DataSource.DataSet.Eof do
        begin
-        if form19.RichEdit1.Lines.Count >= 55 then
+
+        if form19.RichEdit1.Lines.Count >= a then
           begin
             form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete('','','-',78)+#12+#13+#10))));
             form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete('','','-',78)+#13+#10))));
             form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete(funcoes.CompletaOuRepete(funcoes.LerValorPGerais('empresa',form22.Pgerais),'',' ',35)+'EXTRATO DE CONTA',FormatDateTime('dd/mm/yy',form22.datamov),' ',78)+#13+#10))));
             form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete('CLIENTE: '+IBTable1DOCUMENTO.AsString +'-'+cli,FormatDateTime('tt',now),' ',78)+#13+#10))));
             form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete('','','-',78)+#13+#10))));
+            a := form19.RichEdit1.Lines.Count + 56;
           end;
           form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete(FormatDateTime('dd/mm/yy',DBGrid1.DataSource.DataSet.FieldByName('vencimento').AsDateTime),'',' ',12)+funcoes.CompletaOuRepete(DBGrid1.DataSource.DataSet.FieldByName('historico').AsString,'',' ',35)+funcoes.CompletaOuRepete(' ',FormatCurr('#,###,###0.00',DBGrid1.DataSource.DataSet.FieldByName('valor').AsCurrency),' ',13)+'    '+funcoes.CompletaOuRepete(' ',FormatCurr('#,###,###0.00',DBGrid1.DataSource.DataSet.FieldByName('saldo').AsCurrency),' ',14))+#13+#10)));
           DBGrid1.DataSource.DataSet.Next;
@@ -283,6 +286,7 @@ begin
        DBGrid1.DataSource.DataSet.MoveBy(i);
        DBGrid1.DataSource.DataSet.EnableControls;
        form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete('','','-',78)+#13+#10))));
+       form19.RichEdit1.Lines.SaveToFile('texto.txt');
        imprime.textx('texto.txt');
        form19.RichEdit1.Clear;
      end;

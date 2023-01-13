@@ -2242,7 +2242,7 @@ begin
            end
          else
            begin
-             _codbar := DIGEAN('789000' + CompletaOuRepete('',dm.IBselect.fieldbyname('cod').AsString ,'0',6));
+             _codbar := DIGEAN('789' + CompletaOuRepete('',dm.IBselect.fieldbyname('cod').AsString ,'0', 9));
            end;
 
          _codbar := trim(_codbar);

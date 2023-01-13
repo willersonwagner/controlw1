@@ -212,7 +212,8 @@ begin
   dm.IBQuery4.ParamByName('cnpj').AsString     := fornec[0];
   dm.IBQuery4.ParamByName('ies').AsString      := fornec[12];
   dm.IBQuery4.ParamByName('cod_mun').AsString  := fornec[5];
-  dm.IBQuery4.ParamByName('tipo').AsString     := '2';
+  dm.IBQuery4.ParamByName('tipo').AsString     := fornec[14];
+
   dm.IBQuery4.ExecSQL;
   dm.IBQuery4.Transaction.Commit;
 end;
@@ -1115,7 +1116,7 @@ begin
           dm.IBQuery1.ParamByName('aliquota').AsString   := aliq;
 
           if (trim(ClientDataSet1.FieldByName('CODBAR_ATUAL').AsString) = '') then begin
-            dm.IBQuery1.ParamByName('codbar').AsString    := DIGEAN('789000' + funcoes.CompletaOuRepete('', cod1,'0',6));
+            dm.IBQuery1.ParamByName('codbar').AsString    := DIGEAN('789' + funcoes.CompletaOuRepete('', cod1,'0',9));
             codbar.Add(cod1 + '=' + dm.IBQuery1.ParamByName('codbar').AsString);
           end
           else dm.IBQuery1.ParamByName('codbar').AsString := trim(ClientDataSet1.FieldByName('CODBAR_ATUAL').AsString);

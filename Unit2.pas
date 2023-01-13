@@ -21911,8 +21911,8 @@ begin
       dm.IBQuery1.SQL.Text :=
         'update produto set codbar = :codbar where cod = :cod';
       dm.IBQuery1.ParamByName('codbar').AsString :=
-        DIGEAN('789000' + funcoes.CompletaOuRepete('',
-        dm.ibselect.FieldByName('cod').AsString, '0', 6));
+        DIGEAN('789' + funcoes.CompletaOuRepete('',
+        dm.ibselect.FieldByName('cod').AsString, '0', 9));
       dm.IBQuery1.ParamByName('cod').AsString :=
         dm.ibselect.FieldByName('cod').AsString;
       dm.IBQuery1.ExecSQL;

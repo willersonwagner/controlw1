@@ -313,7 +313,7 @@ var
   pgerais: TStringList;
   TipoEmissao: integer;
   pathSalvarControlW, pastaControlW, cstIcmCfop, cstpisCfop, portaCOMNFCE,
-    impreNFCE, impreNFE, ssChave: String;
+    impreNFCE, impreNFE, ssChave, erroCriarNFCe: String;
   previewNFCe1, campoDescontoExiste, usarCertificadoA3: boolean;
 
   richedt: TRichEdit;
@@ -2275,8 +2275,10 @@ begin
               tot2 := tot2 + query1.fieldbyname('desconto').AsCurrency;
               end; }
 
-            tem := ProcuraItemNaLista(lista, query1.fieldbyname('cod')
-              .AsInteger, p_venda);
+            erroCriarNFCe := 'Lin 2278 cod: ' + query1.fieldbyname('cod').AsString;
+
+            tem := ProcuraItemNaLista(lista, query1.fieldbyname('cod').AsInteger, p_venda);
+            erroCriarNFCe := 'Lin 2278-1 cod: ' + query1.fieldbyname('cod').AsString;
             if tem <> -1 then
             begin
               tot2 := Arredonda(quant * item.p_venda, 2);
@@ -2297,9 +2299,9 @@ begin
 
               CB := false;
 
+              erroCriarNFCe := '2302 checaCodbar(strnum(query2.fieldbyname(codbar).AsString)) cod: ' + query1.fieldbyname('cod').AsString;
               try
-                CB := checaCodbar
-                  (strnum(query2.fieldbyname('codbar').AsString));
+                CB := checaCodbar(strnum(query2.fieldbyname('codbar').AsString));
               except
               end;
 
@@ -2308,11 +2310,10 @@ begin
                 item.codbar := strnum(query2.fieldbyname('codbar').AsString);
               end;
 
+              erroCriarNFCe := '2302 DIGEAN(789000 + CompletaOuRepete(,query2.fieldbyname(cod).AsString, 0, 6)) cod: ' + query1.fieldbyname('cod').AsString;
               if CB = false then
               begin
-                item.codbar :=
-                  DIGEAN('789000' + CompletaOuRepete('',
-                  query2.fieldbyname('cod').AsString, '0', 6));
+                item.codbar := DIGEAN('789' + CompletaOuRepete('',query2.fieldbyname('cod').AsString, '0', 9));
               end;
 
               item.p_compra := query2.fieldbyname('P_compra').AsCurrency;
@@ -2343,6 +2344,7 @@ begin
               if item.codAliq = 0 then
                 item.codAliq := 2;
 
+              erroCriarNFCe := 'existeCampoTipo_item' + IntToStr(item.cod);
               if existeCampoTipo_item then
               begin
                 if Contido('|' + query2.fieldbyname('tipo_item').AsString + '|',
@@ -2353,6 +2355,8 @@ begin
                 end;
               end;
 
+              erroCriarNFCe := 'Lin > 2359';
+
               item.Total_Preco_Compra :=
                 Arredonda(query1.fieldbyname('p_compra').AsCurrency, 2);
               item.pis := query2.fieldbyname('is_pis').AsString;
@@ -2360,6 +2364,7 @@ begin
               item.desconto := 0;
               item.vlr_imposto := 0;
 
+              erroCriarNFCe := 'verNCM(item.cod) cod:' + IntToStr(item.cod);
               item.NCM := verNCM(item.cod);
               // IfThen((ConfParamGerais.Strings[26] = 'S') AND (StrToIntDef(dm.IBselect.fieldbyname('classif').AsString, 0) <> 0), StrToIntDef(dm.IBselect.fieldbyname('classif').AsString, 0), 98);
 
@@ -3357,13 +3362,14 @@ begin
       end;
     end;
 
-
+    erroCriarNFCe := 'serie1 := IntToStr(serie2)';
     serie1 := IntToStr(serie2);
     /// //GERAR NFC-e:
 
+    erroCriarNFCe := 'GerarNFCeTexto(nota, cliente1)';
     xml := GerarNFCeTexto(nota, cliente1);
 
-
+    erroCriarNFCe := 'GravarTexto(buscaPastaNFCe(CHAVENF, false) + CHAVENF + -nfe.xml, xml)';
     GravarTexto(buscaPastaNFCe(CHAVENF, false) + CHAVENF + '-nfe.xml', xml);
 
     xml := '';
@@ -3385,24 +3391,29 @@ begin
   except
     on e: Exception do
     begin
+      ShowMessage('erro 3390 metodo: '+erroCriarNFCe+':' + e.Message);
       gravaERRO_LOG1('', e.Message,
         'ACBrNFe.NotasFiscais.LoadFromFile(pastaControlW + \NFCe\EMIT\ + chaveNF + -nfe.xml, false); LINHA 2625');
+      exit;
     end;
   end;
 
+  a := 0;
   if enviar then
   begin
     try
       ACBrNFe.NotasFiscais[0].GravarXML(CHAVENF + '-nfe.xml', buscaPastaNFCe(CHAVENF, false));
+      a := 1;
 
       ACBrNFe.NotasFiscais.Assinar;
+      a := 2;
 
     except
       on e: Exception do
       begin
         erro1 := e.Message;
         gravaERRO_LOG1('', e.Message, 'Validação dos Dados');
-        MessageDlg('Falha 3257 na Assinatura da Nota: ' + #13 + e.Message + #13,
+        MessageDlg('Falha 3257 na Assinatura da Nota Método '+IntToStr(a)+', chave "'+CHAVENF+'": ' + #13 + e.Message + #13,
           mtError, [mbOK], 1);
 
         Status := 'vali';
@@ -4110,8 +4121,6 @@ begin
         end;
 
 
-
-
         if csta = 217 then
         begin
           ERRO_dados :=
@@ -4388,12 +4397,38 @@ begin
       begin
         try
           // gravaERRO_LOG1('', '--RETORNO5-- csta in [100, 150]' , '');
-          ACBrNFe.NotasFiscais[0].GravarXML(CHAVENF + '-nfe.xml',
-            buscaPastaNFCe(CHAVENF));
-          ssChave := CHAVENF;
-          venda.adic := '';
-          Result := true;
 
+
+          chave1 := OnlyNumber(ACBrNFe.NotasFiscais.Items[0].NFe.infNFe.id);
+
+          //essa parte pega a chave diretamente do xml caso tenha mudado, cria o xml com nome certo trocando a
+          //chave antiga pela nova e consertando a data pra nova data, caso nao tenha enviado do mes anterior
+          if chave1 <> CHAVENF then begin
+
+            try
+              richED.Lines.Add('Troca de Chave de: ');
+              richED.Lines.Add(CHAVENF);
+              richED.Lines.Add('Para:');
+              richED.Lines.Add(chave1);
+            except
+
+            end;
+            query1.Close;
+            query1.SQL.text := 'update nfce set chave = :chve1, data = :data where chave = :chave';
+            query1.ParamByName('chve1').AsString := chave1;
+            query1.ParamByName('data').AsDate    := ACBrNFe.NotasFiscais.Items[0].NFe.Ide.dEmi;
+            query1.ParamByName('chave').AsString := CHAVENF;
+            query1.ExecSQL;
+            query1.Transaction.Commit;
+            CHAVENF := chave1;
+            chave1  := '';
+          end;
+
+          ACBrNFe.NotasFiscais[0].GravarXML(CHAVENF + '-nfe.xml', buscaPastaNFCe(CHAVENF));
+
+          ssChave     := CHAVENF;
+          venda.adic  := '';
+          Result      := true;
           venda.chave := CHAVENF;
 
           TRY
@@ -6136,7 +6171,11 @@ begin
   PIS_NT := 0;
   COFINS_ST := 0;
   cod_OP := '5102';
+
+  erroCriarNFCe := 'lerItensDaVenda(lista, nota)';
   lerItensDaVenda(lista, nota);
+
+  erroCriarNFCe := 'LerDados_Emit_Dest(cliente, nnf)';
   LerDados_Emit_Dest(cliente, nnf);
   Result := NODO_RAIZ(nota);
 
@@ -8720,9 +8759,9 @@ begin
     then
     begin
       ACBrNFe.NotasFiscais[0].nfe.Det[ini].Prod.cEAN :=
-        DIGEAN('789000' + CompletaOuRepete('',
+        DIGEAN('789' + CompletaOuRepete('',
         IntToStr(StrToInt(strnum(ACBrNFe.NotasFiscais[0].nfe.Det[ini]
-        .Prod.cProd))), '0', 6));
+        .Prod.cProd))), '0', 9));
     end;
 
     ACBrNFe.NotasFiscais[0].nfe.Det[ini].Prod.cEANTrib := ACBrNFe.NotasFiscais

@@ -200,13 +200,14 @@ begin
      exit;
      end;
    end; }
-   
+
 
   try
     funcoes.geraPgerais(); //gera Configurações de Parametros Gerais
     funcoes.LeNomesServicos(); //ler os nomes para ordem de servico
   except
   end;
+
 
   Application.Title := 'Control Estoque for Windows';
   form26.ProgressBar1.Position:=14;
