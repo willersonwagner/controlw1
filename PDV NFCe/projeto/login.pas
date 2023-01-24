@@ -35,12 +35,14 @@ type
     inicia   : Smallint;
     procedure limpa();
     Procedure TrataErros(Sender: TObject; E: Exception);
+    function verificaBloqueio : integer;
     { Private declarations }
   public
     pgerais : TStringList;
     codUsuario, nome1, vendedor, NomeVend, configu, acesso, intervaloVenda : String;
     datamov : TDateTime;
     valorSerieNoServidor : integer;
+
     procedure atualizaTabelaIBPT(manual : boolean = false);
     function buscaVersaoIBPT_Site(tipo : smallint = 1) : String;
     procedure descompactaIBPT;
@@ -57,6 +59,34 @@ var
 implementation
 
 uses untMain, untdtmmain, dmecf, untCancelaNFCe, untConfiguracoesNFCe, qrcodePIX;
+
+function TForm1.verificaBloqueio : integer;
+var
+  arq : TStringList;
+begin
+  Result := 0;
+
+  if FileExists(ExtractFileDir(ParamStr(0)) + '\key.rsa') then begin
+    arq := TStringList.Create;
+    arq.LoadFromFile(ExtractFileDir(ParamStr(0)) + '\key.rsa');
+    if arq.Values['6'] = 'BLOQUEADO' then  begin
+      Result := 1;
+
+      dtmMain.IBQuery1.Close;
+      dtmMain.IBQuery1.SQL.Text := 'select count(*) as cont from acesso where acesso = ''bloq''';
+      dtmMain.IBQuery1.Open;
+
+      if (5 - dtmMain.IBQuery1.FieldByName('cont').AsInteger) < 0 then begin
+        MessageDlg('Sistema Temporáriamente Indisponível. Entre em contato com o suporte!', mtError, [mbOK], 1);
+        arq.Free;
+        exit;
+      end;
+    end;
+    arq.Free;
+  end;
+
+end;
+
 
 Procedure TForm1.TrataErros(Sender: TObject; E: Exception);
 var
@@ -178,6 +208,10 @@ begin
 
   if logar(nome.Text, senha.Text) then
     begin
+      if verificaBloqueio = 1 then begin
+        exit;
+      end;
+
       nome1       := dtmMain.ibquery1.fieldbyname('nome').asstring;
       codUsuario  := dtmMain.ibquery1.fieldbyname('cod').asstring;
       vendedor    := dtmMain.ibquery1.fieldbyname('vendedor').asstring;
@@ -227,6 +261,10 @@ begin
           except
           end;
         end;  
+
+
+
+
 
       frmMain.Show;
       screen.Cursor := crDefault;

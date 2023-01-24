@@ -143,8 +143,8 @@ begin
         else begin
           ShowMessage('PIX Nao Confirmado!');
           exit;
-        end;     }
-      end;
+        end;
+      end;       }
 
 
       finalizou := 'S';
@@ -161,12 +161,12 @@ begin
   ClientDataSet1.CreateDataSet;
   ClientDataSet1.LogChanges := false;
 
-  dm.IBselect.Close;
-  dm.IBselect.SQL.Text := 'select total from venda where nota = :nota';
-  dm.IBselect.ParamByName('nota').AsInteger := nota;
-  dm.IBselect.Open;
+  dtmMain.IBQuery1.Close;
+  dtmMain.IBQuery1.SQL.Text := 'select total from venda where nota = :nota';
+  dtmMain.IBQuery1.ParamByName('nota').AsInteger := nota;
+  dtmMain.IBQuery1.Open;
 
-  if dm.IBselect.IsEmpty = false then totalVenda := dm.IBselect.FieldByName('total').AsCurrency;
+  if dtmMain.IBQuery1.IsEmpty = false then totalVenda := dtmMain.IBQuery1.FieldByName('total').AsCurrency;
 
   p_venda.Caption := formataCurrency(totalVenda);
   p_restante.Caption := formataCurrency(totalVenda);
@@ -275,24 +275,24 @@ end;
 
 procedure TForm82.buscaPagamentos;
 begin
-  dm.IBselect.Close;
-  dm.IBselect.SQL.Text := 'select p.formapagto as cod, p.valor, f.nome from PAGAMENTOVENDA p left join formpagto f on (f.cod = p.formapagto) where p.nota = :nota';
-  dm.IBselect.ParamByName('nota').AsInteger := nota;
-  dm.IBselect.Open;
+  dtmMain.IBQuery1.Close;
+  dtmMain.IBQuery1.SQL.Text := 'select p.formapagto as cod, p.valor, f.nome from PAGAMENTOVENDA p left join formpagto f on (f.cod = p.formapagto) where p.nota = :nota';
+  dtmMain.IBQuery1.ParamByName('nota').AsInteger := nota;
+  dtmMain.IBQuery1.Open;
 
-  if dm.IBselect.IsEmpty then begin
-    dm.IBselect.Close;
+  if dtmMain.IBQuery1.IsEmpty then begin
+    dtmMain.IBQuery1.Close;
     exit;
   end;
 
-  while not dm.IBselect.Eof do begin
+  while not dtmMain.IBQuery1.Eof do begin
     ClientDataSet1.Append;
-    ClientDataSet1.FieldByName('cod').AsString     := dm.IBselect.FieldByName('cod').AsString;
-    ClientDataSet1.FieldByName('nome').AsString    := dm.IBselect.FieldByName('nome').AsString;
-    ClientDataSet1.FieldByName('valor').AsCurrency := dm.IBselect.FieldByName('valor').AsCurrency;
+    ClientDataSet1.FieldByName('cod').AsString     := dtmMain.IBQuery1.FieldByName('cod').AsString;
+    ClientDataSet1.FieldByName('nome').AsString    := dtmMain.IBQuery1.FieldByName('nome').AsString;
+    ClientDataSet1.FieldByName('valor').AsCurrency := dtmMain.IBQuery1.FieldByName('valor').AsCurrency;
     ClientDataSet1.Post;
 
-    dm.IBselect.Next;
+    dtmMain.IBQuery1.Next;
   end;
 
   somaTotal;

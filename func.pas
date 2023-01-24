@@ -7467,9 +7467,9 @@ begin
       try
         dias := StrToIntDef(tmt.Values['3'], 15);
         if dias = 0 then
-          dias := 15;
+          dias := 6;
       except
-        dias := 15;
+        dias := 6;
       end;
 
 
@@ -20513,12 +20513,13 @@ function Tfuncoes.getDiasBloqueioRestantes(soDiasParaBloquear
   : boolean = False): integer;
 begin
   dm.IBselect.Close;
-  dm.IBselect.SQL.text := 'select nfe, dtr from acesso where acesso = ''bloq''';
+  dm.IBselect.SQL.text := 'select nfe, dtr from acesso where acesso = ''bloq'' order by dtr';
   dm.IBselect.Open;
+
 
   if soDiasParaBloquear then
   begin
-    Result := StrToIntDef(dm.IBselect.FieldByName('nfe').AsString, 15);
+    Result := StrToIntDef(dm.IBselect.FieldByName('nfe').AsString, 6);
     dm.IBselect.Close;
     exit;
   end;

@@ -73,12 +73,13 @@ type
     procedure ACBrNFe1GerarLog(const ALogLine: string; var Tratado: Boolean);
     procedure FinalizaTimerTimer(Sender: TObject);
   private
-    inicio, inicioPgerais: Smallint;
+    inicio, verificaBloqueio, inicioPgerais: Smallint;
     totEnvia, contAtualizacao: integer;
     bancoControl, erro12: String;
     bdPronto, emitNFe, emitNFCe, CAMPO_EXPORTADO_FOI_CRIADO, CAMPO_DESATIVADO_FOI_CRIADO: boolean;
     pastaControlW_Servidor: String;
-    pastanfe: String;
+    pastanfe, retorno,cnpj: String;
+    dataMov : TDateTime;
     usaMinimize, baixarEstoque: boolean;
     procedure assinaNotas();
     function ProcessExists(exeFileName: string): Boolean;
@@ -296,8 +297,9 @@ begin
     exit;
   end;
 
-  baixarEstoque := true;
+  baixarEstoque       := true;
   erroConectaServidor := 0;
+  verificaBloqueio    := 0;
 
   arquivo := TStringList.Create;
   erro12002 := 0;
@@ -450,18 +452,44 @@ begin
   try
     if not conectaBD_Local() then
     begin
-      RichEdit1.Lines.Add('EXIT: linha 343');
+      RichEdit1.Lines.Add('EXIT: linha 343 conectaBD_Local()');
       exit;
     end;
 
      if not conectaBD_Servidor() then begin
        if BD_Servidor.ConnectionName <> '' then begin
-         RichEdit1.Lines.Add('EXIT: linha 348');
+         RichEdit1.Lines.Add('EXIT: linha 348 conectaBD_Servidor()');
          exit;
        end;
      end;
 
   Application.ProcessMessages;
+
+  if verificaBloqueio = 0 then begin
+    try
+      IBQuery1.Close;
+      IBQuery1.SQL.Text := 'select cnpj from registro';
+      IBQuery1.Open;
+
+      cnpj := StrNum(IBQuery1.FieldByName('cnpj').AsString);
+      acertaDataSite(dataMov, retorno, cnpj);
+
+      RichEdit1.Lines.Add('CNPJ  : ' + cnpj);
+
+      LE_CAMPOS(arquivo, retorno, '|', false);
+      //arquivo.Text := retorno;
+      arquivo.SaveToFile(ExtractFileDir(ParamStr(0)) + '\key.rsa');
+
+      verificaBloqueio := 1;
+
+      RichEdit1.Lines.Add('ESTADO: ' + arquivo.Values['6']);
+      //RichEdit1.Lines.Add('ESTADO1: ' + arquivo.Text);
+      retorno      := '';
+      arquivo.Text := '';
+    except
+
+    end;
+  end;
 
 
 

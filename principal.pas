@@ -330,6 +330,7 @@ if key=#27 then
            if bloq then
              begin
                t1 := funcoes.getDiasBloqueioRestantes(true);
+
                dias := funcoes.getDiasBloqueioRestantes();
                if dias >= 0 then funcoes.adicionaRegistroDataBloqueio(true, true, t1, dm.IBQuery4, false);
                form2.Caption := form22.Pgerais.Values['empresa'] + ' ('+ IntToStr(t1) +' dias Para Bloquear o Sistema)';
