@@ -90,6 +90,9 @@ begin
        try
          dm.IBselect.ExecSQL;
          dm.IBselect.Transaction.Commit;
+
+         funcoes.gravaAlteracao('DELETE CR val: ' + CurrToStr(DBGrid1.DataSource.DataSet.FieldByName('valor').AsCurrency) + ' cod: ' + DBGrid1.DataSource.DataSet.FieldByName('cod').AsString + ' pago: 0' , 'CRD');
+
          dm.IBQuery1.Close;
          dm.IBQuery1.Open;
          dm.IBQuery1.MoveBy(ren - 1);

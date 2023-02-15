@@ -278,6 +278,7 @@ begin
           dm.IBQuery2.ExecSQL;
           try
             dm.IBQuery2.Transaction.Commit;
+
             dm.IBselect.Open;
           except
             on e:exception do begin
@@ -313,19 +314,19 @@ begin
       dm.IBselect.MoveBy(recno);
       dm.IBselect.EnableControls;
       exit;
-    end;
+    end;//if codES = '0' then begin
 
     dm.IBQuery1.Close;
     dm.IBQuery1.SQL.Text := ('select * from contasreceber where cod='+dm.IBselect.FieldByName('codentradasaida').AsString);
     dm.IBQuery1.Open;
     if dm.IBQuery1.IsEmpty then begin
-      funcoes.gravaAlteracao(copy('Reg CAIXA Apagado! Codmov ' + codmov + ' Valor> ' + CurrToStr(valor) + ' his>' + copy(his,1, 30) + 'tipo>' + IfThen(tipo = 'R', 'ENT', 'SAI'),1,100), 'CAI');
+      funcoes.gravaAlteracao(copy('Reg CAIXA CR! Codmov ' + codES + ' Valor> ' + CurrToStr(valor) + ' his>' + copy(his,1, 30) + 'tipo>' + IfThen(tipo = 'R', 'ENT', 'SAI'),1,100), 'CAI');
       dm.IBQuery2.close;
       dm.IBQuery2.SQL.Text := ('delete from caixa where codmov='+dm.IBselect.fieldbyname('codmov').AsString);
       try
-        dm.IBQuery1.Close;
         dm.IBQuery2.ExecSQL;
         dm.IBQuery2.Transaction.Commit;
+        dm.IBQuery1.Close;
         dm.IBselect.Close;
         dm.IBselect.Open;
         dm.IBselect.FieldByName('codmov').Visible := false;
@@ -357,28 +358,6 @@ begin
         end;
       end
       else begin
-        dm.IBQuery2.Close;
-        dm.IBQuery2.SQL.Text := 'select * from caixa where historico = :his';
-        dm.IBQuery2.ParamByName('his').AsString := trim(dm.IBselect.fieldbyname('historico').AsString);
-        dm.IBQuery2.Open;
-        dm.IBQuery2.FetchAll;
-
-        if dm.IBQuery2.RecordCount = 1 then begin
-          dm.IBQuery2.Close;
-          dm.IBQuery2.SQL.Text := ('update contasreceber set pago = 0,valor = total,'+
-          'data = vencimento, saldo = 0, datamov = vencimento, ult_usu_alterado = -1 where cod='+codES);
-          dm.IBQuery2.ExecSQL;
-          dm.IBQuery2.Transaction.Commit;
-          dm.IBselect.Open;
-          try
-            dm.IBQuery2.ExecSQL;
-            dm.IBQuery2.Transaction.Commit;
-            dm.IBselect.Open;
-          except
-            dm.IBQuery2.Transaction.Rollback;
-          end;
-        end
-        else begin
           dm.IBQuery2.Close;
           dm.IBQuery2.SQL.Clear;
           dm.IBQuery2.SQL.Add('update contasreceber set pago=0,valor=valor+:total , ult_usu_alterado = -1 where cod='+codES);
@@ -394,10 +373,9 @@ begin
               exit;
             end;
           end;
-        end;
       end;
 
-      funcoes.gravaAlteracao(copy('Reg CAIXA Apagado! Codmov ' + codmov + ' Valor> ' + CurrToStr(valor) + ' his>' + copy(his,1, 30) + 'tipo>' + IfThen(tipo = 'R', 'ENT', 'SAI'),1,100), 'CAI');
+      funcoes.gravaAlteracao(copy('Reg CAIXA Apagado! Codmov ' + codES + ' Valor> ' + CurrToStr(valor) + ' his>' + copy(his,1, 30) + 'tipo>' + IfThen(tipo = 'R', 'ENT', 'SAI'),1,100), 'CAI');
       dm.IBQuery2.close;
       dm.IBQuery2.SQL.Text := ('delete from caixa where codmov='+codmov);
       try

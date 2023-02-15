@@ -814,8 +814,7 @@ begin
   dm.IBselect.ParamByName('cod').AsInteger := CODFOR;
   dm.IBselect.Open;
   if dm.IBselect.IsEmpty then showmessage('Fornecedor não encontrado: ' + inttostr(CODFOR))
-    else
-     Result := ALIQ_INTEREST(dm.IBselect.fieldbyname('estado').AsString);
+    else Result := funcoes.ALIQ_INTEREST_ENTRADA(dm.IBselect.fieldbyname('estado').AsString);
   dm.IBselect.Close;
 end;
 
@@ -2678,9 +2677,10 @@ begin
       dm.IBselect.Next;
     end;
 
+
   dm.IBselect.Close;
-  dm.IBselect.SQL.Text := 'select chave, nota, data, estado from nfe f where'+
-  '  ((estado = ''C'') or  (estado = ''D'')) '+
+  dm.IBselect.SQL.Text := 'select chave, nota, data, estado from nfe f where '+
+  ' ((estado = ''C'') '+IfThen(StrToDateTime(dataIni) < StrToDateTime('01/01/2023'), ' or (estado = ''D'')', '')+') '+
   ' and (data >= :ini) and (data <= :fim)';
   dm.IBselect.ParamByName('ini').AsDate  := StrToDate(dataIni);
   dm.IBselect.ParamByName('fim').AsDate  := StrToDate(DataFim);
@@ -2700,10 +2700,6 @@ begin
 
       NOTA := dm.IBselect.FieldByName('nota').AsInteger;
       DATA_EMI := dm.IBselect.FieldByName('data').AsDateTime;
-
-      {if not Assigned(dadosNfe) then dadosNfe := TDadosNFe.Create;
-
-      _SER := Le_Nodo('serie', DadosNfe.xml);}
 
       DESC := '9999';
 
@@ -2735,9 +2731,12 @@ begin
     end;
 
     arq.free;
-
+ 
   //gravaERRO_LOG1('', 'CODCLI4='+ CODCLI, '');
   {DADOS DE NFES EMITIDAS}
+
+  //dados de inutilizações nao ira funcionar em 2023
+  if StrToDateTime(dataIni) < StrToDateTime('01/01/2023') then
   insereInutilizacoesFiscal;
 
 
@@ -3988,6 +3987,7 @@ begin
     ShowMessage(ERRO_CHAVE);
   end;
 
+
   dm.IBselect.Close;
   dm.IBselect.SQL.Text := 'select chave, nota, cliente, data, ADIC from nfce'+
   ' where (data >= :ini) and (data <= :fim) and ((ADIC = ''DENEGADA'') ' +
@@ -4019,18 +4019,25 @@ begin
       i1   :=  StrToIntDef(copy(dm.IBselect.fieldbyname('chave').AsString, 26, 9), 0);
 
       DESC := '998';
-      if trim(dm.IBselect.fieldbyname('adic').AsString) = 'CANC' then DESC := '02';
-      if trim(dm.IBselect.fieldbyname('adic').AsString) = 'DENEGADA' then DESC := '04';
+      if trim(dm.IBselect.fieldbyname('adic').AsString) = 'CANC' then begin
+        DESC := '02';
+        LINHA := '|C100|1|0||65|'+DESC+'|' + _SER + '|' + IntToStr(i1) +
+         '|' + dm.IBselect.fieldbyname('chave').AsString + '|||||||||||||||||||||';
 
+        GRAVA_SPED(ARQ_TMP, LINHA);
+      end;
 
-      LINHA := '|C100|1|0||65|'+DESC+'|' + _SER + '|' + IntToStr(i1) +
-      '|' + dm.IBselect.fieldbyname('chave').AsString + '|||||||||||||||||||||';
+      if ((trim(dm.IBselect.fieldbyname('adic').AsString) = 'DENEGADA') and (StrToDateTime(dataIni) < StrToDateTime('01/01/2023'))) then begin
+         DESC := '04';
+         LINHA := '|C100|1|0||65|'+DESC+'|' + _SER + '|' + IntToStr(i1) +
+         '|' + dm.IBselect.fieldbyname('chave').AsString + '|||||||||||||||||||||';
 
-      GRAVA_SPED(ARQ_TMP, LINHA);
+         GRAVA_SPED(ARQ_TMP, LINHA);
+      end;
 
       dm.IBselect.Next;
     end;
-
+   
   {DADOS DE NFCeS EMITIDAS}
 end;
 

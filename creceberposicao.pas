@@ -511,6 +511,8 @@ begin
       dm.IBQuery1.ParamByName('data').AsDate                  := form22.datamov;
       dm.IBQuery1.ExecSQL;
 
+      funcoes.gravaAlteracao('Baixa F10 de CR val: ' + CurrToStr(DBGrid1.DataSource.DataSet.FieldByName('valor').AsCurrency) + ' cod: ' + DBGrid1.DataSource.DataSet.FieldByName('cod').AsString + ' pago: 0' , 'CRB');
+
       valorb := valorb - DBGrid1.DataSource.DataSet.FieldByName('valor').AsCurrency;
 
       {dm.IBQuery1.Close;
@@ -557,8 +559,12 @@ begin
       lista[i].data  := DBGrid1.DataSource.DataSet.FieldByName('vencimento').AsDateTime;
       lista[i].quant := valorb;
 
+      funcoes.gravaAlteracao('Baixa F10 de CR val: ' + CurrToStr(valorb) + ' cod: ' + DBGrid1.DataSource.DataSet.FieldByName('cod').AsString + ' pago: 0' , 'CRB');
+
       valorb := 0;
     end;
+
+
 
     DBGrid1.DataSource.DataSet.Next;
   end;
@@ -640,7 +646,7 @@ begin
   form19.RichEdit1.Clear;
 
   cod := DBGrid1.DataSource.DataSet.FieldByName('cod').AsString;
-  v1 := DBGrid1.DataSource.DataSet.FieldByName('valor').AsCurrency;
+  v1  := DBGrid1.DataSource.DataSet.FieldByName('valor').AsCurrency;
   lin := 0;
 
   //if valorb = v1 then begin
@@ -652,9 +658,9 @@ begin
     dm.IBQuery1.ParamByName('valor').AsCurrency := StrToCurr(funcoes.ConverteNumerico(valorBaixado));
 
     if valorb < v1 then dm.IBQuery1.ParamByName('pago').AsCurrency  := 0
-    else dm.IBQuery1.ParamByName('pago').AsCurrency  := valorb;
-    dm.IBQuery1.ParamByName('datamov').AsDate   := form22.datamov;
-    dm.IBQuery1.ParamByName('ult_usu_alterado').AsInteger   := StrToInt(StrNum(form22.codusario));
+    else dm.IBQuery1.ParamByName('pago').AsCurrency                 := valorb;
+    dm.IBQuery1.ParamByName('datamov').AsDate                       := form22.datamov;
+    dm.IBQuery1.ParamByName('ult_usu_alterado').AsInteger           := StrToInt(StrNum(form22.codusario));
     dm.IBQuery1.ExecSQL;
   {end
   else if valorb < v1 then begin
@@ -669,6 +675,8 @@ begin
   end;}
 
   dm.IBQuery1.Transaction.Commit;
+
+  funcoes.gravaAlteracao('Baixa de CR val: ' + funcoes.ConverteNumerico(valorBaixado) + ' cod: ' + cod + ' pago: ' + CurrToStr(dm.IBQuery1.ParamByName('pago').AsCurrency), 'CRB');
 
   i := lista.Add(TacumProd.Create);
   lista[i].cod   := DBGrid1.DataSource.DataSet.FieldByName('documento').AsInteger;

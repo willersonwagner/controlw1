@@ -197,6 +197,7 @@ type
     enviandoCupom, enviandoBackup: boolean;
     fonteRelatorioForm19: integer;
     NegritoRelatorioForm19, saiComEnter: boolean;
+    FUNCTION ALIQ_INTEREST_ENTRADA(ESTADO_EMIT : String) : currency;
     procedure RotinaImportarListaMWM;
     function buscaNomePC : String;
     procedure ConvertExcelFile(const ExcelFile, OutFile: string; Format: Integer = xlCSV);
@@ -1703,7 +1704,7 @@ begin
   dm.IBselect.SQL.Clear;
   dm.IBselect.SQL.Add
     ('select i.data,i.p_venda,i.quant,i.total,i.nota, i.origem, (select nome from formpagto where cod=v.codhis) '
-    + ', v.cancelado from item_venda i,venda v where (i.nota=v.nota) and (i.cod = '
+    + ', v.cancelado, v.data_canc from item_venda i,venda v where (i.nota=v.nota) and (i.cod = '
     + te + ') and ' + origem +' containing cast(i.origem as varchar(1)) order by data, nota');
   //dm.IBselect.ParamByName('ini').AsDateTime := datini;
   dm.IBselect.Open;
@@ -1749,6 +1750,7 @@ begin
       form33.ClientDataSet1.FieldByName('data').AsDateTime := dm.IBselect.FieldByName('data').AsDateTime;
 
       if dm.IBselect.FieldByName('cancelado').AsInteger > 0 then begin
+        form33.ClientDataSet1.FieldByName('data').AsDateTime := dm.IBselect.FieldByName('data_canc').AsDateTime;
         dm.IBQuery1.Close;
         dm.IBQuery1.SQL.Text := 'select nome from usuario where cod = ' + dm.IBselect.FieldByName('cancelado').AsString;
         dm.IBQuery1.Open;
@@ -5633,8 +5635,7 @@ begin
         dm.IBselect.FieldByName('codbar').AsString;
       form48.ClientDataSet1.FieldByName('PRECO_ATUAL').AsCurrency :=
         dm.IBselect.FieldByName('p_venda').AsCurrency;
-      form48.ClientDataSet1.FieldByName('ALIQ').AsString :=
-        dm.IBselect.FieldByName('aliquota').AsString;
+      form48.ClientDataSet1.FieldByName('ALIQ').AsString := dm.IBselect.FieldByName('aliquota').AsString;
 
       form48.ClientDataSet1.FieldByName('DESCRICAO_ATUAL').AsString :=
       dm.IBselect.FieldByName('nome').AsString;
@@ -17794,6 +17795,8 @@ begin
   begin
     form7.Position := poScreenCenter;
   end;
+
+  form7.condicao  := '';
   form7.tabela := tabela;
 
   funcoes.aumentaFonte(form7, true, 0, true);
@@ -17809,6 +17812,7 @@ begin
   form7.esconde := esconde;
   form7.campoLocate := campoLocate;
   form7.keyLocate := keyLocate;
+
   { if not(editLocaliza) then
     begin
     Form7.editLocaliza := true;
@@ -27916,27 +27920,23 @@ end;
 procedure Tfuncoes.enviarSPED_Email;
 var
   email, mes, ano: String;
+  mes1, ano1 : integer;
   lista1: TStrings;
   list1: tstringList;
   mbody: TMemo;
 begin
   lista1 := tstringList.Create;
-  lista1.Add('2007');
-  lista1.Add('2008');
-  lista1.Add('2009');
-  lista1.Add('2010');
-  lista1.Add('2011');
-  lista1.Add('2012');
-  lista1.Add('2013');
-  lista1.Add('2014');
-  lista1.Add('2015');
-  lista1.Add('2016');
-  lista1.Add('2017');
-  lista1.Add('2018');
-  lista1.Add('2019');
-  lista1.Add('2020');
-  lista1.Add('2021');
-  lista1.Add('2022');
+
+  Mes1 := StrToInt(FormatDateTime('MM', Now));
+  Ano1 := StrToInt(FormatDateTime('YYYY', now));
+
+  //if mes1 = 1 then ano1 := ano1 - 1;
+
+  lista1.Add(IntToStr(ano1));
+  for mes1 := 0 to 10 do begin
+    lista1.Add(IntToStr(ano1 -1));
+    ano1 := ano1 -1;
+  end;
 
   ano := funcoes.showListBox('ControlW', 'Informe o Ano:', lista1,
     FormatDateTime('yyyy', IncMonth(form22.dataMov, -1)));
@@ -28542,7 +28542,7 @@ begin
 
   while not dm.IBselect.Eof do begin
     tmp := dm.IBselect.FieldByName('documento').AsString + dm.IBselect.FieldByName('vencimento').AsString + dm.IBselect.FieldByName('historico').AsString + dm.IBselect.FieldByName('entrada').AsString +
-    dm.IBselect.FieldByName('CODENTRADASAIDA').AsString;
+    dm.IBselect.FieldByName('CODENTRADASAIDA').AsString + dm.IBselect.FieldByName('data').AsString;
 
     if not Contido(tmp, acc) then acc := acc + tmp
     else begin
@@ -31778,6 +31778,17 @@ begin
   //ShowMessage(cds.FieldByName('DESCRICAO_ATUAL').AsString);
   //busca(tfdquery(cds), 'CODIGO', 'CODIGO', 'CODIGO', 'CODIGO');
 
+end;
+
+FUNCTION Tfuncoes.ALIQ_INTEREST_ENTRADA(ESTADO_EMIT : String) : currency;
+begin
+  Result := 12;
+  if Contido(ESTADO_EMIT, 'MG-PR-RS-RJ-SP-SC') then
+    begin
+      Result := 7;
+    end;
+
+  if ESTADO_EMIT = 'RR' then Result := 0;
 end;
 
 

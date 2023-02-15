@@ -6083,7 +6083,7 @@ begin
     begin
       Form34.IBTable1.Filter := '(vencimento <= {d ' +
         (FormatDateTime('yyyy-mm-dd', data1)) + '}) and (codgru=' + g1 +
-        ') and (pago = 0)';
+        ') and (pago = 0) and (valor > 0)';
 
       // form34.IBTable1.ParamByName('venc').AsDate := data1;
       // form34.IBTable1.FilterOptions
@@ -6091,7 +6091,7 @@ begin
     else
     begin
       Form34.IBTable1.Filter := '(vencimento <= {d ' +
-        (FormatDateTime('yyyy-mm-dd', data1)) + '}) and (pago = 0)';
+        (FormatDateTime('yyyy-mm-dd', data1)) + '}) and (pago = 0)and (valor > 0)';
       // form34.IBTable1.ParamByName('venc').AsDate := data1;
     end;
 
