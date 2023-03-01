@@ -666,9 +666,9 @@ object form22: Tform22
       end
       object Image2: TImage
         Left = 4
-        Top = 33
+        Top = 32
         Width = 53
-        Height = 39
+        Height = 40
         Picture.Data = {
           0954506E67496D61676589504E470D0A1A0A0000000D4948445200000DAC0000
           0DBC08060000004FA469840000000473424954080808087C0864880000000970

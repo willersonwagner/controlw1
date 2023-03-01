@@ -7,7 +7,7 @@ object dtmMain: TdtmMain
     Left = 17
     Top = 3
     Bitmap = {
-      494C01019500A000340010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C01019500A0003C0010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000006002000001002000000000000060
       0200000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -5052,7 +5052,7 @@ object dtmMain: TdtmMain
     ExpandeLogoMarcaConfig.Largura = 0
     ExpandeLogoMarcaConfig.Dimensionar = False
     ExpandeLogoMarcaConfig.Esticar = True
-    CasasDecimais.Formato = tdetInteger
+    CasasDecimais.Formato = tdetMascara
     CasasDecimais.qCom = 2
     CasasDecimais.vUnCom = 2
     CasasDecimais.MaskqCom = ',0.00'
@@ -5357,6 +5357,7 @@ object dtmMain: TdtmMain
     CasasDecimais.MaskvUnCom = ',0.00'
     TipoDANFE = tiSemGeracao
     FormularioContinuo = True
+    PosPrinter = ACBrPosPrinter1
     Left = 400
     Top = 120
   end

@@ -56,7 +56,7 @@ begin
     
   AD_cdserie := '1';
   Application.Initialize;
-  Application.Title := 'AUTOCOM CFe V 1.0.0';
+  Application.Title := 'AUTOCOM NFCe V 1.0.0';
   Application.CreateForm(Tform1, form1);
   Application.CreateForm(TfrmMain, frmMain);
   Application.CreateForm(TForm3, Form3);

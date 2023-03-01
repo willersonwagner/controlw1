@@ -2652,10 +2652,15 @@ begin
 
   try
     if impFortes = false then begin
+      inicializarImpressora;
+     { if dtmMain.ACBrPosPrinter1.Ativo = false then
+
       dtmMain.ACBrPosPrinter1.Desativar;
       dtmMain.ACBrPosPrinter1.Porta := portaCOMNFCE;
-      if dtmMain.ACBrPosPrinter1.Device.Ativo = false then dtmMain.ACBrPosPrinter1.Ativar;
-      if dtmMain.ACBrPosPrinter1.Inicializada = false then dtmMain.ACBrPosPrinter1.Inicializar;
+      if dtmMain.ACBrPosPrinter1.Device.Ativo = false then begin
+       dtmMain.ACBrPosPrinter1.Ativar;
+       dtmMain.ACBrPosPrinter1.Inicializar;
+      end;             }
     end;
   except
     on e:exception do

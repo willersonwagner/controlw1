@@ -2718,7 +2718,7 @@ begin
     if DANFEEscPos.PosPrinter <> nil then
     begin
       DANFEEscPos.PosPrinter.ControlePorta :=
-        ini.ReadBool('SERVER', 'ControleDePorta', false);
+        ini.ReadBool('SERVER', 'ControleDePorta', true);
       // if DANFEEscPos.PosPrinter.ControlePorta then    ShowMessage('1')
       // else ShowMessage('0');
     end;
@@ -2734,8 +2734,7 @@ begin
 
     try
       DANFEEscPos.PosPrinter.modelo := TACBrPosPrinterModelo(tipoImp);
-      DANFEEscPos.PosPrinter.Device.Baud :=
-        StrToIntDef(ini.ReadString('SERVER', 'velocidade', '9600'), 9600);
+      DANFEEscPos.PosPrinter.Device.Baud := StrToIntDef(ini.ReadString('SERVER', 'velocidade', '9600'), 9600);
       DANFEEscPos.PosPrinter.EspacoEntreLinhas := StrToIntDef(ini.ReadString('SERVER', 'espacoEntreLinhas', '50'), 50);
       DANFEEscPos.EspacoFinal := StrToIntDef(ini.ReadString('SERVER', 'espacoFinal', '38'), 38);
 

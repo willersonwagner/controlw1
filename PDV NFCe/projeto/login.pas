@@ -72,11 +72,16 @@ begin
     if arq.Values['6'] = 'BLOQUEADO' then  begin
       Result := 1;
 
-      dtmMain.IBQuery1.Close;
-      dtmMain.IBQuery1.SQL.Text := 'select count(*) as cont from acesso where acesso = ''bloq''';
-      dtmMain.IBQuery1.Open;
+      dtmMain.IBQuery2.Close;
+      dtmMain.IBQuery2.SQL.Text := 'select count(*) as cont from acesso where acesso = ''bloq''';
+      dtmMain.IBQuery2.Open;
 
-      if (5 - dtmMain.IBQuery1.FieldByName('cont').AsInteger) < 0 then begin
+      if dtmMain.IBQuery2.FieldByName('cont').AsInteger = 0 then begin
+        Result := 0;
+        exit;
+      end;
+
+      if (5 - dtmMain.IBQuery2.FieldByName('cont').AsInteger) < 0 then begin
         MessageDlg('Sistema Temporáriamente Indisponível. Entre em contato com o suporte!', mtError, [mbOK], 1);
         arq.Free;
         exit;

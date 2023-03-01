@@ -2056,8 +2056,8 @@ object Form3: TForm3
     Device.HandShake = hsRTS_CTS
     Device.HardFlow = True
     StrComando = '#027,v,#140 | Bematech'
-    Left = 8
-    Top = 24
+    Left = 72
+    Top = 16
   end
   object Timer2: TTimer
     Enabled = False

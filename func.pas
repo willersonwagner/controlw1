@@ -18253,7 +18253,7 @@ begin
   begin
     dm.ProdutoQY.SQL.Clear;
     dm.ProdutoQY.SQL.Add(SQLCom2Filtros);
-    dm.ProdutoQY.ParamByName('grupo').AsInteger := StrToInt(grupo);
+    dm.ProdutoQY.ParamByName('grupo').AsInteger  := StrToInt(grupo);
     dm.ProdutoQY.ParamByName('fornec').AsInteger := StrToInt(fornec);
     dm.ProdutoQY.Open;
   end;
@@ -20519,7 +20519,6 @@ begin
   dm.IBselect.Close;
   dm.IBselect.SQL.text := 'select nfe, dtr from acesso where acesso = ''bloq'' order by dtr';
   dm.IBselect.Open;
-
 
   if soDiasParaBloquear then
   begin

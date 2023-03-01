@@ -1371,6 +1371,7 @@ begin
     Close;
   if Key = #13 then
   begin
+    p_vendaAtual := p_venda.getValor;
     valorRetorno := TEdit(Sender).Text;
     if RecuperarCadastro then
     begin
@@ -1889,6 +1890,10 @@ end;
 
 procedure TForm9.nomeEnter(Sender: TObject);
 begin
+  if (StrToIntDef(cod.Text, 0) <> 0) then begin
+    p_vendaAtual := p_venda.getValor;
+  end;
+
   if ((StrToIntDef(cod.Text, 0) <> 0) and (flag = 0)) then
   begin
     // codUlt := IfThen(cod.Text <> '0', cod.text, '');

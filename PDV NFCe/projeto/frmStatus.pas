@@ -33,6 +33,8 @@ implementation
 
 {$R *.dfm}
 
+uses untVendaPDV;
+
 procedure Tmfd.FormKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
@@ -118,12 +120,13 @@ var
   lin : String;
 begin
   fim := RichEdit1.Lines.Count -1;
+  try
+    form3.inicializarImpressora;
+  except
+  end;
+
   for ini := 0 to fim do
     begin
-      try
-        dtmMain.ACBrPosPrinter1.Ativar;
-      except
-      end;
 
       lin := RichEdit1.Lines[ini];
       if CheckBox1.Checked then lin := '<n>' + lin + '</n>'
