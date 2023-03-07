@@ -244,7 +244,8 @@ object Form52: TForm52
           'IMPRESS'#195'O DIRETA NO COMPARTILHAMENTO'
           'MATRICIAL USB'
           'USB3 - IMPRESSAO LASER'
-          'USB4 - IMPRESSAO Fortes Report')
+          'USB4 - IMPRESSAO Fortes Report'
+          'ESC/POS NFCe')
       end
       object CheckBox1: TCheckBox
         Left = 16

@@ -564,7 +564,7 @@ begin
   if FonteOutCampos.Text = '' then FonteOutCampos.Text := '10';
   Ini.WriteInteger('SERVER', 'FonteOutCampos', StrToIntDef(FonteOutCampos.Text, 10));
   Ini.WriteInteger('SERVER', 'fonteEnde', StrToIntDef(fonteEnde.Text, 0));
-  Ini.WriteInteger('SERVER', 'logoheigth', StrToIntDef(logoheigth.Text, 1));
+  Ini.WriteString('SERVER', 'logoheigth', logoheigth.Text);
   Ini.WriteInteger('SERVER', 'LOGOWIDTH'   , StrToIntDef(LOGOWIDTH.Text, 1));
   Ini.WriteInteger('SERVER', 'fonteRazao'   , StrToIntDef(fonteRazao.Text, 8));
   Ini.WriteInteger('SERVER', 'casasDecimais'   , StrToIntDef(casasDecimais.Text, 2));

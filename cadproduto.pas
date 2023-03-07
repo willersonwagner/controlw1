@@ -2126,8 +2126,6 @@ begin
     Application.Terminate;
   end;
 
-
-
   dm.IBselect.Close;
   dm.IBselect.SQL.Text := 'select * from produto where cod = :cod';
   dm.IBselect.ParamByName('cod').AsInteger := cod1;

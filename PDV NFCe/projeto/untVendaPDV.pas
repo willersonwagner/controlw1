@@ -162,6 +162,7 @@ type
     procedure lancaDesconto(var desc1, tot_g : currency; ConfigUsuario, tipoDesc, acessoUsu : String; precoDefault : currency = 0; CalcularMinimoPrecoTotalOriginal : currency = 0);
     procedure cancelaItemVisual(const num : smallint;const tot_item : currency);
     procedure verificaDavNFCeTravado;
+    procedure abreGAV_Spool;
     { Public declarations }
   end;
 
@@ -2537,6 +2538,16 @@ var
 begin
   if portaCOMNFCE = '' then exit;
 
+  if Contido('RAW', UpperCase(PortaCOM2)) then begin
+    abreGAV_Spool;
+    exit;
+  end;
+
+ { if PortaCOM2 <> '' then begin
+    dtmMain.ACBrPosPrinter1.Desativar;
+    dtmMain.ACBrPosPrinter1.Device.Porta := PortaCOM2;
+  end;       }
+
   try
     if tipoIMPRESSAO = 1 then
       begin
@@ -2547,6 +2558,11 @@ begin
           cont := cont + 1;
           try
             dtmMain.ACBrPosPrinter1.AbrirGaveta;
+
+           { if PortaCOM2 <> '' then begin
+               dtmMain.ACBrPosPrinter1.Desativar;
+               dtmMain.ACBrPosPrinter1.Porta := portaCOMNFCE;
+            end;   }
 
             //if cont > 5 then
              break;
@@ -2586,7 +2602,7 @@ begin
       //Writeln(F,#27#118);
       Writeln(F, #29 + #249 + #32 + #0 + #27 + #116 + #8 + #27 + #118 + #140) //bematech
     end;
-  if tipoImp = 2 then  Writeln(F,#27 + 'v' + #118);  //elgin
+  if tipoImp = 2 then  Writeln(F,#27 + 'v' + #118);  //bematech
   if tipoImp = 3 then Writeln(F,#027+ #112+ #000+ #010+ #100''); // Abrir Gaveta Epson
   CloseFile(F);
 end;
@@ -2599,6 +2615,8 @@ begin
   try
     compGAV.Porta := portaCOMNFCE;
     compGAV.Modelo := gavImpressoraComum;
+
+    //    compGAV.StrComando := strco
   if tipoImp = 1 then
     begin
       compGAV.StrComando :=  #027+ #112+ #000+ #010+ #100'';// Abrir Gaveta Epson
@@ -2609,6 +2627,10 @@ begin
       //compGAV.StrComando :=  #29','#249','#32','#0','#27','#116','#8','#27','#118','#140;// Abrir Gaveta Epson
       compGAV.StrComando :=  #27 + #64 + #29 + #249 + #32 + #0 + #27 + #116 + #8 + #27 + #118 + #110;// Abrir Impressora Bematech
     end;
+
+  if tipoImp = 2 then begin
+    compGAV.StrComando := #027+ 'v'+ #140;
+  end;
   //if tipoImp = 2 then  Writeln(F,#27 + 'v' + #100);  //elgin
   //if tipoImp = 3 then Writeln(F,#027+ #112+ #000+ #010+ #100''); // Abrir Gaveta Epson
 
@@ -2648,26 +2670,10 @@ begin
 
   impFortes := false;
 
-  if tipoIMPRESSAO <> 1 then impFortes := true;
-
-  try
-    if impFortes = false then begin
-      inicializarImpressora;
-     { if dtmMain.ACBrPosPrinter1.Ativo = false then
-
-      dtmMain.ACBrPosPrinter1.Desativar;
-      dtmMain.ACBrPosPrinter1.Porta := portaCOMNFCE;
-      if dtmMain.ACBrPosPrinter1.Device.Ativo = false then begin
-       dtmMain.ACBrPosPrinter1.Ativar;
-       dtmMain.ACBrPosPrinter1.Inicializar;
-      end;             }
-    end;
-  except
-    on e:exception do
-      begin
-        MessageDlg('ERRO: ' + e.Message, mtError, [mbOK], 1);
-      end;
-  end;
+  if tipoIMPRESSAO = 1 then begin
+   inicializarImpressora;
+  end
+  else impFortes := true;
   
   Imprimir_DANFE_PDF(pedido, pedido, impFortes, getSerieNFCe);
 end;
@@ -3134,6 +3140,17 @@ begin
   query.ParamByName('valor').AsCurrency := valor;
   query.ExecSQL;
   query.Transaction.Commit;
+end;
+
+
+procedure TForm3.abreGAV_Spool;
+var F : TextFile;
+begin
+  AssignFile(F, impreNFCE);
+  Rewrite(F);
+  Writeln(F,#27#118); //bematech
+
+  CloseFile(F);
 end;
 
 

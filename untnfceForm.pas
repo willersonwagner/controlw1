@@ -336,7 +336,7 @@ var
   ad_cdserie: string;
   gArqPDF: String;
   gArqNFE: String;
-  gSenhaCert, CDCFOP: String;
+  gSenhaCert, CDCFOP, PortaCOM2: String;
 
 
   // 0-normal 1-resumido
@@ -687,7 +687,7 @@ procedure imprimirNfceESCPOS();
 begin
   try
     DANFEEscPos.ImprimeNomeFantasia := true;
-    ACBrNFe.DANFE := DANFEEscPos;
+    ACBrNFe.DANFE                   := DANFEEscPos;
     ACBrNFe.NotasFiscais.Imprimir;
     DANFEEscPos.vTroco := 0;
   except
@@ -2717,8 +2717,9 @@ begin
       'impDescProduto', true);
     if DANFEEscPos.PosPrinter <> nil then
     begin
-      DANFEEscPos.PosPrinter.ControlePorta :=
-        ini.ReadBool('SERVER', 'ControleDePorta', true);
+      if ini.ReadString('SERVER', 'ControleDePorta', '') = '1' then begin
+        DANFEEscPos.PosPrinter.ControlePorta := true;
+      end;
       // if DANFEEscPos.PosPrinter.ControlePorta then    ShowMessage('1')
       // else ShowMessage('0');
     end;
@@ -2731,6 +2732,9 @@ begin
     ArquivoNFE := ini.ReadString('Geral', 'ArquivosNFE', '');
     CDCFOP := ini.ReadString('Geral', 'CFOP', '');
     portaCOMNFCE := ini.ReadString('Geral', 'PortaImpNFCE', '');
+
+    PortaCOM2 := ini.ReadString('SERVER','logoheigth', '');
+
 
     try
       DANFEEscPos.PosPrinter.modelo := TACBrPosPrinterModelo(tipoImp);
@@ -2748,9 +2752,9 @@ begin
       DANFEEscPos.PosPrinter.ConfigLogo.FatorX   := StrToIntDef(ini.ReadString('SERVER', 'fatorx', '1'), 1);
       DANFEEscPos.PosPrinter.ConfigLogo.FatorY   := StrToIntDef(ini.ReadString('SERVER', 'fatory', '1'), 1);
 
-      DANFEEscPos.PosPrinter.Device.porta := portaCOMNFCE;
+      DANFEEscPos.PosPrinter.Device.porta      := portaCOMNFCE;
       DANFEEscPos.PosPrinter.LinhasEntreCupons := 10;
-      DANFEEscPos.PosPrinter.CortaPapel := true;
+      DANFEEscPos.PosPrinter.CortaPapel        := true;
     except
     end;
 
@@ -2903,12 +2907,10 @@ begin
       begin
         DANFE_Rave.ExpandeLogoMarca := ini.ReadBool('SERVER','expandirLogo', false);
         expLogoMarca := ini.ReadBool('SERVER', 'expandirLogo', false);
-        DANFE_Rave.TamanhoLogoHeight := ini.ReadInteger('SERVER',
-          'FonteOutCampos', 10);
+        DANFE_Rave.TamanhoLogoHeight := ini.ReadInteger('SERVER', 'FonteOutCampos', 10);
         DANFE_Rave.fonte.TamanhoFonteEndereco :=
           ini.ReadInteger('SERVER', 'fonteEnde', 0);
-        DANFE_Rave.TamanhoLogoHeight := ini.ReadInteger('SERVER',
-          'logoheigth', 1);
+        DANFE_Rave.TamanhoLogoHeight := ini.ReadInteger('SERVER','logoheigth', 1);
         DANFE_Rave.TamanhoLogoWidth := ini.ReadInteger('SERVER',
           'LOGOWIDTH', 1);
         DANFE_Rave.fonte.TamanhoFonteRazaoSocial :=

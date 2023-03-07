@@ -8,10 +8,11 @@ uses
 
 type
   Tmfd = class(TForm)
-    RichEdit1: TRichEdit;
     BitBtn1: TBitBtn;
     BitBtn2: TBitBtn;
     CheckBox1: TCheckBox;
+    Label1: TLabel;
+    RichEdit1: TRichEdit;
     procedure FormKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure RichEdit1KeyPress(Sender: TObject; var Key: Char);
@@ -23,6 +24,7 @@ type
   public
     procedure imprime();
     procedure imprimeESCPOS();
+    procedure imprimeESCPOS1();
     { Public declarations }
   end;
 
@@ -42,6 +44,15 @@ begin
    begin
     close;
    end;
+
+
+  if (ssCtrl in Shift) and (UpCase(Chr(Key)) = 'P') then begin
+    BitBtn1.Click;
+  end;
+
+  if (ssCtrl in Shift) and (UpCase(Chr(Key)) = 'S') then begin
+    BitBtn2.Click;
+  end;
 end;
 
 procedure Tmfd.RichEdit1KeyPress(Sender: TObject; var Key: Char);
@@ -66,21 +77,36 @@ end;
 
 procedure Tmfd.BitBtn1Click(Sender: TObject);
 var
-  im : TPrintDialog;
+  ini, fim  : integer;
+  PrintText : TextFile;
+  lin : String;
+  controle : boolean;
 begin
-  //ShowMessage();
-
   if ((tipoIMPRESSAO = 1) and (FileExists(ExtractFileDir(ParamStr(0))  + '\impnormal.dat') = false)) then
     begin
-      imprimeESCPOS;
+      imprimeESCPOS1;
       exit;
     end;
 
-  //imprimirNfceESCPOS();
-  im := TPrintDialog.Create(self);
-  if not im.Execute then exit;
+  fim := RichEdit1.Lines.Count -1;
+  AssignPrn(PrintText);
+  Printer.Canvas.Font.Style := [fsBold];
+  Printer.Canvas.Font.Name := 'Courier New';
+  printer.Canvas.Font.Size := 8;
+  printer.title := 'Impressão Relatório: Rel de Vendas';
+  Rewrite(PrintText);
+  Writeln(PrintText, '  ');
+  for ini := 0 to fim do
+    begin
+      Writeln(PrintText, RichEdit1.Lines[ini]);
+    end;
 
-  RichEdit1.Print('Impressao PDV');
+  Writeln(PrintText, '  ');
+  Writeln(PrintText, '  ');
+  Writeln(PrintText, '  ');
+  if tipoImp = 2 then Writeln(PrintText, #27 + #119);
+
+  CloseFile(PrintText);
 end;
 
 procedure Tmfd.imprime();
@@ -110,6 +136,8 @@ begin
   Writeln(PrintText, '  ');
   Writeln(PrintText, '  ');
   Writeln(PrintText, '  ');
+  if tipoImp = 2 then Writeln(PrintText, #27 + #119);
+
   CloseFile(PrintText);
 end;
 
@@ -118,7 +146,13 @@ var
   ini, fim  : integer;
   PrintText : TextFile;
   lin : String;
+  controle : boolean;
 begin
+  controle := dtmMain.ACBrPosPrinter1.ControlePorta;
+  dtmMain.ACBrPosPrinter1.TraduzirTags := true;
+
+  //dtmMain.ACBrPosPrinter1.ControlePorta := false;
+
   fim := RichEdit1.Lines.Count -1;
   try
     form3.inicializarImpressora;
@@ -133,10 +167,55 @@ begin
       else lin := '<fn>' + lin;
 
       dtmMain.ACBrPosPrinter1.ImprimirLinha(lin);
+      Sleep(1);
     end;
-    
-  dtmMain.ACBrPosPrinter1.PularLinhas(5);
-  dtmMain.ACBrPosPrinter1.CortarPapel();  
+
+
+  dtmMain.ACBrPosPrinter1.ImprimirLinha('-');
+  dtmMain.ACBrPosPrinter1.ImprimirLinha('-');
+  dtmMain.ACBrPosPrinter1.ImprimirLinha('-');
+  dtmMain.ACBrPosPrinter1.ImprimirLinha('-');
+
+  //dtmMain.ACBrPosPrinter1.PularLinhas(5);
+  dtmMain.ACBrPosPrinter1.CortarPapel();
+  dtmMain.ACBrPosPrinter1.ControlePorta := controle;
+end;
+
+procedure Tmfd.imprimeESCPOS1();
+var
+  ini, fim  : integer;
+  PrintText : TextFile;
+  lin : String;
+  controle : boolean;
+begin
+  controle := dtmMain.ACBrPosPrinter1.ControlePorta;
+  //dtmMain.ACBrPosPrinter1.ControlePorta := false;
+
+  fim := RichEdit1.Lines.Count -1;
+  try
+    form3.inicializarImpressora;
+  except
+  end;
+
+  dtmMain.ACBrPosPrinter1.Buffer.Clear;
+
+  for ini := 0 to fim do begin
+      lin := RichEdit1.Lines[ini];
+      if CheckBox1.Checked then lin := '<n>' + lin + '</n>'
+      else lin := '</fn>' + lin;
+
+      dtmMain.ACBrPosPrinter1.Buffer.Add(lin);
+      Sleep(1);
+  end;
+
+  dtmMain.ACBrPosPrinter1.Buffer.Add('-');
+  dtmMain.ACBrPosPrinter1.Buffer.Add('-');
+  dtmMain.ACBrPosPrinter1.Buffer.Add('-');
+  dtmMain.ACBrPosPrinter1.Buffer.Add('</corte_total>');
+  dtmMain.ACBrPosPrinter1.Imprimir;
+
+  dtmMain.ACBrPosPrinter1.ControlePorta := controle;
+  dtmMain.ACBrPosPrinter1.Desativar;
 end;
 
 procedure Tmfd.FormKeyPress(Sender: TObject; var Key: Char);

@@ -869,7 +869,7 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
           TabStop = True
         end
         object RadioButton2: TRadioButton
-          Left = 121
+          Left = 89
           Top = 15
           Width = 113
           Height = 17
@@ -877,9 +877,9 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
           TabOrder = 1
         end
         object RadioButton4: TRadioButton
-          Left = 216
+          Left = 168
           Top = 15
-          Width = 113
+          Width = 85
           Height = 17
           Caption = 'Fast Reports'
           TabOrder = 2

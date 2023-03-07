@@ -7,7 +7,7 @@ object dtmMain: TdtmMain
     Left = 17
     Top = 3
     Bitmap = {
-      494C01019500A0003C0010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C01019500A000440010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000006002000001002000000000000060
       0200000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -5256,7 +5256,6 @@ object dtmMain: TdtmMain
     ConfigQRCode.LarguraModulo = 4
     ConfigQRCode.ErrorLevel = 0
     LinhasEntreCupons = 0
-    ControlePorta = True
     Left = 400
     Top = 64
   end
@@ -5393,5 +5392,13 @@ object dtmMain: TdtmMain
     Provider = 'Forms'
     Left = 288
     Top = 8
+  end
+  object ACBrGAV1: TACBrGAV
+    Modelo = gavSerialMenno
+    Porta = 'COM1'
+    StrComando = '#027,v,#140 | Bematech'
+    AberturaIntervalo = 5000
+    Left = 280
+    Top = 88
   end
 end

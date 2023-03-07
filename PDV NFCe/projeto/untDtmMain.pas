@@ -16,7 +16,8 @@ uses
   FireDAC.Stan.Error, FireDAC.DatS, FireDAC.Phys.Intf, FireDAC.DApt.Intf,
   FireDAC.Stan.Async, FireDAC.DApt, FireDAC.UI.Intf, FireDAC.Stan.Def,
   FireDAC.Stan.Pool, FireDAC.Phys, FireDAC.Phys.FB, FireDAC.Comp.Client,
-  ACBrNFeDANFEFR, FireDAC.Comp.DataSet, FireDAC.VCLUI.Wait, FireDAC.Comp.UI;
+  ACBrNFeDANFEFR, FireDAC.Comp.DataSet, FireDAC.VCLUI.Wait, FireDAC.Comp.UI,
+  ACBrGAV;
 
 type
   TdtmMain = class(TDataModule)
@@ -48,6 +49,7 @@ type
     bd: TFDConnection;
     BD_Servidor: TFDConnection;
     FDGUIxWaitCursor1: TFDGUIxWaitCursor;
+    ACBrGAV1: TACBrGAV;
     procedure DataModuleCreate(Sender: TObject);
   private    { Private declarations }
     procedure LerDadosArquivo();

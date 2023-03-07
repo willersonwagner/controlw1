@@ -222,6 +222,7 @@ type
     procedure ImprimeLivreDireto(qtdVias, cod : integer; tipoEtiqueta : integer = 1);
     procedure completaPagina();
     procedure imprimeRLReport();
+    procedure impESCPOS;
     { Public declarations }
   end;
 
@@ -667,6 +668,13 @@ begin
   if arquivo = '%' then tipo := 33;
    //faz isso se escolheu a impressora
    // ai nao seta impressora na impressao
+
+   if funcoes.LerConfig(form22.Pgerais.Values['imp'], 1) = '8' then
+    begin
+      impESCPOS;
+      EXIT;
+    end;
+
 
    if funcoes.LerConfig(form22.Pgerais.Values['imp'], 1) = '7' then
     begin
@@ -1166,6 +1174,14 @@ end;
 procedure Timprime.completaPagina();
 begin
 
+end;
+
+procedure Timprime.impESCPOS;
+begin
+  dm.ACBrPosPrinter1.Buffer.Clear;
+  dm.ACBrPosPrinter1.Buffer.Add(form19.RichEdit1.Text);
+  dm.ACBrPosPrinter1.Buffer.Add('</corte_total>');
+  dm.ACBrPosPrinter1.Imprimir;
 end;
 
 
