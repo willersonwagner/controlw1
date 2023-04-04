@@ -1178,10 +1178,12 @@ end;
 
 procedure Timprime.impESCPOS;
 begin
+  dm.ACBrPosPrinter1.Ativar;
   dm.ACBrPosPrinter1.Buffer.Clear;
   dm.ACBrPosPrinter1.Buffer.Add(form19.RichEdit1.Text);
   dm.ACBrPosPrinter1.Buffer.Add('</corte_total>');
   dm.ACBrPosPrinter1.Imprimir;
+  dm.ACBrPosPrinter1.Desativar;
 end;
 
 

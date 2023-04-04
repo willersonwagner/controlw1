@@ -1271,25 +1271,22 @@ begin
     exit;
   end;
 
-  ordem := TOrdem.Create;
-  ordem.cod := dm.IBselect.FieldByName('cod').AsInteger;
-  ordem.saida := dm.IBselect.FieldByName('saida').AsDateTime;
+  ordem         := TOrdem.Create;
+  ordem.cod     := dm.IBselect.FieldByName('cod').AsInteger;
+  ordem.saida   := dm.IBselect.FieldByName('saida').AsDateTime;
   ordem.Cliente := dm.IBselect.FieldByName('cliente').AsInteger;
-  ordem.data := dm.IBselect.FieldByName('data').AsDateTime;
-  ordem.equipe := trim(dm.IBselect.FieldByName('equip').AsString);
-  ordem.marca := trim(dm.IBselect.FieldByName('marca').AsString);
-  ordem.modelo := trim(dm.IBselect.FieldByName('modelo').AsString);
+  ordem.data    := dm.IBselect.FieldByName('data').AsDateTime;
+  ordem.equipe  := trim(dm.IBselect.FieldByName('equip').AsString);
+  ordem.marca   := trim(dm.IBselect.FieldByName('marca').AsString);
+  ordem.modelo  := trim(dm.IBselect.FieldByName('modelo').AsString);
   ordem.defeito := trim(dm.IBselect.FieldByName('defeito').AsString);
-  ordem.obs := trim(dm.IBselect.FieldByName('obs').AsString);
-  ordem.serie := trim(dm.IBselect.FieldByName('serie').AsString);
+  ordem.obs     := trim(dm.IBselect.FieldByName('obs').AsString);
+  ordem.serie   := trim(dm.IBselect.FieldByName('serie').AsString);
   ordem.tecnico := trim(dm.IBselect.FieldByName('tecnico').AsString);
   ordem.USUARIO := dm.IBselect.FieldByName('usuario').AsInteger;
-  ordem.venda := IfThen(dm.IBselect.FieldByName('venda').AsString = '', 0,
-    dm.IBselect.FieldByName('venda').AsInteger);
-  ordem._ent := FormatDateTime('hh:mm', dm.IBselect.FieldByName('h_ent')
-    .AsDateTime);
-  ordem.h_saida := FormatDateTime('hh:mm', dm.IBselect.FieldByName('h_sai')
-    .AsDateTime);
+  ordem.venda   := IfThen(dm.IBselect.FieldByName('venda').AsString = '', 0, dm.IBselect.FieldByName('venda').AsInteger);
+  ordem._ent    := FormatDateTime('hh:mm', dm.IBselect.FieldByName('h_ent').AsDateTime);
+  ordem.h_saida := FormatDateTime('hh:mm', dm.IBselect.FieldByName('h_sai').AsDateTime);
   dm.IBselect.Close;
   Result := true;
 end;
@@ -14037,6 +14034,9 @@ begin
       TOT_PIS := TOT_PIS + dm.IBQuery2.FieldByName('quant').AsCurrency;
       dm.IBQuery2.Next;
     end;
+
+
+
     dm.IBQuery1.Close;
     if funcoes.ExisteParcelamento(numNota) and (opcao = 1) and
       (funcoes.buscaParamGeral(20, '') = 'S') then

@@ -2913,10 +2913,10 @@ begin
         DANFE_Rave.TamanhoLogoHeight := ini.ReadInteger('SERVER','logoheigth', 1);
         DANFE_Rave.TamanhoLogoWidth := ini.ReadInteger('SERVER',
           'LOGOWIDTH', 1);
-        DANFE_Rave.fonte.TamanhoFonteRazaoSocial :=
-          ini.ReadInteger('SERVER', 'fonteRazao', 8);
-
       end;
+
+      DANFE_Rave.fonte.TamanhoFonteRazaoSocial :=
+          ini.ReadInteger('SERVER', 'fonteRazao', 8);
     end;
 
     margemEsquerda := ini.ReadString('SERVER', 'MargemEsquerda', '0,1');

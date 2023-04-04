@@ -252,7 +252,7 @@ if key=#27 then
 
        codusario      := dm.IBQuery1.fieldbyname('cod').AsString ;
        USUARIO1       := dm.IBQuery1.fieldbyname('cod').AsInteger ;
-       acs           := dm.IBQuery1.fieldbyname('acesso_usu').AsString;
+       acs            := dm.IBQuery1.fieldbyname('acesso_usu').AsString;
 
        if superUsu = 1 then
          begin

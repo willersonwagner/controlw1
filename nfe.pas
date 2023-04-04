@@ -2126,14 +2126,16 @@ end;
 
 function TNfeVenda.CancelamentoNFe1 : string;
 var
-  texto, nf, just, te, tmp, nnf, cstat, nomeGen : string;
+  texto, nf, just, te, tmp, nnf, cstat, nomeGen, numNota : string;
   data : tdate;
+  xml3 : TStream;
 begin
   carregaConfigsNFe();
   te := IntToStr(StrToIntDef(funcoes.BuscaNumeracaoNFeSerie(nomeGen), 1) -1);
   nf := funcoes.dialogo('generico',100,'1234567890'+#8,100,false,'','Control For Windows','Informe o Número da Nota Fiscal Eletrônica:',te);
   if nf = '*' then exit;
 
+  numNota := nf;
   serie := funcoes.dialogo('not', 0, '1234567890' + #8 + #32, 50, true, '',application.Title, 'Qual a Série ?', IntToStr(SerieNFe));
   if serie = '*' then exit;
 
@@ -2249,6 +2251,18 @@ begin
 
           dm.ACBrNFeDANFeRL1.Cancelada := true;
           ACBrNFe.DANFE.Cancelada := true;
+
+          ACBrNFe.NotasFiscais[0].GravarXML(nf +'-nfe.xml', pastaControlW   +'NFE\EMIT\');
+
+          dm.IBQuery1.Close;
+          dm.IBQuery1.SQL.Text := 'update nfe set xml = :xml where chave = :chave';
+          dm.IBQuery1.ParamByName('xml').LoadFromFile(pastaControlW   +'NFE\EMIT\' +nf +'-nfe.xml', ftBlob);
+          //dm.IBQuery1.ParamByName('xml').LoadFromStream(xml3, sf);
+          dm.IBQuery1.ParamByName('chave').AsString := strnum(ACBrNFe.WebServices.EnvEvento.EventoRetorno.retEvento.Items[0].RetInfEvento.chNFe);
+          dm.IBQuery1.ExecSQL;
+          dm.IBQuery1.Transaction.Commit;
+          xml3.Free;
+
           imprimirNFe();
 
           dm.ACBrNFeDANFeRL1.Cancelada := false;
@@ -2259,6 +2273,8 @@ begin
 
           GRAVA_NODO_PROT_NFE1(pastaControlW   +'NFE\EMIT\'+ nf +'-nfe.xml');
           funcoes.CANC_MOV(te, '90');
+
+
 
           try
             //SendPostData(Form72.IdHTTP1, pastaNFE_ControlW + 'NFE\EMIT\' + nf + '-nfe.xml', 'C', cstat);
@@ -4965,8 +4981,6 @@ begin
     pIcmsEmit := aliquotasGrupoDeICMS[i].cofins;
   end;
 
-  ///ShowMessage('picmsDest=' + CurrToStr(picmsDest) + #13 + 'pIcmsEmit=' + CurrToStr(pIcmsEmit));
-
   pICMSUFDest := 17;
   //pICMSInter  := ALIQ_INTEREST(UF_DEST);
   pICMSInter  := 12;
@@ -4995,7 +5009,8 @@ begin
    '<vFCPUFDest>0.00</vFCPUFDest>' +
    '<vICMSUFDest>'+FORMAT_NUM(vICMSUFDest)+'</vICMSUFDest>' +
    '<vICMSUFRemet>'+FORMAT_NUM(vICMSUFRemet)+'</vICMSUFRemet>' +
-'</ICMSUFDest>';
+   '</ICMSUFDest>';
+
   {'<ICMSUFDest>' +
    '<vBCUFDest>'+ FORMAT_NUM(TOT_BASEICM) +'</vBCUFDest>' +
    '<pFCPUFDest>0.00</pFCPUFDest>' +

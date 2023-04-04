@@ -4159,6 +4159,8 @@ begin
 
                   ACUM_PISCST1(listaProdutos.Items[ini], listaPIS, COD_ISPIS, listaProdutos[ini].CST_PIS);
 
+                  //if COD_ISPIS + COD_ISPIS = '' then
+
 
                  { if funcoes.Contido(CSTPIS_CFOP, 'IRXDN') then
                     begin
@@ -4353,7 +4355,7 @@ end;
 
 function blocoM() : String;
 var
-  COD, COD_ISEN : String;
+  COD, COD_ISEN, dup : String;
   i3, cod_pis : integer;
   blo : boolean;
 begin
@@ -4416,6 +4418,8 @@ begin
   MAT_CST_PIS.Add('08');
   MAT_CST_PIS.Add('09');
   MAT_CST_PIS.Add('99');
+
+
 
   FOR i3 := 0 TO MAT_CST_PIS.Count -1 do
     begin
@@ -4514,7 +4518,7 @@ end;
 
 function blocoM01012019() : String;
 var
-  COD, COD_ISEN : String;
+  COD, COD_ISEN, dup : String;
   i3, cod_pis : integer;
   blo : boolean;
 begin
@@ -4594,6 +4598,19 @@ begin
   MAT_CST_PIS.Add('08');
   MAT_CST_PIS.Add('09');
   MAT_CST_PIS.Add('99');
+
+  {dup := '-';
+
+  GravarTexto('listaTOT_PIS.txt', listaTOT_PIS.getText);
+
+  for i3 := 0 to listaTOT_PIS.count - 1 do begin
+    if Contido('-'+ trim(listaTOT_PIS[i3].cod) + '-', dup) then begin
+      ShowMessage('erro999: ' + #13 + listaTOT_PIS.getText);
+    end
+    else dup := dup + listaTOT_PIS[i3].cod + '-';
+  end;    }
+
+
 
   FOR i3 := 0 TO MAT_CST_PIS.Count -1 do
     begin
@@ -5535,6 +5552,10 @@ begin
 
   if (trim(cod_ispis1) = '999') and (trim(produto.CST_PIS) =  '04') then begin
     produto.CST_PIS := '06';
+  end;
+
+  if (trim(cod_ispis1) = '302') and (trim(produto.CST_PIS) =  '08') then begin
+    produto.CST_PIS := '04';
   end;
 
 

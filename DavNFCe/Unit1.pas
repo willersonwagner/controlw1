@@ -109,6 +109,7 @@ type
     function sincronizaFormPagto(): boolean;
     function sincronizaCEST(): boolean;
     function sincronizaNFCe(): boolean;
+    function sincronizaAliquotas(): boolean;
     function sincronizaPromoc(): boolean;
     procedure le_estoque(var listaprod: TStringList);
     procedure copiaProduto(cod: integer);
@@ -552,6 +553,15 @@ begin
 
         try
           sincronizaRegistro;
+        except
+        on e: exception do
+          begin
+            RichEdit1.Lines.Add('ERRO sincronizaRegistro: ' + e.Message + ' linha 530');
+          end;
+        end;
+
+        try
+          sincronizaAliquotas;
         except
         on e: exception do
           begin
@@ -1241,6 +1251,77 @@ begin
   IBQueryServer1.Close;
   BD_Servidor.Connected := false;
 end;
+
+function TForm1.sincronizaAliquotas(): boolean;
+var
+  ini, fim, atu: integer;
+  vende : String;
+begin
+  RichEdit1.Lines.Add('Atualizando Aliquotas...');
+  if bdPronto = false then begin
+    RichEdit1.Lines.Add('bdPronto = false Aliquotas 1262');
+    exit;
+  end;
+
+  if conectaBD_Servidor = false then begin
+    RichEdit1.Lines.Add('conectaBD_Servidor = false');
+    exit;
+  end;
+
+  IBQueryServer1.Close;
+  IBQueryServer1.SQL.Text := 'select cod, aliq from aliq';
+  try
+    IBQueryServer1.Open;
+  except
+    on e: exception do
+    begin
+      RichEdit1.Lines.Add('Erro: lin 1269' + e.Message);
+      exit;
+    end;
+  end;
+
+
+  IBQueryServer1.FetchAll;
+
+  IBQuery1.Close;
+  IBQuery1.SQL.Text := 'select cod, aliq from aliq';
+  IBQuery1.Open;
+  IBQuery1.FetchAll;
+  vende := '-';
+
+
+  while not IBQueryServer1.Eof do begin
+    vende := vende + IBQueryServer1.FieldByName('cod').AsString + '-';
+
+    if IBQuery1.Locate('cod', IBQueryServer1.FieldByName('cod').AsString, []) then begin
+      if IBQuery1.FieldByName('aliq').AsString <> IBQueryServer1.FieldByName('aliq').AsString then begin
+        IBQuery2.Close;
+        IBQuery2.SQL.Text := 'update aliq set aliq = :nome where cod = :cod';
+        IBQuery2.ParamByName('nome').AsString     := IBQueryServer1.FieldByName('aliq').AsString;
+        IBQuery2.ParamByName('cod').AsString      := IBQueryServer1.FieldByName('cod').AsString;
+        try
+          IBQuery2.ExecSQL;
+          IBQuery2.Transaction.Commit;
+        except
+          on e:exception do begin
+            RichEdit1.Lines.Add('ERRO COMMIT 1175');
+          end;
+        end;
+
+        RichEdit1.Lines.Add('Aliquota ' + IBQueryServer1.FieldByName('aliq').AsString + ' Atualizada!' )  ;
+      end;
+
+    end;
+
+    IBQueryServer1.Next;
+  end;
+
+  RichEdit1.Lines.Add('Aliquotas de ICMS Sincronizadas!' )  ;
+
+  IBQueryServer1.Close;
+  BD_Servidor.Connected := false;
+end;
+
 
 function TForm1.sincronizaRegistro(): boolean;
 var

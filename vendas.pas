@@ -4366,9 +4366,12 @@ begin
           ('', FormatCurr('0.00', total_item), ' ', 13) + #13 + #10);
       end;
 
+
+
       if funcoes.buscaParamGeral(133, 'N') = 'S' then begin
-        if ClientDataSet1PRECO_ORIGI.AsCurrency <> ClientDataSet1TOTAL.AsCurrency then begin
-          addRelatorioForm19(funcoes.CompletaOuRepete('-->Desconto R$', formataCurrency(ClientDataSet1PRECO_ORIGI.AsCurrency - ClientDataSet1TOTAL.AsCurrency), '.', 40) + CRLF);
+        //ShowMessage('tot_origi=' + CurrToStr(ClientDataSet1TOT_ORIGI2.AsCurrency) + #13 + 'total=' + CurrToStr(ClientDataSet1TOTAL.AsCurrency));
+        if (ClientDataSet1TOT_ORIGI2.AsCurrency - ClientDataSet1TOTAL.AsCurrency) > 0 then begin
+          addRelatorioForm19(funcoes.CompletaOuRepete('-->Desconto R$', formataCurrency(ClientDataSet1TOT_ORIGI2.AsCurrency - ClientDataSet1TOTAL.AsCurrency), '.', 40) + CRLF);
         end;
       end;
 
@@ -4403,6 +4406,8 @@ begin
 
       ClientDataSet1.Next;
     end;
+
+
 
     ClientDataSet1.EnableControls;
 
@@ -7060,29 +7065,26 @@ var
 begin
 
   verificaCliente := false;
-  if Key = #27 then
-  begin
+  if Key = #27 then begin
+
     verificaCliente := true;
-    if JsEdit2.Enabled then
-    begin
+    if JsEdit2.Enabled then begin
       JsEdit2.Text := '';
       JsEdit1.Text := '0';
       JsEdit3.Text := '';
       JsEdit2.SetFocus;
     end
-    else
-    begin
+    else begin
       JsEdit1.Text := '0';
       JsEdit3.Text := '';
       JsEdit1.SetFocus;
     end;
+
     Key := #0;
   end;
 
-  if (Key = #13) and (JsEdit3.Text = '') then
-  begin
-    if Compra then
-    begin
+  if (Key = #13) and (JsEdit3.Text = '') then begin
+    if Compra then begin
       form8 := tform8.Create(self);
       form8.setComponente_a_Retornar(jsedit(Sender));
       funcoes.CtrlResize(TForm(form8));
@@ -7094,8 +7096,7 @@ begin
     end;
 
     // 16=Permitir Acesso do Vendedor ao Cadastro de Clientes?
-    if funcoes.buscaParamGeral(16, '') = 'S' then
-    begin
+    if funcoes.buscaParamGeral(16, '') = 'S' then begin
       form16 := tform16.Create(self);
       form16.setComponente_a_Retornar(JsEdit3);
       funcoes.CtrlResize(TForm(form16));
@@ -7104,11 +7105,9 @@ begin
       form16.Free;
       Key := #0;
     end
-    else
-    begin
-      cliente := funcoes.localizar('Localizar Cliente', 'cliente',
-        'cod,nome,telres,telcom,cnpj,bairro', 'cod,nome', '', 'nome', 'nome',
-        false, false, false, '', 0, nil);
+    else begin
+
+      cliente := funcoes.localizar('Localizar Cliente', 'cliente', 'cod,nome,telres,telcom,cnpj,bairro', 'cod,nome', '', 'nome', 'nome', false, false, false, '', 0, nil);
       buscaNomeCliente;
       tedit(Sender).Text := copy(cliente, 0, pos('-', cliente) - 1);
       cliente := copy(cliente, pos('-', cliente) + 1, length(cliente));
@@ -7119,14 +7118,14 @@ begin
         DBGrid1.Enabled := true;
         DBGrid1.SetFocus;
       end;
+
     end;
   end;
-  // if (key=#13) and (JsEdit3.Text='0') then label8.Caption := 'VENDA AO CONSUMIDOR';
-  if (Key = #13) and (tedit(Sender).Text <> '') then
-  begin
 
-    if Compra then
-    begin
+  // if (key=#13) and (JsEdit3.Text='0') then label8.Caption := 'VENDA AO CONSUMIDOR';
+  if (Key = #13) and (tedit(Sender).Text <> '') then begin
+
+    if Compra then begin
       cliente := funcoes.BuscaNomeBD(dm.IBQuery1, 'nome', 'fornecedor',
         'where cod=' + tedit(Sender).Text);
       if cliente = 'Desconhecido' then
@@ -7223,8 +7222,7 @@ begin
           if ((RetornaAcessoUsuario > 0) and (funcoes.buscaParamGeral(103,
             'N') = 'N')) then
           begin
-            ShowMessage
-              ('Esse Usuário Não Tem Permissão Para Excluir Este Produto!');
+            ShowMessage('Esse Usuário Não Tem Permissão Para Excluir Este Produto!');
             exit;
           end;
 

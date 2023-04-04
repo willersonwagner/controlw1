@@ -98,6 +98,7 @@ begin
 
   cod_sit := '00';
   if Le_Nodo('finNFe', xml.GetText) = '2' then cod_sit := '06';
+  if Contido('<avulsa>', xml.GetText)     then cod_sit := '08';//se a nota foi emitida de forma avulsa entao coloca logo como 08 pra nao dar erro no sped
 
   dm.IBQuery1.Close;
   dm.IBQuery1.SQL.Clear;

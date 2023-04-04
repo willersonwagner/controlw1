@@ -23763,12 +23763,12 @@ begin
     formas.Add('11=Vale Refeicao');
     formas.Add('12=Vale Presente');
     formas.Add('13=Vale Combustivel');
-    formas.Add('14=Duplicata Mercantil');
-    formas.Add('15=Boleto Bancario');
-    formas.Add('16=Deposito Bancario');
-    formas.Add('17=Pagamento Instantaneo(PIX)');
-    formas.Add('18=Transferencia bancaria, Carteira Digital');
-    formas.Add('19=Programa de fidelidade, Cashback, Credito Virtual');
+    formas.Add('14=Dup Mercantil');
+    formas.Add('15=Bol Bancario');
+    formas.Add('16=Dep Bancario');
+    formas.Add('17=Pag Inst(PIX)');
+    formas.Add('18=Transf bancaria');
+    formas.Add('19=Prog fid Cashback');
     formas.Add('90=Sem Pagamento');
     formas.Add('99=Outros');
 
