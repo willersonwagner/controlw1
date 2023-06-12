@@ -103,6 +103,8 @@ procedure TForm8.JsBotao1Click(Sender: TObject);
 begin
   if not validaDados then exit;
 
+  nome.Text := funcoes.LimpaNomes(nome.Text);
+
   valor_a_retornar := JsEdit.GravaNoBD(self);
 end;
 

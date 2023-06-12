@@ -2978,10 +2978,10 @@ begin
         TOT_BASEICM := TOT_BASEICM + BASE_ICM;
 
         Result := '<ICMS><ICMSSN900><orig>' + _ORIGE + '</orig><CSOSN>900</CSOSN><modBC>3</modBC>' +
-          '<vBC>' + FORMAT_NUM(BASE_ICM) + '</vBC>' +
-          '<pRedBC>' + FORMAT_NUM(item.Reducao) + '</pRedBC>' +
-          '<pICMS>' + FORMAT_NUM(item.PercICMS) + '</pICMS>' +
-          '<vICMS>' + FORMAT_NUM(arrendondaNFe(VLR_ICM, 2)) + '</vICMS>' +
+          '<vBC>'    + FORMAT_NUM(BASE_ICM)                  + '</vBC>'    +
+          '<pRedBC>' + FORMAT_NUM(item.Reducao)              + '</pRedBC>' +
+          '<pICMS>'  + FORMAT_NUM(item.PercICMS)             + '</pICMS>'  +
+          '<vICMS>'  + FORMAT_NUM(arrendondaNFe(VLR_ICM, 2)) + '</vICMS>'  +
           '<modBCST>0.00</modBCST><vBCST>0.00</vBCST>' +
           '<pICMSST>0.00</pICMSST><vICMSST>0.00</vICMSST>' +
           '<pCredSN>0.00</pCredSN><vCredICMSSN>0.00</vCredICMSSN>' +
@@ -2990,8 +2990,6 @@ begin
           TOTICM := TOTICM + VLR_ICM;
           exit;
         end;
-
-
 
       if ((FIN_NFE1 = '4') and (indIEDest <> '9')) then begin
         icms := item.PercICMS;
@@ -3214,8 +3212,8 @@ begin
 
           //se a nota for devolução e de saida
           if ((FIN_NFE1 = '4') and (tipo = 'S')) then begin
-            if (LeftStr(cfop1, 1) = '5') then cfop1 := '5411';
-            if (LeftStr(cfop1, 1) = '6') then cfop1 := '6411';
+            //if (LeftStr(cfop1, 1) = '5') then cfop1 := '5411';
+            //if (LeftStr(cfop1, 1) = '6') then cfop1 := '6411';
           end;
         end;
       end;
@@ -3784,8 +3782,8 @@ begin
 
           query2.SQL.Clear;
 
-          if existeCampoTipo_item then query2.SQL.Add('select p.cod, a.reducao, p.dev_icm, p.nome, p.tipo_item, p.codbar, p.unid, p.aliquota, p.is_pis, p.cod_ispis, p.p_compra, p.p_venda,'+' p.obs from produto p left join aliq a on (iif(p.aliquota = '''', 0, p.aliquota) = a.cod) where p.cod = :cod')
-          else query2.SQL.Add('select p.cod, a.reducao, p.dev_icm, p.nome, p.tipo_item, p.codbar, p.unid, p.aliquota, p.is_pis, p.cod_ispis, p.p_compra, p.p_venda, p.obs from produto p'+' left join aliq a on (iif(p.aliquota = '''', 0, p.aliquota) = a.cod) where p.cod = :cod');
+          if existeCampoTipo_item then query2.SQL.Add('select p.cod,p.obs, a.reducao, p.dev_icm, p.nome, p.tipo_item, p.codbar, p.unid, p.aliquota, p.is_pis, p.cod_ispis, p.p_compra, p.p_venda,'+' p.obs from produto p left join aliq a on (iif(p.aliquota = '''', 0, p.aliquota) = a.cod) where p.cod = :cod')
+          else query2.SQL.Add('select p.cod,p.obs, a.reducao, p.dev_icm, p.nome, p.tipo_item, p.codbar, p.unid, p.aliquota, p.is_pis, p.cod_ispis, p.p_compra, p.p_venda, p.obs from produto p'+' left join aliq a on (iif(p.aliquota = '''', 0, p.aliquota) = a.cod) where p.cod = :cod');
           query2.ParamByName('cod').AsString := query1.fieldbyname('cod').AsString;
           query2.Open;
 
@@ -3823,7 +3821,13 @@ begin
                 end;
 
                  item.cod     := query2.fieldbyname('cod').AsInteger;
-                 item.nome    := trim(removeCarateresEspeciais(query2.fieldbyname('nome').AsString));
+                 //AQUI CONCATENA COM O CAMPO OBS PRA AUMENTAR A DESCRIÇÃO
+                 if Contido('@OBS', query2.fieldbyname('obs').AsString) then begin
+                   item.nome := query2.fieldbyname('nome').AsString;
+                   item.nome := item.nome +' '+ StringReplace(query2.fieldbyname('obs').AsString, '@OBS', '', [rfReplaceAll]);
+                   item.nome := LeftStr(trim(removeCarateresEspeciais(item.NOME)), 120);
+                 end
+                 else item.nome    := trim(removeCarateresEspeciais(query2.fieldbyname('nome').AsString));
                  item.unid    := removeCarateresEspeciais(IfThen(Trim(query2.fieldbyname('unid').AsString) = '', 'UN', query2.fieldbyname('unid').AsString));
                  item.quant   := abs(query1.fieldbyname('quant').AsFloat);
 
@@ -5074,6 +5078,7 @@ begin
   TOTAL  := totalNota;
   if FIN_NFE1 <> '1' then begin
     tpag  := '90';
+
     TOTAL := 0;
     Result := '<pag>'+
                 '<detPag>'+
@@ -5103,13 +5108,14 @@ begin
   end;
                                         }
 
-  if True then
+ // if True then
 
 
   tmp := 0;
   Result := '<pag>';
   for i := 0 to listaPagamentos.Count -1 do begin
       Result := Result +  '<detPag>' + '<tpag>' + listaPagamentos[i].cod + '</tpag>' +
+      //IfThen(listaPagamentos[i].cod = '99', '<xPag>'+listaPagamentos[i].CST+'</xpag>', '') +
       IfThen(listaPagamentos[i].cod = '99', '<xPag>'+listaPagamentos[i].CST+'</xpag>', '') +
       '<vpag>' + Format_num(listaPagamentos[i].total) + '</vpag>' + '</detPag>';
       tmp := tmp + listaPagamentos[i].total;

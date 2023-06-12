@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, Grids, DBGrids, StrUtils;
+  Dialogs, StdCtrls, ExtCtrls, Grids, DBGrids, StrUtils, System.DateUtils;
 
 type
   TForm32 = class(TForm)
@@ -89,16 +89,16 @@ begin
 i:=0;
 if funcoes.Contido(chr(key),'dD') then
 begin
-  ent   := funcoes.SomaCampoDBGRID(Dm.ibselect,'entrada',0,0, dm.IBselect.fieldbyname('data').AsDateTime,'data');
-  saida := funcoes.SomaCampoDBGRID(Dm.ibselect,'saida',0,0,dm.IBselect.fieldbyname('data').AsDateTime,'data');
+  ent   := funcoes.SomaCampoDBGRID(Dm.ibselect,'entrada',0,0, DateOf(dm.IBselect.fieldbyname('data').AsDateTime),'data');
+  saida := funcoes.SomaCampoDBGRID(Dm.ibselect,'saida',0,0, DateOf(dm.IBselect.fieldbyname('data').AsDateTime),'data');
   DOC := funcoes.CompletaOuRepete('', '', '-', 22) + CRLF + 'Total do Dia '+formataDataDDMMYY(dm.IBselect.fieldbyname('data').AsDateTime)+':' + CRLF + CRLF + 'Entrada=>'+ funcoes.CompletaOuRepete('', formataCurrency(ent), ' ', 13) + '+' + CRLF + 'Saída  =>'+funcoes.CompletaOuRepete('', formataCurrency(saida), ' ', 13) + '-' + CRLF + funcoes.CompletaOuRepete('', '', '-', 22) + CRLF + 'TOTAL  =>' + funcoes.CompletaOuRepete('', formataCurrency(ent - saida), ' ', 13) + CRLF + funcoes.CompletaOuRepete('', '', '-', 22) + CRLF + CRLF;
   funcoes.Mensagem('Total Somatório do dia '+formataDataDDMMYY(dm.IBselect.fieldbyname('data').AsDateTime), doc,9,'Courier New',true,0,clBlack, false);
 end;
 
 if funcoes.Contido(chr(key),'tT') then
 begin
-  ent   := funcoes.SomaCampoDBGRID(dm.ibselect,'entrada',dm.IBselect.fieldbyname('data').AsDateTime,0,0,'data');
-  saida := funcoes.SomaCampoDBGRID(dm.ibselect,'saida',dm.IBselect.fieldbyname('data').AsDateTime,0,0,'data');
+  ent   := funcoes.SomaCampoDBGRID(dm.ibselect,'entrada',DateOf(dm.IBselect.fieldbyname('data').AsDateTime),0,0,'data');
+  saida := funcoes.SomaCampoDBGRID(dm.ibselect,'saida',DateOf(dm.IBselect.fieldbyname('data').AsDateTime),0,0,'data');
   DOC := funcoes.CompletaOuRepete('', '', '-', 22) + CRLF + 'Total até Dia '+formataDataDDMMYY(dm.IBselect.fieldbyname('data').AsDateTime)+':' + CRLF + CRLF + 'Entrada=>'+ funcoes.CompletaOuRepete('', formataCurrency(ent), ' ', 13) + '+' + CRLF + 'Saída  =>'+funcoes.CompletaOuRepete('', formataCurrency(saida), ' ', 13) + '-' + CRLF + funcoes.CompletaOuRepete('', '', '-', 22) + CRLF + 'TOTAL  =>' + funcoes.CompletaOuRepete('', formataCurrency(ent - saida), ' ', 13) + CRLF + funcoes.CompletaOuRepete('', '', '-', 22) + CRLF + CRLF;
   funcoes.Mensagem('Total até Dia '+formataDataDDMMYY(dm.IBselect.fieldbyname('data').AsDateTime), doc,9,'Courier New',true,0,clBlack, false);
 

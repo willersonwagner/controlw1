@@ -130,6 +130,7 @@ type
     tipoTrocaDescontoUsuario, ultOrcamentoRecuperado : String;
     semCliente: boolean;
     produtosServico: TStringList;
+    podeGravarParcelamentoTabela : integer;
     procedure impNovo(TIPO1 : SMALLINT = 1);
     // function baixa
     function verificaSePodeVenderNegativo_X_NaVendaConfig11DoUsuario() : boolean;
@@ -158,7 +159,7 @@ type
     function buscaCodigoBarras(opcao: integer = 0): String;
     function confirmaPrecoProduto(cod: String; var qtd, valor: String;
       opcao: Smallint; servico: boolean = false): string;
-    procedure GeraParcelamento;
+    procedure GeraParcelamento(cli123 : string);
     function gravaVenda : boolean;
     procedure gravaOrcamento;
     procedure gravaServico();
@@ -196,6 +197,7 @@ type
     Desconto, total1, total_compras_a_prazo_cliente, total_A_Limitar,
       lim_compra, lim_atraso: Currency;
     minimo : double;
+    ultimoCliente : String;
     function CalculaMinimoVendaCDS(var descDado: currency;var totOriginal: currency; var deuDesconto: boolean): currency;
     function CalculaMinimoVendaCDS1(var descDado: currency;var totOriginal: currency; var deuDesconto: boolean): currency;
     function buscaProdutoCDS(cod: String; Preco: currency; descri: string = '';
@@ -4547,8 +4549,8 @@ begin
     if Assigned(Parcelamento) then
     begin
       if (funcoes.buscaParamGeral(20, '') = 'S') and (Modo_Venda) then begin
-        funcoes.ImprimeParcelamento('', '', FormatCurr('#,###,###0.00',
-          StrToCurrDef(Parcelamento.Values['entrada'], 0)), novocod);
+        if codhis = '2' then funcoes.ImprimeParcelamentoOrca(Parcelamento, '', '');
+        //funcoes.ImprimeParcelamento('', '', FormatCurr('#,###,###0.00', StrToCurrDef(Parcelamento.Values['entrada'], 0)), novocod);
       end;
     end;
 
@@ -4879,7 +4881,8 @@ begin
       end;
 
 
-      GeraParcelamento();
+      //GeraParcelamento();
+      podeGravarParcelamentoTabela := 1;
       exit;
       // end;
     end
@@ -4906,14 +4909,16 @@ begin
         exit;
       end;
 
-      GeraParcelamento;
+      //GeraParcelamento;
+      podeGravarParcelamentoTabela := 1;
       exit;
     end;
   end;
 
   if (StrToIntDef(JsEdit1.Text, 0) > 0) then
   begin
-    GeraParcelamento;
+    podeGravarParcelamentoTabela := 1;
+    //GeraParcelamento;
   end;
 end;
 
@@ -5860,7 +5865,7 @@ begin
   desco.Caption := '';
 end;
 
-procedure TForm20.GeraParcelamento;
+procedure TForm20.GeraParcelamento(cli123 : string);
 var
   i: integer;
   vencimento: TDateTime;
@@ -5879,9 +5884,8 @@ begin
       ('insert into contasreceber(nota,codgru,cod,formpagto,datamov,vendedor,data,vencimento,documento,codhis,historico,total,valor)'
       + ' values(' + StrNum(novocod) + ',1,' + funcoes.novocod('creceber') + ',' +
       StrNum(codhis) + ',:datamov,' + StrNum(JsEdit2.Text) + ',:data,:vencimento,' +
-      StrNum(JsEdit3.Text) + ',2,:hist,:total,:valor)');
-    dm.IBQuery1.ParamByName('datamov').AsDateTime :=
-      funcoes.PreparaData(FormatDateTime('dd/mm/yyyy', form22.datamov));
+      StrNum(cli123) + ',2,:hist,:total,:valor)');
+    dm.IBQuery1.ParamByName('datamov').AsDateTime := form22.datamov;
     if i <> 1 then
     begin
 
@@ -5891,6 +5895,7 @@ begin
       else
         vencimento := vencimento + StrToCurr(Parcelamento.Values['periodo']);
     end;
+
     dm.IBQuery1.ParamByName('data').AsDateTime := vencimento;
     dm.IBQuery1.ParamByName('vencimento').AsDateTime := vencimento;
     dm.IBQuery1.ParamByName('hist').AsString :=
@@ -5899,8 +5904,8 @@ begin
       funcoes.CompletaOuRepete('', Parcelamento.Values['qtd'], ' ', 2),
       ' ', 35);
     dm.IBQuery1.ParamByName('total').AsCurrency := StrToCurr(Parcelamento.Values['valorp']);
-    dm.IBQuery1.ParamByName('valor').AsCurrency :=
-      StrToCurr(Parcelamento.Values['valorp']);
+    dm.IBQuery1.ParamByName('valor').AsCurrency := StrToCurr(Parcelamento.Values['valorp']);
+
     dm.IBQuery1.ExecSQL;
   end;
 
@@ -5915,6 +5920,13 @@ begin
   dm.IBQuery1.ParamByName('primeiro_venc').AsDate := StrToDate(Parcelamento.Values['vencto']);
   dm.IBQuery1.ParamByName('entrada').AsCurrency := StrToCurrDef(Parcelamento.Values['entrada'],0);
   dm.IBQuery1.ExecSQL;
+  dm.IBQuery1.Transaction.Commit;
+
+  if codhis = '2' then
+  begin
+    buscaNomeCliente;
+    insereEntrada(LeftStr(novocod + '-' + clienteNome, 30) + ' 1 /1', StrToCurrDef(Parcelamento.Values['entrada'],0));
+  end;
 end;
 
 function TForm20.gravaVenda : boolean;
@@ -5939,13 +5951,6 @@ begin
 
   ClientDataSet1.DisableControls;
   ClientDataSet1.First;
-
-  if codhis = '2' then
-  begin
-    buscaNomeCliente;
-    insereEntrada(LeftStr(novocod + '-' + clienteNome, 30) + ' 1 /1', entrada);
-  end;
-
  
   if origem = 1 then
     tabela := 'quant'
@@ -6057,10 +6062,14 @@ begin
       dm.IBQuery1.ExecSQL;
     except
       on e: exception do begin
-        ShowMessage('erro 6024:'+e.Message);
-          if Contido('UNQ1_ITEM_VENDA', e.Message) = false then begin
-            exit;
-          end;
+        MessageDlg('Erro6065: ' + e.Message, mtError, [mbOK], 1);
+        dm.IBQuery1.Transaction.Rollback;
+
+        gravaErrosNoArquivo(e.Message,'Venda','6068','gravavenda(itemVenda)');
+        criaPasta(caminhoEXE_com_barra_no_final + 'VendasErro\');
+        ClientDataSet1.SaveToFile(caminhoEXE_com_barra_no_final + 'vendasErro\'+ novocod+'.xml', dfXML);
+        ClientDataSet1.EnableControls;
+        exit;
       end;
     end;
 
@@ -6113,8 +6122,21 @@ begin
     StrToIntDef(form22.codusario, 0);
   dm.IBQuery1.ParamByName('tipo').AsString := LeftStr(tipoV, 3);
 
-  dm.IBQuery1.ExecSQL;
-  dm.IBQuery1.Transaction.commit;
+  try
+    dm.IBQuery1.ExecSQL;
+    dm.IBQuery1.Transaction.commit;
+  except
+    on e:exception do begin
+      MessageDlg('Erro6128: ' + e.Message, mtError, [mbOK], 1);
+      dm.IBQuery1.Transaction.Rollback;
+
+      gravaErrosNoArquivo(e.Message,'Venda','6131','gravavenda()');
+      criaPasta(caminhoEXE_com_barra_no_final + 'VendasErro\');
+      ClientDataSet1.SaveToFile(caminhoEXE_com_barra_no_final + 'vendasErro\'+ novocod+'.xml', dfXML);
+      ClientDataSet1.EnableControls;
+      exit;
+    end;
+  end;
   tipoV := LeftStr(tipoV, 1);
 
   if saidaDeEstoque then
@@ -6132,6 +6154,8 @@ begin
   end;
 
   if dm.bd.InTransaction then dm.bd.commit;
+
+ if podeGravarParcelamentoTabela = 1 then GeraParcelamento(ultimoCliente);
 
   dm.IBQuery1.Close;
   dm.produto.Close;
@@ -6166,7 +6190,6 @@ begin
   JsEditInteiro1.Text := IntToStr(StrToIntDef(novocod, 0) + 1);
   // funcoes.GeraNota(novocod,form22.Pgerais.Values['nota'],'S',Modo_Venda);
   numvenda := novocod;
-  novocod  := '';
   Result := true;
 end;
 
@@ -6452,6 +6475,8 @@ begin
         end;
       end;
 
+      podeGravarParcelamentoTabela := 0;
+
       if Modo_Venda then
       begin
         //if novocod = '' then novocod := funcoes.novocod('venda');
@@ -6486,11 +6511,14 @@ begin
           if (CLIENTE_ENTREGA = '') then CLIENTE_ENTREGA := funcoes.localizar('Localizar Cliente', 'cliente', 'cod,nome,telres,telcom,cnpj,bairro', 'cod,nome', '', 'nome', 'nome', true, false, false, '', 0, nil);
         end;
 
-
-
+        //quando comita a venda e os produtos o sistema tenta gravar as parcelas na conta do cliente
+        ultimoCliente := JsEdit3.Text;
         if gravaVenda = false then begin
+           novocod  := '';
            exit;
         end;
+
+        novocod  := '';
 
         form22.Pgerais.Values['codUsuNovo'] := '';
 

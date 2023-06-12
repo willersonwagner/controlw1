@@ -386,6 +386,10 @@
             <FormType>fmx</FormType>
         </DCCReference>
         <DCCReference Include="funcoes.pas"/>
+        <DCCReference Include="Unit7.pas">
+            <Form>Form7</Form>
+            <FormType>fmx</FormType>
+        </DCCReference>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
@@ -586,7 +590,7 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="..\splash470x320.png" Configuration="Release" Class="Android_SplashImage470">
+                <DeployFile LocalName="..\splash960x720.png" Configuration="Release" Class="Android_SplashImage960">
                     <Platform Name="Android">
                         <RemoteName>splash_image.png</RemoteName>
                         <Overwrite>true</Overwrite>
@@ -598,7 +602,7 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="..\splash960x720.png" Configuration="Release" Class="Android_SplashImage960">
+                <DeployFile LocalName="..\splash470x320.png" Configuration="Release" Class="Android_SplashImage470">
                     <Platform Name="Android">
                         <RemoteName>splash_image.png</RemoteName>
                         <Overwrite>true</Overwrite>

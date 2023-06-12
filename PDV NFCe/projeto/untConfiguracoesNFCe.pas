@@ -149,6 +149,7 @@ type
     KC2: TEdit;
     Label45: TLabel;
     espacoFinal: TEdit;
+    Label46: TLabel;
     procedure sbtnCaminhoCertClick(Sender: TObject);
     procedure sbtnGetCertClick(Sender: TObject);
     procedure BtnOKClick(Sender: TObject);

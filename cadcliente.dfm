@@ -886,7 +886,7 @@ object Form16: TForm16
       Font.Height = -11
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsBold]
-      MaxLength = 60
+      MaxLength = 100
       ParentFont = False
       TabOrder = 6
       FormularioComp = 'Form16'
@@ -905,7 +905,7 @@ object Form16: TForm16
       Font.Height = -13
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsBold]
-      MaxLength = 40
+      MaxLength = 60
       ParentFont = False
       TabOrder = 7
       FormularioComp = 'Form16'
@@ -1213,7 +1213,7 @@ object Form16: TForm16
       Font.Height = -13
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsBold]
-      MaxLength = 35
+      MaxLength = 60
       ParentFont = False
       TabOrder = 23
       FormularioComp = 'Form16'
@@ -1232,7 +1232,7 @@ object Form16: TForm16
       Font.Height = -13
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsBold]
-      MaxLength = 35
+      MaxLength = 60
       ParentFont = False
       TabOrder = 24
       FormularioComp = 'Form16'
@@ -1251,7 +1251,7 @@ object Form16: TForm16
       Font.Height = -13
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsBold]
-      MaxLength = 8
+      MaxLength = 13
       ParentFont = False
       TabOrder = 25
       FormularioComp = 'Form16'
@@ -1270,7 +1270,7 @@ object Form16: TForm16
       Font.Height = -13
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsBold]
-      MaxLength = 35
+      MaxLength = 60
       ParentFont = False
       TabOrder = 26
       FormularioComp = 'Form16'
@@ -1289,7 +1289,7 @@ object Form16: TForm16
       Font.Height = -13
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsBold]
-      MaxLength = 35
+      MaxLength = 60
       ParentFont = False
       TabOrder = 27
       FormularioComp = 'Form16'
@@ -1308,7 +1308,7 @@ object Form16: TForm16
       Font.Height = -13
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsBold]
-      MaxLength = 8
+      MaxLength = 13
       ParentFont = False
       TabOrder = 28
       FormularioComp = 'Form16'

@@ -407,15 +407,15 @@ begin
   query1.ParamByName('nota').AsString := nota1;
   query1.Open;
 
-  venda := Tvenda.Create;
-  venda.total := query1.fieldbyname('total').AsCurrency;
-  venda.desconto := (query1.fieldbyname('desconto').AsCurrency);
-  venda.cliente := StrToIntDef(cliente, 1);
-  venda.codForma := query1.fieldbyname('codhis').AsString;
-  venda._FORMPG := query1.fieldbyname('nome').AsString;
-  venda.nota := query1.fieldbyname('nota').AsInteger;
-  venda.Data := query1.fieldbyname('data').AsDateTime;
-  venda.adic := IfThen(contOFFLINE, 'OFF', '');
+  venda              := Tvenda.Create;
+  venda.total        := query1.fieldbyname('total').AsCurrency;
+  venda.desconto     := (query1.fieldbyname('desconto').AsCurrency);
+  venda.cliente      := StrToIntDef(cliente, 1);
+  venda.codForma     := query1.fieldbyname('codhis').AsString;
+  venda._FORMPG      := query1.fieldbyname('nome').AsString;
+  venda.nota         := query1.fieldbyname('nota').AsInteger;
+  venda.Data         := query1.fieldbyname('data').AsDateTime;
+  venda.adic         := IfThen(contOFFLINE, 'OFF', '');
   venda.codFormaNFCE := query1.fieldbyname('codform').AsString;
   venda.codFormaNFCE := strnum(venda.codFormaNFCE);
 
@@ -425,6 +425,7 @@ begin
   query1.Close;
 
   cont := 0;
+
   if ((Contido('-'+versaoExecutavel+'-', '-ControlW-')) and (venda.codForma = '99')) then begin
     query1.Close;
     query1.SQL.Clear;
@@ -433,6 +434,7 @@ begin
     query1.Open;
 
     while not query1.Eof do begin
+
       if trim(query1.FieldByName('codform').AsString) = '' then begin
         listaPagamentos.Clear;
         cont := -1;
@@ -449,8 +451,7 @@ begin
         listaPagamentos[i].CST   := query1.FieldByName('nome').AsString;
         listaPagamentos[i].total := query1.FieldByName('valor').AsCurrency;
       end
-      else
-      begin
+      else begin
         listaPagamentos[i].total := listaPagamentos[i].total + query1.FieldByName('valor').AsCurrency;
       end;
       
@@ -471,8 +472,7 @@ begin
     if ((entrada > 0) and (venda.codFormaNFCE <> '01')) then
     begin
       i := listaPagamentos.Find('01');
-      if i = -1 then
-      begin
+      if i = -1 then begin
         i := listaPagamentos.Add(TacumPis.Create);
         listaPagamentos[i].cod := '01';
         listaPagamentos[i].CST := venda._FORMPG;
@@ -2915,8 +2915,7 @@ begin
           'LOGOWIDTH', 1);
       end;
 
-      DANFE_Rave.fonte.TamanhoFonteRazaoSocial :=
-          ini.ReadInteger('SERVER', 'fonteRazao', 8);
+      DANFE_Rave.fonte.TamanhoFonteRazaoSocial := ini.ReadInteger('SERVER', 'fonteRazao', 8);
     end;
 
     margemEsquerda := ini.ReadString('SERVER', 'MargemEsquerda', '0,1');
@@ -7018,6 +7017,15 @@ var
   invalido: integer;
   ok: boolean;
 begin
+  Result := '';
+
+  if StrNum(dadosEmitente.Values['CNPJ']) = strnum(CPF) then begin
+    exit;
+    //nao pode emitir nfce com o mesmo cnpj do emitente
+  end;
+
+
+
   ERRO_dados := '';
   tmp := IE;
   codPaisDest := '1058';

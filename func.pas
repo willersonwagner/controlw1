@@ -197,6 +197,7 @@ type
     enviandoCupom, enviandoBackup: boolean;
     fonteRelatorioForm19: integer;
     NegritoRelatorioForm19, saiComEnter: boolean;
+    function LimpaNomes(nome : String) : String;
     FUNCTION ALIQ_INTEREST_ENTRADA(ESTADO_EMIT : String) : currency;
     procedure RotinaImportarListaMWM;
     function buscaNomePC : String;
@@ -716,6 +717,10 @@ function Reorganizar: boolean;
 procedure GeraParcelamento(codvenda, formpagto, codcliente, nomecliente,
   vendedor, codgru: string; parcelas, periodo: integer; vencimento1: TDateTime;
   valorp: currency);
+procedure GeraParcelamentoVisual(codvenda, formpagto, codcliente, nomecliente,
+  vendedor, codgru: string; parcelas, periodo: integer; vencimento1: TDateTime;
+  valorp: currency);
+
 procedure addRelatorioForm19(Adicionar: string);
 function JustificarStrings(ent: string; qtd: integer): string;
 function VerificaAcesso_Se_Nao_tiver_Nenhum_bloqueio_true_senao_false: boolean;
@@ -6144,8 +6149,8 @@ begin
         False, False, 5);
       linha := '|' + dm.IBselect.FieldByName('cod').AsString + '|' +
         dm.IBselect.FieldByName('codbar').AsString + '|' +
-        dm.IBselect.FieldByName('unid').AsString + '|' + dm.IBselect.FieldByName
-        ('nome').AsString + '|' + dm.IBselect.FieldByName('p_compra').AsString +
+        dm.IBselect.FieldByName('unid').AsString + '|' + LimpaNomes(dm.IBselect.FieldByName
+        ('nome').AsString) + '|' + dm.IBselect.FieldByName('p_compra').AsString +
         '|' + dm.IBselect.FieldByName('p_venda').AsString + '|' +
         dm.IBselect.FieldByName('aliquota').AsString + '|' +
         dm.IBselect.FieldByName('classif').AsString + '|' +
@@ -6166,7 +6171,7 @@ begin
         dm.IBselect.FieldByName('frete').AsString + '|' +
         dm.IBselect.FieldByName('encargos').AsString + '|' +
         dm.IBselect.FieldByName('agregado').AsString + '|' +
-        dm.IBselect.FieldByName('obs').AsString + '|' +
+        LimpaNomes(dm.IBselect.FieldByName('obs').AsString) + '|' +
         IfThen(trim(dm.IBselect.FieldByName('TIPO_ITEM').AsString) = '', '00',trim(dm.IBselect.FieldByName('TIPO_ITEM').AsString)) + '|' +
         dm.IBselect.FieldByName('DESC_COMP').AsString + '|' +
         dm.IBselect.FieldByName('ICMS_SUBS').AsString + '|' +
@@ -11470,7 +11475,7 @@ begin
           ShowMessage('Erro 11146: ' + e.Message);
         end;
       end;
-    end;    }
+    end;      }
 
     if not VerificaCampoTabela('ult_usu_alterado', 'CONTASRECEBER') then
     begin
@@ -11862,7 +11867,7 @@ begin
         end;
       end;
     end;
-
+          }
     if not VerSeExisteTRIGGERPeloNome('ALTERA_CAIXA_VENDA_AVIST3') then begin
       //dm.IBScript1.Close;
       dm.IBScript1.SQLScripts.Clear;
@@ -11886,7 +11891,7 @@ begin
           ShowMessage('Erro 11146: ' + e.Message);
         end;
       end;
-    end;      }
+    end;
 
 
      if not VerificaCampoTabela('basecalculo', 'item_entrada') then begin
@@ -11901,6 +11906,78 @@ begin
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Clear;
       dm.IBQuery1.SQL.Add('ALTER TABLE item_venda ADD tot_origi numeric(10, 3) ');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
+    if funcoes.retornaTamanhoDoCampoBD('TEL1', 'CLIENTE') = 8 then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add
+        ('alter table CLIENTE alter TEL1 type VARCHAR(13)');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
+    if funcoes.retornaTamanhoDoCampoBD('END1', 'CLIENTE') = 35 then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add
+        ('alter table CLIENTE alter END1 type VARCHAR(60)');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
+    if funcoes.retornaTamanhoDoCampoBD('END2', 'CLIENTE') = 35 then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add
+        ('alter table CLIENTE alter END2 type VARCHAR(60)');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
+    if funcoes.retornaTamanhoDoCampoBD('NOME1', 'CLIENTE') = 35 then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add
+        ('alter table CLIENTE alter NOME1 type VARCHAR(60)');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
+    if funcoes.retornaTamanhoDoCampoBD('NOME2', 'CLIENTE') = 35 then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add
+        ('alter table CLIENTE alter NOME2 type VARCHAR(60)');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
+    if funcoes.retornaTamanhoDoCampoBD('TEL2', 'CLIENTE') = 8 then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add
+        ('alter table CLIENTE alter TEL2 type VARCHAR(13)');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
+    if funcoes.retornaTamanhoDoCampoBD('OBS', 'CLIENTE') = 60 then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add
+        ('alter table CLIENTE alter OBS type VARCHAR(100)');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
+    if funcoes.retornaTamanhoDoCampoBD('titular', 'CLIENTE') = 40 then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add
+        ('alter table CLIENTE alter titular type VARCHAR(60)');
       if execSqlMostraErro(dm.IBQuery1) = false then exit;
       dm.IBQuery1.Transaction.Commit;
     end;
@@ -12595,6 +12672,44 @@ begin
   form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((Adicionar))));
 end;
 
+procedure GeraParcelamentoVisual(codvenda, formpagto, codcliente, nomecliente,
+  vendedor, codgru: string; parcelas, periodo: integer; vencimento1: TDateTime;
+  valorp: currency);
+var
+  i: integer;
+  vencimento: TDateTime;
+begin
+  for i := 1 to parcelas do
+  begin
+    if i = 1 then
+      vencimento := vencimento1;
+    dm.IBQuery1.SQL.Clear;
+    dm.IBQuery1.SQL.Add
+      ('insert into contasreceber(nota,codgru,cod,formpagto,datamov,vendedor,data,vencimento,documento,codhis,historico,total,valor) values('
+      + codvenda + ',1,' + funcoes.novocod('cpagar') + ',' + formpagto +
+      ',:datamov,' + vendedor + ',:data,:vencimento,' + codcliente +
+      ',2,:hist,:total,:valor)');
+    dm.IBQuery1.ParamByName('datamov').AsDateTime := form22.dataMov;
+    if i <> 1 then
+      vencimento := vencimento + periodo;
+    dm.IBQuery1.ParamByName('data').AsDateTime := vencimento;
+    dm.IBQuery1.ParamByName('vencimento').AsDateTime := vencimento;
+    dm.IBQuery1.ParamByName('hist').AsString :=
+      funcoes.CompletaOuRepete(copy(codvenda + '-' + nomecliente, 1, 28),
+      funcoes.CompletaOuRepete('', IntToStr(i), ' ', 2) + '/' +
+      funcoes.CompletaOuRepete('', IntToStr(parcelas), ' ', 2), ' ', 35);
+    dm.IBQuery1.ParamByName('total').AsCurrency := valorp;
+    dm.IBQuery1.ParamByName('valor').AsCurrency := valorp;
+    try
+      dm.IBQuery1.ExecSQL;
+    except
+      dm.IBQuery1.Transaction.Rollback;
+      exit;
+    end;
+  end;
+end;
+
+
 procedure GeraParcelamento(codvenda, formpagto, codcliente, nomecliente,
   vendedor, codgru: string; parcelas, periodo: integer; vencimento1: TDateTime;
   valorp: currency);
@@ -12801,11 +12916,16 @@ begin
 
   fimi  := StrToIntDef(parc.Values['qtd'], 0);
   data  := StrToDate(parc.Values['vencto']);
-  data  := IncMonth(data, -1);
+  //data  := IncMonth(data, -1);
   valor := StrToCurrDef(parc.Values['valorp'], 0);
 
   for i := 1 to fimi do begin
-    data := IncMonth(data, 1);
+    if i > 1 then begin
+
+    if parc.Values['periodo'] = '30' then data := IncMonth(data, 1)
+     else data := IncDay(data, StrToInt(parc.Values['periodo']));
+    end;
+
     addRelatorioForm19(ini + '* ' + FormatDateTime('dd/mm/yy', data) +
       funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00', valor), ' ', 14) + ' *' + fim + #13
       + #10);
@@ -16985,8 +17105,10 @@ function Tfuncoes.Parcelamento(total: currency; Cliente: string; prazo: string)
 begin
   form38 := tform38.Create(self);
   form38.total := total;
-  form38.vencto.text := FormatDateTime('dd/mm/yyyy',
-    form22.dataMov + iif(StrToInt(prazo) = 0, 30, StrToInt(prazo)));
+  if strnum(prazo) = '0' then prazo := '30';
+  if prazo = '30' then form38.vencto.text :=  FormatDateTime('dd/mm/yyyy', IncMonth(form22.dataMov))
+  else form38.vencto.text :=  FormatDateTime('dd/mm/yyyy', IncDay(form22.dataMov, StrToIntDef(prazo, 0)));
+
   form38.dias.text := '30';
   form38.qtd.text := '1';
   if Cliente = '*' then
@@ -17517,8 +17639,7 @@ begin
     else if (dataIni <> 0) and (DataFim = 0) and (dataIgual = 0) then
     begin
       if dataIni >= dataset.FieldByName(NomeCampoDataParaComparar).AsDateTime
-      then
-      begin
+      then begin
         Result := Result + dataset.FieldByName(campo).AsCurrency;
       end;
     end
@@ -21523,13 +21644,14 @@ begin
       funcoes.informacao(dm.IBselect.RecNo, tot, 'Exportando Fornecedores...',
         False, False, 5);
       linha := '|' + dm.IBselect.FieldByName('cod').AsString + '|' +
-        dm.IBselect.FieldByName('nome').AsString + '|' + dm.IBselect.FieldByName
-        ('endereco').AsString + '|' + dm.IBselect.FieldByName('cep').AsString +
+        LimpaNomes(dm.IBselect.FieldByName('nome').AsString) + '|' +
+        LimpaNomes(dm.IBselect.FieldByName('endereco').AsString) + '|' +
+         dm.IBselect.FieldByName('cep').AsString +
         '|' + dm.IBselect.FieldByName('fone').AsString + '|' +
         dm.IBselect.FieldByName('fax').AsString + '|' + dm.IBselect.FieldByName
         ('cidade').AsString + '|' + dm.IBselect.FieldByName('estado').AsString +
-        '|' + trim(dm.IBselect.FieldByName('contato').AsString) + '|' +
-        trim(dm.IBselect.FieldByName('obs').AsString) + '|' +
+        '|' + LimpaNomes(dm.IBselect.FieldByName('contato').AsString) + '|' +
+        LimpaNomes(dm.IBselect.FieldByName('obs').AsString) + '|' +
         dm.IBselect.FieldByName('bairro').AsString + '|' +
         trim(dm.IBselect.FieldByName('cnpj').AsString) + '|' +
         dm.IBselect.FieldByName('ies').AsString + '|' +
@@ -27149,6 +27271,31 @@ begin
           valor := (temp.Values[IntToStr(a)]);
           valor := trocaChar(valor, ',', '.');
 
+          if ((tabela = 'CAIXA') and (a = 1)) then valor := trocaChar(valor, '/', '.');
+          if ((tabela = 'ACESSO') and (a = 2)) then begin
+            if StrNum(valor) = '0' then valor := '0';
+          end;
+
+          if ((tabela = 'VENDA') and (a = 26)) then begin
+            if StrNum(valor) = '0' then valor := QuotedStr('01.01.1900');
+          end;
+
+          if ((tabela = 'VENDA') and (a = 23)) then begin
+            if StrNum(valor) = '0' then valor := QuotedStr('01.01.1900');
+          end;
+
+          if ((tabela = 'VENDA') and (a = 20)) then begin
+            valor := trocaChar(valor, '/', '.');
+          end;
+
+          if ((tabela = 'ENTRADA') and (a = 1)) then begin
+            valor := trocaChar(valor, '/', '.');
+          end;
+
+          if ((tabela = 'ITEM_ENTRADA') and (a = 15)) then begin
+            if StrNum(valor) = '0' then valor := '0';
+          end;
+
           if a = f1 then
             SQL := SQL + valor
           else
@@ -30400,7 +30547,7 @@ begin
     fontHeight := Abs(imprime1.imprime.RLMemo6.Font.Height);
 
     imprime1.imprime.RLBand19.Height :=  (fontHeight * imprime1.imprime.RLMemo6.Lines.Count) + (fontHeight * 1);
-
+    imprime1.imprime.rlband19.Visible := true;
     //ShowMessage(IntToStr(imprime1.imprime.RLBand19.Height));
   end
   else begin
@@ -31788,6 +31935,12 @@ begin
     end;
 
   if ESTADO_EMIT = 'RR' then Result := 0;
+end;
+
+function Tfuncoes.LimpaNomes(nome : String) : String;
+begin
+  Result := trim(nome);
+  if Contido('|', Result) then Result := StringReplace(Result, '|', '', [rfReplaceAll]);
 end;
 
 

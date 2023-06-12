@@ -453,6 +453,10 @@ object Form52: TForm52
     object TabSheet3: TTabSheet
       Caption = 'Balan'#231'a'
       ImageIndex = 2
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object Label12: TLabel
         Left = 15
         Top = 14

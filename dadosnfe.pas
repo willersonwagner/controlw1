@@ -700,14 +700,14 @@ begin
     dsproduto.fieldbyname('cod').AsInteger := item.cod;
     dsproduto.fieldbyname('nome').AsString := item.nome;
     dsproduto.fieldbyname('ncm').AsString  := item.Ncm;
-    dsproduto.fieldbyname(nomeCampoCST).AsString := funcoes.aliquotaToCST(StrToInt(item.Aliq), funcoes.buscaParamGeral(10, '3'));
+    dsproduto.fieldbyname(nomeCampoCST).AsString := funcoes.aliquotaToCST(item.CodAliq, funcoes.buscaParamGeral(10, '3'));
     dsproduto.fieldbyname('UNID').AsString  := item.unid;
     dsproduto.fieldbyname('QUANT').AsCurrency  := item.quant;
     dsproduto.fieldbyname('PRECO').AsCurrency  := item.p_venda;
     dsproduto.fieldbyname('DESCONTO').AsCurrency  := item.Desconto;
     dsproduto.fieldbyname('TOTAL').AsCurrency  := item.total;
     dsproduto.fieldbyname('BASEICMS').AsCurrency  := item.base_icm;
-    dsproduto.fieldbyname('ALIQICMS').AsString  := item.Aliq;
+    dsproduto.fieldbyname('ALIQICMS').AsInteger  := item.CodAliq;
   end;
 
   form33 := TForm33.Create(self);

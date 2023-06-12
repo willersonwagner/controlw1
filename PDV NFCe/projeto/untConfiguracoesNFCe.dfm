@@ -1194,7 +1194,7 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
       object Label11: TLabel
         Left = 8
         Top = 72
-        Width = 75
+        Width = 81
         Height = 13
         Caption = 'Conex'#227'o BD:'
         Font.Charset = DEFAULT_CHARSET
@@ -1215,6 +1215,21 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
         Font.Height = -11
         Font.Name = 'MS Sans Serif'
         Font.Style = [fsBold]
+        ParentFont = False
+      end
+      object Label46: TLabel
+        Left = 103
+        Top = 72
+        Width = 213
+        Height = 13
+        Caption = '(Somente PDV com bd independente)'
+        Color = clRed
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clRed
+        Font.Height = -11
+        Font.Name = 'MS Sans Serif'
+        Font.Style = [fsBold]
+        ParentColor = False
         ParentFont = False
       end
       object conexaoBD: TEdit

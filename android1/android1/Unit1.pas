@@ -113,6 +113,11 @@ type
     GradientAnimation1: TGradientAnimation;
     ListBoxItem15: TListBoxItem;
     CheckBox1: TCheckBox;
+    TabItem6: TTabItem;
+    ListBox5: TListBox;
+    ListBoxItem17: TListBoxItem;
+    ListBoxItem18: TListBoxItem;
+    ListBoxItem21: TListBoxItem;
     procedure FormShow(Sender: TObject);
     procedure ListBoxItem1Click(Sender: TObject);
     procedure SpeedButton1Click(Sender: TObject);
@@ -178,6 +183,10 @@ type
       Shift: TShiftState);
     procedure Edit1KeyDown(Sender: TObject; var Key: Word; var KeyChar: Char;
       Shift: TShiftState);
+    procedure ListBoxItem21MouseUp(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Single);
+    procedure ListBoxItem21Click(Sender: TObject);
+    procedure ListBoxItem18Click(Sender: TObject);
   private
     FKBBounds: TRectF;
     FNeedOffset, configurar : Boolean;
@@ -930,6 +939,13 @@ begin
   ret := 2;
 end;
 
+procedure TForm1.ListBoxItem18Click(Sender: TObject);
+begin
+  if not Assigned(form5) then form5 := tform5.Create(self);
+  Form5.TabControl1.ActiveTab := form5.TabItem1;
+  form5.Show;
+end;
+
 procedure TForm1.ListBoxItem1Click(Sender: TObject);
 begin
   redimensionaColunasStringGrid(StringGrid1);
@@ -945,6 +961,17 @@ begin
   Label1.Text := 'CONSULTAS';
 
   ListBox1.ItemIndex := -1;
+end;
+
+procedure TForm1.ListBoxItem21Click(Sender: TObject);
+begin
+  TabControl1.ActiveTab := TabItem1;
+end;
+
+procedure TForm1.ListBoxItem21MouseUp(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Single);
+begin
+  TabControl1.ActiveTab := TabItem1;
 end;
 
 procedure TForm1.ListBoxItem2Click(Sender: TObject);
@@ -971,6 +998,8 @@ end;
 
 procedure TForm1.ListBoxItem3Click(Sender: TObject);
 begin
+  TabControl1.ActiveTab := TabItem6;
+  exit;
   if not Assigned(form5) then form5 := tform5.Create(self);
   Form5.TabControl1.ActiveTab := form5.TabItem1;
   form5.Show;

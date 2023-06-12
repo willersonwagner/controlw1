@@ -1,0 +1,302 @@
+object Form7: TForm7
+  Left = 0
+  Top = 0
+  Caption = 'Form7'
+  ClientHeight = 480
+  ClientWidth = 393
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  DesignerMasterStyle = 3
+  object VertScrollBox1: TVertScrollBox
+    Align = Client
+    Size.Width = 393.000000000000000000
+    Size.Height = 480.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    Viewport.Width = 393.000000000000000000
+    Viewport.Height = 480.000000000000000000
+    object Layout1: TLayout
+      Align = Client
+      Size.Width = 393.000000000000000000
+      Size.Height = 480.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      object TabControl1: TTabControl
+        Align = Client
+        FullSize = True
+        Size.Width = 393.000000000000000000
+        Size.Height = 384.000000000000000000
+        Size.PlatformDefault = False
+        TabHeight = 49.000000000000000000
+        TabIndex = 0
+        TabOrder = 0
+        TabPosition = None
+        Sizes = (
+          393s
+          384s
+          393s
+          384s)
+        object TabItem1: TTabItem
+          CustomIcon = <
+            item
+            end>
+          IsSelected = True
+          Size.Width = 8.000000000000000000
+          Size.Height = 8.000000000000000000
+          Size.PlatformDefault = False
+          StyleLookup = 'tabitemcustom'
+          TabOrder = 0
+          Text = 'TabItem1'
+          ExplicitSize.cx = 50.000000000000000000
+          ExplicitSize.cy = 50.000000000000000000
+          object ListBox1: TListBox
+            Align = Client
+            Size.Width = 393.000000000000000000
+            Size.Height = 384.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 0
+            DisableFocusEffect = True
+            DefaultItemStyles.ItemStyle = 'listboxitemnodetail'
+            DefaultItemStyles.GroupHeaderStyle = ''
+            DefaultItemStyles.GroupFooterStyle = ''
+            GroupingKind = Grouped
+            Viewport.Width = 393.000000000000000000
+            Viewport.Height = 384.000000000000000000
+            object TListBoxItem
+              Size.Width = 393.000000000000000000
+              Size.Height = 44.000000000000000000
+              Size.PlatformDefault = False
+              StyleLookup = 'listboxitemnodetail'
+              TabOrder = 0
+              Text = 'Nome:'
+              object nome: TClearingEdit
+                Touch.InteractiveGestures = [LongTap, DoubleTap]
+                Align = Right
+                Anchors = [akLeft, akTop, akRight, akBottom]
+                TabOrder = 0
+                Position.X = 80.000000000000000000
+                Position.Y = 6.000000000000000000
+                Size.Width = 313.000000000000000000
+                Size.Height = 32.000000000000000000
+                Size.PlatformDefault = False
+              end
+            end
+            object ListBoxItem4: TListBoxItem
+              Position.Y = 44.000000000000000000
+              Size.Width = 393.000000000000000000
+              Size.Height = 44.000000000000000000
+              Size.PlatformDefault = False
+              StyleLookup = 'listboxitemnodetail'
+              TabOrder = 2
+              Text = 'C'#243'd. Bar:'
+              object cpf: TClearingEdit
+                Touch.InteractiveGestures = [LongTap, DoubleTap]
+                Align = Right
+                Anchors = [akLeft, akTop, akRight, akBottom]
+                TabOrder = 0
+                Position.X = 96.000000000000000000
+                Position.Y = 6.000000000000000000
+                Size.Width = 297.000000000000000000
+                Size.Height = 32.000000000000000000
+                Size.PlatformDefault = False
+              end
+            end
+            object ListBoxItem3: TListBoxItem
+              Position.Y = 88.000000000000000000
+              Size.Width = 393.000000000000000000
+              Size.Height = 44.000000000000000000
+              Size.PlatformDefault = False
+              StyleLookup = 'listboxitemnodetail'
+              TabOrder = 1
+              Text = 'Pre'#231'o:'
+              object NumberBox1: TNumberBox
+                Touch.InteractiveGestures = [LongTap, DoubleTap]
+                TabOrder = 0
+                Cursor = crIBeam
+                TextSettings.HorzAlign = Trailing
+                Position.X = 120.000000000000000000
+                Position.Y = 8.000000000000000000
+                Size.Width = 265.000000000000000000
+                Size.Height = 32.000000000000000000
+                Size.PlatformDefault = False
+              end
+            end
+          end
+        end
+        object TabItem2: TTabItem
+          CustomIcon = <
+            item
+            end>
+          IsSelected = False
+          Size.Width = 8.000000000000000000
+          Size.Height = 8.000000000000000000
+          Size.PlatformDefault = False
+          StyleLookup = ''
+          TabOrder = 0
+          Text = 'TabItem2'
+          ExplicitSize.cx = 50.000000000000000000
+          ExplicitSize.cy = 50.000000000000000000
+          object Panel1: TPanel
+            Align = Client
+            Size.Width = 393.000000000000000000
+            Size.Height = 384.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 0
+            object Panel2: TPanel
+              Align = Top
+              Size.Width = 393.000000000000000000
+              Size.Height = 57.000000000000000000
+              Size.PlatformDefault = False
+              TabOrder = 0
+              object Label3: TLabel
+                Align = Scale
+                Position.Y = 1.000000000000000000
+                Size.Width = 340.599853515625000000
+                Size.Height = 23.000000000000000000
+                Size.PlatformDefault = False
+                Text = 'Pesquisa'
+              end
+              object ClearingEdit3: TClearingEdit
+                Touch.InteractiveGestures = [LongTap, DoubleTap]
+                Align = VertCenter
+                TabOrder = 1
+                Position.X = 100.000000000000000000
+                Position.Y = 12.000000000000000000
+                Margins.Left = 100.000000000000000000
+                Margins.Right = 5.000000000000000000
+                Size.Width = 240.000000000000000000
+                Size.Height = 32.000000000000000000
+                Size.PlatformDefault = False
+              end
+              object SpeedButton3: TSpeedButton
+                Align = Right
+                Position.X = 345.000000000000000000
+                Position.Y = 4.000000000000000000
+                Size.Width = 48.000000000000000000
+                Size.Height = 48.000000000000000000
+                Size.PlatformDefault = False
+                StyleLookup = 'searchtoolbutton'
+                Text = 'SpeedButton2'
+              end
+              object Label5: TLabel
+                Align = Scale
+                Position.Y = 25.000000000000000000
+                Size.Width = 340.599853515625000000
+                Size.Height = 23.000000000000000000
+                Size.PlatformDefault = False
+                Text = 'NOME >'
+              end
+            end
+            object gridCliente: TStringGrid
+              Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+              Align = Client
+              CanFocus = True
+              ClipChildren = True
+              Size.Width = 393.000000000000000000
+              Size.Height = 327.000000000000000000
+              Size.PlatformDefault = False
+              TabOrder = 1
+              RowHeight = 38.000000000000000000
+              Options = [ColumnResize, ColumnMove, ColLines, RowLines, Tabs, Header, HeaderClick, AutoDisplacement]
+              Viewport.Width = 393.000000000000000000
+              Viewport.Height = 295.000000000000000000
+            end
+          end
+        end
+      end
+      object ToolBar1: TToolBar
+        Size.Width = 393.000000000000000000
+        Size.Height = 48.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 1
+        object Label1: TLabel
+          Align = Client
+          StyledSettings = [Size, Style, FontColor]
+          Size.Width = 361.000000000000000000
+          Size.Height = 48.000000000000000000
+          Size.PlatformDefault = False
+          TextSettings.Font.Family = 'Showcard Gothic'
+          TextSettings.HorzAlign = Center
+          Text = 'ControlM'
+        end
+        object SpeedButton1: TSpeedButton
+          Size.Width = 48.000000000000000000
+          Size.Height = 48.000000000000000000
+          Size.PlatformDefault = False
+          StyleLookup = 'arrowlefttoolbuttonbordered'
+          Text = 'Voltar'
+        end
+        object SpeedButton2: TSpeedButton
+          Align = Right
+          Position.X = 361.000000000000000000
+          Position.Y = 8.000000000000000000
+          Size.Width = 32.000000000000000000
+          Size.Height = 32.000000000000000000
+          Size.PlatformDefault = False
+          StyleLookup = 'searcheditbutton'
+          Text = 'Voltar'
+        end
+      end
+      object ToolBar2: TToolBar
+        Align = Bottom
+        Position.Y = 432.000000000000000000
+        Size.Width = 393.000000000000000000
+        Size.Height = 48.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 2
+        object Button4: TButton
+          Align = Left
+          Size.Width = 48.000000000000000000
+          Size.Height = 48.000000000000000000
+          Size.PlatformDefault = False
+          StyleLookup = 'donetoolbutton'
+          TabOrder = 1
+          Text = 'Gravar'
+        end
+        object Button1: TButton
+          Align = Right
+          Position.X = 345.000000000000000000
+          Size.Width = 48.000000000000000000
+          Size.Height = 48.000000000000000000
+          Size.PlatformDefault = False
+          StyleLookup = 'deletetoolbutton'
+          TabOrder = 0
+          Text = 'Limpar'
+        end
+      end
+    end
+  end
+  object BindingsList1: TBindingsList
+    Methods = <>
+    OutputConverters = <>
+    Left = 76
+    Top = 317
+    object LinkGridToDataSourceBindSourceDB22: TLinkGridToDataSource
+      Category = 'Quick Bindings'
+      Columns = <
+        item
+          MemberName = 'cod'
+        end
+        item
+          MemberName = 'nome'
+          Width = 120
+        end
+        item
+          MemberName = 'cnpj'
+          Width = 100
+        end
+        item
+          MemberName = 'telres'
+          Width = 90
+        end>
+    end
+    object LinkControlToField1: TLinkControlToField
+      Category = 'Quick Bindings'
+      FieldName = 'cnpj'
+      Track = False
+      CustomFormat = '00.000.000/0000-00;1;_'
+      CustomParse = '00.000.000/0000-00;1;_'
+    end
+  end
+end

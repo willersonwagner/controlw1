@@ -1044,9 +1044,9 @@ begin
                 'Procure um Usuário Autorizado!');
     p_venda.SetFocus;
     exit;
-
-
   end;
+
+  nome.Text := funcoes.LimpaNomes(nome.Text);
 
   if (Trim(classif.Text) <> '') then
   begin
