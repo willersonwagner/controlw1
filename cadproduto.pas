@@ -160,11 +160,11 @@ type
     entrada: integer;
     RecuperarCadastro: boolean;
     produto_preco, desativado: string;
-    p_vendaAtual : currency;
+    p_vendaAtual : double;
 
     function CALCPRE(var _LUCRO, _PVENDA, _DEBICM, _BASEDEB, _CREDICM, _PCOMPRA,
       _FRETE, _ENCARGO, _BASECRED, AGREG: JsEditNumero;
-      icmsSubsti, descComp: currency): currency;
+      icmsSubsti, descComp: currency): double;
     function CALCLUCRO1(var _LUCRO, _PVENDA, _DEBICM, _BASEDEB, _CREDICM,
       _PCOMPRA, _FRETE, _ENCARGO, _BASECRED, AGREG: JsEditNumero;
       icmsSubsti, descComp: currency; Key: Char): currency;
@@ -640,11 +640,12 @@ end;
 
 function TForm9.CALCPRE(var _LUCRO, _PVENDA, _DEBICM, _BASEDEB, _CREDICM,
   _PCOMPRA, _FRETE, _ENCARGO, _BASECRED, AGREG: JsEditNumero;
-  icmsSubsti, descComp: currency): currency;
+  icmsSubsti, descComp: currency): double;
 var
-  _FRE, _ENC, _LUC, TMP, precoCompra: currency;
+  _FRE, _ENC, _LUC, TMP, precoCompra: Double;
   _COM: integer;
-  MAT1: array [1 .. 3] of currency;
+  MAT1: array [1 .. 3] of double
+  ;
 begin
   if _PCOMPRA.getValor = 0 then
     exit;
@@ -672,8 +673,9 @@ begin
     icmsSubsti := precoCompra * (icmsSubsti / 100);
 
   // SE NAO TEM PRECO DE VENDA, USA O PRECO DE COMPRA
-  _PVENDA.Text := formataCurrency(iif(_PVENDA.getValor = 0,
+  _PVENDA.setValor(iif(_PVENDA.getValor = 0,
     maior(_PVENDA.getValor, precoCompra), _PVENDA.getValor));
+
 
   // _COM := IF(VAL(SUBSTR(CONFIG1, 2, 1)) = 0, 2, VAL(SUBSTR(CONFIG1, 2, 1)))
   MAT1[1] := precoCompra;

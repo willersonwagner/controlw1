@@ -11982,6 +11982,15 @@ begin
       dm.IBQuery1.Transaction.Commit;
     end;
 
+    if retornaEscalaDoCampo('p_venda', 'produto') <> 6 then
+    begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add
+        ('update RDB$FIELDS set RDB$FIELD_SCALE = -6 where RDB$FIELD_NAME = ''RDB$230''');
+      dm.IBQuery1.ExecSQL;
+    end;
+
   {  if not VerificaCampoTabela('tot_origi', 'item_orcamento') then begin
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Clear;
@@ -31919,11 +31928,6 @@ begin
   end;
 
   ShowMessage(inttostr(i)+' Preços de produtos atualizados!');
-
-
-  //ShowMessage(cds.FieldByName('DESCRICAO_ATUAL').AsString);
-  //busca(tfdquery(cds), 'CODIGO', 'CODIGO', 'CODIGO', 'CODIGO');
-
 end;
 
 FUNCTION Tfuncoes.ALIQ_INTEREST_ENTRADA(ESTADO_EMIT : String) : currency;

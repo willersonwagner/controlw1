@@ -623,7 +623,7 @@ object Form4: TForm4
     Request.Ranges.Units = 'bytes'
     Request.Ranges = <>
     HTTPOptions = [hoForceEncodeParams]
-    Left = 152
+    Left = 24
     Top = 464
   end
   object FDIBSDump1: TFDIBSDump

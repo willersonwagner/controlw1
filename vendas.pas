@@ -7082,6 +7082,8 @@ begin
     exit;
   end;
 
+  TCurrencyField(dm.produto.FieldByName('preco')).DisplayFormat := '###,##0.' + CompletaOuRepete('', '', '0', StrToIntDef(funcoes.buscaParamGeral(111, '3'), 3));
+
   For i := 0 to ClientDataSet1.FieldCount - 1 do
     ClientDataSet1.Fields[i].Tag := 30;
   funcoes.AutoSizeDBGrid(DBGrid1);

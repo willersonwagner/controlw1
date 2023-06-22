@@ -471,6 +471,8 @@ begin
   funcoes.BuscaResizeDBgrid(DBGrid1, 'FORM20');
   cont := 1;
 
+  TCurrencyField(dm.produto.FieldByName('preco')).DisplayFormat := '###,##0.' + CompletaOuRepete('', '', '0', StrToIntDef(funcoes.buscaParamGeral(111, '3'), 3));
+
   funcoes.aumentaFonte(self, true, 0);
 end;
 

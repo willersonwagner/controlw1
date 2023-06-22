@@ -952,7 +952,7 @@ begin
      else if JsEditNumero(campo).decimal = 2 then DECIMAIS := '00';
 
 
-     IF POS(nomeDoCampo, 'P_COMPRA|P_VENDA|QUANT') > 0 THEN DECIMAIS := '000';
+     IF POS(nomeDoCampo, 'P_COMPRA|QUANT') > 0 THEN DECIMAIS := '000';
      ret := FormatCurr('#,###,###0.' + DECIMAIS, query.FieldByName(nomeDoCampo).AsCurrency);
 //     if (query.FieldByName(nomeDoCampo).AsString = '') or (query.FieldByName(nomeDoCampo).AsString = '0')  then ret := '0,00'
 //      else ret := query.FieldByName(nomeDoCampo).AsString;

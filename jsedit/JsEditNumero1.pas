@@ -65,7 +65,7 @@ function JsEditNumero.getValor : currency;
 begin
   Result := 0;
   if ((Text <> '') and (Text <> '0.00')) then
-    Result := StrToCurrDef(ConverteNumerico(Text), 0);
+    Result := StrToFloatDef(ConverteNumerico(Text), 0);
 end;
 
 procedure JsEditNumero.setValor(valor : currency);

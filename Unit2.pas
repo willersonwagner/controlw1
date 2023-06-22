@@ -793,22 +793,25 @@ begin
 end;
 
 procedure TForm2.inicializaComponentes();
+var
+  espaco : SmallInt;
 begin
+  espaco := 30;
   btnNFE1.Left := 10;
   // btnNFE1.Top := self.Height - stb.Height - btnNFE1.Height - 20;
-  btnNFE1.Top := self.Height - stb.Height - btnNFE1.Height - 20;
+  btnNFE1.Top := self.Height - stb.Height - btnNFE1.Height - espaco;
 
   btnConsultaProd.Left := 169 + 20;
-  btnConsultaProd.Top := self.Height - stb.Height - btnNFE1.Height - 20;
+  btnConsultaProd.Top := self.Height - stb.Height - btnNFE1.Height - espaco;
 
   btnCadCliente.Left := trunc(169 * 2) + 30;
-  btnCadCliente.Top := self.Height - stb.Height - btnNFE1.Height - 20;
+  btnCadCliente.Top := self.Height - stb.Height - btnNFE1.Height - espaco;
 
   btnVendas.Left := trunc(169 * 3) + 40;
-  btnVendas.Top := self.Height - stb.Height - btnNFE1.Height - 20;
+  btnVendas.Top := self.Height - stb.Height - btnNFE1.Height - espaco;
 
   btnEntradaSimples.Left := trunc(169 * 4) + 50;
-  btnEntradaSimples.Top := self.Height - stb.Height - btnNFE1.Height - 20;
+  btnEntradaSimples.Top := self.Height - stb.Height - btnNFE1.Height - espaco;
 
   stb.Panels[1].Text := funcoes.NomedoComputador();
 
@@ -23166,8 +23169,8 @@ begin
     dm.ibselect.Close;
     dm.ibselect.SQL.Clear;
     dm.ibselect.SQL.Add
-      ('select cr.documento,pago, cr.historico, cr.valor, iif(cr.vencimento > cr.previsao, cr.vencimento, cr.previsao) as vencimento  from contasreceber cr, cliente c where '
-      + sim + h1 +
+      //('select cr.documento,pago, cr.historico, cr.valor, iif(cr.vencimento > cr.previsao, cr.vencimento, cr.previsao) as vencimento  from contasreceber cr, cliente c where '
+      ('select cr.documento,pago, cr.historico, cr.valor, cr.vencimento  from contasreceber cr, cliente c where '+ sim + h1 +
       ' (c.cod = cr.documento) and (cr.pago = 0) order by vencimento');
     dm.ibselect.Open;
     dm.ibselect.First;
@@ -24348,6 +24351,11 @@ begin
       'Qual a Data Final?', formataDataDDMMYY(endOfTheMonth(now)));
     if datafim = '*' then
       exit;
+
+   { numVenda := funcoes.dialogo('generico', 0, '1234567890,.' + #8, 50, false,
+      '', application.Title, 'Deseja ?', '');
+    if cliente = '*' then
+      exit;    }
 
     cliente := funcoes.dialogo('generico', 0, '1234567890,.' + #8, 50, false,
       '', application.Title, 'Qual o Cód do Cliente?', '');

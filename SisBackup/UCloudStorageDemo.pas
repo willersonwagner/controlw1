@@ -128,6 +128,7 @@ type
     procedure LE_CAMPOS(var mat: tstringList; LIN: String; const separador: String;criaMAT: boolean = true);
     procedure TrayIcon1DblClick(Sender: TObject);
     procedure marcarXMLsNFCe(lista : TStringList);
+    Function DataPorExtenso:String;
     { Private declarations }
   public
     { Public declarations }
@@ -156,6 +157,8 @@ end;
 
 var
   Form4: TForm4;
+const
+  NaoUsaNuvem : boolean = true;
 
 implementation
 
@@ -329,6 +332,8 @@ begin
   Label4.Text := 'CNPJ: '+ FormataCNPJ(cnpj);
   label4.Visible := true;
 
+  if NaoUsaNuvem = false then begin
+
   site := buscaRetornoSite('',cnpj);
   LE_CAMPOS(lista, site, '|', true);
 
@@ -344,6 +349,8 @@ begin
     timerativaBackup.Interval := 10000;
     timerativaBackup.Enabled := true;
     exit;
+  end;
+
   end;
 
 
@@ -372,11 +379,16 @@ begin
 
   Memo1.Lines.Add(FormatDateTime('hh:mm:ss', now) + ' Backup Criado OK!');
 
-  comprime7zip(caminhoRaiz + 'SisBackup/' + 'BD.fbk', caminhoRaiz + 'SisBackup/' + 'BD.7z');
+  if NaoUsaNuvem then begin
+    comprime7zip(caminhoRaiz + 'SisBackup/' + 'BD.fbk', caminhoRaiz + 'SisBackup/' + 'BD-'+DataPorExtenso+'.7z');
+    DeleteFile(pchar(caminhoRaiz + 'SisBackup/' + 'BD.fbk'));
+  end
+  else comprime7zip(caminhoRaiz + 'SisBackup/' + 'BD.fbk', caminhoRaiz + 'SisBackup/' + 'BD.7z');
   Memo1.Lines.Add(FormatDateTime('hh:mm:ss', now) + ' Compactação 7z OK');
 
   //RenameFile(caminhoRaiz + 'SisBackup/' + 'BD.7z', caminhoRaiz + 'SisBackup/' + 'BD'+FormatDateTime('hhmm', now)+'.7z');
   arquivo := caminhoRaiz + 'SisBackup/' + 'BD.7z';
+
 
   Memo1.Lines.Add(FormatDateTime('hh:mm:ss', now) + ' Iniciando Transmissao...');
 
@@ -385,6 +397,9 @@ begin
 
   rdg := 1;//gdrive
   //rdg := 0;//dropbox
+
+  if NaoUsaNuvem = false then begin
+
   ConnectBtnClick(self);
 
   Memo1.Lines.Add(FormatDateTime('hh:mm:ss', now) + ' Conectado com Sucesso!');
@@ -412,6 +427,7 @@ begin
     ci := ci_ant;
   end;
 
+
   Memo1.Lines.Add(FormatDateTime('hh:mm:ss', now) + ' Estrutura de Pastas Criada!');
 
   ProgressBar2.Value := 0;
@@ -421,6 +437,11 @@ begin
   nci := Storage.Upload(ci, arquivo);
   Memo1.Lines.Add(FormatDateTime('hh:mm:ss', now) + ' Upload Concluido...');
   Memo1.SelStart := Length(Memo1.Text);
+
+  end
+  else begin
+    Memo1.Lines.Add(FormatDateTime('hh:mm:ss', now) + ' Rotina de Nuvem Suprimida...');
+  end;
 
   copiaNFCes;
 
@@ -434,7 +455,7 @@ begin
     end;
   end;
 
-  abrirPainel;
+  if NaoUsaNuvem = false then abrirPainel;
   IsUploading := false;
 end;
 
@@ -1016,10 +1037,17 @@ begin
 
   Memo1.Lines.Add(IntToStr(arquivos.Count) +' XML lidos...');
   try
+   if arquivos.Count > 0 then begin
+
+
     comprime7zipTstringList(arquivos, caminhoRaiz + 'SisBackup/' + 'NFCe'+FormatDateTime('ddmmyyyy-hhmm', now)+'.7z');
     arquivo := caminhoRaiz + 'SisBackup/' + 'NFCe'+FormatDateTime('ddmmyyyy-hhmm', now)+'.7z';
+   end;
   except
   end;
+
+  if NaoUsaNuvem = false then begin
+
 
   ci := nil;
   ci := buscaPastaGdrive('Backups', Storage.GetFolderListHierarchical(nil));
@@ -1051,6 +1079,12 @@ begin
     //arquivos.SaveToFile(caminhoRaiz+ 'nfces1.txt');
   end
   else Memo1.Lines.Add('Nenhum XML para enviar...') ;
+  end
+  else begin
+    if arquivos.Count = 0 then begin
+      Memo1.Lines.Add('Nenhum XML para enviar...') ;
+    end;
+  end;
 end;
 
 function TForm4.buscaPastaNFCe(const chave : String; abrir : boolean = true; pastaservidor : String = '') : String;
@@ -1147,7 +1181,15 @@ begin
     ShowMessage('Handle da aplicação não encontrado.');
 end;
 
-
+Function TForm4.DataPorExtenso:String;
+const
+     Semana : Array [1..7] of String = ('DOM', 'SEG', 'TER','QUA','QUI','SEX', 'SAB');
+var
+    DiaSem : Word;
+begin
+    DiaSem:=DayOfWeek(Date);
+    Result := Semana[DiaSem];
+end;
 
 end.
 
