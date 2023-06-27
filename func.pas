@@ -11729,6 +11729,8 @@ begin
     end;
 
 
+
+
     if not VerificaCampoTabela('usu_receb', 'venda') then begin
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Clear;

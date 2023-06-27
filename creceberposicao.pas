@@ -654,8 +654,8 @@ begin
     dm.IBQuery1.SQL.Clear;
     dm.IBQuery1.SQL.Add('update contasreceber set ULTVALOR = :ULTVALOR,codhis = :FORMPAGTO, valor = :valor, pago = pago + :pago, datamov = :datamov, ult_usu_alterado = :ult_usu_alterado where cod='+cod);
     dm.IBQuery1.ParamByName('ULTVALOR').AsCurrency := DBGrid1.DataSource.DataSet.FieldByName('valor').AsCurrency;
-    dm.IBQuery1.ParamByName('FORMPAGTO').AsString           := strnum(formapagto);
-    dm.IBQuery1.ParamByName('valor').AsCurrency := StrToCurr(funcoes.ConverteNumerico(valorBaixado));
+    dm.IBQuery1.ParamByName('FORMPAGTO').AsString  := strnum(formapagto);
+    dm.IBQuery1.ParamByName('valor').AsCurrency    := StrToCurr(funcoes.ConverteNumerico(valorBaixado));
 
     if valorb < v1 then dm.IBQuery1.ParamByName('pago').AsCurrency  := 0
     else dm.IBQuery1.ParamByName('pago').AsCurrency                 := valorb;
