@@ -3,7 +3,7 @@ object Form1: TForm1
   Top = 192
   Caption = 'Cupom Eletr'#244'nico - Envio'
   ClientHeight = 389
-  ClientWidth = 561
+  ClientWidth = 583
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -34,7 +34,7 @@ object Form1: TForm1
   object Gauge1: TGauge
     Left = 0
     Top = 353
-    Width = 561
+    Width = 583
     Height = 36
     Align = alBottom
     Progress = 0
@@ -61,7 +61,7 @@ object Form1: TForm1
   object RichEdit1: TRichEdit
     Left = 0
     Top = 116
-    Width = 561
+    Width = 583
     Height = 237
     Align = alBottom
     Font.Charset = ANSI_CHARSET
@@ -131,6 +131,8 @@ object Form1: TForm1
     Top = 160
   end
   object IBTransaction1: TFDTransaction
+    Options.Params.Strings = (
+      'lock_timeout=10')
     Options.AutoStop = False
     Options.StopOptions = [xoIfCmdsInactive]
     Connection = BDControl

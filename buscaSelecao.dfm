@@ -15,6 +15,7 @@ object Form33: TForm33
   Position = poScreenCenter
   OnClose = FormClose
   OnCreate = FormCreate
+  OnKeyDown = FormKeyDown
   OnKeyPress = FormKeyPress
   OnShow = FormShow
   PixelsPerInch = 96

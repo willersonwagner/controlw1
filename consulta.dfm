@@ -14,6 +14,7 @@ object Form24: TForm24
   OldCreateOrder = False
   WindowState = wsMaximized
   OnCreate = FormCreate
+  OnKeyDown = FormKeyDown
   OnKeyPress = FormKeyPress
   OnShow = FormShow
   PixelsPerInch = 96

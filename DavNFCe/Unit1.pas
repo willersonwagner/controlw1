@@ -771,7 +771,7 @@ function TForm1.sincronizaEstoque(): boolean;
 var
   cods, codsParaExcluir: String;
   lista: TStringList;
-  ini, fim, atu, listacount, atualizados, tmp, cont, exclu, acc: integer;
+  ini, fim, atu, listacount, atualizados, tmp, cont, exclu, acc, comit: integer;
 begin
   if bdPronto = false then
     exit;
@@ -824,6 +824,7 @@ begin
   acc := 0;
   Gauge1.Progress := 0;
   Gauge1.MaxValue := fim;
+  comit := 200;
   while not IBQueryServer1.Eof do
   begin
     Application.ProcessMessages;
@@ -861,8 +862,7 @@ begin
       end
       else
       begin
-        IF lista.Names[atu] <> IBQueryServer1.fieldbyname('COD').AsString then
-        begin
+        IF lista.Names[atu] <> IBQueryServer1.fieldbyname('COD').AsString then begin
           tmp := procuraProdutoNaLista(IBQueryServer1.fieldbyname('COD')
             .AsInteger, lista);
           if tmp = -1 then
@@ -874,6 +874,10 @@ begin
           end;
         end;
 
+        if atualizados > comit then begin
+          comit := comit + 200;
+          IBQuery1.Transaction.Commit;
+        end;
 
         if lista.ValueFromIndex[atu] <> IBQueryServer1.fieldbyname('hash').AsString
         then

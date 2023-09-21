@@ -40,6 +40,7 @@ object Form48: TForm48
     OnDrawDataCell = DBGrid1DrawDataCell
     OnDrawColumnCell = DBGrid1DrawColumnCell
     OnEnter = DBGrid1Enter
+    OnKeyDown = DBGrid1KeyDown
     OnKeyPress = DBGrid1KeyPress
     OnKeyUp = DBGrid1KeyUp
   end

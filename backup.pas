@@ -58,7 +58,7 @@ var
 implementation
 
 
-uses Unit1, principal, Unit89;
+uses Unit1, principal, Unit89, Unit2;
 
 {$R *.dfm}
 function TForm44.getRetorno : TStringList;
@@ -85,7 +85,9 @@ begin
       dm.IBselect.SQL.Add('select p.cod, c.nome, p.quant, p.p_compra, p.total from item_entrada p, produto c where (c.cod = p.cod) and (p.nota = :nota)');
       dm.IBselect.ParamByName('nota').AsString := StrNum(DBGrid1.DataSource.DataSet.fieldbyname('nota').AsString);
       dm.IBselect.Open;
-      funcoes.FormataCampos(dm.ibselect, 2,'',2);
+      funcoes.FormataCampos(dm.ibselect, 2,'quant',2);
+
+       TCurrencyField(dm.IBselect.FieldByName('quant')).DisplayFormat := '###,##0.00' ;
       exit;
     end;
 
@@ -94,7 +96,8 @@ begin
   dm.IBselect.SQL.Add('select p.cod, c.nome, p.quant, p.p_venda, p.total from item_venda p left join produto c on (c.cod = p.cod) where (p.nota = :nota)');
   dm.IBselect.ParamByName('nota').AsString := strnum(DBGrid1.DataSource.DataSet.fieldbyname('nota').AsString);
   dm.IBselect.Open;
-  funcoes.FormataCampos(dm.ibselect, 2,'',2);
+  funcoes.FormataCampos(dm.ibselect, 2,'quant',2);
+  TCurrencyField(dm.IBselect.FieldByName('quant')).DisplayFormat := '###,##0.00' ;
 end;
 
 function TForm44.buscaVendaMADE : String;
@@ -105,6 +108,8 @@ begin
   dm.IBselect.ParamByName('nota').AsString := strnum(DBGrid1.DataSource.DataSet.fieldbyname('NUMVENDA').AsString);
   dm.IBselect.Open;
   funcoes.FormataCampos(dm.ibselect, 2,'',2);
+
+  TCurrencyField(dm.IBselect.FieldByName('quant')).DisplayFormat := '###,##0.00' ;
 
   DBGrid2.DataSource := dm.ds1;
 end;
@@ -342,11 +347,15 @@ procedure TForm44.DBGrid1KeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
   if key = 119 then DBGrid2.SetFocus;
+
+  if (Shift = [ssCtrl]) and (Key = 46) then Key := 0;
 end;
 
 procedure TForm44.DBGrid2KeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
+  if (Shift = [ssCtrl]) and (Key = 46) then Key := 0;
+
   if key = 119 then DBGrid1.SetFocus;
   if opcao = 2 then begin
     if key = 46 then begin
@@ -400,6 +409,19 @@ var
   cod : String;
   data : TDate;
 begin
+  if opcao = 1 then begin
+    if (ssCtrl in Shift) and (chr(Key) in ['R', 'r']) then begin
+      try
+       form2.separarUsuario := 'S';
+       form2.PorNota1.Click;
+      finally
+        form2.separarUsuario := 'N';
+        abreDataSet(true);
+      end;
+
+    end;
+  end;
+
   if opcao = 3 then begin
     if key = 116 then begin
       cod := funcoes.dialogo('generico', 0, '1234567890,.' + #8, 50, false, '',application.Title, 'Qual o Número de Venda ?', '');

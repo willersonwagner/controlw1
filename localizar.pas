@@ -702,6 +702,8 @@ procedure TForm7.DBGrid1KeyDown(Sender: TObject; var Key: Word;
 var
   cod : string;
 begin
+  if (Shift = [ssCtrl]) and (Key = 46) then Key := 0;
+
 if (DBGrid1.DataSource.DataSet.RecNo = 1) and (key = 38) and (Edit1.Visible) then edit1.SetFocus;
 if (UpperCase(tabela) = 'PRODUTO') then
   begin

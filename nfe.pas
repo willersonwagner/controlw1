@@ -1018,7 +1018,7 @@ var
   ind, gf : integer;
   cont, tot : Smallint;
  // ini1, fim1 : integer;
-  arq, lista, listaCANC : TStringList;
+  arq, lista, listaCANC, listaEnt : TStringList;
 begin
   Result := '';
 
@@ -1053,6 +1053,7 @@ begin
   arq       := TStringList.Create;
   lista     := TStringList.Create;
   listaCANC := TStringList.Create;
+  listaEnt  := TStringList.Create;
   cont := 0;
   tot  := 0;
 
@@ -1118,11 +1119,40 @@ begin
      Result := Result + unidade + '_CANC.zip' + '|';
    end;
 
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select n.nota, d.CHAVENFE as chave from entrada n left join speddadosadic d on (d.nota = n.nota) where'+
+  ' right(extract(year from n.data), 2)|| lpad(extract(month from n.data), 2, 0) = :ini';
+  dm.IBselect.ParamByName('ini').AsString := FormatDateTime('yy', StrToDate(ini)) +  FormatDateTime('mm', StrToDate(ini));
+  dm.IBselect.Open;
+  dm.IBselect.FetchAll;
+
+  if dm.IBselect.IsEmpty then begin
+    dm.IBselect.Close;
+  end;
+
+  while not dm.IBselect.Eof do begin
+    num := dm.IBselect.FieldByName('chave').AsString + '-nfe.xml'; //cria o nome do arquivo
+    if FileExists(caminhoEXE_com_barra_no_final + 'NFE\ENT\' + num) then begin
+      listaEnt.Add(caminhoEXE_com_barra_no_final + 'NFE\ENT\' + num);
+    end;
+
+    dm.IBselect.Next;
+  end;
+
+  //listaEnt.SaveToFile('entrada.txt');
+
+  if listaEnt.Count > 0 then begin
+     funcoes.Zip(listaEnt, unidade + '_ENT.zip');
+     if RightStr(Result, 1) <> '|' then Result := Result + '|';
+     Result := Result + unidade + '_ENT.zip' + '|';
+   end;
+
    funcoes.informacao(0, 0, 'Aguarde, Verificando Arquivos...', false, true, 5);
    try
      arq.Free;
      lista.Free;
      listaCANC.Free;
+     listaEnt.Free;
    except
    end;
 
@@ -2719,7 +2749,7 @@ end;
 
 FUNCTION TNfeVenda.NODO_TRANSP(var FRETE1 : TStringList) : string;
 var
-  CPF_CNPJ, veiculo, VOL, iesTransp : string;
+  CPF_CNPJ, veiculo, VOL, iesTransp, transporta : string;
 begin
   VOL := '<vol>' + NODOXML('qVol', FRETE1.Values['13']) +
   NODOXML('esp', FRETE1.Values['14']) + NODOXML('marca', FRETE1.Values['15']) +
@@ -2727,32 +2757,36 @@ begin
   NODOXML('pesoB', FORMAT_NUM(StrToCurrDef(FRETE1.Values['17'], 0))) +
   NODOXML('pesoL', FORMAT_NUM(StrToCurrDef(FRETE1.Values['16'], 0))) + '</vol>';
 
-  IF tipo_frete = 9 then
-    begin
-      Result := '<transp><modFrete>9</modFrete>'+vol+'</transp>';
-      exit;
-    end;
+  IF tipo_frete = 9 then begin
+    Result := '<transp><modFrete>9</modFrete>'+vol+'</transp>';
+    exit;
+  end;
 
-  CPF_CNPJ := iif(FRETE1.Values['2'] = '1', '<CPF>' + funcoes.STRNUM(FRETE1.Values['3']) + '</CPF>', '<CNPJ>' + funcoes.STRNUM(FRETE1.Values['3']) + '</CNPJ>');
+  CPF_CNPJ  := iif(FRETE1.Values['2'] = '1', '<CPF>' + funcoes.STRNUM(FRETE1.Values['3']) + '</CPF>', '<CNPJ>' + funcoes.STRNUM(FRETE1.Values['3']) + '</CNPJ>');
 
   iesTransp := funcoes.STRNUM(FRETE1.Values['5']);
   if length(iesTransp) < 5 then iesTransp := '';
 
   VEICULO := '';
-  //if usaNFe4ouMaior = false then begin
-    VEICULO := iif(length(Trim(FRETE1.Values['11'])) >= 7, '<veicTransp><placa>' + FRETE1.Values['11'] +
-    '</placa><UF>' + FRETE1.Values['12'] + '</UF>'+ IfThen(length(TRIM(FRETE1.Values['10'])) = 0, '', '<RNTC>' + iif(length(TRIM(FRETE1.Values['10'])) = 0, '0', TRIM(FRETE1.Values['10'])) +'</RNTC>') +
-    '</veicTransp>', '');
-  //end;
+  VEICULO := iif(length(Trim(FRETE1.Values['11'])) >= 7, '<veicTransp><placa>' + FRETE1.Values['11'] +
+  '</placa><UF>' + FRETE1.Values['12'] + '</UF>'+ IfThen(length(TRIM(FRETE1.Values['10'])) = 0, '', '<RNTC>' + iif(length(TRIM(FRETE1.Values['10'])) = 0, '0', TRIM(FRETE1.Values['10'])) +'</RNTC>') +
+  '</veicTransp>', '');
 
-  if usaNFe4ouMaior and (UF_EMI <> UF_DEST) then begin
+  if (UF_EMI <> UF_DEST) then begin
     VEICULO := '';
   end;
 
-  Result := '<transp><modFrete>' + TRIM(IntToStr(tipo_frete)) + '</modFrete><transporta>' +
-  CPF_CNPJ + '<xNome>' + removeCarateresEspeciais(TRIM(FRETE1.Values['1'])) + '</xNome>' + IfThen(funcoes.STRNUM(FRETE1.Values['5']) <> '', '<IE>' + iesTransp + '</IE>', '') +
+  transporta :=  '<transporta>' + CPF_CNPJ +  '<xNome>' + removeCarateresEspeciais(TRIM(FRETE1.Values['1'])) + '</xNome>' + IfThen(funcoes.STRNUM(FRETE1.Values['5']) <> '', '<IE>' + iesTransp + '</IE>', '') +
   '<xEnder>' + TRIM(FRETE1.Values['6']) + '</xEnder>' + '<xMun>' + removeCarateresEspeciais(TRIM(FRETE1.Values['7'])) + '</xMun>' +
-  '<UF>' + FRETE1.Values['8'] + '</UF>' + '</transporta>' + VEICULO + VOL +  '</transp>';
+  '<UF>' + FRETE1.Values['8'] + '</UF>' + '</transporta>';
+
+  if FRETE1.Values['3'] = '0' then begin
+    transporta := '';
+  end;
+
+  Result   := '<transp><modFrete>' + TRIM(IntToStr(tipo_frete)) + '</modFrete>' +
+  transporta + VEICULO + VOL +  '</transp>';
+
 end;
 
 Function TNfeVenda.NODOXML(NOME, CONTEUDO : string) : string;
@@ -3229,6 +3263,7 @@ begin
         if trim(item.obs) <> '' then infAdProd := '<infAdProd>'+item.obs+'</infAdProd>';
       end;
 
+      if item.nomeInfAdProd <> '' then infAdProd :=  '<infAdProd>'+item.nomeInfAdProd+'</infAdProd>';
 
       uTrib := ve_unidTributavel(DEST_NFE, item.Ncm, item.unid);
       qTrib := Format_num(item.quant, 4)  ;
@@ -3348,6 +3383,7 @@ begin
   dadosDest.Values['cid']     := trim(dm.IBselect.fieldbyname('cid').AsString);
   dadosDest.Values['ies']     := StrNum(trim(dm.IBselect.fieldbyname('ies').AsString));
   if dadosDest.Values['ies'] = '0' then dadosDest.Values['ies'] := '';
+  if Length(dadosDest.Values['ies']) < 3 then dadosDest.Values['ies'] := '';
 
   IF ((Length(dadosDest.Values['cnpj']) = 14) and (length(dadosDest.Values['ies']) < 6)) then begin
     tipoPessoa := 'J';
@@ -3715,6 +3751,7 @@ var
    aliq : string[3];
    CB : Boolean;
    item : Item_venda;
+   arq : TStringList;
 begin
 //venda := Tvenda.Create;
   totalNota := 0;
@@ -3828,6 +3865,16 @@ begin
                    item.nome := LeftStr(trim(removeCarateresEspeciais(item.NOME)), 120);
                  end
                  else item.nome    := trim(removeCarateresEspeciais(query2.fieldbyname('nome').AsString));
+
+                 if FileExists(caminhoEXE_com_barra_no_final + 'nomes.txt') then begin
+                   arq := TStringList.Create;
+                   arq.LoadFromFile(caminhoEXE_com_barra_no_final + 'nomes.txt');
+                   if arq.Values[query2.fieldbyname('cod').AsString] <> '' then begin
+                     item.nomeInfAdProd := trim(arq.Values[query2.fieldbyname('cod').AsString]);
+                   end;
+                 end;
+
+
                  item.unid    := removeCarateresEspeciais(IfThen(Trim(query2.fieldbyname('unid').AsString) = '', 'UN', query2.fieldbyname('unid').AsString));
                  item.quant   := abs(query1.fieldbyname('quant').AsFloat);
 

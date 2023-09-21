@@ -112,6 +112,8 @@ type
     IBselect3: TFDQuery;
     FDTransaction1: TFDTransaction;
     queryThread: TFDQuery;
+    ClientDataSet1: TClientDataSet;
+    dsCDS: TDataSource;
     procedure TabelaOrdemCalcFields(DataSet: TDataSet);
     procedure ACBrNFeGerarLog(const Mensagem: String);
     procedure DataModuleCreate(Sender: TObject);

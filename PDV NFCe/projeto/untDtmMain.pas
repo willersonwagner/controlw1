@@ -50,6 +50,7 @@ type
     BD_Servidor: TFDConnection;
     FDGUIxWaitCursor1: TFDGUIxWaitCursor;
     ACBrGAV1: TACBrGAV;
+    FDTransaction1: TFDTransaction;
     procedure DataModuleCreate(Sender: TObject);
   private    { Private declarations }
     procedure LerDadosArquivo();

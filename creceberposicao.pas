@@ -305,6 +305,8 @@ procedure TForm34.DBGrid1KeyDown(Sender: TObject; var Key: Word;
 var
   data, cod : string;
 begin
+  if (Shift = [ssCtrl]) and (Key = 46) then Key := 0;
+
  if cont=2 then
   begin
     if key = 116 then
@@ -617,8 +619,6 @@ begin
   if valorbaixado = '*' then begin
     exit;
   end;
-
-
 
   //atualizacao 18/12/2018 Wagner
   //se for maior dá uma mensagem que excedeu o valor da conta

@@ -41,6 +41,8 @@ var
   saida : currency;
   datamov : tdatetime;
 begin
+  if (Shift = [ssCtrl]) and (Key = 46) then Key := 0;
+
  if ((key = 121) or ((form22.usuario = 'ADMIN') and (key = 120))) then
    begin
      if not dm.IBselect.IsEmpty then

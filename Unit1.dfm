@@ -745,4 +745,15 @@ object dm: Tdm
     Left = 704
     Top = 32
   end
+  object ClientDataSet1: TClientDataSet
+    Aggregates = <>
+    Params = <>
+    Left = 600
+    Top = 88
+  end
+  object dsCDS: TDataSource
+    DataSet = ClientDataSet1
+    Left = 600
+    Top = 144
+  end
 end

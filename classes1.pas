@@ -67,7 +67,7 @@ type
     val1       : currency;
     val2       : currency;
     unid       : String;
-    nota       : String[6];
+    nota       : String[8];
     data       : tdate;
   end;
 
@@ -231,6 +231,7 @@ type
     CST_PIS : String;
     cod : integer;
     nome : string;
+    nomeInfAdProd : string;
     unid : string[6];
     codISPIS : string[3];
     quant : Double;

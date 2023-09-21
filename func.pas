@@ -676,7 +676,7 @@ type
     function verificaSeExisteVenda(const nota: string): boolean;
     function verificaSePodeVenderFracionado(cod: integer; unid: String;
       quant: currency): boolean;
-    procedure relEntregador();
+    procedure relEntregador(ini, fim, nota : String;Pagamento : boolean = false);
 
   end;
 
@@ -1773,13 +1773,10 @@ begin
       end;
 
 
-      form33.ClientDataSet1.FieldByName('preco').AsCurrency :=
-      dm.IBselect.FieldByName('p_venda').AsCurrency;
-      form33.ClientDataSet1.FieldByName('quant').AsCurrency :=
-      -dm.IBselect.FieldByName('quant').AsCurrency;
+      form33.ClientDataSet1.FieldByName('preco').AsCurrency := dm.IBselect.FieldByName('p_venda').AsCurrency;
+      form33.ClientDataSet1.FieldByName('quant').AsCurrency := -dm.IBselect.FieldByName('quant').AsCurrency;
       form33.ClientDataSet1.FieldByName('saldo').AsCurrency := geral;
-      form33.ClientDataSet1.FieldByName('cont').AsInteger :=
-      form33.ClientDataSet1.RecordCount + 1;
+      form33.ClientDataSet1.FieldByName('cont').AsInteger := form33.ClientDataSet1.RecordCount + 1;
       form33.ClientDataSet1.Post;
     end;
 
@@ -4435,8 +4432,7 @@ begin
   while not dm.IBselect.Eof do
   begin
     Application.ProcessMessages;
-    funcoes.informacao(dm.IBselect.RecNo, fimDataSet,
-      'Aguarde, Verificando vendas...', False, False, 5);
+    funcoes.informacao(dm.IBselect.RecNo, fimDataSet,'Aguarde, Verificando vendas...', False, False, 5);
     loja := 0;
     deposito := 0;
     idx := 0;
@@ -4451,8 +4447,7 @@ begin
   end;
 
 
-  funcoes.informacao(dm.IBselect.RecNo, fimDataSet,
-    'Aguarde, Verificando vendas...', False, true, 5);
+  funcoes.informacao(dm.IBselect.RecNo, fimDataSet,'Aguarde, Verificando vendas...', False, true, 5);
   /// FIM DADOS DE VENDAS ///
 
   /// INICIO DADOS DE TRANSFERENCIAS ///
@@ -4612,6 +4607,7 @@ var
   sim: String;
   lista: TItensAcumProd;
   i: integer;
+  arq : TStringList;
 begin
   sim := 'S';
   if cod = 0 then
@@ -4620,8 +4616,7 @@ begin
       'Control For Windows', 'Confirma ' + MENS1 +
       'o de Fichas de Estoque ?', '');
   end;
-  if ((sim = '*') or (sim = 'N')) then
-    exit;
+  if ((sim = '*') or (sim = 'N')) then exit;
 
   lista := TItensAcumProd.Create;
   try
@@ -4635,6 +4630,28 @@ begin
 
   // i := lista.Find(31);
   // ShowMessage('cod=3530' + #13 +'quant='+CurrToStr(lista[i].quant) + #13 + 'dep=' + CurrToStr(lista[i].dep));
+
+  {arq := TStringList.Create;
+  for i := 0 to lista.Count -1 do begin
+    dm.IBselect.Close;
+    dm.IBselect.SQL.Text := 'select quant, deposito, sal, sad from produto where cod = :cod';
+    dm.IBselect.ParamByName('cod').AsInteger := lista[i].cod;
+    dm.IBselect.Open;
+
+    lista[i].quant := lista[i].quant + dm.IBselect.FieldByName('sal').AsCurrency;
+    lista[i].dep   := lista[i].dep   + dm.IBselect.FieldByName('sad').AsCurrency;
+
+
+    if ((lista[i].quant <> dm.IBselect.FieldByName('quant').AsCurrency) or (lista[i].dep <> dm.IBselect.FieldByName('deposito').AsCurrency)) then begin
+      arq.Add('|'+ IntToStr(lista[i].cod) + '|' + CurrToStr(lista[i].quant) + '|' + dm.IBselect.FieldByName('quant').AsString + '|' + CurrToStr(lista[i].dep) + '|' + CurrToStr(dm.IBselect.FieldByName('deposito').AsCurrency) +'|');
+    end;
+
+  end;
+
+  ARQ.SaveToFile('LISTAPRODUTOS.TXT');
+  EXIT;   }
+
+
 
   if not ATU_ESTOQUE(ACAO, lista, cod) then
   begin
@@ -16236,7 +16253,10 @@ begin
       end;
     end;
 
-    addRelatorioForm19('*  S E M     V A L O R    F I S C A L  *' + CRLF);
+    if opcao = 1 then      addRelatorioForm19('*  S E M     V A L O R    F I S C A L  *' + CRLF)
+    else if opcao = 2 then addRelatorioForm19('*****  O  R  C  A  M  E  N  T  O   *****' + CRLF);
+
+
 
     if funcoes.LerConfig(form22.Pgerais.Values['conf_ter'], 3) <> '' then
     begin
@@ -18108,13 +18128,17 @@ begin
 
   while a <> query.FieldCount do
   begin
-    if (FieldTypeNames[query.Fields.Fields[a].DataType] = 'BCD') and
+   { if query.Fields.Fields[a].FieldName = 'PRECO' then begin
+      ShowMessage('preco=' + FieldTypeNames[query.Fields.Fields[a].DataType]);
+    end;}
+
+    if ((FieldTypeNames[query.Fields.Fields[a].DataType] = 'BCD') or (UpperCase(FieldTypeNames[query.Fields.Fields[a].DataType]) = 'FMTBCDFIELD')) and
       (query.Fields[a].FieldName <> CampoFormatoDiferente) then
     begin
       TCurrencyField(query.FieldByName(query.Fields[a].FieldName)).DisplayFormat
         := '###,##0.' + CompletaOuRepete('', '', '0', qtdCasasDecimais);
     end;
-    if (FieldTypeNames[query.Fields.Fields[a].DataType] = 'BCD') and
+    if ((FieldTypeNames[query.Fields.Fields[a].DataType] = 'BCD') or (UpperCase(FieldTypeNames[query.Fields.Fields[a].DataType]) = 'FMTBCDFIELD')) and
       (query.Fields[a].FieldName = CampoFormatoDiferente) then
     begin
       TCurrencyField(query.FieldByName(query.Fields[a].FieldName)).DisplayFormat
@@ -20288,6 +20312,7 @@ begin
   end;
 
   tam := arq.Values[formula.Name];
+
   idx := 0;
 
   fim := formula.ComponentCount - 1;
@@ -20300,22 +20325,23 @@ begin
       if (form = 'TDBGRID') then
       begin
         idx := ini;
-        tu := StrToIntDef(LerConfig(tam, 0), TDBGrid(formula.Components[ini])
-          .Font.Size);
+        tu  := StrToIntDef(LerConfig(tam, 0), TDBGrid(formula.Components[ini]).Font.Size);
+        if opcao = 1 then begin
+          if tu < 30 then tu := tu + 1;
+        end
+        else if opcao = 2 then begin
+          if tu > 10 then tu := tu - 1;
+        end;
+
         if opcao = 0 then
         begin
           TDBGrid(formula.Components[ini]).Font.Size := tu;
           TDBGrid(formula.Components[ini]).Font.Style := [fsbold];
         end
-        else if opcao = 1 then
-        begin
-          TDBGrid(formula.Components[ini]).Font.Size := tu + 1;
-          tu := tu + 1;
-        end
         else
         begin
-          TDBGrid(formula.Components[ini]).Font.Size := tu - 1;
-          tu := tu - 1;
+          TDBGrid(formula.Components[ini]).Font.Size := tu;
+          //tu := tu + 1;
         end;
         // exit;
       end;
@@ -21454,7 +21480,6 @@ begin
   Writeln(arq, '|TABELAX|GENERATOR|');
   linha := '|CAMPOX|GENERATOR_NAME|VALUE|';
   Writeln(arq, linha);
-  // end;
 
   a := 0;
   b := query.RecordCount;
@@ -30421,7 +30446,6 @@ begin
     dm.IBselect.Open;
   end;
 
-
   vendedor := 'Vendedor: '+ StrNum(dm.IBselect.FieldByName('vendedor').AsString) + '-' +dm.IBselect.FieldByName('vendedornome').AsString;
   cliente := StrNum(dm.IBselect.FieldByName('cliente').AsString);
 
@@ -30701,13 +30725,13 @@ begin
     dm.IBselect.SQL.Text := 'select cod, nome, cnpj, ies, endereco as ende, bairro, tipo, cidade as cid, estado as est, obs, fone as telres, fax as telcom from fornecedor where cod = ' + cliente;
     dm.IBselect.Open;
                                                            //Ende...:  RUA APOCALIPSE, 35, CINTURAO VERDE
-    imprime1.imprime.rlcliente.Caption := 'Fornece: ' + dm.IBselect.FieldByName('cod').AsString +'-'+ dm.IBselect.FieldByName('nome').AsString;
-    imprime1.imprime.rlende.Caption    := 'Ende...: ' + dm.IBselect.FieldByName('ende').AsString + ', ' + dm.IBselect.FieldByName('bairro').AsString + '  ' + dm.IBselect.FieldByName('cid').AsString + '-' + dm.IBselect.FieldByName('est').AsString;
+    imprime1.imprime.rlcliente.Caption     := 'Fornece: ' + dm.IBselect.FieldByName('cod').AsString +'-'+ dm.IBselect.FieldByName('nome').AsString;
+    imprime1.imprime.rlende.Caption        := 'Ende...: ' + dm.IBselect.FieldByName('ende').AsString + ', ' + dm.IBselect.FieldByName('bairro').AsString + '  ' + dm.IBselect.FieldByName('cid').AsString + '-' + dm.IBselect.FieldByName('est').AsString;
 
     imprime1.imprime.rlcpf.Caption         := 'CPF/CNPJ: ' + dm.IBselect.FieldByName('cnpj').AsString;
     imprime1.imprime.rlinsc.Caption        := 'RG/Insc. Est: ' + dm.IBselect.FieldByName('ies').AsString;
     imprime1.imprime.rlOBS_Cliente.Caption := 'Obs: ' + dm.IBselect.FieldByName('obs').AsString;
-    imprime1.imprime.rlFoneCel.Caption := 'Fone: ' + dm.IBselect.FieldByName('telres').AsString + ' Cel: ' + dm.IBselect.FieldByName('telcom').AsString;
+    imprime1.imprime.rlFoneCel.Caption     := 'Fone: ' + dm.IBselect.FieldByName('telres').AsString + ' Cel: ' + dm.IBselect.FieldByName('telcom').AsString;
   end;
 
   if FileExists(caminhoEXE_com_barra_no_final + 'logoMed.bmp') then begin
@@ -30914,8 +30938,7 @@ begin
   lim_compra := dm.IBselect.FieldByName('lim_compra').AsCurrency;
   dm.IBselect.Close;
 
-  if ativo = 'N' then
-  begin
+  if ativo = 'N' then begin
     WWMessage('Atenção! A Venda à Prazo Para Este Cliente Não Está Autorizada',
       mtInformation, [mbok], HexToTColor('FFD700'), true, false,
       HexToTColor('B22222'));
@@ -31649,11 +31672,15 @@ begin
 end;
 
 
-procedure Tfuncoes.relEntregador();
+procedure Tfuncoes.relEntregador(ini, fim, nota : String;Pagamento : boolean = false);
 var
-  tempo, ini, fim, tipoPreco, h1, entregatual, nota : String;
+  tempo, tipoPreco, h1, entregatual, acc, acc1 : String;
   preco, totVenda, totCusto: currency;
+  lista : TItensAcumProd;
+  i : integer;
 begin
+  if (ini = '')and (fim = '') then begin
+
   ini := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,'Qual a Data Inicial?', formataDataDDMMYY(form22.datamov));
   if ini = '*' then
     exit;
@@ -31661,17 +31688,23 @@ begin
   fim := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,'Qual a Data Final?', formataDataDDMMYY(form22.datamov));
   if fim = '*' then
     exit;
+  end;
 
+  if (nota = '') then begin
   nota := funcoes.dialogo('generico', 0, '1234567890,.' + #8, 100, false, '',
     'Relatório de Entradas', 'Qual o Código do Entregador ?', '');
   if (nota = '*') then exit;
 
+  end;
   h1 := '';
   if nota <> '' then h1 := ' and (c.usuario_baixa = '+strnum(nota)+') ';
 
+  acc := '';
+  lista := TItensAcumProd.Create;
 
   dm.ibselect.Close;
-  dm.ibselect.SQL.Text := 'select v.nota, d.nome, c.USUARIOPAGTO, c.FINALIZADO, c.usuario_baixa, v.total, v.data, v.hora as hora_venda, v.ende_entrega, e.endereco, e.cliente, e.telefone, c.data_entrega, c.valor from venda v left join ENTREGA e on (e.cod = v.ende_entrega)'+
+  dm.ibselect.SQL.Text := 'select v.nota, d.nome, c.USUARIOPAGTO, c.FINALIZADO, c.usuario_baixa, v.total, v.data, v.hora as hora_venda, v.cancelado, v.ende_entrega, e.endereco, e.cliente, e.telefone,'+
+  ' c.data_entrega, c.valor, c.cod from venda v left join ENTREGA e on (e.cod = v.ende_entrega)'+
   'left join entrega_novo c on (c.numvenda = v.nota) left join entregador d on (d.cod = c.usuario_baixa)  where ((cast(c.data_entrega as date) >= :ini) and (cast(c.data_entrega as date) <= :fim)) '+
   'and v.ende_entrega > 0 and not(c.data_entrega is null)'+h1+' order by c.usuario_baixa,c.data_entrega desc';
   dm.IBselect.ParamByName('ini').AsDateTime := StrToDate(ini);
@@ -31694,9 +31727,54 @@ begin
   totCusto := 0;
 
   entregatual := 'x';
+  acc         := '-';
+  acc1        := '-';
 
-  while not dm.ibselect.Eof do
-  begin
+  while not dm.ibselect.Eof do begin
+    if Contido('-'+Dm.ibselect.FieldByName('nota').AsString+ '-', acc) = false then acc := acc + Dm.ibselect.FieldByName('nota').AsString+ '-'
+    else acc1 := acc1 + Dm.ibselect.FieldByName('nota').AsString+ '-';
+
+    dm.IBselect.Next;
+  end;
+
+  if acc1 <> '-' then begin
+    ShowMessage('Redundancia de Entregas Encontrada! ' + #13 + acc1);
+  end;
+
+  acc         := '-';
+  acc1        := '-';
+
+  dm.ibselect.First;
+  while not dm.ibselect.Eof do begin
+    if Pagamento then
+
+
+    if Contido('-'+Dm.ibselect.FieldByName('nota').AsString+ '-', acc) = false then begin
+      acc := acc + Dm.ibselect.FieldByName('nota').AsString+ '-';
+
+      if Pagamento then begin
+
+      if ((dm.IBselect.FieldByName('USUARIOPAGTO').IsNull)and (dm.IBselect.FieldByName('finalizado').IsNull = false) and (StrToIntDef(dm.IBselect.FieldByName('cancelado').AsString, 0) = 0)) then begin
+        //ShowMessage(Dm.ibselect.FieldByName('nota').AsString);
+
+        i := lista.Find(Dm.ibselect.FieldByName('usuario_baixa').AsInteger);
+        if i = -1 then begin
+          i := lista.Add(TacumProd.Create);
+          lista[i].cod  := Dm.ibselect.FieldByName('usuario_baixa').AsInteger;
+          lista[i].val1 := Dm.ibselect.FieldByName('valor').AsCurrency;
+          lista[i].unid := Dm.ibselect.FieldByName('nome').AsString;
+          //ShowMessage('1='+Dm.ibselect.FieldByName('nota').AsString + #13 + CurrToStr(lista[i].val1));
+        end
+        else begin
+          lista[i].val1 := lista[i].val1 + Dm.ibselect.FieldByName('valor').AsCurrency;
+          //ShowMessage('2='+Dm.ibselect.FieldByName('nota').AsString + #13 + CurrToStr(lista[i].val1));
+        end;
+      end;
+      end;
+    end
+    else acc1 := acc1 + Dm.ibselect.FieldByName('nota').AsString+ '-';
+
+
     if ((entregatual <> dm.IBselect.FieldByName('usuario_baixa').AsString) and (entregatual <> 'x'))  then begin
       addRelatorioForm19(CompletaOuRepete('', '', '-', 80) + CRLF);
       addRelatorioForm19(CompletaOuRepete('Total', formataCurrency(totVenda), '.', 80) + CRLF);
@@ -31708,18 +31786,62 @@ begin
       entregatual := dm.IBselect.FieldByName('usuario_baixa').AsString;
 
       addRelatorioForm19(funcoes.RelatorioCabecalho(funcoes.LerValorPGerais('empresa', form22.Pgerais),'RELATORIO DE ENTREGAS ' + entregatual+'-' + dm.IBselect.FieldByName('nome').AsString, 80));
-      addRelatorioForm19('Nota          Data Hora       Total Venda Endereco                  PG      Valor'+ CRLF);
+      addRelatorioForm19('Nota          Data Hora       Total Venda Endereco                  PG     Valor'+ CRLF);
       addRelatorioForm19(CompletaOuRepete('', '', '-', 80) + CRLF);
     end;
 
-    totVenda := totVenda + dm.IBselect.FieldByName('valor').AsCurrency;
+    h1 := IfThen(dm.IBselect.FieldByName('USUARIOPAGTO').IsNull = false, 'OK', '  ') +completaOuRepete('' ,formataCurrency(dm.IBselect.FieldByName('valor').AsCurrency), ' ', 10);
+    if StrToIntDef(dm.IBselect.FieldByName('cancelado').AsString, 0) = 0 then begin
+      totVenda := totVenda + dm.IBselect.FieldByName('valor').AsCurrency;
+    end
+    else begin
+      h1 := 'CANCEL  0,00';
+    end;
+
+
+   // if True then
+
+
     if true then begin
       addRelatorioForm19(CompletaOuRepete(dm.IBselect.FieldByName('nota').AsString,'', ' ', 8)+' '+ CompletaOuRepete(FormatDateTime('c', dm.IBselect.FieldByName('data_entrega').AsDateTime) ,'', ' ', 19)+ ' '+
-      CompletaOuRepete('' ,formataCurrency(dm.IBselect.FieldByName('total').AsCurrency), ' ', 10)+' '+ CompletaOuRepete(LeftStr(dm.IBselect.FieldByName('cliente').AsString + '-' + dm.IBselect.FieldByName('endereco').AsString, 27) ,'', ' ', 27)+' '+ IfThen(dm.IBselect.FieldByName('USUARIOPAGTO').IsNull = false, 'OK', '  ')  +' '+completaOuRepete('' ,formataCurrency(dm.IBselect.FieldByName('valor').AsCurrency), ' ', 9) + CRLF);
+      CompletaOuRepete('' ,formataCurrency(dm.IBselect.FieldByName('total').AsCurrency), ' ', 10)+' '+ CompletaOuRepete(LeftStr(dm.IBselect.FieldByName('cliente').AsString + '-' + dm.IBselect.FieldByName('endereco').AsString, 27) ,'', ' ', 27)+' '+ h1  +' ' + CRLF);
     end;
 
 
     dm.ibselect.Next;
+  end;
+
+  if Pagamento then begin
+
+
+  dm.ClientDataSet1.Close;
+  dm.ClientDataSet1.FieldDefs.Clear;
+  dm.ClientDataSet1.FieldDefs.Add('ENTREGADOR', ftInteger);
+  dm.ClientDataSet1.FieldDefs.Add('NOME', ftString, 100);
+  dm.ClientDataSet1.FieldDefs.Add('VALOR', ftCurrency);
+  dm.ClientDataSet1.CreateDataSet;
+
+  for I := 0 to lista.Count -1 do begin
+    dm.ClientDataSet1.Insert;
+    dm.ClientDataSet1.FieldByName('ENTREGADOR').AsInteger    := lista[i].cod;
+    dm.ClientDataSet1.FieldByName('nome').AsString    := lista[i].unid;
+    dm.ClientDataSet1.FieldByName('valor').AsCurrency := lista[i].val1;
+    dm.ClientDataSet1.Post;
+  end;
+
+  form33 := tform33.Create(self);
+  form33.campolocalizaca := 'entregador';
+  funcoes.CtrlResize(TForm(form33));
+  form33.DBGrid1.DataSource := dm.dsCDS;
+  form33.ShowModal;
+
+  if funcoes.retornoLocalizar = '*' then begin
+    form33.Free;
+    exit;
+  end;
+
+  form33.Free;
+    exit;
   end;
 
   addRelatorioForm19(CompletaOuRepete('', '', '-', 80) + CRLF);

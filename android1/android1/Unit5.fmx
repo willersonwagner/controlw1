@@ -16,7 +16,7 @@ inherited Form5: TForm5
         Size.Height = 471.000000000000000000
         Size.PlatformDefault = False
         TabHeight = 49.000000000000000000
-        TabIndex = 0
+        TabIndex = 1
         TabOrder = 0
         TabPosition = None
         OnChange = TabControl1Change
@@ -29,7 +29,7 @@ inherited Form5: TForm5
           CustomIcon = <
             item
             end>
-          IsSelected = True
+          IsSelected = False
           Size.Width = 8.000000000000000000
           Size.Height = 8.000000000000000000
           Size.PlatformDefault = False
@@ -287,7 +287,7 @@ inherited Form5: TForm5
           CustomIcon = <
             item
             end>
-          IsSelected = False
+          IsSelected = True
           Size.Width = 8.000000000000000000
           Size.Height = 8.000000000000000000
           Size.PlatformDefault = False
@@ -316,19 +316,6 @@ inherited Form5: TForm5
                 Size.PlatformDefault = False
                 Text = 'Pesquisa'
               end
-              object ClearingEdit3: TClearingEdit
-                Touch.InteractiveGestures = [LongTap, DoubleTap]
-                Align = VertCenter
-                TabOrder = 1
-                Position.X = 100.000000000000000000
-                Position.Y = 12.000000000000000000
-                Margins.Left = 100.000000000000000000
-                Margins.Right = 5.000000000000000000
-                Size.Width = 207.000000000000000000
-                Size.Height = 32.000000000000000000
-                Size.PlatformDefault = False
-                OnKeyUp = ClearingEdit3KeyUp
-              end
               object SpeedButton3: TSpeedButton
                 Align = Right
                 Position.X = 312.000000000000000000
@@ -343,10 +330,21 @@ inherited Form5: TForm5
               object Label5: TLabel
                 Align = Scale
                 Position.Y = 25.000000000000000000
-                Size.Width = 312.000000000000000000
+                Size.Width = 105.000000000000000000
                 Size.Height = 23.000000000000000000
                 Size.PlatformDefault = False
                 Text = 'NOME >'
+              end
+              object Edit1: TEdit
+                Touch.InteractiveGestures = [LongTap, DoubleTap]
+                StyleLookup = 'clearingeditstyle'
+                TabOrder = 1
+                Position.X = 72.000000000000000000
+                Position.Y = 16.000000000000000000
+                Size.Width = 241.000000000000000000
+                Size.Height = 32.000000000000000000
+                Size.PlatformDefault = False
+                OnKeyUp = Edit1KeyUp
               end
             end
             object gridCliente: TStringGrid

@@ -39,6 +39,8 @@ type
     procedure DBGrid1DrawColumnCell(Sender: TObject; const Rect: TRect;
       DataCol: Integer; Column: TColumn; State: TGridDrawState);
     procedure DBGrid1Enter(Sender: TObject);
+    procedure DBGrid1KeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
   private
     inseriuFornecedor, campoDataExiste : boolean;
     procedure escondeCampos();
@@ -725,6 +727,12 @@ begin
     begin
       alteraUnidade();
     end;
+end;
+
+procedure TForm48.DBGrid1KeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if (Shift = [ssCtrl]) and (Key = 46) then Key := 0;
 end;
 
 procedure TForm48.DBGrid1KeyPress(Sender: TObject; var Key: Char);

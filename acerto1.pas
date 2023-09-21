@@ -282,6 +282,8 @@ end;
 procedure Tacerto.DBGrid1KeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
+  if (Shift = [ssCtrl]) and (Key = 46) then Key := 0;
+
   if key = 46 then
     begin
       deletaAcerto();

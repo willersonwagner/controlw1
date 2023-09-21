@@ -11904,7 +11904,14 @@ object Form2: TForm2
       end
       object Clientes1: TMenuItem
         Caption = 'Clientes'
-        OnClick = Clientes1Click
+        object Geral3: TMenuItem
+          Caption = 'Geral'
+          OnClick = Geral3Click
+        end
+        object Aniversariantes2: TMenuItem
+          Caption = 'Aniversariantes'
+          OnClick = Aniversariantes2Click
+        end
       end
       object MalaDireta1: TMenuItem
         Caption = 'Mala Direta'
@@ -12326,6 +12333,10 @@ object Form2: TForm2
           object NiveldeAcessoUsuario1: TMenuItem
             Caption = 'Nivel de Acesso Usuario'
             OnClick = NiveldeAcessoUsuario1Click
+          end
+          object Apagarprodutossemmovimento1: TMenuItem
+            Caption = 'Apagar produtos sem Movimento'
+            OnClick = Apagarprodutossemmovimento1Click
           end
         end
       end

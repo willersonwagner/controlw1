@@ -160,7 +160,7 @@ type
     entrada: integer;
     RecuperarCadastro: boolean;
     produto_preco, desativado: string;
-    p_vendaAtual : double;
+    p_vendaAtual : currency;
 
     function CALCPRE(var _LUCRO, _PVENDA, _DEBICM, _BASEDEB, _CREDICM, _PCOMPRA,
       _FRETE, _ENCARGO, _BASECRED, AGREG: JsEditNumero;
@@ -595,9 +595,7 @@ begin
       end
       else
       begin
-        _DEBICM1 :=
-          (ARREDONDA(((_PCOMPRA1 + (_PCOMPRA1 * AGREG1 / 100)) * _BASEDEB1 /
-          100), 2));
+        _DEBICM1 := (ARREDONDA(((_PCOMPRA1 + (_PCOMPRA1 * AGREG1 / 100)) * _BASEDEB1 / 100), 2));
       end;
     end;
 
@@ -1978,7 +1976,7 @@ begin
     Label35.Caption := Label35.Caption + '/F2-Atacado';
   end;
 
-  p_venda.setDecimais(StrToIntDef(funcoes.buscaParamGeral(111, '3'), 3));
+  p_venda.setDecimais(StrToIntDef(funcoes.buscaParamGeral(111, '2'), 3));
 
   // if p_venda.decimal > 9 then p_venda.setDecimais(3);
 
@@ -2321,6 +2319,7 @@ begin
 end;
 
 end.
+
 
 
 

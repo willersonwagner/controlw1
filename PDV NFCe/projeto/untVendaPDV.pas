@@ -574,15 +574,25 @@ function TForm3.gravaVenda(cancelado : boolean = false) : boolean;
 begin
   Result := false;
 
-  try
-  try
+  {dtmMain.IBTransaction1.Options.Params.Add('IB=isc_tpb_lock_timeout=10');
+  dtmMain.IBTransaction1.Options.Params.Add('IB=isc_tpb_wait_time=10');
+  dtmMain.IBTransaction1.Options.Params.Add('wait');
+
+  dtmMain.IBQuery1.Close;
+  dtmMain.IBQuery1.SQL.Text := 'update produto set unid = ''UN'' where cod = 1';
+  dtmMain.IBQuery1.ExecSQL;
+  dtmMain.IBQuery1.Transaction.Commit;
+
+  //try
+  }try
      if dtmMain.IBQuery1.Transaction.Active then dtmMain.IBQuery1.Transaction.Commit;
      dtmMain.IBQuery1.Transaction.StartTransaction;
   except
     on e:exception do
       begin
-        gravaERRO_LOG('', e.Message, 'Gravando Venda: ' + #13 + 'Nota: ' + StrNum(nota_venda)
-        + #13 + 'Total: ' + CurrToStr(tot_ge) + #13 );
+        ShowMessage('O sistema nao conseguiu Iniciar uma Transação, Favor tente Novamente');
+        gravaERRO_LOG('', e.Message, 'Gravando Venda: ' + #13 + 'Nota: ' + StrNum(nota_venda) + #13 + 'Total: ' + CurrToStr(tot_ge) + #13 );
+        exit;
       end;
   end;
 
@@ -607,18 +617,19 @@ begin
   dtmMain.IBQuery1.ParamByName('USUARIO').AsInteger    := StrToIntDef(StrNum(form1.codUsuario), 0);
   dtmMain.IBQuery1.ParamByName('cancelado').AsInteger  := IfThen(cancelado ,StrToIntDef(StrNum(form1.codUsuario), 1), 0);
   dtmMain.IBQuery1.ParamByName('recebido').AsCurrency  := recebido1;
-
-
-    dtmMain.IBQuery1.ExecSQL;
+  dtmMain.IBQuery1.ExecSQL;
   except
     on e:exception do
       begin
-        ShowMessage('Ocorreu um Erro: ' + e.Message + #13 + 'Total= ' + CurrToStr(tot_ge) + #13 +
+        Result := false;
+        ShowMessage('Ocorreu um Erro 618: ' + e.Message + #13 + 'Total= ' + CurrToStr(tot_ge) + #13 +
         'desc=' + CurrToStr(desconto) + #13 + 'recebido=' + CurrToStr(recebido1) + #13 + 'vend=' + IntToStr(StrToIntDef(StrNum(CodVendedorTemp), 0)) + #13 +
         'entrada=' + CurrToStr(entrada) + #13 + 'codhis=' + IntToStr(StrToIntDef(StrNum(codhis), 1)) + #13 + dtmMain.IBQuery1.ParamByName('USUARIO').AsString + #13 +
         dtmMain.IBQuery1.ParamByName('cancelado').AsString);
         gravaERRO_LOG('', e.Message, 'Gravando Venda: ' + #13 + 'Nota: ' + StrNum(nota_venda)
         + #13 + 'Total: ' + CurrToStr(tot_ge) + #13 );
+        dtmMain.IBQuery1.Transaction.Rollback;
+        exit;
       end;
   end;
 
@@ -652,14 +663,18 @@ begin
           dtmMain.IBQuery1.ParamByName('unid').AsString       := copy(dtmMain.IBQuery2.fieldbyname('unid').AsString,1,6);
           dtmMain.IBQuery2.Close;
 
-            dtmMain.IBQuery1.ExecSQL;
+          dtmMain.IBQuery1.ExecSQL;
+
+
           except
-            on e:exception do
-              begin
-                ShowMessage('Ocorreu um Erro: ' + e.Message );
+            on e:exception do begin
+                ShowMessage('Ocorreu um Erro 665: ' + e.Message + #13+#13 + 'Gravando Item_venda: ' + #13 + 'Cod: ' + StrNum(IBClientDataSet1cod.AsString)
+                + #13 + 'Quant: ' + IBClientDataSet1quant.AsString + #13 );
                 gravaERRO_LOG('', e.Message, 'Gravando Item_venda: ' + #13 + 'Cod: ' + StrNum(IBClientDataSet1cod.AsString)
                 + #13 + 'Quant: ' + IBClientDataSet1quant.AsString + #13 );
-              end;
+                dtmMain.IBQuery1.Transaction.Rollback;
+                exit;
+            end;
           end;
 
          { try
@@ -682,21 +697,21 @@ begin
 
   if dtmMain.IBQuery1.Transaction.Active then dtmMain.IBQuery1.Transaction.Commit;
   Result := true;
-  Except
+  {Except
     on e : exception do
       begin
         MessageDlg('Erro: ' + e.Message, mtError, [mbOK], 1);
         dtmMain.IBQuery1.Transaction.Rollback;
         exit;
       end;
-  end;
+  end;        }
 end;
 
 function TForm3.gravaVenda1(cancelado : boolean = false) : boolean;
 begin
   Result := false;
 
-  try
+  //try
   if dtmMain.IBQuery1.Transaction.Active then dtmMain.IBQuery1.Transaction.Commit;
   dtmMain.IBQuery1.Transaction.StartTransaction;
 
@@ -728,11 +743,17 @@ begin
   except
     on e:exception do
       begin
+        Result := false;
+        ShowMessage('Ocorreu um Erro 747: ' + e.Message + #13 + 'Total= ' + CurrToStr(tot_ge) + #13 +
+        'desc=' + CurrToStr(desconto) + #13 + 'recebido=' + CurrToStr(recebido1) + #13 + 'vend=' + IntToStr(StrToIntDef(StrNum(CodVendedorTemp), 0)) + #13 +
+        'entrada=' + CurrToStr(entrada) + #13 + 'codhis=' + IntToStr(StrToIntDef(StrNum(codhis), 1)) + #13 + dtmMain.IBQuery1.ParamByName('USUARIO').AsString + #13 +
+        dtmMain.IBQuery1.ParamByName('cancelado').AsString);
         gravaERRO_LOG('', e.Message, 'Gravando Venda: ' + #13 + 'Nota: ' + StrNum(nota_venda)
         + #13 + 'Total: ' + CurrToStr(tot_ge) + #13 );
+        dtmMain.IBQuery1.Transaction.Rollback;
+        exit;
       end;
-    end;
-
+  end;
   IBClientDataSet1.First;
   while not IBClientDataSet1.Eof do
     begin
@@ -759,26 +780,30 @@ begin
       try
         dtmMain.IBQuery1.ExecSQL;
       except
-        on e:exception do
-          begin
-            gravaERRO_LOG('', e.Message, 'Gravando Item_venda: ' + #13 + 'Cod: ' + StrNum(IBClientDataSet1cod.AsString)
-            + #13 + 'Quant: ' + IBClientDataSet1quant.AsString + #13 );
-          end;
+        on e:exception do begin
+          ShowMessage('Ocorreu um Erro 784: ' + e.Message + #13+#13 + 'Gravando Item_venda: ' + #13 + 'Cod: ' + StrNum(IBClientDataSet1cod.AsString)
+                + #13 + 'Quant: ' + IBClientDataSet1quant.AsString + #13 );
+                gravaERRO_LOG('', e.Message, 'Gravando Item_venda: ' + #13 + 'Cod: ' + StrNum(IBClientDataSet1cod.AsString)
+                + #13 + 'Quant: ' + IBClientDataSet1quant.AsString + #13 );
+                dtmMain.IBQuery1.Transaction.Rollback;
+                exit;
+        end;
       end;
+
 
       IBClientDataSet1.Next;
     end;
 
   if dtmMain.IBQuery1.Transaction.Active then dtmMain.IBQuery1.Transaction.Commit;
   Result := true;
-  Except
+ { Except
     on e : exception do
       begin
         MessageDlg('Erro: ' + e.Message, mtError, [mbOK], 1);
         dtmMain.IBQuery1.Transaction.Rollback;
         exit;
       end;
-  end;
+  end; }
 end;
 
 procedure TForm3.encerrarVenda(dialogo1 : boolean = true);
@@ -797,15 +822,20 @@ begin
     end;
 
   tecladoOK := false;
-  try
+  //try
   tot_ge  := somaTotalOriginal(true);
 
   if tot_ge = 0 then
     begin
       tot_ge := somaTotalOriginal(true, false);
-      gravaVenda1(true);
-      limpaVenda;
-      exit;
+      IF gravaVenda1(true) then begin
+        limpaVenda;
+        exit;
+      end
+      else begin
+        tecladoOK := true;
+        exit;
+      end;
     end;
 
   tot1    := tot_ge;
@@ -816,6 +846,7 @@ begin
       desconto := - desconto;
       PainelTotal.Caption := formataCurrency(tot_ge);
   end;
+
 
   if buscaClienteCompleto = 1 then exit;
 
@@ -878,10 +909,9 @@ begin
        end;
   end;
 
-  try
-  try
-  if gravaVenda() then
-    begin
+  {try
+  try}
+  if gravaVenda() then begin
       try
         tecladoOK := false;
         ok := enviNFCe(nota_venda, cliente);
@@ -890,24 +920,26 @@ begin
         tecladoOK := true;
       end;
 
-      if ok = false then
-        begin
-          MessageDlg('Ocorreu Um erro na Venda, Ela está Disponivel para Emissao no F9', mtInformation, [mbOK], 1);
-          cancelaVenda(nota_venda, True);
-          limpaVenda;
-          Exit;
-        end;
-        
+      if ok = false then begin
+        MessageDlg('Ocorreu Um erro na Venda, Ela está Disponivel para Emissao no F9', mtInformation, [mbOK], 1);
+        cancelaVenda(nota_venda, True);
+        limpaVenda;
+        Exit;
+      end;
+
+      limpaVenda;
+
       //verificaNotasContigencia;
       Panel1.Caption := valCert + ' ' + vercCountContigencia;
-    end
-  else
-    begin
-      limpaVenda;
-      exit;
-    end;
+  end
+  else begin
+      tecladoOK := true;
 
-  except
+      //limpaVenda;
+      exit;
+  end;
+
+ { except
     on e:exception do
        begin
          gravaERRO_LOG('', e.Message, 'encerraVenda LINHA 836');
@@ -920,7 +952,8 @@ begin
   end;
   finally
     tecladoOK := true;
-  end;
+  end;    }
+
 end;
 
 function TForm3.lerPesoBalanca() : currency;
@@ -1109,9 +1142,9 @@ var
   prodcodbar : TprodutoVendaCodBar;
   pesquisaCodbar, servico : boolean;
 begin
+  
   if trim(form1.pgerais.Values['38']) = '' then form1.pgerais.Values['38'] := '1';
   //tipo de leitura de codigo de barras 1-preco total 2-quantidade 3-nenhum
-
   if ((quant.getValor > 20000) or (quant.getValor <= 0)) then
     begin
       MessageDlg('Quantidade Inválida!', mtError, [mbOK], 1);
@@ -1547,13 +1580,20 @@ begin
           if dav then
             begin
               fechaDav();
+              tecladoOK := true;
               exit;
             end;
 
-          encerrarVenda(false);
+            try
+              encerrarVenda(false);
+            finally
+              tecladoOK := true;
+            end;
+
         end;
 
       vendeItemFila(codbar.Text);
+      tecladoOK := true;
       key := #0;
       exit;
     end;
@@ -1565,6 +1605,8 @@ begin
           close;
           exit;
         end;
+
+      tecladoOK := true;
     end;
 end;
 
@@ -2175,6 +2217,7 @@ begin
   IBClientDataSet1.DisableControls;
   IBClientDataSet1.First;
   Result := 0;
+
   while not IBClientDataSet1.Eof do
     begin
       if naoSomarCancelados = true then

@@ -60,7 +60,6 @@ type
     Panel1: TPanel;
     Panel2: TPanel;
     Label3: TLabel;
-    ClearingEdit3: TClearingEdit;
     SpeedButton3: TSpeedButton;
     Label5: TLabel;
     cliente: TFDQuery;
@@ -75,6 +74,7 @@ type
     Button1: TButton;
     LinkControlToField1: TLinkControlToField;
     GestureManager1: TGestureManager;
+    Edit1: TEdit;
     procedure SpeedButton2Click(Sender: TObject);
     procedure SpeedButton1Click(Sender: TObject);
     procedure tipoChange(Sender: TObject);
@@ -92,6 +92,8 @@ type
     procedure cpfKeyDown(Sender: TObject; var Key: Word; var KeyChar: Char;
       Shift: TShiftState);
     procedure FormCreate(Sender: TObject);
+    procedure Edit1KeyUp(Sender: TObject; var Key: Word; var KeyChar: Char;
+      Shift: TShiftState);
   private
     busca: String;
     procedure insereUsuario();
@@ -132,6 +134,16 @@ begin
   else cpf.Text := form1.formataCNPJ(cpf.Text, Tchar);
 
   cpf.SelStart := length(cpf.text);
+end;
+
+procedure TForm5.Edit1KeyUp(Sender: TObject; var Key: Word; var KeyChar: Char;
+  Shift: TShiftState);
+begin
+  inherited;
+
+  if key = 13 then begin
+      procurarCliente(Edit1.Text);
+  end;
 end;
 
 procedure TForm5.FormCreate(Sender: TObject);
@@ -423,7 +435,7 @@ end;
 procedure TForm5.SpeedButton3Click(Sender: TObject);
 begin
   inherited;
-  procurarCliente(ClearingEdit3.Text);
+  procurarCliente(Edit1.Text);
   form1.redimensionaColunasStringGrid(gridCliente);
 end;
 

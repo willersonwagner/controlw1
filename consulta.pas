@@ -72,6 +72,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure DBGrid1CellClick1(Column: TColumn);
     procedure FormKeyPress(Sender: TObject; var Key: Char);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   private
     procedure BuscaCodBar_F6_AutoPecas(busc4 : String; tipoBusca1 : String = '') ;
     procedure buscaReferencia();
@@ -471,7 +472,7 @@ begin
   funcoes.BuscaResizeDBgrid(DBGrid1, 'FORM20');
   cont := 1;
 
-  TCurrencyField(dm.produto.FieldByName('preco')).DisplayFormat := '###,##0.' + CompletaOuRepete('', '', '0', StrToIntDef(funcoes.buscaParamGeral(111, '3'), 3));
+  TCurrencyField(dm.produto.FieldByName('preco')).DisplayFormat := '###,##0.' + CompletaOuRepete('', '', '0', StrToIntDef(funcoes.buscaParamGeral(111, '2'), 3));
 
   funcoes.aumentaFonte(self, true, 0);
 end;
@@ -629,6 +630,12 @@ var
 
 end;
 
+
+procedure TForm24.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if (Shift = [ssCtrl]) and (Key = 46) then Key := 0;
+end;
 
 procedure TForm24.FormKeyPress(Sender: TObject; var Key: Char);
 begin

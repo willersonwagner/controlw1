@@ -20,6 +20,7 @@ type
     procedure DBGrid1DrawColumnCell(Sender: TObject; const Rect: TRect;
       DataCol: Integer; Column: TColumn; State: TGridDrawState);
     procedure FormCreate(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   private
      procedure marcaOK;
     { Private declarations }
@@ -505,6 +506,12 @@ begin
         end;
       end;  
     end;
+end;
+
+procedure TForm33.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if (Shift = [ssCtrl]) and (Key = 46) then Key := 0;
 end;
 
 procedure TForm33.FormKeyPress(Sender: TObject; var Key: Char);

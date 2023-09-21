@@ -131,6 +131,7 @@ type
     semCliente: boolean;
     produtosServico: TStringList;
     podeGravarParcelamentoTabela : integer;
+    procedure formataCamposPreco;
     procedure impNovo(TIPO1 : SMALLINT = 1);
     // function baixa
     function verificaSePodeVenderNegativo_X_NaVendaConfig11DoUsuario() : boolean;
@@ -4131,7 +4132,9 @@ begin
       addRelatorioForm19(' ' + #13 + #10);
     end;
 
-    addRelatorioForm19('*  S E M     V A L O R    F I S C A L  *' + CRLF);
+    if Modo_Venda then          addRelatorioForm19('*  S E M     V A L O R    F I S C A L  *' + CRLF)
+    else if Modo_Orcamento then addRelatorioForm19('*****  O  R  C  A  M  E  N  T  O   *****' + CRLF);
+
     total := 0;
     dm.IBQuery2.Close;
     dm.IBQuery2.SQL.Clear;
@@ -4525,7 +4528,7 @@ begin
     else if Modo_Orcamento then
     begin
       form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-        Longint(PChar(('* * *          ORCAMENTO           * * *' + #13
+        Longint(PChar(('* * *       O R C A M E N T O      * * *' + #13
         + #10))));
 
       if Assigned(Parcelamento) then
@@ -4665,6 +4668,7 @@ begin
   dm.IBQuery1.Close;
   dm.produto.Close;
   dm.produto.Open;
+  formataCamposPreco;
   funcoes.FormataCampos(dm.produto, 2, 'ESTOQUE', 3);
   ClientDataSet1.EnableControls;
 
@@ -4722,6 +4726,7 @@ begin
   dm.IBQuery1.Close;
   dm.produto.Close;
   dm.produto.Open;
+  formataCamposPreco;
 
   if trim(ordemCompra) <> '' then
   begin
@@ -5349,6 +5354,7 @@ begin
       'Informe um Código:', '')
   else
     busca := busc4;
+
 
   if ((busca = '*') or (busca = '')) then
     exit;
@@ -6160,7 +6166,10 @@ begin
   dm.IBQuery1.Close;
   dm.produto.Close;
   dm.produto.Open;
+
+
   funcoes.FormataCampos(dm.produto, 2, 'ESTOQUE', 3);
+  formataCamposPreco;
   ClientDataSet1.EnableControls;
 
   try
@@ -6480,10 +6489,8 @@ begin
       if Modo_Venda then
       begin
         //if novocod = '' then novocod := funcoes.novocod('venda');
-
+        if VerificaForma_de_Pagamento_e_Prazo = 0 then exit; // funcao que gera o parcelamento
         if novocod = '' then novocod := Incrementa_Generator('venda', 1);
-        if VerificaForma_de_Pagamento_e_Prazo = 0 then
-          exit; // funcao que gera o parcelamento
         // if novocod = '' then novocod := funcoes.novocod('venda');
       end;
 
@@ -6561,6 +6568,7 @@ begin
 
       funcoes.OrdenaCamposVenda(funcoes.buscaParamGeral(1, ''));
       funcoes.BuscaResizeDBgrid(DBGrid1, 'FORM20');
+      formataCamposPreco;
 
       tipoTrocaDescontoUsuario         := '';
       form22.Pgerais.Values['configu'] := configUsuario;
@@ -6580,6 +6588,8 @@ begin
               dm.produto.Close;
               dm.produto.Open;
               funcoes.FormataCampos(dm.produto, 2, 'ESTOQUE', 3);
+              formataCamposPreco;
+              formataCamposPreco;
               ClientDataSet1.EnableControls;
             end;
           end;
@@ -6600,6 +6610,7 @@ begin
               dm.produto.Close;
               dm.produto.Open;
               funcoes.FormataCampos(dm.produto, 2, 'ESTOQUE', 3);
+              formataCamposPreco;
               ClientDataSet1.EnableControls;
             end;
           end;
@@ -6871,6 +6882,7 @@ begin
       + campoEstoque + ',refori as ' + refori1 +
       ',unid,cod,aplic as Aplicacao,localiza as Localizacao from produto ';
     dm.produto.Open;
+    formataCamposPreco;
     funcoes.fetchDataSet(dm.produto);
     funcoes.BuscaResizeDBgrid(DBGrid1, 'FORM20');
   end
@@ -6925,6 +6937,7 @@ begin
     end;
 
     dm.produto.Open;
+
     try
       funcoes.fetchDataSet(dm.produto);
     finally
@@ -6932,6 +6945,7 @@ begin
   end;
 
   funcoes.FormataCampos(dm.produto, 2, 'ESTOQUE', 3);
+  formataCamposPreco;
   JsEditData1.Text := FormatDateTime('dd/mm/yyyy', form22.datamov);
 
   if separaPecas <> true then begin
@@ -7017,6 +7031,7 @@ begin
       + ordem);
     dm.produto.Open;
 
+
     funcoes.fetchDataSet(dm.produto);
 
     sqlVenda :=
@@ -7028,6 +7043,7 @@ begin
     dm.produto.FieldByName('fracao').Visible := false;
 
     funcoes.FormataCampos(dm.produto, 2, 'ESTOQUE', 3);
+    formataCamposPreco;
 
     ordemCompra := funcoes.buscaParamGeral(101, '');
     if trim(ordemCompra) <> '' then
@@ -7082,7 +7098,7 @@ begin
     exit;
   end;
 
-  TCurrencyField(dm.produto.FieldByName('preco')).DisplayFormat := '###,##0.' + CompletaOuRepete('', '', '0', StrToIntDef(funcoes.buscaParamGeral(111, '3'), 3));
+  formataCamposPreco;
 
   For i := 0 to ClientDataSet1.FieldCount - 1 do
     ClientDataSet1.Fields[i].Tag := 30;
@@ -7303,6 +7319,8 @@ procedure TForm20.DBGrid1KeyDown(Sender: TObject; var Key: Word;
 var
   cod, busca, te: string;
 begin
+  if (Shift = [ssCtrl]) and (Key = 46) then Key := 0;
+
   if Compra then
   begin
     if Key = 113 then
@@ -7383,7 +7401,9 @@ begin
     if not dm.bd.InTransaction then
     begin
       dm.produto.Open;
+
       funcoes.FormataCampos(dm.produto, 2, '', 2);
+      formataCamposPreco;
     end;
     if cod = '' then
       exit;
@@ -7417,6 +7437,7 @@ begin
       dm.IBselect.Open;
 
       funcoes.FormataCampos(dm.IBselect, 3, '', 3);
+
 
       funcoes.busca(dm.IBselect, '', '', '', '');
     end;
@@ -7496,7 +7517,9 @@ begin
     cod := dm.produto.FieldByName('cod').AsString;
     dm.produto.Close;
     dm.produto.Open;
+
     funcoes.FormataCampos(dm.produto, 2, 'ESTOQUE', 3);
+    formataCamposPreco;
     funcoes.OrdenaCamposVenda(funcoes.buscaParamGeral(1, ''));
     dm.produto.Locate('cod', cod, []);
 
@@ -7614,6 +7637,8 @@ end;
 procedure TForm20.DBGrid2KeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
+  if (Shift = [ssCtrl]) and (Key = 46) then Key := 0;
+
   if Key = 119 then
   begin
     DBGrid1.Enabled := true;
@@ -8012,8 +8037,7 @@ begin
         exit;
       end;
 
-      ordenaDatasetPorCampoBdgrid('cod',
-        DBGrid1.DataSource.DataSet.FieldByName('cod').AsString);
+      ordenaDatasetPorCampoBdgrid('cod', DBGrid1.DataSource.DataSet.FieldByName('cod').AsString);
       { testa := testa + 1;
         dm.produto.Close;
         dm.produto.SQL.Clear;
@@ -8141,8 +8165,7 @@ begin
     QuotedStr(busca + '%') + ') order by codbar');
   dm.produtotemp.Open;
 
-  if dm.produtotemp.IsEmpty then
-  begin
+  if dm.produtotemp.IsEmpty then begin
     dm.produtotemp.Close;
     ShowMessage('Produto Não encontrado');
     exit;
@@ -8164,6 +8187,8 @@ begin
     funcoes.ordernaDataSetVenda('codbar', res, sqlVenda, DBGrid1, '',
       ordenaCampos);
     funcoes.BuscaResizeDBgrid(DBGrid1, 'FORM20');
+
+    formataCamposPreco;
   exit;
   dm.produtotemp.Close;
   dm.produtotemp.SQL.Text :=
@@ -8221,7 +8246,9 @@ begin
 
   dm.produto.Open;
 
+
   funcoes.FormataCampos(dm.produto, 2, '', 2);
+  formataCamposPreco;
 
   funcoes.OrdenaCamposVenda(funcoes.buscaParamGeral(1, ''));
 end;
@@ -9461,6 +9488,14 @@ begin
   end;
 
   ENDE_ENTREGA := '';
+end;
+
+procedure TForm20.formataCamposPreco;
+begin
+  try
+    TCurrencyField(dm.produto.FieldByName('preco')).DisplayFormat := '###,##0.' + CompletaOuRepete('', '', '0', StrToIntDef(funcoes.buscaParamGeral(111, '2'), 3));
+  except
+  end;
 end;
 
 

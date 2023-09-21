@@ -1561,7 +1561,7 @@ begin
 
   criadoPorXML := 'N';
 
-  p_venda.setDecimais(StrToIntDef(funcoes.buscaParamGeral(111, '3'), 3));
+  p_venda.setDecimais(StrToIntDef(funcoes.buscaParamGeral(111, '2'), 3));
 end;
 
 procedure TForm17.trocaCodigoCodbar;

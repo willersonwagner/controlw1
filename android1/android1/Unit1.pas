@@ -70,7 +70,6 @@ type
     StringGrid1: TStringGrid;
     Panel2: TPanel;
     Label3: TLabel;
-    ClearingEdit3: TClearingEdit;
     SpeedButton2: TSpeedButton;
     Label5: TLabel;
     queryProduto: TFDQuery;
@@ -118,6 +117,7 @@ type
     ListBoxItem17: TListBoxItem;
     ListBoxItem18: TListBoxItem;
     ListBoxItem21: TListBoxItem;
+    Edit4: TEdit;
     procedure FormShow(Sender: TObject);
     procedure ListBoxItem1Click(Sender: TObject);
     procedure SpeedButton1Click(Sender: TObject);
@@ -130,10 +130,7 @@ type
       Shift: TShiftState);
     procedure androidBDBeforeConnect(Sender: TObject);
     procedure SpeedButton2Click(Sender: TObject);
-    procedure ClearingEdit3Typing(Sender: TObject);
     procedure StringGrid1HeaderClick(Column: TColumn);
-    procedure ClearingEdit3KeyDown(Sender: TObject; var Key: Word;
-      var KeyChar: Char; Shift: TShiftState);
     procedure StringGrid1Resize(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure Button7Click(Sender: TObject);
@@ -187,6 +184,8 @@ type
       Shift: TShiftState; X, Y: Single);
     procedure ListBoxItem21Click(Sender: TObject);
     procedure ListBoxItem18Click(Sender: TObject);
+    procedure Edit4KeyUp(Sender: TObject; var Key: Word; var KeyChar: Char;
+      Shift: TShiftState);
   private
     FKBBounds: TRectF;
     FNeedOffset, configurar : Boolean;
@@ -861,6 +860,16 @@ begin
     end;
 end;
 
+procedure TForm1.Edit4KeyUp(Sender: TObject; var Key: Word; var KeyChar: Char;
+  Shift: TShiftState);
+begin
+   if key = 13 then
+    begin
+      Edit4.Text := Trim(Edit4.Text);
+      pesquisa(Edit4.Text);
+    end;
+end;
+
 procedure TForm1.lerInformacoesServidor();
 begin
   androidBD.Connected := true;
@@ -878,7 +887,7 @@ begin
       ClearingEdit2.Text := SQLQuery1.FieldByName('valor').AsString;
     end
     else if SQLQuery1.FieldByName('cod').AsString = '2' then begin
-      if SQLQuery1.FieldByName('valor').AsString = 'S' then CheckBox1.IsChecked := true
+      if SQLQuery1.FieldByName('valor').AsString  = 'S' then CheckBox1.IsChecked := true
       else CheckBox1.IsChecked := false;
     end;
 
@@ -907,7 +916,7 @@ function TForm1.pergunta(const capt : string) : boolean;
 begin
   Rectangle2.Visible := true;
   Rectangle3.Visible := false;
-  Label4.Text     := capt;
+  Label4.Text        := capt;
   Rectangle1.Visible := true;
 
   Result      := res;
@@ -1095,8 +1104,8 @@ end;
 
 procedure TForm1.SpeedButton2Click(Sender: TObject);
 begin
-  ClearingEdit3.Text := UpperCase(ClearingEdit3.Text);
-  pesquisa(ClearingEdit3.Text);
+  Edit4.Text := Trim(UpperCase(Edit4.Text));
+  pesquisa(Edit4.Text);
 end;
 
 procedure TForm1.StringGrid1DblClick(Sender: TObject);
@@ -1307,20 +1316,6 @@ procedure TForm1.Button9Click(Sender: TObject);
 begin
   configurar := true;
   TabControl1.ActiveTab := TabItem4;
-end;
-
-procedure TForm1.ClearingEdit3KeyDown(Sender: TObject; var Key: Word;
-  var KeyChar: Char; Shift: TShiftState);
-begin
-  if key = 13 then
-    begin
-      pesquisa(ClearingEdit3.Text);
-    end;
-end;
-
-procedure TForm1.ClearingEdit3Typing(Sender: TObject);
-begin
-  ClearingEdit3.Text := UpperCase(ClearingEdit3.Text);
 end;
 
 procedure TForm1.FormCreate(Sender: TObject);
