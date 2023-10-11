@@ -43,7 +43,7 @@ var
 implementation
 
 uses Unit1, func, Unit2, imprime1, relatorio, principal, Unit63, StrUtils,
-  Unit45, cadproduto, nfe, Unit78;
+  Unit45, cadproduto, nfe, Unit78, Unit92, dadosnfe;
 
 {$R *.dfm}
 
@@ -359,7 +359,33 @@ procedure TForm33.DBGrid1KeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 var
   cod, codbar : string;
+  list : TStringList;
 begin
+  //Entra aqui na tela de gerar nfe F2 pra ver os produtos
+  if captionficha = 'NfeProd' then begin
+    if key = 113 then begin
+      form92 := tform92.Create(self);
+      form92.cod := DBGrid1.DataSource.DataSet.RecNo-1;
+
+      if form92.cod < 0 then form92.cod := 0;
+
+      LE_CAMPOS(list, form79.detExport.Values[IntToStr(form92.cod)], '|', true);
+
+      if list.Values['1'] <> '' then begin
+        form92.nDrawback.Text := list.Values['1'];
+        form92.regExpo.Text   := list.Values['2'];
+        form92.chNfe.Text     := list.Values['3'];
+        form92.qExport.Text   := list.Values['4'];
+      end;
+
+
+      list.Free;
+      form92.ShowModal;
+      if trim(form92.retorno) <> '' then form79.detExport.Values[IntToStr(form92.cod)] := form92.retorno;
+      form92.Free;
+    end;
+  end;
+
   if ficha then begin
     if key = 112 then begin
       dm.IBQuery1.Close;

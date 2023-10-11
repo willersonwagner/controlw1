@@ -20787,9 +20787,9 @@ procedure TForm2.ValidarAssinaturaDigital1Click(Sender: TObject);
       exit;
 
     if cons = 'C' then
-      cons := 'chegada'
+      cons := 'cast(chegada as date)'
     else
-      cons := 'data';
+      cons := 'cast(data as date)';
 
     h1 := '';
     if fornec <> '' then
@@ -20803,14 +20803,15 @@ procedure TForm2.ValidarAssinaturaDigital1Click(Sender: TObject);
     // addRelatorioForm19('  ' + CRLF);
     // addRelatorioForm19('+----------------------------------------------------------------------------+' + CRLF);
     addRelatorioForm19(funcoes.CompletaOuRepete
-      ('| Nota      Data    Chegada    Fornecedor                             Total',
+      ('| Nota      Data    Chegada    Fornecedor                          Total  XML',
       '|', ' ', 78) + CRLF);
     addRelatorioForm19
       ('+----------------------------------------------------------------------------+'
       + CRLF);
     dm.ibselect.Close;
     dm.ibselect.SQL.Text :=
-      'select e.nota, (select nome from fornecedor f where f.cod = e.fornec) as nome, e.fornec, e.data, e.chegada, (select sum(total) from item_entrada i where i.nota = e.nota and i.fornec = e.fornec) as total_nota from entrada e where ( '
+      'select e.nota, (select nome from fornecedor f where f.cod = e.fornec) as nome, e.fornec, e.data, e.chegada, (select sum(total) from item_entrada i where i.nota = e.nota and i.fornec = e.fornec) as total_nota1, total_nota, xml'+
+      ' from entrada e where ( '
       + cons + ' >= :ini) and (' + cons + ' <= :fim) ' + h1;
     try
       dm.ibselect.ParamByName('ini').AsDate := StrToDate(ini);
@@ -20836,7 +20837,7 @@ procedure TForm2.ValidarAssinaturaDigital1Click(Sender: TObject);
         dm.ibselect.FieldByName('chegada').AsDateTime), '', ' ', 11) +
         CompletaOuRepete(LeftStr(dm.ibselect.FieldByName('fornec').AsString +
         '-' + dm.ibselect.FieldByName('nome').AsString, 32), '', ' ', 32) +
-        funcoes.CompletaOuRepete('', formataCurrency(totNota), ' ', 12) + CRLF);
+        funcoes.CompletaOuRepete('', formataCurrency(totNota), ' ', 11) + ' ' + dm.ibselect.FieldByName('XML').AsString + CRLF);
       TOT := TOT + totNota;
       dm.ibselect.Next;
     end;
@@ -21334,8 +21335,7 @@ procedure TForm2.ValidarAssinaturaDigital1Click(Sender: TObject);
       pen := pen + 1;
     end;
 
-    addRelatorioForm19
-      ('+-----------------------------------------------------------------------------+'
+    addRelatorioForm19('+-----------------------------------------------------------------------------+'
       + CRLF);
     addRelatorioForm19(funcoes.CompletaOuRepete('| Registros => ' +
       IntToStr(pen), '|', ' ', 79) + CRLF);
@@ -24145,7 +24145,7 @@ procedure TForm2.ValidarAssinaturaDigital1Click(Sender: TObject);
 
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Text := 'select total from venda where nota = :nota';
-      dm.IBQuery1.ParamByName('nota').AsInteger := chav1.codnf;
+      dm.IBQuery1.ParamByName('nota').AsInteger := dm.ibselect.FieldByName('nota').AsInteger;
       dm.IBQuery1.Open;
 
       valVenda := dm.IBQuery1.FieldByName('total').AsCurrency;
@@ -24156,7 +24156,7 @@ procedure TForm2.ValidarAssinaturaDigital1Click(Sender: TObject);
         FormatDateTime('dd/mm/yy', dm.ibselect.FieldByName('data').AsDateTime) +
         ' ' + CompletaOuRepete(sit, '', ' ', 30) + CompletaOuRepete('',
         formataCurrency(vnf), ' ', 10)
-        { + '  ' + formataCurrency(valVenda) } + CRLF);
+        + '  ' + formataCurrency(valVenda)  + CRLF);
 
       dm.ibselect.Next;
       cont := cont + 1;

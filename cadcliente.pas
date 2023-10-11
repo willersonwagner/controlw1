@@ -885,7 +885,9 @@ begin
 
   if funcoes.buscaParamGeral(129, 'N') = 'S' then exit;
 
-  if cod.Text <> '0' then exit;
+  //if (cod.getValor = 0) then exit;
+
+
   if tipo.Text = '7' then exit;
   if strnum(cnpj.Text) = '0' then exit;
 
@@ -893,6 +895,15 @@ begin
   dm.IBselect.SQL.Text := 'select cod, nome from cliente where cnpj = :cnpj';
   dm.IBselect.ParamByName('cnpj').AsString := cnpj.Text;
   dm.IBselect.Open;
+
+  valor_a_retornar :=  dm.IBselect.FieldByName('cod').AsString;
+
+  if (cod.Text = valor_a_retornar) then begin
+   dm.IBselect.Close;
+   exit;
+  end;
+
+
 
   if dm.IBselect.IsEmpty = false then begin
     sim := leftstr(dm.IBselect.FieldByName('cod').AsString + '-' + dm.IBselect.FieldByName('nome').AsString, 30);

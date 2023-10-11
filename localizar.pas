@@ -474,8 +474,10 @@ if (key = #32) and (UpperCase(tabela) = 'CLIENTE') then
 
     dm.IBQuery2.Close;
     dm.IBQuery2.SQL.Clear;
-    if metodo = '2' then dm.IBQuery2.SQL.Add('select cod,nome, telres, ende as endereco from cliente where (nome like '+ QuotedStr('%'+acc+'%') +') or (telres like ' + QuotedStr('%'+acc+'%') +') or (telcom like '+ QuotedStr('%'+acc+'%') +') or (ende like '+ QuotedStr('%'+acc+'%') +') or (cnpj like '+ QuotedStr('%'+acc+'%') +') ORDER BY NOME')
-      else if metodo = '1' then dm.IBQuery2.SQL.Add('select cod,nome, ende as endereco, telres from cliente where (nome like '+ QuotedStr(acc+'%') +') or (telres like ' + QuotedStr(acc+'%') +') or (telcom like '+ QuotedStr(acc+'%') +') or (ende like '+ QuotedStr(acc+'%') +') or (cnpj like '+ QuotedStr(acc+'%') +') ORDER BY NOME');
+    if metodo = '2' then dm.IBQuery2.SQL.Add('select cod,nome, telres, ende as endereco from cliente where (nome like '+ QuotedStr('%'+acc+'%') +') or (telres like ' + QuotedStr('%'+acc+'%') +') or (telcom like '+ QuotedStr('%'+acc+'%') +') or (ende like '+ QuotedStr('%'+acc+'%') +') or (cnpj like '+ QuotedStr('%'+acc+'%') +') '+
+    ' or (replace(replace(replace(cnpj, ''.'', ''''), ''-'', ''''), ''/'', '''') like '+ QuotedStr('%'+acc+'%') +') ORDER BY NOME')
+      else if metodo = '1' then dm.IBQuery2.SQL.Add('select cod,nome, ende as endereco, telres from cliente where (nome like '+ QuotedStr(acc+'%') +') or (telres like ' + QuotedStr(acc+'%') +') or (telcom like '+ QuotedStr(acc+'%') +') or (ende like '+ QuotedStr(acc+'%') +') or (cnpj like '+ QuotedStr(acc+'%') +')'+
+    ' or (replace(replace(replace(cnpj, ''.'', ''''), ''-'', ''''), ''/'', '''') like '+ QuotedStr('%'+acc+'%') +') ORDER BY NOME');
     dm.IBQuery2.Open;
 
     if dm.IBQuery2.IsEmpty then

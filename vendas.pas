@@ -3071,6 +3071,7 @@ begin
       if funcoes.buscaParamGeral(133, 'N') = 'S' then begin
           if ClientDataSet1PRECO_ORIGI.AsCurrency <> ClientDataSet1TOTAL.AsCurrency then begin
             addRelatorioForm19(funcoes.CompletaOuRepete('|-->Desconto R$', formataCurrency(ClientDataSet1PRECO_ORIGI.AsCurrency - ClientDataSet1TOTAL.AsCurrency) + '|', ' ', tam) + CRLF);
+            desconto := desconto  -(ClientDataSet1TOT_ORIGI2.AsCurrency - ClientDataSet1TOTAL.AsCurrency);
           end;
       end;
 
@@ -3125,18 +3126,22 @@ begin
 
     if Desconto <> 0 then
     begin
+      if funcoes.buscaParamGeral(133, 'N') = 'S' then begin
+        total := total1 -desconto;
+      end;
+
       form19.RichEdit1.Perform(EM_REPLACESEL, 1,
         Longint(PChar((funcoes.CompletaOuRepete('|',
         funcoes.CompletaOuRepete('Sub-Total:', FormatCurr('#,###,###0.00',
         total), '.', 28) + ' |', ' ', tam) + #13 + #10))));
 
-      if Desconto > 0 then
-        Desconto := 0;
-      form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-        Longint(PChar((funcoes.CompletaOuRepete('|',
+      if Desconto > 0 then Desconto := 0
+      else begin
+        addRelatorioForm19(funcoes.CompletaOuRepete('|',
         funcoes.CompletaOuRepete('Desconto(' + FormatCurr('#,###,###0.00',
         (Desconto * 100) / total) + '%):', FormatCurr('#,###,###0.00',
-        Desconto), '.', 28) + ' |', ' ', tam) + #13 + #10))));
+        Desconto), '.', 28) + ' |', ' ', tam) + #13 + #10);
+      end;
     end;
     // end;
 
@@ -4133,7 +4138,12 @@ begin
     end;
 
     if Modo_Venda then          addRelatorioForm19('*  S E M     V A L O R    F I S C A L  *' + CRLF)
-    else if Modo_Orcamento then addRelatorioForm19('*****  O  R  C  A  M  E  N  T  O   *****' + CRLF);
+    else if Modo_Orcamento then begin
+      if funcoes.LerConfig(form22.Pgerais.Values['imp'], 1) = '8' then begin
+        addRelatorioForm19('<ce><in>**  O  R  C  A  M  E  N  T  O  **</in></ce>' + CRLF);
+      end
+      else addRelatorioForm19('*****  O  R  C  A  M  E  N  T  O   *****' + CRLF);
+    end;
 
     total := 0;
     dm.IBQuery2.Close;
@@ -4377,6 +4387,7 @@ begin
         //ShowMessage('tot_origi=' + CurrToStr(ClientDataSet1TOT_ORIGI2.AsCurrency) + #13 + 'total=' + CurrToStr(ClientDataSet1TOTAL.AsCurrency));
         if (ClientDataSet1TOT_ORIGI2.AsCurrency - ClientDataSet1TOTAL.AsCurrency) > 0 then begin
           addRelatorioForm19(funcoes.CompletaOuRepete('-->Desconto R$', formataCurrency(ClientDataSet1TOT_ORIGI2.AsCurrency - ClientDataSet1TOTAL.AsCurrency), '.', 40) + CRLF);
+          desconto := desconto  -(ClientDataSet1TOT_ORIGI2.AsCurrency - ClientDataSet1TOTAL.AsCurrency);
         end;
       end;
 
@@ -4527,9 +4538,10 @@ begin
         #13 + #10))))
     else if Modo_Orcamento then
     begin
-      form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-        Longint(PChar(('* * *       O R C A M E N T O      * * *' + #13
-        + #10))));
+      if funcoes.LerConfig(form22.Pgerais.Values['imp'], 1) = '8' then begin
+         addRelatorioForm19('<ce><in>* * *   O R C A M E N T O  * * *</in></ce>' + #13+ #10);
+      end
+      else addRelatorioForm19('* * *       O R C A M E N T O      * * *' + #13+ #10);
 
       if Assigned(Parcelamento) then
       begin
@@ -4803,6 +4815,7 @@ begin
     tipoV := 'XO';
     exit;
   end;
+
   Modo_Venda := true;
   Form20.Caption := 'Modo Venda: ' + cliente;
   Label5.Caption := 'Itens da Venda';

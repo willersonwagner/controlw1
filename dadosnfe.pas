@@ -112,9 +112,9 @@ type
     { Private declarations }
   public
     FIN_NFE, nomeFIN_NFE, DOC_REF, NFE_REF, estorno, TAG_DOCREF, NUM_ECF, natOP1,
-    infoAdi, NUM_COO, COD_PAIS, iescliente, UF_DEST, UF_EMI, vFrete, TAG_DI : String;
+    infoAdi, NUM_COO, COD_PAIS, iescliente, UF_DEST, UF_EMI, vFrete, TAG_DI, notaComplementarDeICMS : String;
     cupom : integer;
-    frete, notas : TStringList;
+    frete, notas, detExport : TStringList;
     { Public declarations }
   end;
 
@@ -182,6 +182,10 @@ begin
     NfeVenda.DEST   := Cliente.Text;
     NfeVenda.frete  := frete;
     NfeVenda.TAG_DI := TAG_DI;
+    NfeVenda.detExport := detExport;
+    NfeVenda.notaComplementarDeICMS := notaComplementarDeICMS;
+    {ShowMessage('detExport=' + detExport.Text);
+    exit;}
 
     NfeVenda.frete.Values['0'] := funcoes.StrNum(FretePorConta.Text);
     NfeVenda.tipo_frete := StrToIntDef(funcoes.StrNum(FretePorConta.Text), 9);
@@ -230,6 +234,7 @@ begin
       END;
     end;
   end;
+
   situacao := NfeVenda.situacao;
   NfeVenda.Free;
 
@@ -242,6 +247,10 @@ begin
   //essa funcao é executada caso o primeiro digito do cfop for igual a 3
   buscaDadosDeclaImportacao;
 
+
+  if cfop.Text = '7501' then begin
+    buscaFinalidadeMaiorQue1;
+  end;
   //funcao de emissao de nfe
   emitenfe;
 end;
@@ -260,6 +269,7 @@ end;
 procedure TForm79.cfopEnter(Sender: TObject);
 begin
   acertaCFOP_Automatico;
+  cfop.SelectAll;
 end;
 
 procedure TForm79.cfopKeyDown(Sender: TObject; var Key: Word;
@@ -416,6 +426,11 @@ procedure TForm79.finnfeKeyPress(Sender: TObject; var Key: Char);
 begin
   if key = #13 then begin
     if contido(tedit(sender).Text, '234') then begin
+      if tedit(sender).Text = '2' then begin
+        notaComplementarDeICMS := funcoes.dialogo('generico', 0, 'SN', 50, true, 'S',Application.Title, 'Emitir uma Nota Complementar de ICMS ?', 'S');
+        if notaComplementarDeICMS = '*' then exit;
+      end;
+
       if buscaFinalidadeMaiorQue1 = '*' then exit;
 
       acertaCFOP_Automatico;
@@ -442,8 +457,9 @@ end;
 
 procedure TForm79.FormCreate(Sender: TObject);
 begin
-  notas := TStringList.Create;
-  frete := TStringList.Create;
+  notas     := TStringList.Create;
+  frete     := TStringList.Create;
+  detExport := TStringList.Create;
 
   TAG_DI := '';
 end;
@@ -711,6 +727,8 @@ begin
   end;
 
   form33 := TForm33.Create(self);
+  form33.Caption := 'Produtos NF-e  F2-Grupo de Exportação';
+  form33.captionficha := 'NfeProd';
   form33.DataSource1.DataSet := dsproduto;
   Form33.DBGrid1.DataSource  := form33.DataSource1;
   form33.ShowModal;
@@ -754,8 +772,7 @@ begin
 
 
       if finnfe.Text = '3' then begin
-        estorno := funcoes.dialogo('generico', 0, 'SN', 50, true, 'S',
-        Application.Title, 'Nota Fiscal de Estorno ?', 'S');
+        estorno := funcoes.dialogo('generico', 0, 'SN', 50, true, 'S',Application.Title, 'Nota Fiscal de Estorno ?', 'S');
         if estorno = '*' then begin
           Result := '*';
           exit;

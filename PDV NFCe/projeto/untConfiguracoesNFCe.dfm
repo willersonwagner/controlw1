@@ -1194,7 +1194,7 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
       object Label11: TLabel
         Left = 8
         Top = 72
-        Width = 81
+        Width = 75
         Height = 13
         Caption = 'Conex'#227'o BD:'
         Font.Charset = DEFAULT_CHARSET

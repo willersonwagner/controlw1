@@ -1676,7 +1676,6 @@ begin
     RichEdit1.Lines.Add('CRC: '+ '"' + buscaCRCdaChave(chave) + '"' );
   end;
 
-
   notaNova := StrToInt(Incrementa_Generator('venda', 1, IBQueryServer1));
   RichEdit1.Lines.Add('Venda No: ' + IntToStr(notaNova));
 
@@ -1692,8 +1691,7 @@ begin
   IBQueryServer1.ParamByName('nota').AsInteger := notaNova;
   IBQueryServer1.ParamByName('data').AsDate := IBQuery2.fieldbyname('data')
     .AsDateTime;
-  IBQueryServer1.ParamByName('total').AsCurrency :=
-    IBQuery2.fieldbyname('total').AsCurrency;
+  IBQueryServer1.ParamByName('total').AsCurrency := IBQuery2.fieldbyname('total').AsCurrency;
 
   vendedor := IBQuery2.fieldbyname('vendedor').AsString;
   IBQueryServer1.ParamByName('vendedor').AsInteger :=
@@ -1720,7 +1718,12 @@ begin
     IBQuery2.fieldbyname('crc').AsString;
   IBQueryServer1.ParamByName('usuario').AsInteger :=
     IBQuery2.fieldbyname('usuario').AsInteger;
-  IBQueryServer1.ExecSQL;
+  try
+    IBQueryServer1.ExecSQL;
+  except
+    IBQueryServer1.Transaction.Rollback;
+    exit;
+  end;
 
   IBQuery2.Close;
   IBQuery2.SQL.Text := 'select * from item_venda where nota = :nota';
@@ -1750,7 +1753,11 @@ begin
       IBQuery2.fieldbyname('unid').AsString;
 
     IBQueryServer1.ParamByName('vendedor').AsString := vendedor;
-    IBQueryServer1.ExecSQL;
+    try
+     IBQueryServer1.ExecSQL;
+    except
+      IBQueryServer1.Transaction.Rollback;
+    end;
 
     {if baixarEstoque then begin
       IBQueryServer1.Close;

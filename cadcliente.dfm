@@ -787,7 +787,7 @@ object Form16: TForm16
         Font.Height = -13
         Font.Name = 'MS Sans Serif'
         Font.Style = [fsBold]
-        MaxLength = 40
+        MaxLength = 60
         ParentFont = False
         TabOrder = 0
         FormularioComp = 'Form16'

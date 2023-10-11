@@ -125,6 +125,7 @@ type
     function CampoString(ent : string) : string;
     procedure Fechar_Datasets_limpar_Listas_e_variaveis;
     Function ValidarNfe(Caminho : string) : string;
+    function nodo_detExport(linhaDetExport : String; qCom : double) : String;
     function NODO_ICMS_UF_DEST(var item1 : Item_venda) : string;
     FUNCTION NODO_RAIZ() : string;
     FUNCTION NODO_NFE() : string;
@@ -164,12 +165,13 @@ type
     , infAdic, codNFe, nfeTemp, codPaisDest
     , DEST_NFE, _ORIGEM, FIN_NFE1, NFE_REF, TAG_DOCREF, situacao : string;
     ICMSSN : currency;
-    notas, frete, temp : TStringList;
+    notas, frete, temp, detExport : TStringList;
     espera : boolean;
     tipo_frete, cupom : integer;
     TotalFrete, VLR_DESP : currency;
     pasta_Acbr, UF_EMI, UF_DEST, IND_FINAL, indIEDest, nodoFAT,
-     ambienteProducao1homologacao2, generator, TAG_DI : String;
+     ambienteProducao1homologacao2, generator, TAG_DI, notaComplementarDeICMS : String;
+
     procedure CriaLista_De_itens_Venda(var lista : Tlist);
     function abreDataSetIBselectPelaChave(chave : String) : boolean;
     function achaQTD(const preco, total : currency) : currency;
@@ -3217,7 +3219,7 @@ end;
 
 FUNCTION TNfeVenda.NODO_ITENS(var lista : tlist; CFOP, POS, CSTICM_CFP, CSTPIS_CFP, _ORIGE : string) : string;
 var
-  barras, cfop1, infAdProd,uTrib, vTrib, qTrib : string;
+  barras, cfop1, infAdProd,uTrib, vTrib, qTrib, nICMS : string;
   cont,i : integer;
 begin
   CSTPIS_CFP := funcoes.buscaParamGeral(10, '');
@@ -3256,7 +3258,6 @@ begin
       if length(barras) <> 13 then barras := '';
 
       if checaCodbar(barras) = false then barras := 'SEM GTIN';
-
       infAdProd := '';
 
       if funcoes.buscaParamGeral(95, 'N') = 'S' then begin
@@ -3281,8 +3282,19 @@ begin
       end;
 
 
+      nICMS := NODO_ICMS(item, cstIcmCfop, _ORIGE);
+      if notaComplementarDeICMS = 'S' then begin
+        infAdProd    := '<infAdProd>NOTA FISCAL COMPLEMENTAR DE ICMS</infAdProd>';
+        item.quant   := 0;
+        item.total   := 0;
+        item.p_venda := 0;
+        qTrib        := '0';
+        vTrib        := '0';
+        totalNota    := 0;
+        totDesc      := 0;
+      end;
 
-
+      //ShowMessage(detExport.Text + #13 + #13 + IntToStr(i));
 
       Result := Result + '<det nItem=' + LITERAL(TRIM(IntToStr(qtd))) + '><prod>' +
       '<cProd>' + strzero(IntToStr(item.cod), 6) + '</cProd><cEAN>' + barras + '</cEAN>' +
@@ -3293,8 +3305,10 @@ begin
       //nota de exportação deve perguntar a quantidade pra preencher os campos tributaveis do nodo do item
       '<uTrib>' + uTrib + '</uTrib><qTrib>' + qTrib + '</qTrib><vUnTrib>' + vTrib + '</vUnTrib>'+
 
+
       IfThen(item.Vlr_Frete > 0, '<vFrete>'+ Format_num(item.Vlr_Frete)+'</vFrete>', '') + iif(item.Desconto = 0,'','<vDesc>' + FORMAT_NUM(item.Desconto) + '</vDesc>') +
-      IfThen(item.DespAcessorias  > 0 ,'<vOutro>' + FORMAT_NUM(item.DespAcessorias) + '</vOutro>', '')+'<indTot>1</indTot>'+NODO_DI(item, CFOP1, qtd)+'</prod><imposto>' + NODO_ICMS(item, cstIcmCfop, _ORIGE) +
+      IfThen(item.DespAcessorias  > 0 ,'<vOutro>' + FORMAT_NUM(item.DespAcessorias) + '</vOutro>', '')+'<indTot>1</indTot>'+NODO_DI(item, CFOP1, qtd)+
+      nodo_detExport(detExport.Values[IntToStr(i)], item.quant)+'</prod><imposto>' + nICMS +
       NODO_PISCOFINS(item, cstpisCfop, cfop1) + NODO_ICMS_UF_DEST(item)+ NODO_IPI(item, cfop1) + '</imposto>' +
       infAdProd +'</det>'; //NODO_PISCOFINS(MAT, CSTPIS_CFP)
 
@@ -5217,6 +5231,8 @@ begin
   CNPJ := dm.IBQuery2.FieldByName('cnpj').AsString;
   dm.IBQuery2.Close;
 
+  ACBrNFe.Configuracoes.WebServices.Ambiente := taProducao;
+  ACBrNFe.Configuracoes.Geral.VersaoDF := ve400;
   ACBrNFe.NotasFiscais.Clear;
   ACBrNFe.EventoNFe.Evento.Clear;
   ACBrNFe.EventoNFe.Evento.Add;
@@ -5352,6 +5368,30 @@ begin
               '<CST>53</CST>'+
             '</IPINT>'+
             '</IPI>';
+end;
+
+function TNfeVenda.nodo_detExport(linhaDetExport : String; qCom : double) : String;
+//(nDraw, nRE, chNFe : String; qExport : integer) : String;
+var
+  list : TStringList;
+begin
+  LE_CAMPOS(list, linhaDetExport, '|', true);
+
+  if list.Values['3'] = '' then begin
+   list.Free;
+   exit;
+  end;
+  
+  Result :=
+  '<detExport>'+
+    '<nDraw>'+list.Values['1']+'</nDraw>'+
+    '<exportInd>'+
+            '<nRE>'+list.Values['2']+'</nRE>'+
+            '<chNFe>'+list.Values['3']+'</chNFe>'+
+            '<qExport>'+FORMAT_NUM(qcom)+'</qExport>'+
+    '</exportInd></detExport>';
+
+  list.Free;
 end;
 
 end.

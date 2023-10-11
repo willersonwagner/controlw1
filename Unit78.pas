@@ -85,7 +85,7 @@ begin
     end;
 
     if Contido('Erro 67: ', ret) then begin
-      ShowMessage(ret);
+      ShowMessage('ERRO88: '+ret);
       ACBrNFe.Configuracoes.WebServices.TimeOut  := 5000;
       exit;
     end;
@@ -117,7 +117,8 @@ begin
 
         try
 
-          ACBrNFe.DistribuicaoDFePorUltNSU(CODestado, StrNum(form22.Pgerais.Values['cnpj']), nsu);
+          ACBrNFe.DistribuicaoDFePorChaveNFe(CODestado, StrNum(form22.Pgerais.Values['cnpj']), EditChave.Text);
+          //ACBrNFe.DistribuicaoDFePorUltNSU(CODestado, StrNum(form22.Pgerais.Values['cnpj']), nsu);
 
           funcoes.atualizaDataHoraDownloadXML(nsu);
 

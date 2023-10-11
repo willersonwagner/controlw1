@@ -426,7 +426,7 @@ begin
 
   cont := 0;
 
-  if ((Contido('-'+versaoExecutavel+'-', '-ControlW-')) and (venda.codForma = '99')) then begin
+ if ((Contido('-'+versaoExecutavel+'-', '-ControlW-')) and (venda.codForma = '99')) then begin
     query1.Close;
     query1.SQL.Clear;
     query1.SQL.Add('select f.formapagto, f.valor, v.nome, v.codgru as codform from PAGAMENTOVENDA f left join formpagto v  on (v.cod = f.formapagto) where f.nota = :nota');
@@ -3512,6 +3512,8 @@ begin
           break;
       end;
 
+
+      //ShowMessage(IntToStr(csta));
       // se nao veio resposta entao consulta 3x pra ver se foi emitida ou o cstat veio com valor 999
       // como foi iniciado a variavel, caso venha um cstat entao sai do while
       if (Contido('(5)-', ERRO_dados) or (csta = 999) or (csta = 204) or
@@ -4062,7 +4064,7 @@ begin
         // como foi iniciado a variavel, caso venha um cstat entao sai do while
         //if (Contido('(5)-', ERRO_dados) or (csta = 999) or (csta = 204) or
         if (Contido('(5)-', ERRO_dados) or (csta = 999) or
-          (csta = 0)) then
+          (csta = 0) or (csta = 204)) then
         begin
           a := 0;
           while true do

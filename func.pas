@@ -3368,6 +3368,7 @@ var
   ini, fim, LIN: integer;
 begin
   fim := StrToIntDef(funcoes.LerConfig(form22.Pgerais.Values['conf_ter'], 5), 1);
+
   if fim > 8 then
   begin
     fim := 1;
@@ -11992,6 +11993,15 @@ begin
       dm.IBQuery1.Transaction.Commit;
     end;
 
+    if funcoes.retornaTamanhoDoCampoBD('ende', 'CLIENTE') = 40 then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add
+        ('alter table CLIENTE alter ende type VARCHAR(60)');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
     if funcoes.retornaTamanhoDoCampoBD('titular', 'CLIENTE') = 40 then begin
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Clear;
@@ -15561,6 +15571,7 @@ begin
     dm.IBQuery2.First;
     sub   := 0;
     total := 0;
+    desco := 0;
 
     fonteLetra := StrToIntDef(funcoes.LerConfig(form22.Pgerais.Values['imp'], 4), 11);
     linhas := 40;
@@ -15697,12 +15708,14 @@ begin
         if opcao = 1 then begin
           if dm.IBQuery2.FieldByName('tot_origi').AsCurrency > 0 then begin
             addRelatorioForm19(funcoes.CompletaOuRepete('|-->Desconto R$', formataCurrency(dm.IBQuery2.FieldByName('tot_origi').AsCurrency - dm.IBQuery2.FieldByName('total').AsCurrency) + '|', ' ', tam) + CRLF);
+            desco := desco  -(dm.IBQuery2.FieldByName('tot_origi').AsCurrency - dm.IBQuery2.FieldByName('total').AsCurrency);
           end;
         end;
 
          if opcao = 2 then begin
           if dm.IBQuery2.FieldByName('desconto').AsCurrency > 0 then begin
             addRelatorioForm19(funcoes.CompletaOuRepete('|-->Desconto R$', formataCurrency(dm.IBQuery2.FieldByName('desconto').AsCurrency) + '|', ' ', tam) + CRLF);
+            desco := desco  -(dm.IBQuery2.FieldByName('desconto').AsCurrency);
           end;
          end;
       end;
@@ -15756,6 +15769,22 @@ begin
 
     if opcao <> 4 then
     begin
+
+      if funcoes.buscaParamGeral(133, 'N') = 'S' then begin
+        if opcao = 1 then begin
+          desco := desco + dm.IBselect.FieldByName('desconto').AsCurrency;
+          total := dm.IBselect.FieldByName('total').AsCurrency -desco;
+        end;
+
+         if opcao = 2 then begin
+           desco := desco + dm.IBselect.FieldByName('desconto').AsCurrency;
+           total := dm.IBselect.FieldByName('total').AsCurrency -desco;
+         end;
+      end;
+
+
+
+
       form19.RichEdit1.Perform(EM_REPLACESEL, 1,
         Longint(PChar((funcoes.CompletaOuRepete('+', '+', '-', tam) + #13
         + #10))));
@@ -15763,17 +15792,16 @@ begin
         Longint(PChar((funcoes.CompletaOuRepete('|',
         funcoes.CompletaOuRepete('Sub-Total:', FormatCurr('#,###,###0.00',
         total), '.', 28) + ' |', ' ', tam) + #13 + #10))));
-      desco := dm.IBselect.FieldByName('desconto').AsCurrency;
-      if desco > 0 then
-        desco := 0;
 
-
+      if desco > 0 then desco := 0
+      ELSE begin
       if desco <> 0 then begin
       form19.RichEdit1.Perform(EM_REPLACESEL, 1,
         Longint(PChar((funcoes.CompletaOuRepete('|',
         funcoes.CompletaOuRepete('Desconto(' + FormatCurr('#,###,###0.00',
         (desco * 100) / total) + '%):', FormatCurr('#,###,###0.00', desco), '.',
         28) + ' |', ' ', tam) + #13 + #10))));
+      end;
       end;
     end;
 
@@ -15807,7 +15835,7 @@ begin
         Longint(PChar((funcoes.CompletaOuRepete('| '+nomevol+': ' +
         funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00', sub), ' ', 9),
         funcoes.CompletaOuRepete('Total:', FormatCurr('#,###,###0.00',
-        total + desco), '.', 28) + ' |', ' ', tam) + #13 + #10))));
+        dm.IBselect.FieldByName('total').AsCurrency ), '.', 28) + ' |', ' ', tam) + #13 + #10))));
       if (txt <> '') then
       begin
         form19.RichEdit1.Perform(EM_REPLACESEL, 1,
@@ -16475,6 +16503,7 @@ begin
     dm.IBQuery2.First;
 
     TOT_PIS := 0;
+    desco   := 0;
 
     addRelatorioForm19('Codigo    Descricao'+ #13 + #10);
     addRelatorioForm19('*                  Quant   V.Unit  Total'+ #13 + #10);
@@ -16484,8 +16513,9 @@ begin
     begin
       tot_item := 0;
 
-      if opcao = 1 then
-        tot_item := dm.IBQuery2.FieldByName('total').AsCurrency
+      if opcao = 1 then begin
+        tot_item := dm.IBQuery2.FieldByName('total').AsCurrency ;
+      end
       else
         tot_item := Arredonda(dm.IBQuery2.FieldByName('p_venda').AsCurrency *
           dm.IBQuery2.FieldByName('quant').AsCurrency, 2);
@@ -16563,12 +16593,14 @@ begin
          if (opcao = 1)  then begin
            if dm.IBQuery2.FieldByName('tot_origi').AsCurrency > 0 then begin
               addRelatorioForm19(funcoes.CompletaOuRepete('-->Desconto R$', formataCurrency(dm.IBQuery2.FieldByName('tot_origi').AsCurrency - dm.IBQuery2.FieldByName('total').AsCurrency), '.', 40) + CRLF);
+              desco := desco  -(dm.IBQuery2.FieldByName('tot_origi').AsCurrency - dm.IBQuery2.FieldByName('total').AsCurrency);
            end;
          end;
 
          if (opcao = 2)  then begin
            if dm.IBQuery2.FieldByName('desconto').AsCurrency > 0 then begin
-            addRelatorioForm19(funcoes.CompletaOuRepete('-->Desconto R$', formataCurrency(dm.IBQuery2.FieldByName('desconto').AsCurrency), '.', 40) + CRLF);
+              addRelatorioForm19(funcoes.CompletaOuRepete('-->Desconto R$', formataCurrency(dm.IBQuery2.FieldByName('desconto').AsCurrency), '.', 40) + CRLF);
+              desco := desco  -(dm.IBQuery2.FieldByName('desconto').AsCurrency);
            end;
          end;
       end;
@@ -16616,19 +16648,31 @@ begin
         addRelatorioForm19(funcoes.CompletaOuRepete(NOMEVOL, FormatCurr('#,###,###0.00' + ifthen(contido('M3', nomevol), '00', ''),TOT_PIS), '.', 40) + CRLF);
       end;
 
+      if funcoes.buscaParamGeral(133, 'N') = 'S' then begin
+        if opcao = 1 then begin
+          desco := desco + dm.IBselect.FieldByName('desconto').AsCurrency;
+          total := dm.IBselect.FieldByName('total').AsCurrency -desco;
+        end;
+
+         if opcao = 2 then begin
+           desco := desco + dm.IBselect.FieldByName('desconto').AsCurrency;
+           total := dm.IBselect.FieldByName('total').AsCurrency -desco;
+         end;
+      end;
+
+
       addRelatorioForm19(funcoes.CompletaOuRepete('SUBTOTAL:',
-        FormatCurr('#,##,###0.00', dm.IBselect.FieldByName('total').AsCurrency -
-        dm.IBselect.FieldByName('desconto').AsCurrency), '.', 40) + CRLF);
+        FormatCurr('#,##,###0.00', total), '.', 40) + CRLF);
       addRelatorioForm19(funcoes.CompletaOuRepete('DESCONTO(' +
         FormatCurr('#,###,###0.00',
         // (dm.IBselect.FieldByName('desconto').AsCurrency * 100) / (dm.IBselect.FieldByName('total').AsCurrency -dm.IBselect.FieldByName('desconto').AsCurrency)) +
-        (dm.IBselect.FieldByName('desconto').AsCurrency * 100) / (total)) +
-        '%):', FormatCurr('#,##,###0.00', dm.IBselect.FieldByName('desconto')
-        .AsCurrency), '.', 40) + CRLF);
+        (desco * 100) / (total)) +
+        '%):', FormatCurr('#,##,###0.00', desco), '.', 40) + CRLF);
     end;
     addRelatorioForm19(funcoes.CompletaOuRepete('TOTAL:',
       FormatCurr('#,##,###0.00', dm.IBselect.FieldByName('total').AsCurrency),
       '.', 40) + CRLF);
+
     form19.RichEdit1.Perform(EM_REPLACESEL, 1,
       Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 40) + #13 + #10))));
 

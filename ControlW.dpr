@@ -127,7 +127,8 @@ uses
   Unit88 in 'Unit88.pas' {Form88},
   Unit89 in 'Unit89.pas' {Form89},
   Unit90 in 'Unit90.pas' {Form90},
-  Unit91 in 'Unit91.pas' {Form91};
+  Unit91 in 'Unit91.pas' {Form91},
+  Unit92 in 'Unit92.pas' {Form92};
 
 {$R *.res}
 
@@ -157,6 +158,7 @@ begin
   Application.CreateForm(Tcalculadora1, calculadora1);
   Application.CreateForm(TForm90, Form90);
   Application.CreateForm(TForm91, Form91);
+  //Application.CreateForm(TForm92, Form92);
   //Application.CreateForm(TForm89, Form89);
   //Application.CreateForm(TForm88, Form88);
   //Application.CreateForm(TForm83, Form83);
