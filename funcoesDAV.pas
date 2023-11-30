@@ -817,6 +817,8 @@ begin
            lista[item].CST_PIS   := copy(Le_Nodo('CST', Le_Nodo('PIS', txt1)), 1, 2);
            lista[item].BASE_PIS  := StrToCurrDef(StringReplace(Le_Nodo('vBC', Le_Nodo('PIS', txt1)), '.', ',', [rfReplaceAll, rfIgnoreCase]), 0);
 
+           //ShowMessage(IntToStr(lista[item].cod) +#13+CurrToStr(lista[item].BASE_PIS));
+
            {if lista[item].CST_PIS = '02'
             then begin
              ShowMessage(chave);
@@ -1020,7 +1022,7 @@ var
   retorno:string;
 begin
  Result := 0;
- for a :=length(Texto) downto 1 do
+ for a  := length(Texto) downto 1 do
    begin
      if (texto[a] = substr) then
       begin

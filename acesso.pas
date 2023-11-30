@@ -83,7 +83,7 @@ end;
 procedure TForm37.ListBox1KeyPress(Sender: TObject; var Key: Char);
 var
   i,posi:integer;
-  a : string;
+  a, tmp : string;
 begin
  if (key=#13) and (ListBox1.ItemIndex>-1) then
   begin
@@ -94,7 +94,10 @@ begin
     //ShowMessage(acesso[posi]);
     ListBox2.Clear;
     for i:= 0 to Form2.MainMenu1.Items.Items[ListBox1.ItemIndex].Count -1 do begin
-       ListBox2.Items.Add(copy(a,i +1, 1)+'-'+funcoes.DeletaChar('&',Form2.MainMenu1.Items.Items[ListBox1.itemindex].Items[i].Caption));
+       tmp := copy(a,i +1, 1);
+       if trim(tmp) = '-' then tmp := '0';
+       
+       ListBox2.Items.Add(tmp+'-'+funcoes.DeletaChar('&',Form2.MainMenu1.Items.Items[ListBox1.itemindex].Items[i].Caption));
      end;
 
     if ListBox2.Items.Count>0 then

@@ -12597,6 +12597,10 @@ object Form2: TForm2
           Caption = 'Corrigir NCMs Inv'#225'lidos'
           OnClick = CorrigirNCMsInvlidos1Click
         end
+        object ControledeGarantias1: TMenuItem
+          Caption = 'Controle de Garantias'
+          OnClick = ControledeGarantias1Click
+        end
       end
       object ParmetrosGerais1: TMenuItem
         Caption = 'Par'#226'metros Gerais'

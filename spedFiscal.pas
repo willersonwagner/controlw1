@@ -842,18 +842,23 @@ begin
 end;
 
 FUNCTION DADOS_ADNF(nota, fornec : Integer; var cod_sit, _CFOP, _FRETE, TIPO, _CHNFE, _SER : String) : String;
+var
+  seriesql : String;
 begin
   Result := '';
 
   _CFOP  := '2102';
   _FRETE := '9';
   TIPO   := '55';
-  _SER   := '1';
+  seriesql := '';
+  if _SER <> '' then seriesql := ' and (serie = '+QuotedStr(_SER)+')'
+  else seriesql := '';
+
   _CHNFE := '';
   zera_matriz(DADOS_ADIC);
   dm.IBselect.Close;
   dm.IBselect.SQL.Clear;
-  dm.IBselect.SQL.Add('select * from SPEDDADOSADIC where (nota = :nota) and (fornec = :fornec)');
+  dm.IBselect.SQL.Add('select * from SPEDDADOSADIC where (nota = :nota)'+seriesql+' and (fornec = :fornec)');
   dm.IBselect.ParamByName('nota').AsInteger   := nota;
   dm.IBselect.ParamByName('fornec').AsInteger := fornec;
   dm.IBselect.Open;
@@ -862,7 +867,6 @@ begin
     begin
       cod_sit := dm.IBselect.fieldbyname('cod_sit').AsString;
       if trim(cod_sit) = '' then cod_sit := '00';
-
 
       _CFOP   := dm.IBselect.fieldbyname('cfop').AsString;
       _FRETE  := dm.IBselect.fieldbyname('TIPOFRETE').AsString;
@@ -966,9 +970,7 @@ begin
    try
    informacao(0, fim, 'Verificando Entradas...', true, false, 5);
    erro1 := 0;
-
-   blocoB();
-
+    blocoB();
 
    //gera os registros C100, C170 e C190 da tabela ENTRADA
    ent := leEntradas_SF();
@@ -1117,7 +1119,7 @@ end;
 
 function leEntradas_SF() : Smallint;
 var
- _COD_FORNEC, dinicrip, dfimcrip, cfopTemp, cod_sit : String;
+ _COD_FORNEC, dinicrip, dfimcrip, cfopTemp, cod_sit, seriesql : String;
  DATA_EMI : TDateTime;
  ini, i, fim, tmp1, C : integer;
  prod : TregProd;
@@ -1132,6 +1134,7 @@ begin
     end;
   end;
 
+
   if funcoes.verificaNFe(dataIni, DataFim, true) = false then begin
     Result := -2;
     exit;
@@ -1140,6 +1143,7 @@ begin
   if not funcoes.checaEntradasSped(dataIni, DataFim) then begin
     if MessageDlg('A Soma dos Dados Adicionais Não Conferem, Deseja Continuar Assim Mesmo ?', mtConfirmation, [mbYes, mbNo], 1) = idno then exit;
   end;
+
   Result := 0;
    {COMECO DA PARTE DE ENTRADAS}
 
@@ -1173,6 +1177,7 @@ begin
   dm.IBQuery4.FetchAll;
 
   fim := fim + dm.IBQuery4.RecordCount;
+
 
   dm.IBQuery4.Close;
   //dm.IBQuery4.SQL.Text := ('select * from entrada where (chegada >= :dataini) and (chegada <= :datafim)');
@@ -1214,6 +1219,7 @@ begin
       _DAT1   := dm.IBQuery4.fieldbyname('data').AsDateTime;
       _DAT2   := dm.IBQuery4.fieldbyname('chegada').AsDateTime;
       COD_FOR := dm.IBQuery4.fieldbyname('fornec').AsInteger;
+      _SER    := dm.IBQuery4.fieldbyname('serie').AsString;
 
       //LOCALIZA O ESTADO DO FORNECEDOR E DEVOLVE A ALIQUOTA INTERESTADUAL DE ICMS
       ALIQ := ALIQ_CREDICM(COD_FOR);
@@ -1222,7 +1228,7 @@ begin
       //DADOS_ADIC É UMA MATRIZ COM 8 POSIÇÕES, O OITAVO TERMO É O PERCENTUAL DE CRÉDITO DE ICMS
 
       DADOS_ADNF(NOTA, COD_FOR, cod_sit, _CFOP, _FRETE, TIPO, _CHNFE, _SER);
-
+     
       if length(StrNum(_CHNFE)) = 44 then  _SER := leSerieDaChaveNfe(_CHNFE);
 
       if ((tipo = '55') and (length(_CHNFE) <> 44)) then begin
@@ -1246,16 +1252,20 @@ begin
 
       if ((_CFOP = '2102') AND (dm.IBselect.FieldByName('estado').AsString = UF_EMPRESA)) then _CFOP := '1102';
 
+      if dm.IBQuery4.fieldbyname('serie').AsString = '' then seriesql := ' and ((i.serie is null) or (trim(i.serie) = ''''))'
+      else seriesql := ' and (i.serie = '+QuotedStr(dm.IBQuery4.fieldbyname('serie').AsString)+')';
+
       dm.IBselect.Close;
       dm.IBselect.SQL.Clear;
       dm.IBselect.Params.Clear;
       //dm.IBselect.SQL.Add('select i.cod,p.aliquota, i.CRED_ICMS, i.quant, i.p_compra, trim(i.unid)as unid, p.tipo_item from item_entrada i left join produto p on (p.cod = i.cod)'+
       dm.IBselect.SQL.Add('select i.cod,p.aliquota, i.CRED_ICMS, i.quant, i.p_compra, trim(i.unid)as unid, p.tipo_item, i.basecalculo from item_entrada i left join produto p on (p.cod = i.cod)'+
-      ' where (i.nota = :nott) and (i.fornec = :fornec)');
+      ' where (i.nota = :nott)'+seriesql+' and (i.fornec = :fornec)');
       dm.IBselect.ParamByName('nott').AsInteger   := nota;
       dm.IBselect.ParamByName('fornec').AsInteger := COD_FOR;
-      dm.IBselect.Open;
 
+      dm.IBselect.Open;
+ 
       listaProdutos.Clear;
       TOT := 0;
 
@@ -4293,7 +4303,7 @@ begin
 
               MAT_NOTA.Clear;
 
-              codCSTCOD_ISPIS.SaveToFile(caminhoEXE_com_barra_no_final + 'SPED\PRODUTOS_CST_CODISPIS.txt');
+              //codCSTCOD_ISPIS.SaveToFile(caminhoEXE_com_barra_no_final + 'SPED\PRODUTOS_CST_CODISPIS.txt');
 
 
 
@@ -4865,9 +4875,9 @@ begin
 
                   checaISPIS_CODISPIS(listaProdutos[ini].CST_PIS, COD_ISPIS, listaProdutos[ini].cod);
 
-                  if (listaProdutos[ini].CST_PIS = '01') and (listaProdutos[ini].vPIS = 0) then begin
+                  {if (listaProdutos[ini].CST_PIS = '01') and (listaProdutos[ini].vPIS = 0) then begin
                     listaProdutos[ini].BASE_PIS := 0;
-                  end;
+                  end;}
 
                   if listaProdutos[ini].CST_PIS = '02' then begin
                     listaProdutos[ini].BASE_PIS := 0;
@@ -4903,6 +4913,10 @@ begin
                   ALIQ := listaProdutos[ini].PERC_ICM; //PERCENTUAL DE ICMS
 
 	                BASE_ICM := listaProdutos[ini].BASE_ICM;
+
+                  //if (listaProdutos[ini].BASE_ICM <> listaProdutos[ini].total) and (TRIB = '00') then ShowMessage('chnfe=' + );
+
+
                   TOT_ICM  := listaProdutos[ini].TOT_ICM;
                   //TOT_ICM  := IfThen(TRIB = '00', RoundTo1(BASE_ICM * PERC_ICMS / 100), 0);
 
@@ -4935,11 +4949,10 @@ begin
                     end;
 
                   ACUM_PISCST1(listaProdutos.Items[ini], listaPIS, COD_ISPIS, CST_PIS);
+
                   ISPIS := '';
                   CST_PIS := CALC_PISCOF1(TOT_ITEM, ISPIS, listaProdutos[ini].vPIS, listaProdutos[ini].vCOFINS, CST_PIS);
 
-
-                
                   TOT_PIS    := TOT_PIS    + listaProdutos[ini].vPIS;
                   TOT_COFINS := TOT_COFINS + listaProdutos[ini].vCOFINS;
 
@@ -5542,7 +5555,9 @@ begin
      produto.CST_PIS  := '01';
      produto.BASE_PIS := produto.total;
      produto.vCOFINS  := ArredondaFinanceiro(produto.total * TRIB_ALIQ_COFINS / 100, 2);
-    produto.vPIS      := ArredondaFinanceiro(produto.total * TRIB_ALIQ_PIS / 100, 2);
+     produto.vPIS     := ArredondaFinanceiro(produto.total * TRIB_ALIQ_PIS / 100, 2);
+    // produto.vCOFINS  := rouArredondaFinanceiro(produto.total * TRIB_ALIQ_COFINS / 100, 2);
+    // produto.vPIS      := ArredondaFinanceiro(produto.total * TRIB_ALIQ_PIS / 100, 2);
   end;
 
   if  (StrToIntDef(trim(produto.CST_PIS), 6) <= 1) and ((produto.vPIS) = 0) and (produto.BASE_PIS > 0) then begin

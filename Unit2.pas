@@ -420,6 +420,7 @@ type
     Geral3: TMenuItem;
     Aniversariantes2: TMenuItem;
     Apagarprodutossemmovimento1: TMenuItem;
+    ControledeGarantias1: TMenuItem;
     procedure LimparBloqueios1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure CadastrarUsurio1Click(Sender: TObject);
@@ -727,6 +728,7 @@ type
     procedure Geral3Click(Sender: TObject);
     procedure Aniversariantes2Click(Sender: TObject);
     procedure Apagarprodutossemmovimento1Click(Sender: TObject);
+    procedure ControledeGarantias1Click(Sender: TObject);
   private
     b, cont: integer;
     ini: Smallint;
@@ -768,7 +770,7 @@ uses CadUsuario, StrUtils, Math, dialog, cadfrabricante, cadfornecedor,
   cadReducaoZ, untMovto, acerto1, Unit56, envicupom, Unit59, cadCestNCM,
   PROMOC, cadNotasFiscais, U_Principal, ConsultaCPF, Unit67, Unit68, param1,
   Unit71, uConsultaCNPJ, Unit74, Unit77, Unit78, dadosnfe, cadmecanico, Unit83,
-  qrcodePIX, Unit88, Unit89, Unit91;
+  qrcodePIX, Unit88, Unit89, Unit91, garantias;
 
 {$R *.dfm}
 
@@ -4658,7 +4660,7 @@ begin
   form40.troca.Add('132=S');
   form40.troca.Add('133=S');
   form40.troca.Add('134=S');
-
+  
   form40.teclas := TStringList.Create;
   form40.teclas.Add('0=FT');
   form40.teclas.Add('1=0123456789' + #8);
@@ -5762,7 +5764,7 @@ procedure TForm2.ControledeEntregador1Click(Sender: TObject);
 var
   ini, fim: String;
 begin
- { ini := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,
+  {ini := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,
     'Qual a Data Inicial?', formataDataDDMMYY(form22.datamov));
   if ini = '*' then
     exit;
@@ -5775,7 +5777,7 @@ begin
   if StrToDate(ini) < (form22.datamov - 5) then begin
     ShowMessage('Data Inválida');
     exit;
-  end;      }
+  end;   }
 
   ini := DateToStr(form22.datamov);
   fim := ini;
@@ -5833,6 +5835,14 @@ begin
   form44.Free;
   dm.IBQuery2.Close;
   dm.ibselect.Close;
+end;
+
+procedure TForm2.ControledeGarantias1Click(Sender: TObject);
+begin
+  Form93 := tform93.Create(self);
+  funcoes.CtrlResize(TForm(form93));
+  form93.ShowModal;
+  form93.Free;
 end;
 
 procedure TForm2.MovimentodeCaixa1Click(Sender: TObject);
@@ -14050,9 +14060,15 @@ begin
       dm.IBQuery1.ParamByName('codhis').AsString := strnum(formpagto);
       dm.IBQuery1.ParamByName('entrada').AsCurrency := entrada;
       dm.IBQuery1.ParamByName('usu').AsString := strnum(form22.codusario);
-      dm.IBQuery1.ExecSQL;
-      dm.IBQuery1.Transaction.Commit;
-      dm.IBQuery1.Close;
+       try
+        dm.IBQuery1.ExecSQL;
+      except
+        on e:exception do begin
+          ShowMessage('erro14094: ' + e.Message);
+          dm.IBQuery1.Transaction.Rollback;
+          exit;
+        end;
+      end;
 
 
     end
@@ -14075,10 +14091,51 @@ begin
       //dm.IBQuery1.ParamByName('entrada').AsCurrency := entrada;
       dm.IBQuery1.ParamByName('usu').AsString  := strnum(form22.codusario);
       dm.IBQuery1.ParamByName('nota').AsString := strnum(nota);
-      dm.IBQuery1.ExecSQL;
-      dm.IBQuery1.Transaction.Commit;
-      dm.IBQuery1.Close;
+
+      try
+        dm.IBQuery1.ExecSQL;
+      except
+        on e:exception do begin
+          ShowMessage('erro14094: ' + e.Message);
+          dm.IBQuery1.Transaction.Rollback;
+          exit;
+        end;
+      end;
+
+
+
     end;
+
+
+
+    if ((pag = '2') and (entradaOrigi > 0)) then begin
+
+    dm.IBQuery1.Close;
+    dm.IBQuery1.SQL.Text := ('update caixa set usuario = :usu where FORNEC = :nota and tipo = ''E''');
+
+    dm.IBQuery1.ParamByName('usu').AsString  := strnum(form22.codusario);
+    dm.IBQuery1.ParamByName('nota').AsString := strnum(nota);
+    try
+        dm.IBQuery1.ExecSQL;
+      except
+        on e:exception do begin
+          ShowMessage('erro14122: ' + e.Message);
+          dm.IBQuery1.Transaction.Rollback;
+          exit;
+        end;
+    end;
+    end;
+
+
+    try
+        dm.IBQuery1.Transaction.Commit;
+      except
+        on e:exception do begin
+          ShowMessage('erro14134 COMMIT: ' + e.Message);
+          dm.IBQuery1.Transaction.Rollback;
+          exit;
+        end;
+      end;
 
       try
         if funcoes.buscaParamGeral(132, 'N') = 'S' then

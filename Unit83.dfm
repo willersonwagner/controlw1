@@ -172,9 +172,9 @@ object Form83: TForm83
     object Label4: TLabel
       Left = 11
       Top = 162
-      Width = 286
+      Width = 217
       Height = 16
-      Caption = 'Cobrar Taxa(N-N'#227'o/C-7 Reais/D-10 Reais) ?'
+      Caption = 'Cobrar Taxa(N-N'#227'o/D-10 Reais) ?'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -13

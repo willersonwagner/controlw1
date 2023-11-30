@@ -82,7 +82,7 @@ begin
   teclaEsc(key);
   proximo(key);
 
-  if not(funcoes.Contido(UpCase(key), 'NCDS'))  then key := #0
+  if not(funcoes.Contido(UpCase(key), 'ND'))  then key := #0
   else begin
     tedit(sender).Text := UpCase(key);
     key := #0;

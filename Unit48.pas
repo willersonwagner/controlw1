@@ -61,7 +61,7 @@ type
     fornec, xml : TStringList;
     erro : string;
     TOTvICMSDeson_Produtos : currency;
-    caminhoXML, chave, nota : String;
+    caminhoXML, chave, nota, arquivoTemporario : String;
     procedure alteraPIS();
     procedure alteraCOD_ISPIS();
     procedure buscaProdutosCadastro();
@@ -232,9 +232,11 @@ begin
   erro := '';
   dm.IBselect.Close;
   dm.IBselect.SQL.Clear;
-  dm.IBselect.SQL.Add('select nota from entrada where nota = :nota and fornec = :fornec');
+  dm.IBselect.SQL.Add('select nota from entrada where nota = :nota and fornec = :fornec and serie = :serie');
   dm.IBselect.ParamByName('nota').AsString   := ClientDataSet1.fieldbyname('nota').AsString;
   dm.IBselect.ParamByName('fornec').AsString := fornecedor;
+  dm.IBselect.ParamByName('serie').AsString  := Le_Nodo('serie', xml.GetText);
+
   dm.IBselect.Open;
 
   if not dm.IBselect.IsEmpty then
@@ -244,6 +246,7 @@ begin
       erro := 'erro';
       exit;
     end;
+
   dm.IBselect.Close;
 
   if dm.IBQuery4.Transaction.Active then dm.IBQuery4.Transaction.Commit;
@@ -255,18 +258,25 @@ begin
 
   dm.IBQuery4.Close;
   dm.IBQuery4.SQL.Clear;
-  dm.IBQuery4.SQL.Add('update or insert into entrada(nota, data,chegada,total_nota,fornec, xml) VALUES'+
-  ' (:nota, :data,:chegada,:total_nota,:fornec, ''S'') matching(nota, fornec) ');
+  dm.IBQuery4.SQL.Add('update or insert into entrada(nota, data,chegada,total_nota,fornec, xml, serie) VALUES'+
+  ' (:nota, :data,:chegada,:total_nota,:fornec, ''S'', :serie) matching(nota, fornec, serie) ');
   dm.IBQuery4.ParamByName('nota').AsString         := nota;
   dm.IBQuery4.ParamByName('chegada').AsDateTime    := DateOf(form22.datamov) + TimeOf(now);
   dm.IBQuery4.ParamByName('total_nota').AsCurrency := total;
   //dm.IBQuery4.ParamByName('data').AsDateTime       := DateOf(form22.datamov) + TimeOf(now);
   dm.IBQuery4.ParamByName('data').AsDateTime       := ClientDataSet1.fieldbyname('data').AsDateTime;
   dm.IBQuery4.ParamByName('fornec').AsString       := fornecedor;
+  dm.IBQuery4.ParamByName('serie').AsString        := Le_Nodo('serie', xml.GetText);
+
   try
     dm.IBQuery4.ExecSQL;
   except
-    erro := 'erro';
+    on e:exception do begin
+      ShowMessage('Erro276: ' + e.Message);
+      dm.IBQuery4.Transaction.Rollback;
+      erro := 'erro';
+      exit;
+    end;
   end;
 
   ClientDataSet1.DisableControls;
@@ -275,8 +285,8 @@ begin
     begin
       dm.IBQuery4.Close;
       dm.IBQuery4.SQL.Clear;
-      dm.IBQuery4.SQL.Add('update or insert into item_entrada(COD,codentrada, QUANT, P_COMPRA, DESTINO, USUARIO, NOTA, FORNEC,DATA, total, unid, unid2, CRED_ICMS, QTD_ENT)' +
-      ' values(:COD,'+funcoes.novocod('entrada')+',:QUANT, :P_COMPRA, :DESTINO, :USUARIO,  :NOTA,:FORNEC, :DATA,:total, :unid, :unid2, :CRED_ICMS, :QTD_ENT) matching(codentrada)');
+      dm.IBQuery4.SQL.Add('update or insert into item_entrada(COD,codentrada, QUANT, P_COMPRA, DESTINO, USUARIO, NOTA, FORNEC,DATA, total, unid, unid2, CRED_ICMS, QTD_ENT, serie)' +
+      ' values(:COD,'+funcoes.novocod('entrada')+',:QUANT, :P_COMPRA, :DESTINO, :USUARIO,  :NOTA,:FORNEC, :DATA,:total, :unid, :unid2, :CRED_ICMS, :QTD_ENT, :serie) matching(codentrada)');
       dm.IBQuery4.ParamByName('data').AsDateTime     := form22.datamov;
       dm.IBQuery4.ParamByName('cod').AsString        := StrNum(ClientDataSet1.fieldbyname('codigo').AsString);
       dm.IBQuery4.ParamByName('nota').AsString       := ClientDataSet1.fieldbyname('nota').AsString;
@@ -296,18 +306,33 @@ begin
       qtd := Arredonda(qtd, 4);
 
       dm.IBQuery4.ParamByName('QTD_ENT').AsCurrency    := qtd;
+      dm.IBQuery4.ParamByName('serie').AsString        := Le_Nodo('serie', xml.GetText);
 
       try
         dm.IBQuery4.ExecSQL;
       except
-        erro := 'erro';
+        on e:exception do begin
+          ShowMessage('Erro316: ' + e.Message);
+          dm.IBQuery4.Transaction.Rollback;
+          erro := 'erro';
+          exit;
+        end;
       end;
 
       dm.IBQuery4.Close;
       dm.IBQuery4.SQL.Text := 'update produto set data_entrada1 = current_date where cod = ' + StrNum(ClientDataSet1.fieldbyname('codigo').AsString);
-      dm.IBQuery4.ExecSQL;
+      try
+        dm.IBQuery4.ExecSQL;
+      except
+        on e:exception do begin
+          ShowMessage('Erro330: ' + e.Message);
+          dm.IBQuery4.Transaction.Rollback;
+          erro := 'erro';
+          exit;
+        end;
+      end;
 
-     ClientDataSet1.Next; 
+     ClientDataSet1.Next;
    end;
 
 
@@ -341,7 +366,16 @@ begin
       dm.IBQuery4.ParamByName('IS_PIS').AsString     := lista[i].CST_PIS;
       dm.IBQuery4.ParamByName('COD_ISPIS').AsString  := lista[i].COD_ISPIS;
       dm.IBQuery4.ParamByName('cod').AsInteger       := lista[i].cod;
-      dm.IBQuery4.ExecSQL;
+      try
+        dm.IBQuery4.ExecSQL;
+      except
+        on e:exception do begin
+          ShowMessage('Erro374: ' + e.Message);
+          dm.IBQuery4.Transaction.Rollback;
+          erro := 'erro';
+          exit;
+        end;
+      end;
 
       //ShowMessage('cod=' + IntToStr(lista[i].cod) + #13 + 'compra=' + CurrToStr(lista[i].BASE_ICM));
     end;
@@ -369,8 +403,8 @@ begin
       if i > 15 then begin
         break;
       end;
-      if DeleteFile(caminhoEXE_com_barra_no_final + fornecedor + '-' + nota + '.xml') then break;
-      if not FileExists(caminhoEXE_com_barra_no_final + fornecedor + '-' + nota + '.xml') then break;
+      if DeleteFile(arquivoTemporario) then break;
+      if not FileExists(arquivoTemporario) then break;
 
       sleep(300);
     end;
@@ -760,6 +794,7 @@ begin
         cadastraProdutos(false, true);
         if verificaOK then begin
           insereEntrada();
+          xml.Clear;
           if erro = '' then close;
         end;
       end;
@@ -1001,8 +1036,8 @@ end;
 procedure TForm48.salvarArq();
 begin
   //funcoes.excluiAqruivo(caminhoEXE_com_barra_no_final + fornecedor + '-' + nota + '.xml')
-  DeleteFile(caminhoEXE_com_barra_no_final + fornecedor + '-' + nota + '.xml');
-  ClientDataSet1.SaveToFile(caminhoEXE_com_barra_no_final + fornecedor + '-' + nota + '.xml');
+  DeleteFile(arquivoTemporario);
+  ClientDataSet1.SaveToFile(arquivoTemporario);
 end;
 
 procedure TForm48.escondeCampos();

@@ -135,7 +135,7 @@ type
 
     { Private declarations }
   public
-    testcampo:string;
+    testcampo, serie:string;
     FHint: THintWindow;
     { Public declarations }
   end;
@@ -277,16 +277,17 @@ begin
   //DBGrid2.DataSource := nil;
   dm.IBQuery4.Close;
   dm.IBQuery4.SQL.Clear;
-  dm.IBQuery4.SQL.Add('select v.nota, v.fornec as codfornec, (select nome from fornecedor f where f.cod = v.fornec) as fornec, v.data, v.chegada, v.total_nota from entrada v order by v.chegada desc');
+  dm.IBQuery4.SQL.Add('select v.nota, v.fornec as codfornec, v.serie, (select nome from fornecedor f where f.cod = v.fornec) as fornec, v.data, v.chegada, v.total_nota from entrada v order by v.chegada desc');
   dm.IBQuery4.Open;
   //dm.IBQuery4.FieldByName('fornec1').Visible := false;
 
   dm.IBselect.Close;
   dm.IBselect.SQL.Clear;
   dm.IBselect.SQL.Add('select p.cod, c.nome, p.quant, p.p_compra, p.total from item_entrada p left join produto c on (c.cod = p.cod)  where (p.nota = :nota)' +
-  ' and (p.fornec = :fornec)');
+  ' and (p.fornec = :fornec) and (p.serie = :serie)');
   dm.IBselect.ParamByName('nota').AsString := dm.IBQuery4.fieldbyname('nota').AsString;
   dm.IBselect.ParamByName('fornec').AsString := dm.IBQuery4.fieldbyname('codfornec').AsString;
+  dm.IBselect.ParamByName('serie').AsString := dm.IBQuery4.fieldbyname('serie').AsString;
   dm.IBselect.Open;
 
   form44 := tform44.Create(self);
@@ -409,9 +410,14 @@ begin
 end;
 
 function TForm17.buscaDadosNota_e_preencheCampos(nota : String) : boolean;
+var
+  serieaql : String;
 begin
+  if serie = '' then serieaql := ' and (serie is null)'
+  else serieaql := ' and (serie = '+QuotedStr(serie)+')';
+
   dm.IBQuery1.SQL.Clear;
-  dm.IBQuery1.SQL.Add('select data,chegada, xml, total_nota from entrada where (nota = :nota) and (fornec = :fornec)');
+  dm.IBQuery1.SQL.Add('select data,chegada, xml, total_nota from entrada where (nota = :nota)'+serieaql+' and (fornec = :fornec)');
   dm.IBQuery1.ParamByName('nota').AsString   := codigo.Text;
   dm.IBQuery1.ParamByName('fornec').AsString := fornec.Text;
   dm.IBQuery1.Open;
@@ -549,14 +555,19 @@ begin
 end;
 
 procedure TForm17.abreDataSet;
+var
+  serieaql : String;
 begin
+  if serie = '' then serieaql := ' and((a.serie is null) or (trim(a.serie) = ''''))'
+  else serieaql := ' and (a.serie = '+QuotedStr(serie)+')';
+
   IBQuery1.Close;
   IBQuery1.SQL.Text := ('select p.codbar, a.cod,  a.nota, p.nome as descricao, a.destino, a.quant, a.UNID '+
   ' as unidade, a.CRED_ICMS, a.p_compra, a.total, c.nome as usuario,' +
   ' a.codentrada, iif(a.validade < ''01.01.2000'', null, a.validade) as validade from ITEM_ENTRADA a ' +
   ' left join produto p on (a.cod = p.cod) ' +
   ' left join usuario c on (a.usuario = c.cod) ' +
-  ' where (a.nota = :nota) and (a.fornec = :fornec)');
+  ' where (a.nota = :nota)'+serieaql+' and (a.fornec = :fornec)');
   IBQuery1.ParamByName('nota').AsString   := StrNum(codigo.Text);
   IBQuery1.ParamByName('fornec').AsString := StrNum(fornec.Text);
   IBQuery1.open;
@@ -1597,7 +1608,7 @@ begin
   if cod1 = '' then exit;
 
   dm.IBselect.Close;
-  dm.IBselect.SQL.Text := 'select e.nota, e.fornec, f.nome, e.total_nota, e.data as emissao, e.chegada from entrada e' +
+  dm.IBselect.SQL.Text := 'select e.nota, e.fornec, e.serie, f.nome, e.total_nota, e.data as emissao, e.chegada from entrada e' +
   ' left join fornecedor f on (e.fornec = f.cod) where e.nota = :nota';
   dm.IBselect.ParamByName('nota').AsInteger := StrToInt(StrNum(cod1));
   dm.IBselect.Open;
@@ -1618,6 +1629,8 @@ begin
       forn := dm.IBselect.FieldByName('fornec').AsString;
     end;
 
+  serie := dm.IBselect.FieldByName('serie').AsString;
+ 
   if forn <> '' then fornec.Text := forn;
   dm.IBselect.Close;
 end;

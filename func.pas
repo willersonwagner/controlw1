@@ -1,4 +1,3 @@
-
 unit func;
 
 interface
@@ -625,6 +624,7 @@ type
     function atualizaAutomatico(): String;
     procedure atualizaHoraDoPCapatirDoServidor();
     function verSeExisteTabela(nome: String): boolean;
+    function verSeExisteConstraint(nome: String): boolean;
     function testaChaveNFE(chave: String): boolean;
     function checaCodbar(vx_cod: String): boolean;
     function checaCodbar1(vx_cod: String): String;
@@ -4771,6 +4771,7 @@ begin
 
     if not funcoes.Contido('\', execServidor) then
       execServidor := '\\' + execServidor;
+
     execServidor := funcoes.buscaConfigNaPastaDoControlW('compartilhamentoExec',
       execServidor + '\ControlW\ControlW.exe');
 
@@ -5436,7 +5437,6 @@ begin
     pergunta1.Visible := False;
   end;
 
-
   form48 := tform48.Create(self);
   form48.caminhoXML := camArq;
 
@@ -5523,6 +5523,9 @@ begin
   form48.DBGrid1.DataSource := form48.DataSource1;
 
   form48.ClientDataSet1.CreateDataSet;
+  form48.arquivoTemporario := caminhoEXE_com_barra_no_final + cnpjFOR +'_' + nota + '_'+Le_Nodo('serie', xml.GetText)+'.xml';
+
+
   FormataCampos(TFDQuery(form48.ClientDataSet1), 3, '', 3);
 
   TCurrencyField(form48.ClientDataSet1.FieldByName('PRECO_NFE')).DisplayFormat
@@ -5563,6 +5566,7 @@ begin
   tfield(form48.ClientDataSet1.FieldByName('REF_NFE')).DisplayLabel :=
     'Ref. Fornecedor(F)';
   tfield(form48.ClientDataSet1.FieldByName('NCM')).DisplayLabel := 'NCM';
+
 
   TOTvICMSDeson_Produtos := 0;
   fim := lista.count - 1;
@@ -5612,6 +5616,8 @@ begin
     // form48.ClientDataSet1.FieldByName('REF_NFE').AsString       := IntToStr(item1.cod) + '|' + item1.codbar;
     form48.ClientDataSet1.FieldByName('REF_NFE').AsString := LeftStr(item1.codigoFornecedor + '|' + form48.fornecedor, 25);
 
+
+
     dm.IBselect.Close;
     dm.IBselect.SQL.Clear;
     dm.IBselect.SQL.Add
@@ -5647,6 +5653,7 @@ begin
     else
       axx := '1';
 
+
     if axx = '1' then // se achou o produto
     begin
       form48.ClientDataSet1.FieldByName('codigo').AsString :=
@@ -5679,9 +5686,12 @@ begin
         form48.ClientDataSet1.FieldByName('PRECO_COMPRA').AsFloat := Arredonda(form48.ClientDataSet1.FieldByName('PRECO_NFE').AsFloat / StrToCurrDef(form48.ClientDataSet1.FieldByName('mu').AsString, 1), 2);
       end;
 
+
       form48.ClientDataSet1.FieldByName('UNID_VENDA').AsString :=
         dm.IBselect.FieldByName('unid').AsString;
+
     end;
+
 
     dm.IBselect.Close;
     form48.ClientDataSet1.Post;
@@ -5710,22 +5720,21 @@ begin
     form48.ClientDataSet1.Next;
   end;
 
-  form48.xml := xml;
-  form48.erro := erro;
+
+  form48.xml   := xml;
+  form48.erro  := erro;
   form48.chave := chave;
-  form48.nota := nota;
+  form48.nota  := nota;
+
 
   form48.Label5.caption := 'Nota: ' + nota;
   form48.Label6.caption := 'Total R$: ' + FormatCurr('#,###,###0.00',
     form48.ClientDataSet1.FieldByName('TOTnota').AsCurrency);
   form48.Label7.caption := 'Fornecedor: ' + form48.fornecedor + ' - ' + forn;
-
-  if FileExists(caminhoEXE_com_barra_no_final + cnpjFOR + '-' + nota + '.xml')
-  then
-  begin
+ 
+  if FileExists(form48.arquivoTemporario) then begin
     form48.ClientDataSet1.Close;
-    form48.ClientDataSet1.LoadFromFile(caminhoEXE_com_barra_no_final + cnpjFOR +
-      '-' + nota + '.xml');
+    form48.ClientDataSet1.LoadFromFile(form48.arquivoTemporario);
   end;
 
   form48.Width := screen.Width - trunc(screen.Width * 0.1);
@@ -6914,6 +6923,23 @@ begin
   if dm.IBselect.IsEmpty then
     Result := False
   else
+    Result := true;
+
+  dm.IBselect.Close;
+end;
+
+function Tfuncoes.verSeExisteConstraint(nome: String): boolean;
+begin
+  nome := UpperCase(nome);
+
+  Result := False;
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text :=
+    ('select * from rdb$RELATION_CONSTRAINTS where (upper(rdb$constraint_name) = '+ QuotedStr(nome) + ')');
+  dm.IBselect.Open;
+  dm.IBselect.FetchAll;
+
+  if dm.IBselect.RecordCount > 0 then
     Result := true;
 
   dm.IBselect.Close;
@@ -12020,6 +12046,46 @@ begin
       dm.IBQuery1.ExecSQL;
     end;
 
+
+    if not VerificaCampoTabela('serie', 'entrada') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('ALTER TABLE entrada ADD serie VARCHAR(3) DEFAULT '''' ');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
+    if not VerificaCampoTabela('serie', 'item_entrada') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('ALTER TABLE item_entrada ADD serie VARCHAR(3) DEFAULT '''' ');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
+    if verSeExisteConstraint('PK_SPEDDADOSADIC') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('ALTER TABLE SPEDDADOSADIC DROP CONSTRAINT PK_SPEDDADOSADIC');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
+    if verSeExisteConstraint('UNQ1_ENTRADA') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('ALTER TABLE entrada DROP CONSTRAINT UNQ1_ENTRADA');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('ALTER TABLE entrada add constraint UNQ2_ENTRADA unique (fornec, nota,serie)');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
+
   {  if not VerificaCampoTabela('tot_origi', 'item_orcamento') then begin
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Clear;
@@ -12027,6 +12093,22 @@ begin
       if execSqlMostraErro(dm.IBQuery1) = false then exit;
       dm.IBQuery1.Transaction.Commit;
     end;    }
+
+    if NOT verSeExisteTabela('GARANTIA') then
+    begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.text := 'CREATE TABLE GARANTIA (COD_SEQ INTEGER NOT NULL,COD_PROD INTEGER, nota INTEGER,DATA_CRIACAO TIMESTAMP,DATA_FINALIZADO TIMESTAMP,USUARIO SMALLINT,VALOR NUMERIC(10,3), quant NUMERIC(10,3),ESTADO VARCHAR(1), USU_FINALIZADO SMALLINT, fornec smallint)';
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.text := 'alter table GARANTIA add constraint PK_GARANTIA primary key (COD_SEQ)';
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.text := 'create sequence GARANTIA ';
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+    end;
 
 
     atualizaAtivoCliente;
@@ -13375,11 +13457,13 @@ begin
     else
       p1 := valor;
 
+    p1 := trim(p1);
+
     AserGravado := IntToStr(posi) + '-' + AserGravado;
     // p2 será do "-"  até o final excluindo o valor que continha entre estes valores
     p2 := '-';
     // por fim gravar o novo valor
-    Result := p1 + ' ' + AserGravado + ' ' + p2;
+    Result := p1  + AserGravado  + p2;
   end;
 end;
 
@@ -16663,11 +16747,15 @@ begin
 
       addRelatorioForm19(funcoes.CompletaOuRepete('SUBTOTAL:',
         FormatCurr('#,##,###0.00', total), '.', 40) + CRLF);
+
+      if total > 0  then begin
+
       addRelatorioForm19(funcoes.CompletaOuRepete('DESCONTO(' +
         FormatCurr('#,###,###0.00',
         // (dm.IBselect.FieldByName('desconto').AsCurrency * 100) / (dm.IBselect.FieldByName('total').AsCurrency -dm.IBselect.FieldByName('desconto').AsCurrency)) +
         (desco * 100) / (total)) +
         '%):', FormatCurr('#,##,###0.00', desco), '.', 40) + CRLF);
+      end;
     end;
     addRelatorioForm19(funcoes.CompletaOuRepete('TOTAL:',
       FormatCurr('#,##,###0.00', dm.IBselect.FieldByName('total').AsCurrency),
@@ -17871,7 +17959,7 @@ begin
   if UpperCase(campobusca) = 'CODMOV' then
     Panel1.Free;
 
-  if busca <> 'entregador1' then dataset.Close;
+  if (busca <> 'entregador1') and (busca <> 'fornec') then dataset.Close;
   Result := retornobusca;
   form33.Free;
   // a.Close;
@@ -22561,6 +22649,7 @@ begin
   infoAdi := adicTemp + infoAdi;
 
   NfeVenda := tnfevenda.Create(self);
+  NfeVenda.detExport := TStringList.Create;
   NfeVenda.cupom := cupom;
   NfeVenda.DEST := Cliente;
   NfeVenda.frete := tstringList.Create;
@@ -22650,14 +22739,14 @@ begin
     if ARREDONDA_QTD = 'S' then NfeVenda.arredondarQTD := true
     else  NfeVenda.arredondarQTD := false; }
 
-  NfeVenda.UF_EMI := UF_EMI;
-  NfeVenda.UF_DEST := UF_DEST;
+  NfeVenda.UF_EMI   := UF_EMI;
+  NfeVenda.UF_DEST  := UF_DEST;
   NfeVenda.VLR_DESP := StrToCurrDef(VLR_DESP, 0);
-  NfeVenda.codNFe := notaNFe;
-  NfeVenda.cod_OP := cOp;
+  NfeVenda.codNFe      := notaNFe;
+  NfeVenda.cod_OP      := cOp;
   NfeVenda.codPaisDest := COD_PAIS;
 
-  NfeVenda.natOp := natOP1;
+  NfeVenda.natOp      := natOP1;
   NfeVenda.cstIcmCfop := dm.IBQuery2.FieldByName('icms').AsString;
   NfeVenda.cstpisCfop := dm.IBQuery2.FieldByName('pis').AsString;
   dm.IBQuery2.Close;
@@ -23305,10 +23394,8 @@ begin
   Result := False;
   dm.ibquery4.Close;
   dm.ibquery4.SQL.text :=
-    ('select i.nota,i.fornec,sum(i.total) as total, e.total_nota from item_entrada i left join '
-    + 'entrada e on (e.nota = i.nota and i.fornec = e.fornec) where e.chegada >= :dataini AND e.chegada <= :datafim '
-    + 'and (((select tipo from speddadosadic s where s.nota = i.nota and s.fornec = i.fornec) = 55) '
-    + 'or ((select nota from speddadosadic s where s.nota = i.nota and s.fornec = i.fornec) is null)) and e.xml = ''S'''
+    ('select i.nota,i.fornec,sum(i.total) as total, e.total_nota from item_entrada i join '
+    + 'entrada e on (e.nota||e.fornec||e.SERIE = i.nota||i.fornec||i.serie) where e.chegada >= :dataini AND e.chegada <= :datafim '
     + 'group by i.nota, i.fornec, e.total_nota');
   { FORMATACAO DA DATA PARA ddmmyy }
   dm.ibquery4.ParamByName('dataini').AsDateTime := StrToDate(ini);
@@ -25105,12 +25192,9 @@ begin
       length(dm.IBselect.FieldByName('historico').AsString)), ' ', 11), #179,
       ' ', 12) + funcoes.CompletaOuRepete(' ' + FormatDateTime('dd/mm/yy',
       dm.IBselect.FieldByName('vencimento').AsDateTime) + ' ', #179, ' ',
-      11) + funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00',
-      Arredonda(dm.IBselect.FieldByName('valor').AsCurrency *
-      StrToCurr(funcoes.ConverteNumerico(funcoes.buscaParamGeral(6, ''))) / 100,
-      2)) + '/dia' + #179, ' ', 12) + funcoes.CompletaOuRepete('',
-      FormatCurr('#,###,###0.00', Arredonda(dm.IBselect.FieldByName('valor')
-      .AsCurrency * 0.02, 2)) + #179, ' ', 8) + #13 + #10))));
+      11) +
+      funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00', Arredonda(dm.IBselect.FieldByName('valor').AsCurrency * StrToCurr(funcoes.ConverteNumerico(funcoes.buscaParamGeral(6, ''))) / 100,2)) + '/dia' + #179, ' ', 12) +
+      funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00', Arredonda(dm.IBselect.FieldByName('valor').AsCurrency * 0.02, 2)) + #179, ' ', 8) + #13 + #10))));
     form19.RichEdit1.Perform(EM_REPLACESEL, 1,
       Longint(PChar((funcoes.CompletaOuRepete(#179, #179, ' ',
       12) + funcoes.CompletaOuRepete(#192, #193, #196,

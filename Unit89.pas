@@ -48,7 +48,7 @@ procedure TForm89.abreDataSet();
 begin
   dm.IBselect.Close;
   dm.IBselect.SQL.Text := 'select v.nota, v.total, v.hora as hora_venda, v.data, v.ende_entrega, e.endereco, e.cliente, e.telefone, c.data_entrega from venda v left join ENTREGA e on (e.cod = v.ende_entrega)'+
-  'left join entrega_novo c on (c.numvenda = v.nota) where ((v.data >= :ini) and (v.data <= :fim)) and ((v.total = 0.01) or (v.total >= 50)) and (v.ende_entrega > 0) and (c.data_entrega is null) and (v.cancelado = 0) order by nota desc';
+  'left join entrega_novo c on (c.numvenda = v.nota) where ((v.data >= :ini) and (v.data <= :fim)) and ((v.total = 0.01) or (v.total >= 100)) and (v.ende_entrega > 0) and (c.data_entrega is null) and (v.cancelado = 0) order by nota desc';
   dm.IBselect.ParamByName('ini').AsDateTime := StrToDate(dini);
   dm.IBselect.ParamByName('fim').AsDateTime := StrToDate(dfim);
   dm.IBselect.Open;
@@ -331,8 +331,8 @@ begin
   form33.Free;    }
 
 
-    funcoes.relEntregador(ini, fim, '', true);
-  
+  funcoes.relEntregador(ini, fim, '', true);
+
   if ((funcoes.retornoLocalizar = '*')or (funcoes.retornoLocalizar = '')) then begin
     exit;
   end;

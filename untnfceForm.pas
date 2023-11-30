@@ -300,7 +300,7 @@ var
   dadosEmitente, dadosDest: TStringList;
   TOT_PIS, TOT_COFINS, totalNota, PIS_ST, COFINS_ST, TRIB_ALIQ_COFINS, BASE_ICM,
     VLR_ICM, tot_Geral, TOTICM, TOT_BASEICM, PIS_NT, TRIB_ALIQ_PIS, TotImp,
-    TOTDESC, vlRecebido: currency;
+    TOTDESC, vlRecebido, vOutro: currency;
   ACBrNFe: TACBrNFe;
   tipoDanfe: integer;
   AcbrEmail: TACBrMail;
@@ -409,7 +409,7 @@ begin
 
   venda              := Tvenda.Create;
   venda.total        := query1.fieldbyname('total').AsCurrency;
-  venda.desconto     := (query1.fieldbyname('desconto').AsCurrency);
+  venda.desconto     := query1.fieldbyname('desconto').AsCurrency;
   venda.cliente      := StrToIntDef(cliente, 1);
   venda.codForma     := query1.fieldbyname('codhis').AsString;
   venda._FORMPG      := query1.fieldbyname('nome').AsString;
@@ -2186,11 +2186,12 @@ var
 begin
   // venda := Tvenda.Create;
 
-  tpEmis := '1';
-  totalNota := 0;
-  TOTDESC := 0;
+  vOutro         := 0;
+  tpEmis         := '1';
+  totalNota      := 0;
+  TOTDESC        := 0;
   totalNotaORIGI := 0;
-  dHAtual := '';
+  dHAtual        := '';
   notas := TStringList.Create;
   lista := TList.Create;
   lista.Clear;
@@ -2220,10 +2221,16 @@ begin
 
       lerVenda(notatemp);
 
+
       if venda.desconto < 0 then
       begin
         TOTDESC := TOTDESC + abs(venda.desconto);
       end;
+      //usa esse se quiser habilitar acrescimo
+      {if venda.desconto > 0 then vOutro := vOutro+ venda.desconto
+      else TOTDESC := TOTDESC + abs(venda.desconto);}
+
+     // ShowMessage('vOutro=' + CurrToStr(vOutro) +#13 + 'TOTDESC=' + CurrToStr(TOTDESC));
 
       totalNotaORIGI := totalNotaORIGI + venda.total;
 
@@ -2234,6 +2241,7 @@ begin
         ('select cod, quant, total, p_venda, aliquota, p_compra, desconto from item_venda where nota = :nota');
       query1.ParamByName('nota').AsString := notatemp;
       query1.Open;
+      query1.FetchAll;
 
       if not query1.IsEmpty then
       begin
@@ -2249,8 +2257,7 @@ begin
           else
             query2.SQL.Add
               ('select cod, nome, codbar, unid, aliquota, is_pis, cod_ispis, p_compra, p_venda from produto where cod = :cod');
-          query2.ParamByName('cod').AsString :=
-            query1.fieldbyname('cod').AsString;
+          query2.ParamByName('cod').AsString := query1.fieldbyname('cod').AsString;
           query2.Open;
 
           tot2 := 0;
@@ -2278,6 +2285,7 @@ begin
             erroCriarNFCe := 'Lin 2278 cod: ' + query1.fieldbyname('cod').AsString;
 
             tem := ProcuraItemNaLista(lista, query1.fieldbyname('cod').AsInteger, p_venda);
+
             erroCriarNFCe := 'Lin 2278-1 cod: ' + query1.fieldbyname('cod').AsString;
             if tem <> -1 then
             begin
@@ -2401,6 +2409,8 @@ begin
     end; // if not query1.IsEmpty then begin
   end; // if length(notatemp) <= 10 then begin
 
+
+
   query2.Close;
   query1.Close;
   fim := lista.Count - 1;
@@ -2472,7 +2482,42 @@ begin
     item.VlrICMS := VLR_ICM;
   end;
 
-  venda.total := totalNota - venda.desconto;
+
+  //rateio do acrescimo
+  if vOutro > 0 then
+  begin
+    desc := vOutro;
+    fim := lista.Count - 1;
+    for i := 0 to fim do
+    begin
+
+      item := lista.Items[i];
+      if i = fim then
+      begin
+        if desc < 0 then
+          desc := 0;
+        item.vOutro := Arredonda(desc, 2);
+      end
+      else
+      begin
+        temp := Arredonda((item.total / totalNota) * vOutro, 2);
+
+        if temp > desc then
+        begin
+          temp := desc;
+        end;
+
+        item.vOutro := temp;
+        desc := desc - temp;
+      end;
+    end;
+  end;
+
+  //ShowMessage('x12');
+
+  venda.total := totalNota - venda.desconto + vOutro;
+
+  //ShowMessage('item.vOutro= ' +CurrToStr(item.vOutro) + #13 + 'venda.total=' + CurrToStr(venda.total));
   notas.Free;
 end;
 
@@ -4074,10 +4119,12 @@ begin
             richED.Lines.Add('Aguarde, Consultando ' + IntToStr(a) + '...');
             if acbrNFeConsultar(10) then
             begin
-              csta := ACBrNFe.WebServices.Consulta.cstat;;
+              csta := ACBrNFe.WebServices.Consulta.cstat;
               ACBrNFe.NotasFiscais[0].GravarXML(CHAVENF + '-nfe.xml',
                 buscaPastaNFCe(CHAVENF, false));
             end;
+
+            richED.Lines.Add('cstat ' + IntToStr(ACBrNFe.WebServices.Consulta.cstat) + '...');
 
             if (((csta > 0) and (csta < 999)) or (a >= 3)) then
               break;
@@ -4101,7 +4148,7 @@ begin
 
             end;
 
-            richED.Lines.Add('xMotivo=' + ACBrNFe.WebServices.Consulta.xmotivo);
+            richED.Lines.Add('xMotivo4149=' + ACBrNFe.WebServices.Consulta.xmotivo);
             richED.Lines.Add('Cstat=613');
             richED.Lines.Add('Troca de Chave ok: ' + #13 + #13 +
             'Chave Velha: ' + ACBrNFe.WebServices.Consulta.NFeChave + #13 +
@@ -4134,7 +4181,7 @@ begin
           ERRO_dados := 'Requisicao nao Enviada';
         end;
 
-        richED.Lines.Add('Enviado Cstat: ' + IntToStr(csta));
+        richED.Lines.Add('Enviado Cstat4182: ' + IntToStr(csta));
         if Contido('-' + IntToStr(csta) + '-', '-100-150-') then
           ERRO_dados := '';
 
@@ -4142,24 +4189,26 @@ begin
         estado := 'OK';
 
         if csta = 613 then begin
-          richED.Lines.Add('xMotivo=' + ACBrNFe.WebServices.Consulta.xmotivo);
+          richED.Lines.Add('xMotivo4190=' + ACBrNFe.WebServices.Consulta.xmotivo);
           estado := ACBrNFe.WebServices.Consulta.xmotivo;
         end
-        else richED.Lines.Add('xMotivo=' + ACBrNFe.WebServices.enviar.xmotivo);
+        else richED.Lines.Add('xMotivo4193=' + ACBrNFe.WebServices.enviar.xmotivo);
 
         if csta > 200 then ERRO_dados := ACBrNFe.WebServices.enviar.xmotivo;
 
+        richED.Lines.Add('Retorno4199');
 
         if ERRO_dados <> '' then
         begin
           estado := ERRO_dados;
           try
-            ACBrNFe.WebServices.Retorno.Executar;
+            //ACBrNFe.WebServices.Retorno.Executar;
           except
             on e:exception do begin
               richED.Lines.Add('Erro 3876: ' + e.Message);
             end;
           end;
+          richED.Lines.Add('Retorno4211');
 
           //csta   := ACBrNFe.WebServices.Enviar.cStat;
           estado :=  ACBrNFe.WebServices.Enviar.xMotivo;
@@ -6443,7 +6492,7 @@ begin
       '<vFrete>' + Format_num(item.Vlr_Frete) + '</vFrete>' +
       IfThen(item.desconto = 0, '<vDesc>0.00</vDesc>',
       '<vDesc>' + Format_num(item.desconto) + '</vDesc>') +
-      '<indTot>1</indTot></prod><imposto>' + NODO_ICMS1(item, cstIcmCfop,
+      IfThen(item.vOutro  > 0 ,'<vOutro>' + FORMAT_NUM(item.vOutro) + '</vOutro>', '')+'<indTot>1</indTot></prod><imposto>' + NODO_ICMS1(item, cstIcmCfop,
       _ORIGE) + NODO_PISCOFINS1(item, cstpisCfop) + '</imposto></det>';
     // NODO_PISCOFINS(MAT, CSTPIS_CFP)
     { Result := Result + '<det nItem="' + IntToStr(qtd) + '"><prod>' +
@@ -6468,7 +6517,7 @@ begin
     Format_num(TOTDESCICM + TOTDESC) + '</vDesc>' +
     '<vII>0.00</vII><vIPI>0.00</vIPI><vPIS>' + Format_num(TOT_PIS) +
     '</vPIS><vCOFINS>' + Format_num(TOT_COFINS) +
-    '</vCOFINS><vOutro>0.00</vOutro><vNF>' + Format_num(TOTNOTA - TOTDESC) +
+    '</vCOFINS><vOutro>'+IfThen(vOutro > 0, Format_num(vOutro), '0.00')+'</vOutro><vNF>' + Format_num(TOTNOTA - TOTDESC + vOutro) +
     '</vNF></ICMSTot></total>';
 
   try
@@ -6940,7 +6989,7 @@ var
   tmp, total, troco1: currency;
 begin
   Result := '<pag>';
-  total := totalNota - TOTDESC;
+  total := totalNota - TOTDESC + vOutro;
   tmp := 0;
 
   //ShowMessage(listaPagamentos.getText);

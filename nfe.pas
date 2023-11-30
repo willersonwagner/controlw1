@@ -3284,14 +3284,15 @@ begin
 
       nICMS := NODO_ICMS(item, cstIcmCfop, _ORIGE);
       if notaComplementarDeICMS = 'S' then begin
-        infAdProd    := '<infAdProd>NOTA FISCAL COMPLEMENTAR DE ICMS</infAdProd>';
-        item.quant   := 0;
-        item.total   := 0;
-        item.p_venda := 0;
-        qTrib        := '0';
-        vTrib        := '0';
-        totalNota    := 0;
-        totDesc      := 0;
+        infAdProd     := '<infAdProd>NOTA FISCAL COMPLEMENTAR DE ICMS</infAdProd>';
+        item.quant    := 0;
+        item.total    := 0;
+        item.p_venda  := 0;
+        item.Desconto := 0;
+        qTrib         := '0';
+        vTrib         := '0';
+        totalNota     := 0;
+        totDesc       := 0;
       end;
 
       //ShowMessage(detExport.Text + #13 + #13 + IntToStr(i));

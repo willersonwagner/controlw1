@@ -83,9 +83,9 @@ begin
 
 
 
-  if campolocalizaca = 'entregador' then begin
+  if ((campolocalizaca = 'entregador') or (campolocalizaca = 'cod_seq')) then begin
    if key = #13 then begin
-     funcoes.retornoLocalizar := DBGrid1.DataSource.DataSet.FieldByName('entregador').AsString;
+     funcoes.retornoLocalizar := DBGrid1.DataSource.DataSet.FieldByName(campolocalizaca).AsString;
      close;
    end;
 

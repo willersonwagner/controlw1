@@ -1515,6 +1515,7 @@ var
   i, l, tam, tamDescri, linFim: integer;
   descItem, ImpSepara: boolean;
 begin
+  
   if separaPecas and (separaVendaOrcamento = true) then
   begin
     exit; // aqui é separa peças de orçamento
@@ -4037,6 +4038,9 @@ begin
         #13 + #10);
       addRelatorioForm19(funcoes.CompletaOuRepete('SUBTOTAL:',
         FormatCurr('0.00', total1 - Desconto), '.', tam) + CRLF);
+
+      if total > 0 then
+        
       addRelatorioForm19(funcoes.CompletaOuRepete('DESCONTO(' +
         FormatCurr('0.00', (Desconto * 100) / total) + '%):',
         FormatCurr('0.00', Desconto), '.', tam) + CRLF);
@@ -4458,9 +4462,12 @@ begin
 
       addRelatorioForm19(funcoes.CompletaOuRepete('SUBTOTAL:',
         FormatCurr('#,##,###0.00', total1 - Desconto), '.', 40) + CRLF);
+      if total > 0 then begin
+
       addRelatorioForm19(funcoes.CompletaOuRepete('DESCONTO(' +
         FormatCurr('#,###,###0.00', (Desconto * 100) / total) + '%):',
         FormatCurr('#,##,###0.00', Desconto), '.', 40) + CRLF);
+      end;
     end;
 
     addRelatorioForm19(funcoes.CompletaOuRepete('TOTAL:',
@@ -5877,8 +5884,9 @@ begin
 
   if JsEdit2.Enabled then
     JsEdit2.SetFocus
-  else
+  else begin
     JsEdit3.SetFocus;
+  end;
 
   JsEdit1.Text := '0';
   desco.Caption := '';
@@ -6043,6 +6051,9 @@ begin
     dm.IBQuery1.ParamByName('p_compra').AsCurrency :=
       Arredonda(StrToCurr(ClientDataSet1QUANT.AsString) *
       dm.IBselect.FieldByName('p_compra').AsCurrency, 2);
+
+    if totProd = 0 then dm.IBQuery1.ParamByName('p_compra').AsCurrency := 0;
+
     dm.IBQuery1.ParamByName('codbar').AsString :=
       dm.IBselect.FieldByName('codbar').AsString;
     dm.IBQuery1.ParamByName('aliq').AsInteger :=
@@ -6205,10 +6216,12 @@ begin
     end;
   end;
 
+
   if (separaPecas and finaliza) then
     funcoes.atualizaVendaDaOrdemDeServico(COD_SERVICO, novocod);
   if not contido(funcoes.buscaParamGeral(70, 'N'), 'CS') then
     limpatela;
+
   JsEditInteiro1.Text := IntToStr(StrToIntDef(novocod, 0) + 1);
   // funcoes.GeraNota(novocod,form22.Pgerais.Values['nota'],'S',Modo_Venda);
   numvenda := novocod;
@@ -6360,9 +6373,13 @@ begin
         exit;
       end;
 
+      total1 := somaValor;
+
       if ((funcoes.buscaParamGeral(118, '') = 'S') and ((Modo_Venda) or (separaPecas))) then begin
         form83 := tform83.Create(self);
         form83.codEntrega := ENDE_ENTREGA;
+        //if total1 <= 100 then form83.taxa.Text := 'D';
+
         form83.ShowModal;
         ENDE_ENTREGA := form83.codEntrega;
         form83.Free;
@@ -6378,8 +6395,6 @@ begin
 
 
       if (verificaSePodeVenderNegativo_X_NaVendaConfig11DoUsuario = false)  then exit;
-
-      total1 := somaValor;
       lancaDescontoAtual_Antigo;
       { if funcoes.buscaParamGeral(71, 'S') = 'S' then begin
         lancaDescontoAtual_Antigo;
@@ -6538,6 +6553,7 @@ begin
            exit;
         end;
 
+
         novocod  := '';
 
         form22.Pgerais.Values['codUsuNovo'] := '';
@@ -6585,6 +6601,7 @@ begin
 
       tipoTrocaDescontoUsuario         := '';
       form22.Pgerais.Values['configu'] := configUsuario;
+
 
 
       if Modo_Venda then
@@ -6636,9 +6653,9 @@ begin
       fimVenda := 0;
 
       if funcoes.buscaParamGeral(77, '') = 'S' then begin// busca por código de barras
+        JsEdit1.Enabled := true;
         JsEdit1.SetFocus;
       end;
-
 
       if funcoes.buscaParamGeral(23, '') = 'S' then
       begin
@@ -8175,7 +8192,7 @@ begin
   dm.produtotemp.SQL.Clear;
   dm.produtotemp.SQL.Add
     ('select cod, refori from produto where upper(codbar) like (' +
-    QuotedStr(busca + '%') + ') order by codbar');
+    QuotedStr(busca + '%') + ') and (not left(nome, 1) = ''_'') order by codbar');
   dm.produtotemp.Open;
 
   if dm.produtotemp.IsEmpty then begin
@@ -8188,21 +8205,22 @@ begin
 
   if trim(ordemCompra) <> '' then
   begin
-    funcoes.ordernaDataSetVenda('codbar', res, sqlVenda, DBGrid1, '',
-      ordenaCampos);
+    funcoes.ordernaDataSetVenda('codbar', res, sqlVenda, DBGrid1, '', ordenaCampos);
 
     funcoes.OrdenaCamposVenda(ordemCompra, true);
-    funcoes.BuscaResizeDBgrid(DBGrid1, 'FORM20');
+    //funcoes.BuscaResizeDBgrid(DBGrid1, 'FORM20');
 
     DBGrid1.SelectedIndex := funcoes.buscaFieldDBgrid1('codbar', DBGrid1);
   end
   else
-    funcoes.ordernaDataSetVenda('codbar', res, sqlVenda, DBGrid1, '',
-      ordenaCampos);
-    funcoes.BuscaResizeDBgrid(DBGrid1, 'FORM20');
+    funcoes.ordernaDataSetVenda('codbar', res, sqlVenda, DBGrid1, '', ordenaCampos);
 
-    formataCamposPreco;
+
+  funcoes.BuscaResizeDBgrid(DBGrid1, 'FORM20');
+  formataCamposPreco;
   exit;
+
+
   dm.produtotemp.Close;
   dm.produtotemp.SQL.Text :=
     ('select p.codbar,nome as Descricao,p_venda as Preco,quant as estoque,p.cod from produto p where (p.codbar like '
@@ -8384,8 +8402,8 @@ begin
   dm.IBQuery1.Close;
   dm.IBQuery1.SQL.Clear;
   dm.IBQuery1.SQL.Add
-    ('insert into caixa(CODENTRADASAIDA,formpagto,documento, codgru,codmov,codhis,data,datamov,historico,entrada, usuario, tipo)'
-    + ' values(:CODENTRADASAIDA,:codhis,:documento,1,' +
+    ('insert into caixa(FORNEC,CODENTRADASAIDA,formpagto,documento, codgru,codmov,codhis,data,datamov,historico,entrada, usuario, tipo)'
+    + ' values(' + novocod + ',:CODENTRADASAIDA,:codhis,:documento,1,' +
     funcoes.novocod('movcaixa') +
     ',1,:dati,:dati,:hist,:ent, :usuario, ''E'') ');
   dm.IBQuery1.ParamByName('CODENTRADASAIDA').AsString := strnum(codigo);
@@ -9470,12 +9488,21 @@ function TForm20.validaVendedor() : boolean;
 begin
   Result := false;
 
+  if StrNum(JsEdit2.Text) = '0' then begin
+    ShowMessage('Código do Vendedor Inválido, Preencha com as informações Corretas!');
+    JsEdit2.Enabled := true;
+    JsEdit2.SetFocus;
+    exit;
+  end;
+
+
   dm.IBselect.Close;
   dm.IBselect.SQL.Text := 'select cod from vendedor where cod = ' + StrNum(JsEdit2.Text);
   dm.IBselect.Open;
 
   if dm.IBselect.IsEmpty then begin
-    ShowMessage('Códiog de Vendedor Inválido, Preencha com as informações Corretas!');
+    ShowMessage('Código do Vendedor Inválido, Preencha com as informações Corretas!');
+    JsEdit2.Enabled := true;
     JsEdit2.SetFocus;
     exit;
   end;
@@ -9490,8 +9517,6 @@ begin
   funcoes.ultimaVenda := novocod;
   if Modo_Orcamento then funcoes.tipo1       := 2
   else if Modo_Venda then funcoes.tipo1      := 1;
-       
-
 
   tipo := form22.Pgerais.Values['nota'];
 
