@@ -3,7 +3,7 @@ object Form93: TForm93
   Top = 0
   Caption = 
     'Controle de Garantias F2-Lan'#231'ar Produto Enter-Baixar produto F3-' +
-    'Pendentes F4-Finalizados'
+    'Pendentes F4-Finalizados F6-Relatorio'
   ClientHeight = 297
   ClientWidth = 558
   Color = clBtnFace

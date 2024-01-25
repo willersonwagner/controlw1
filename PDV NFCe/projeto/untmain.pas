@@ -72,6 +72,7 @@ type
     Button1: TButton;
     AtualizarTabelaIBPT1: TMenuItem;
     ZerarTentativasdeEnvioEsgotadas1: TMenuItem;
+    ConfiguraesPIX1: TMenuItem;
     procedure FormShow(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure FormCreate(Sender: TObject);
@@ -108,6 +109,7 @@ type
     procedure Button1Click(Sender: TObject);
     procedure AtualizarTabelaIBPT1Click(Sender: TObject);
     procedure ZerarTentativasdeEnvioEsgotadas1Click(Sender: TObject);
+    procedure ConfiguraesPIX1Click(Sender: TObject);
   private { Private declarations }
     formatual: string;
   public { Public declarations }
@@ -132,7 +134,7 @@ implementation
 uses untDtmMain, untCupomFiscalSAT, untConfiguracoesNFCe,
   untCancelaNFCe, untVendaPDV, configImp,
   cadFormaPagto, identifica, ACBrECF, ACBrECFClass, frmStatus, login,
-  cadecf1, StrUtils, importapedido, buscaSelecao, Unit14;
+  cadecf1, StrUtils, importapedido, buscaSelecao, Unit14, Unit15;
 
 {$R *.dfm}
 { ===============================
@@ -377,6 +379,11 @@ procedure TfrmMain.FormKeyPress(Sender: TObject; var Key: Char);
 begin
   if Key = #27 then
     Close;
+end;
+
+procedure TfrmMain.ConfiguraesPIX1Click(Sender: TObject);
+begin
+  form15.ShowModal;
 end;
 
 procedure TfrmMain.ConfigurarECF1Click(Sender: TObject);

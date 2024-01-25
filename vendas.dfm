@@ -429,6 +429,7 @@ object Form20: TForm20
     Aggregates = <>
     AggregatesActive = True
     Params = <>
+    AfterOpen = ClientDataSet1AfterOpen
     AfterPost = ClientDataSet1AfterPost
     AfterDelete = ClientDataSet1AfterDelete
     Left = 320

@@ -7,7 +7,7 @@ object dtmMain: TdtmMain
     Left = 17
     Top = 3
     Bitmap = {
-      494C01019500A000480010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C01019500A000580010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000006002000001002000000000000060
       0200000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -5057,6 +5057,8 @@ object dtmMain: TdtmMain
     CasasDecimais.vUnCom = 2
     CasasDecimais.MaskqCom = ',0.00'
     CasasDecimais.MaskvUnCom = ',0.00'
+    CasasDecimais.Aliquota = 2
+    CasasDecimais.MaskAliquota = ',0.00'
     ACBrNFe = ACBrNFe
     TipoDANFE = tiNFCe
     FormularioContinuo = True
@@ -5131,6 +5133,8 @@ object dtmMain: TdtmMain
     CasasDecimais.vUnCom = 2
     CasasDecimais.MaskqCom = ',0.00'
     CasasDecimais.MaskvUnCom = ',0.00'
+    CasasDecimais.Aliquota = 2
+    CasasDecimais.MaskAliquota = ',0.00'
     TipoDANFE = tiSemGeracao
     ImprimeDescAcrescItem = False
     FormularioContinuo = True
@@ -5276,6 +5280,8 @@ object dtmMain: TdtmMain
     CasasDecimais.vUnCom = 2
     CasasDecimais.MaskqCom = ',0.00'
     CasasDecimais.MaskvUnCom = ',0.00'
+    CasasDecimais.Aliquota = 2
+    CasasDecimais.MaskAliquota = ',0.00'
     ExibeCampoFatura = False
     Left = 504
     Top = 344
@@ -5295,7 +5301,6 @@ object dtmMain: TdtmMain
     Configuracoes.WebServices.AguardarConsultaRet = 0
     Configuracoes.WebServices.Tentativas = 10
     Configuracoes.WebServices.QuebradeLinha = '|'
-    Configuracoes.WebServices.SSLType = LT_TLSv1_2
     Configuracoes.RespTec.IdCSRT = 0
     DANFE = DANFE
     Left = 400
@@ -5318,6 +5323,8 @@ object dtmMain: TdtmMain
     CasasDecimais.vUnCom = 2
     CasasDecimais.MaskqCom = ',0.00'
     CasasDecimais.MaskvUnCom = ',0.00'
+    CasasDecimais.Aliquota = 2
+    CasasDecimais.MaskAliquota = ',0.00'
     TipoDANFE = tiSemGeracao
     EspessuraBorda = 1
     BorderIcon = [biSystemMenu, biMinimize, biMaximize]
@@ -5354,6 +5361,8 @@ object dtmMain: TdtmMain
     CasasDecimais.vUnCom = 2
     CasasDecimais.MaskqCom = ',0.00'
     CasasDecimais.MaskvUnCom = ',0.00'
+    CasasDecimais.Aliquota = 2
+    CasasDecimais.MaskAliquota = ',0.00'
     TipoDANFE = tiSemGeracao
     FormularioContinuo = True
     PosPrinter = ACBrPosPrinter1
@@ -5407,5 +5416,71 @@ object dtmMain: TdtmMain
     Connection = bd
     Left = 280
     Top = 252
+  end
+  object ACBrPixCD1: TACBrPixCD
+    Recebedor.CodCategoriaComerciante = 0
+    PSP = ACBrPSPPixPDV1
+    Left = 24
+    Top = 248
+  end
+  object ACBrPSPPixPDV1: TACBrPSPPixPDV
+    ACBrPixCD = ACBrPixCD1
+    Scopes = [scCobWrite, scCobRead, scPixWrite, scPixRead]
+    QuandoReceberRespostaHttp = ACBrPSPPixPDV1QuandoReceberRespostaHttp
+    Left = 24
+    Top = 304
+  end
+  object ACBrPSPItau1: TACBrPSPItau
+    Scopes = [scCobWrite, scCobRead, scPixWrite, scPixRead]
+    Left = 24
+    Top = 368
+  end
+  object ACBrPSPBancoDoBrasil1: TACBrPSPBancoDoBrasil
+    Scopes = [scCobWrite, scCobRead, scPixWrite, scPixRead]
+    Left = 56
+    Top = 368
+  end
+  object ACBrPSPSantander1: TACBrPSPSantander
+    Scopes = [scCobWrite, scCobRead, scPixWrite, scPixRead]
+    Left = 88
+    Top = 368
+  end
+  object ACBrPSPShipay1: TACBrPSPShipay
+    Scopes = [scCobWrite, scCobRead, scPixWrite, scPixRead]
+    URLSandBox = 'https://api-staging.shipay.com.br'
+    URLProducao = 'https://api.shipay.com.br'
+    Left = 120
+    Top = 368
+  end
+  object ACBrPSPPagSeguro1: TACBrPSPPagSeguro
+    Scopes = [scCobWrite, scCobRead, scPixWrite, scPixRead]
+    Left = 152
+    Top = 368
+  end
+  object ACBrPSPGerenciaNet1: TACBrPSPGerenciaNet
+    Scopes = [scCobWrite, scCobRead, scPixWrite, scPixRead]
+    QuandoTransmitirHttp = ACBrPSPGerenciaNet1QuandoTransmitirHttp
+    QuandoReceberRespostaHttp = ACBrPSPGerenciaNet1QuandoReceberRespostaHttp
+    Left = 184
+    Top = 368
+  end
+  object ACBrPSPBradesco1: TACBrPSPBradesco
+    Scopes = [scCobWrite, scCobRead, scPixWrite, scPixRead]
+    Left = 216
+    Top = 368
+  end
+  object ACBrPSPInter1: TACBrPSPInter
+    Scopes = [scCobWrite, scCobRead, scPixWrite, scPixRead]
+    Left = 248
+    Top = 368
+  end
+  object ACBrPSPCielo1: TACBrPSPCielo
+    Scopes = [scCobWrite, scCobRead, scPixWrite, scPixRead]
+    Left = 280
+    Top = 368
+  end
+  object ACBrOpenSSLUtils1: TACBrOpenSSLUtils
+    Left = 80
+    Top = 301
   end
 end

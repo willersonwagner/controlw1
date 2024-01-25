@@ -524,6 +524,8 @@ begin
 
   if arq = '' then arq := 'TEXTO.TXT';
 
+  //funcoes.LerConfig(form22.Pgerais.Values['conf_ter'], 12)
+
   tmp := form22.Pgerais.Values['conf_ter'];
   if tip = '' then
     begin
@@ -1149,6 +1151,10 @@ begin
   begin
      DPI           := dpi203;
      LimparMemoria := true;
+     Temperatura   := 10;
+     MargemEsquerda := 10;
+     PaginaDeCodigo := pce850;
+      //DefinirDimensoes(1,4);
      //Modelo := etqEpl2;
      Ativar ;
   end ;

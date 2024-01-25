@@ -1080,7 +1080,7 @@ begin
     unid.Text := SomenteLetras(unid.Text);
   end;
 
-  if ((p_venda.getValor = 0) or (lucro.getValor < -10000)) then
+  if ((p_venda.getValor = 0) or (lucro.getValor < -10000) ) and (funcoes.buscaParamGeral(135, 'N') = 'N') then
   begin
     p_venda.SetFocus;
     lucro.setValor(0);

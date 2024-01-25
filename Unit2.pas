@@ -1370,6 +1370,10 @@ begin
     VerificarVendas1.Visible := false;
   // timer2.Enabled := true;
   // mostraEnviaCupom();
+
+
+  //foi tirar isso 04/01/2023 por falta de utilização
+  BoletodeCobrana2.Visible := false;
 end;
 
 procedure TForm2.ProdComissoDif1Click(Sender: TObject);
@@ -2629,6 +2633,8 @@ begin
   else
     funcoes.informacao(0, fi, 'Aguarde, Gerando Relatório...', true, false, 5);
 
+
+
   dm.ibselect.Close;
   dm.ibselect.SQL.Clear;
   dm.ibselect.SQL.Add
@@ -2638,6 +2644,7 @@ begin
   dm.ibselect.ParamByName('dini').AsDate := StrToDate(ini);
   dm.ibselect.ParamByName('dfim').AsDate := StrToDate(fim);
   dm.ibselect.Open;
+
 
   dm.ibselect.FetchAll;
   dm.ibselect.First;
@@ -2988,6 +2995,7 @@ begin
     ('SELECT SUM(iif(quant > 0, (QUANT * P_COMPRA), 0)) AS QUANT_COMPRA, SUM(iif(quant > 0, '
     + '(QUANT * P_VENDA), 0)) AS QUANT_VENDA, SUM(iif(DEPOSIto > 0, (DEPOSITO * P_VENDA), 0)) AS DEP_VENDA, SUM(iif(DEPOSIto > 0, (DEPOSITO * P_COMPRA), 0)) AS DEP_COMPRA FROM PRODUTO');
   dm.ibselect.Open;
+
 
   addRelatorioForm19(funcoes.CompletaOuRepete
     ('ESTOQUE  LIQUIDO CUSTO            => ', FormatCurr('#,###,###0.00',
@@ -4520,6 +4528,7 @@ begin
   form40.tipo.Add('132=generico');
   form40.tipo.Add('133=generico');
   form40.tipo.Add('134=generico');
+  form40.tipo.Add('135=generico');
 
   form40.troca := TStringList.Create;
   form40.troca.Add('0=S');
@@ -4660,6 +4669,7 @@ begin
   form40.troca.Add('132=S');
   form40.troca.Add('133=S');
   form40.troca.Add('134=S');
+  form40.troca.Add('135=S');
   
   form40.teclas := TStringList.Create;
   form40.teclas.Add('0=FT');
@@ -4799,6 +4809,7 @@ begin
   form40.teclas.Add('132=SN');
   form40.teclas.Add('133=SN');
   form40.teclas.Add('134=SN');
+  form40.teclas.Add('135=SN');
 
   form40.ListBox1.Clear;
   form40.ListBox1.Items.Add
@@ -4957,9 +4968,9 @@ begin
   form40.ListBox1.Items.Add
     ('95=Usar Campo de Informações adicionais de produto no campo OBS do cadastro de Produto ?');
   form40.ListBox1.Items.Add
-    ('96=Qual o CFOP para vendas de mercadorias daquiridas DENTRO do estado ?(Padrao 5102)');
+    ('96=Qual o CFOP para vendas de mercadorias DENTRO do estado ?(Padrao 5102)');
   form40.ListBox1.Items.Add
-    ('97=Qual o CFOP para vendas de mercadorias daquiridas FORA do estado ?(Padrao 6102)');
+    ('97=Qual o CFOP para vendas de mercadorias FORA do estado ?(Padrao 6102)');
   form40.ListBox1.Items.Add
     ('98=Qual o Estoque a ser Baixado nas vendas de Atacado ? (1-Loja 2-Deposito)');
   form40.ListBox1.Items.Add
@@ -5026,6 +5037,7 @@ begin
   form40.ListBox1.Items.Add('132=Habilitar Rotina de Forma de Pagamento com Emissao de NFCe, NFe e NFe Simplificada ?');
   form40.ListBox1.Items.Add('133=Habilitar Impressao do desconto no pedido por Produto(Disponivel para impressao M e T) ?');
   form40.ListBox1.Items.Add('134=Exibir data e hora na rotina de Forma de Pagamento (padrao N) ?');
+  form40.ListBox1.Items.Add('135=Permitir Preço de Venda 0 no Cadastro de Produto (padrao N) ?');
 
   form40.ListBox1.Selected[0] := true;
   form40.showmodal;
@@ -11730,8 +11742,8 @@ begin
   if agrup = '*' then
     exit;
 
-  orde := funcoes.dialogo('generico', 30, '12' + #8, 30, false, 'S',
-    application.Title, 'Qual a Ordem 1-Descrição Prod 2-Nota/Data ?', '1');
+  orde := funcoes.dialogo('generico', 30, '123' + #8, 30, false, 'S',
+    application.Title, 'Qual a Ordem 1-Descrição Prod 2-Nota/Data 3-Data Decres ? ', '1');
   if orde = '*' then
     exit;
 
@@ -11740,6 +11752,9 @@ begin
     h1 := ' and (cliente=' + cliente + ')';
 
   ordem := 'v.nota';
+
+  if orde = '3' then ordem := 'v.data desc';
+
 
   form19.RichEdit1.Clear;
   form19.RichEdit1.Perform(EM_REPLACESEL, 1,
@@ -11761,6 +11776,7 @@ begin
     + #13 + #10))));
   form19.RichEdit1.Perform(EM_REPLACESEL, 1,
     Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 86) + #13 + #10))));
+
   dm.ibselect.Close;
   dm.ibselect.SQL.Clear;
   dm.ibselect.SQL.Add
@@ -16221,6 +16237,11 @@ begin
   var
     cod: string;
   begin
+    if (ssCtrl in Shift) and (chr(Key) in ['G', 'g']) then begin
+      ControledeGarantias1.Click;
+    end;
+
+
     if (ssCtrl in Shift) and (chr(Key) in ['M', 'm']) then
     begin
       cod := funcoes.localizar('Localizar Menu', 'menu', '', '', '', '', '',
@@ -21966,10 +21987,17 @@ procedure TForm2.ValidarAssinaturaDigital1Click(Sender: TObject);
   end;
 
   procedure TForm2.Consultar1Click(Sender: TObject);
+  var
+    serie : String;
   begin
     nota := funcoes.dialogo('not', 0, '1234567890' + #8 + #32, 50, true, '',
       application.Title, 'Qual a Nota Fiscal?', '');
     if nota = '*' then
+      exit;
+
+   serie := funcoes.dialogo('not', 0, '1234567890' + #8 + #32, 50, true, '',
+      application.Title, 'Qual a série ?', getSerieNFCe);
+    if serie = '*' then
       exit;
 
     // if not funcoes.verificaSeExisteVenda(nota) then exit;
@@ -21978,7 +22006,7 @@ procedure TForm2.ValidarAssinaturaDigital1Click(Sender: TObject);
       funcoes.mensagem(application.Title, 'Aguarde, Consultando NFCe...', 15,
         'Courier New', false, 0, clRed, false);
       application.ProcessMessages;
-      ConsultarNFe(nota);
+      ConsultarNFe(nota, serie);
     finally
       funcoes.mensagem('', '', 25, 'Courier New', false, 0, clRed, true);
     end;
@@ -24283,7 +24311,7 @@ procedure TForm2.ValidarAssinaturaDigital1Click(Sender: TObject);
           0, clRed, false);
         try
           application.ProcessMessages;
-          ConsultarNFe(nota, false);
+          ConsultarNFe(nota, getSerieNFCe, false);
         except
         end;
         funcoes.mensagem('', '', 25, 'Courier New', false, 0, clRed, true);
@@ -24424,7 +24452,7 @@ procedure TForm2.ValidarAssinaturaDigital1Click(Sender: TObject);
       funcoes.mensagem(application.Title, 'Aguarde, Consultando NFCe...', 15,
         'Courier New', false, 0, clRed, false);
       application.ProcessMessages;
-      ConsultarNFe(nota);
+      ConsultarNFe(nota, '001');
     finally
       funcoes.mensagem('', '', 25, 'Courier New', false, 0, clRed, true);
     end;
@@ -25348,13 +25376,18 @@ procedure TForm2.ValidarAssinaturaDigital1Click(Sender: TObject);
     for idx := 0 to produtos.Count - 1 do
     begin
       // pega sÃ³ os itens que tem quantidade no estoque e que tem produtos vencidos
-      if ((produtos[idx].total > 0) and (produtos[idx].aliqCred > 0)) then
+      if ((produtos[idx].total > 0) and (produtos[idx].aliqCred > 0)) then  begin
+        if produtos[idx].quant > produtos[idx].aliqCred  then begin
+
+
         addRelatorioForm19(CompletaOuRepete('', IntToStr(produtos[idx].cod),
           ' ', 6) + ' ' + CompletaOuRepete(LeftStr(produtos[idx].nome, 35), '',
           ' ', 35) + CompletaOuRepete('', FormatCurr('0.00',
           produtos[idx].quant), ' ', 14) + CompletaOuRepete('',
           FormatCurr('0.00', produtos[idx].aliqCred), ' ', 12) +
           CompletaOuRepete('', produtos[idx].codbar, ' ', 12) + CRLF);
+        end;
+      end;
     end;
 
     dm.ibselect.Close;

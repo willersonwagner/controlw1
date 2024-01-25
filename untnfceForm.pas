@@ -252,7 +252,7 @@ function Cancelamento_NFe1(numeroNota, Justificativa: String;
   cancelamento: integer = 0; chaveENT: String = ''): boolean;
 function Cancelamento_NFePorNNF(numeroNota, Justificativa,
   ser1: String): boolean;
-procedure ConsultarNFe(numeroNota: String; visuali: boolean = true);
+procedure ConsultarNFe(numeroNota: String;serie : String = '001'; visuali: boolean = true);
 function getSerieNFCe(): String;
 function getUltimoNumero(): String;
 function getNumeroValido(): String;
@@ -4550,18 +4550,22 @@ begin
   end;
 end;
 
-procedure ConsultarNFe(numeroNota: String; visuali: boolean = true);
+procedure ConsultarNFe(numeroNota: String;serie : String = '001'; visuali: boolean = true);
+var
+  chavnfce : String;
 begin
-  //
+  if Length(serie) < 3 then serie := CompletaOuRepete('', serie, '0', 3);
 
-  if Contido('\', numeroNota) = false then
-  begin
+  if Contido('\', numeroNota) = false then begin
     carregaConfigsNFCe;
     query1.Close;
     query1.SQL.text :=
-      'select chave from nfce where cast(substring(chave from 26 for 9) as integer) = :nota';
-    query1.ParamByName('nota').AsString := numeroNota;
+      'select * from nfce where cast(substring(chave from 26 for 9) as integer) = :nota and cast(substring(chave from 23 for 3) as integer) = :serie';
+    query1.ParamByName('nota').AsString  := numeroNota;
+    query1.ParamByName('serie').AsString := serie;
     query1.Open;
+
+    chavnfce := query1.FieldByName('chave').AsString;
 
     if query1.IsEmpty then
     begin
@@ -4576,8 +4580,7 @@ begin
       query1.fieldbyname('chave').AsString + '-nfe.xml';
     ACBrNFe.NotasFiscais.LoadFromFile(numeroNota);
   end
-  else
-  begin
+  else begin
     ACBrNFe.Configuracoes.WebServices.Visualizar := visuali;
     ACBrNFe.NotasFiscais.Clear;
     ACBrNFe.NotasFiscais.LoadFromFile(numeroNota);
@@ -4588,6 +4591,22 @@ begin
     ACBrNFe.Consultar();
   finally
     ACBrNFe.Configuracoes.WebServices.Visualizar := false;
+  end;
+
+  if query1.FieldByName('adic').AsString = 'OFF' then begin
+    if ACBrNFe.WebServices.Consulta.cStat = 100 then begin
+      query1.Close;
+      query1.SQL.Text := 'update nfce set adic = '''' where chave = ' + QuotedStr(chavnfce);
+      query1.ExecSQL;
+      query1.Transaction.Commit;
+    end;
+
+    if ACBrNFe.WebServices.Consulta.cStat in [101, 135] then begin
+      query1.Close;
+      query1.SQL.Text := 'update nfce set adic = ''CANC'' where chave = ' + QuotedStr(chavnfce);
+      query1.ExecSQL;
+      query1.Transaction.Commit;
+    end;
   end;
 
   if ((ACBrNFe.WebServices.Consulta.cStat = 613) and (Length(buscaChaveErroDeDuplicidade(ACBrNFe.WebServices.Consulta.XMotivo, true)) = 44)) then begin
@@ -4622,8 +4641,7 @@ begin
     ExtractFileDir(numeroNota));
 end;
 
-procedure Imprimir_DANFE_PDF(numeroNota: String; nnf: String = '';
-  fortes: boolean = true; serie99: string = '1');
+procedure Imprimir_DANFE_PDF(numeroNota: String; nnf: String = ''; fortes: boolean = true; serie99: string = '1');
 var
   ArqPDF, nomeArquivo, canc: string;
 begin

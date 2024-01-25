@@ -766,7 +766,12 @@ end;
 procedure TForm48.DBGrid1KeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
-  if (Shift = [ssCtrl]) and (Key = 46) then Key := 0;
+  if (Shift = [ssCtrl]) and (Key = 46) then begin
+     ShowMessage('Essa Entrada vai ser reiniciada.');
+     DeleteFile(arquivoTemporario);
+     Key := 0;
+     close;
+  end;
 end;
 
 procedure TForm48.DBGrid1KeyPress(Sender: TObject; var Key: Char);
@@ -948,7 +953,9 @@ end;
 
 procedure TForm48.ClientDataSet1AfterPost(DataSet: TDataSet);
 begin
-  salvarArq();
+  if self.Showing then begin
+    salvarArq();
+  end;
 
  { if self.Showing then
     begin

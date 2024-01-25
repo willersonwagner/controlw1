@@ -23,6 +23,7 @@ type
     procedure baixaGagantia;
     procedure excluiGarantia;
     procedure impLancamento;
+    procedure RelGarantiaPorUsuario;
     { Private declarations }
   public
     { Public declarations }
@@ -112,6 +113,10 @@ begin
     else filtro := '';
     abreDataSet;
   end;
+
+  if key = VK_F6 then begin
+    RelGarantiaPorUsuario;
+  end;
 end;
 
 procedure TForm93.FormCreate(Sender: TObject);
@@ -127,6 +132,7 @@ end;
 procedure TForm93.lancaGarantia;
 var
   cod, quant, nota, codGarantia : String;
+  p_venda : currency;
 begin
   nota := funcoes.dialogo('generico', 0, '1234567890' + #8, 100, False, '',
       Application.Title, 'Informe o Número Da Nota:', nota);
@@ -151,9 +157,9 @@ begin
     exit;
   end;
 
-
   cod   := dm.IBselect2.FieldByName('cod').AsString;
   quant := formataCurrency(dm.IBselect2.FieldByName('quant').AsCurrency);
+  p_venda :=  dm.IBselect2.FieldByName('p_venda').AsCurrency;
   dm.IBselect2.Close;
 
   quant := funcoes.dialogo('numero', 2, 'SN', 2, false, 'S', 'Control for Windows:', 'Quantidade:', quant );
@@ -188,7 +194,7 @@ begin
   dm.IBQuery1.ParamByName('cod_prod').AsString       := cod;
   dm.IBQuery1.ParamByName('data_criacao').AsDateTime := DateOf(form22.datamov) + TimeOf(now);
   dm.IBQuery1.ParamByName('usuario').AsString        := form22.codusario;
-  dm.IBQuery1.ParamByName('valor').AsCurrency        := 0;
+  dm.IBQuery1.ParamByName('valor').AsCurrency        := p_venda;
   dm.IBQuery1.ExecSQL;
   dm.IBQuery1.Transaction.Commit;
 
@@ -279,6 +285,89 @@ begin
 
 
   imprime.textx('');
+
+end;
+
+
+procedure TForm93.RelGarantiaPorUsuario;
+var
+  usuario, ini, fim, resumo : String;
+  qtd, total, tot_prod : currency;
+begin
+  usuario := funcoes.dialogo('generico', 0, '1234567890' + #8, 100, False, '',
+      Application.Title, 'Qual o Numero do Usuario:', usuario);
+  if (usuario = '*') or (usuario = '') then exit;
+
+  resumo := funcoes.dialogo('generico', 0, 'SN', 20, False, 'S', Application.Title,
+    'Deseja imprimir somente o resumo ?', 'N');
+  if resumo = '*' then
+    exit;
+
+  ini := funcoes.dialogo('data', 0, '', 2, true, '', Application.Title,
+    'Qual a Data Inicial?', '');
+  if ini = '*' then
+    exit;
+  fim := funcoes.dialogo('data', 0, '', 2, true, '', Application.Title,
+    'Qual a Data Final?', '');
+  if fim = '*' then
+    exit;
+
+
+  dm.IBselect2.Close;
+  dm.IBselect2.SQL.Text := 'select g.cod_prod, g.nota, p.refori, p.nome, g.valor as p_venda, g.quant  from GARANTIA g join produto p on (p.cod = g.cod_prod) where ((g.usuario = :usu) and'+
+  '(cast(g.DATA_FINALIZADO as date) >= :ini) and (cast(g.DATA_FINALIZADO as date) <= :fim) )';
+  dm.IBselect2.ParamByName('usu').AsString := StrNum(usuario);
+  dm.IBselect2.ParamByName('ini').AsDateTime := StrToDate(ini);
+  dm.IBselect2.ParamByName('fim').AsDateTime := StrToDate(fim);
+  dm.IBselect2.Open;
+
+  if dm.IBselect2.IsEmpty then begin
+    ShowMessage('Nenhum registro Encontrado!');
+    dm.IBselect2.Close;
+    exit;
+  end;
+
+  total := 0;
+  qtd   := 0;
+
+  form19.RichEdit1.Clear;
+  addRelatorioForm19(CompletaOuRepete('','','-', 39) + CRLF);
+  addRelatorioForm19('|'+funcoes.centraliza(form22.Pgerais.Values['empresa'], ' ', 37) + '|' + CRLF);
+  addRelatorioForm19('|'+funcoes.centraliza('Relatorio de Garantias', ' ', 37) + '|' + CRLF);
+  addRelatorioForm19('|'+funcoes.centraliza('Usuario: ' + usuario, ' ', 37) + '|' + CRLF);
+  addRelatorioForm19(CompletaOuRepete('','','-', 39) + CRLF);
+  addRelatorioForm19('Codigo    Descricao'+ #13 + #10);
+  addRelatorioForm19('*                  Quant   V.Unit Total'+ #13 + #10);
+
+
+  while not dm.IBselect2.Eof do begin
+    tot_prod := Arredonda(dm.IBselect2.FieldByName('quant').AsCurrency * dm.IBselect2.FieldByName('p_venda').AsCurrency, 2);
+
+    if resumo  = 'N' then begin
+      addRelatorioForm19(funcoes.CompletaOuRepete(copy(dm.IBselect2.FieldByName('REFORI').AsString + '-' + dm.IBselect2.FieldByName
+      ('nome').AsString, 1, 39), '', ' ', 39) + CRLF);
+      addRelatorioForm19(funcoes.CompletaOuRepete(LeftStr(dm.IBselect2.FieldByName('COD_PROD').AsString, 14), '',
+      ' ', 14) + funcoes.CompletaOuRepete('', FormatCurr('0.00',
+      dm.IBselect2.FieldByName('quant').AsCurrency), ' ', 9) +
+      funcoes.CompletaOuRepete('', FormatCurr('0.00',
+      dm.IBselect2.FieldByName('p_venda').AsCurrency), ' ', 8) +
+      funcoes.CompletaOuRepete('', FormatCurr('0.00', tot_prod), ' ',8) + CRLF);
+      addRelatorioForm19(CompletaOuRepete('','','-', 39) + CRLF);
+    end;
+
+    qtd   := qtd + dm.IBselect2.FieldByName('quant').AsCurrency;
+    total := total + tot_prod;
+
+    dm.IBselect2.Next;
+  {addRelatorioForm19('|'+funcoes.centraliza('ASSINATURA', ' ', 37) + '|' + CRLF);
+  addRelatorioForm19(CompletaOuRepete('|', '|', ' ', 39) + CRLF);
+  addRelatorioForm19(CompletaOuRepete('','','-', 39) + CRLF);
+  }end;
+
+  addRelatorioForm19(CompletaOuRepete('Tot Qtd:', formataCurrency(qtd), '.', 19) +' '+ CompletaOuRepete('Tot Reais:', formataCurrency(total), '.', 19));
+
+
+  form19.ShowModal;
 
 end;
 

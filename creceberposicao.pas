@@ -484,7 +484,10 @@ begin
     exit;
   end;
 
-  formapagto := funcoes.LerFormPato(0,'Contas Receber', false);
+  formapagto := funcoes.LerFormPato(0,'Contas Receber F8-Sair', true);
+  if ((formapagto = '') or (formapagto = '*')) then exit;
+  
+
 
   sim := funcoes.dialogo('generico',0,'SN',0,false,'S',Application.Title,'Confirma Baixa de R$ '+valorBaixado+' ?','S') ;
   if sim = '*' then exit;
@@ -638,7 +641,8 @@ begin
     else sim := '*';
 
   if sim <> 'S' then exit;
-  formapagto := funcoes.LerFormPato(0,'Contas Receber', false);
+  formapagto := funcoes.LerFormPato(0,'Contas Receber F8-Sair', true);
+  if ((formapagto = '') or (formapagto = '*')) then exit;
 
   lista := TItensAcumProd.Create;
 

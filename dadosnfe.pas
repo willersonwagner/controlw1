@@ -985,6 +985,11 @@ begin
 
   if ((tipo1 = '7') and (destMercadoria.Text = '1')) then begin
     cfop.Text := '5102';
+
+    cfop.Text := funcoes.buscaParamGeral(96, '5102');
+    if ((trim(cfop.Text) = '') or (length(cfop.Text) <> 4) or (LeftStr(cfop.Text, 1) <> '5')) then
+    cfop.Text := '5102';
+
     UF_DEST := UF_EMI;
     exit;
   end;
@@ -995,6 +1000,12 @@ begin
       cfop.Text := '5102';
       if cupom = 1 then cfop.Text := '5929';
       if finnfe.Text = '4' then cfop.Text := '5202';
+
+      if cfop.Text = '5102' then begin
+        cfop.Text := funcoes.buscaParamGeral(96, '5102');
+        if ((trim(cfop.Text) = '') or (length(cfop.Text) <> 4) or (LeftStr(cfop.Text, 1) <> '5')) then
+        cfop.Text := '5102';
+      end;
     end
     else if tiponfe.Text = 'E' then begin
       cfop.Text := '1102';
@@ -1007,6 +1018,12 @@ begin
       cfop.Text := '6102';
       if cupom = 1 then cfop.Text := '6929';
       if finnfe.Text = '4' then cfop.Text := '6202';
+
+      if cfop.Text = '6102' then begin
+        cfop.Text := funcoes.buscaParamGeral(97, '6102');
+        if ((trim(cfop.Text) = '') or (length(cfop.Text) <> 4) or (LeftStr(cfop.Text, 1) <> '6')) then
+        cfop.Text := '6102';
+      end;
     end
     else begin
       cfop.Text := '2102';

@@ -361,6 +361,8 @@ object dm: Tdm
     CasasDecimais.vUnCom = 2
     CasasDecimais.MaskqCom = ',0.00'
     CasasDecimais.MaskvUnCom = ',0.00'
+    CasasDecimais.Aliquota = 2
+    CasasDecimais.MaskAliquota = ',0.00'
     ACBrNFe = ACBrNFe
     TipoDANFE = tiNFCe
     ImprimeTotalLiquido = True
@@ -405,6 +407,8 @@ object dm: Tdm
     CasasDecimais.vUnCom = 4
     CasasDecimais.MaskqCom = ',0.00'
     CasasDecimais.MaskvUnCom = ',0.00'
+    CasasDecimais.Aliquota = 2
+    CasasDecimais.MaskAliquota = ',0.00'
     ImprimeDescPorPercentual = True
     ExibeCampoFatura = False
     TamanhoLogoHeight = 1
@@ -415,6 +419,9 @@ object dm: Tdm
   object ACBrConsultaCNPJ1: TACBrConsultaCNPJ
     ProxyPort = '8080'
     PesquisarIBGE = False
+    IniServicos = 
+      'C:\Program Files (x86)\Embarcadero\Studio\14.0\bin\ACBrConsultaC' +
+      'NPJServicos.ini'
     Left = 352
     Top = 384
   end
@@ -463,6 +470,8 @@ object dm: Tdm
     CasasDecimais.vUnCom = 2
     CasasDecimais.MaskqCom = ',0.00'
     CasasDecimais.MaskvUnCom = ',0.00'
+    CasasDecimais.Aliquota = 2
+    CasasDecimais.MaskAliquota = ',0.00'
     TipoDANFE = tiSemGeracao
     ImprimeDescAcrescItem = False
     FormularioContinuo = True
@@ -484,7 +493,6 @@ object dm: Tdm
     Configuracoes.WebServices.AguardarConsultaRet = 0
     Configuracoes.WebServices.Tentativas = 10
     Configuracoes.WebServices.QuebradeLinha = '|'
-    Configuracoes.WebServices.SSLType = LT_TLSv1_2
     Configuracoes.RespTec.IdCSRT = 0
     DANFE = DANFE
     Left = 432
@@ -604,6 +612,8 @@ object dm: Tdm
     CasasDecimais.vUnCom = 2
     CasasDecimais.MaskqCom = ',0.00'
     CasasDecimais.MaskvUnCom = ',0.00'
+    CasasDecimais.Aliquota = 2
+    CasasDecimais.MaskAliquota = ',0.00'
     ImprimeTotalLiquido = True
     EspessuraBorda = 1
     BorderIcon = [biSystemMenu, biMinimize, biMaximize]
@@ -701,6 +711,16 @@ object dm: Tdm
     TEFConvCard.ArqSTS = 'C:\ger_convenio\rx\crtsol.ok'
     TEFConvCard.ArqResp = 'C:\ger_convenio\rx\crtsol.001'
     TEFConvCard.GPExeName = 'C:\ger_convcard\convcard.exe'
+    TEFCliSiTefModular.ArqTemp = 'C:\Client\req\intpos.tmp'
+    TEFCliSiTefModular.ArqReq = 'C:\Client\req\intpos.001'
+    TEFCliSiTefModular.ArqSTS = 'C:\Client\resp\intpos.sts'
+    TEFCliSiTefModular.ArqResp = 'C:\Client\resp\intpos.001'
+    TEFCliSiTefModular.GPExeName = 'C:\Client\ClientSiTef.exe'
+    TEFDirecao.ArqTemp = 'C:\TEF_DIAL\req\intpos.tmp'
+    TEFDirecao.ArqReq = 'C:\TEF_DIAL\req\intpos.001'
+    TEFDirecao.ArqSTS = 'C:\TEF_DIAL\resp\intpos.sts'
+    TEFDirecao.ArqResp = 'C:\TEF_DIAL\resp\intpos.001'
+    TEFDirecao.GPExeName = 'C:\DPOS8\Bin\GPDirecao.exe'
     Left = 520
     Top = 312
   end
@@ -755,5 +775,17 @@ object dm: Tdm
     DataSet = ClientDataSet1
     Left = 600
     Top = 144
+  end
+  object ACBrPSPPixPDV1: TACBrPSPPixPDV
+    ACBrPixCD = ACBrPixCD2
+    Scopes = [scCobWrite, scCobRead, scPixWrite, scPixRead]
+    Left = 632
+    Top = 304
+  end
+  object ACBrPixCD2: TACBrPixCD
+    Recebedor.CodCategoriaComerciante = 0
+    PSP = ACBrPSPPixPDV1
+    Left = 632
+    Top = 360
   end
 end

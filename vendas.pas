@@ -111,7 +111,6 @@ type
     procedure DBGrid1KeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure DBGrid2Exit(Sender: TObject);
-    procedure FormKeyPress(Sender: TObject; var Key: Char);
     procedure ClientDataSet1AfterPost(DataSet: TDataSet);
     procedure ClientDataSet1AfterDelete(DataSet: TDataSet);
     procedure DBGrid2DrawColumnCell(Sender: TObject; const Rect: TRect;
@@ -119,6 +118,8 @@ type
     procedure DBGrid1DrawColumnCell(Sender: TObject; const Rect: TRect;
       DataCol: Integer; Column: TColumn; State: TGridDrawState);
     procedure JsEdit1Enter(Sender: TObject);
+    procedure FormKeyPress(Sender: TObject; var Key: Char);
+    procedure ClientDataSet1AfterOpen(DataSet: TDataSet);
 
   private
     l1, l2, l3: TLabel;
@@ -2949,7 +2950,7 @@ begin
           46) + funcoes.CompletaOuRepete('|Fone: ' + dm.IBQuery4.FieldByName
           ('telres').AsString, '', ' ', 29), '|', ' ', tam) + #13 + #10);
         addRelatorioForm19(funcoes.CompletaOuRepete('| Obs: ' +
-          dm.IBQuery4.FieldByName('obs').AsString, '|', ' ', tam) + #13 + #10);
+          LeftStr(dm.IBQuery4.FieldByName('obs').AsString, 70), '|', ' ', tam) + #13 + #10);
       end;
       dm.IBQuery4.Close;
     end;
@@ -6236,7 +6237,6 @@ var
   sub, subTot: currency;
   ordem1: TOrdem;
 begin
-
   // toda letra será convertida para maiuscula
   Key := UpCase(Key);
   // se o clientDataSet estiver vazio pode sair do dbgrid
@@ -7842,6 +7842,11 @@ begin
   escrveValor;
 end;
 
+procedure TForm20.ClientDataSet1AfterOpen(DataSet: TDataSet);
+begin
+  funcoes.resizeCamposIdividualDBGRID(DBGrid2);
+end;
+
 procedure TForm20.ClientDataSet1AfterPost(DataSet: TDataSet);
 begin
   escrveValor;
@@ -8173,6 +8178,21 @@ begin
   end;
 end;
 
+procedure TForm20.FormKeyPress(Sender: TObject; var Key: Char);
+begin
+  if Key = '+' then
+  begin
+    if form22.Pgerais.Values['empresa'] = 'LIFENUTRE' then funcoes.aumentaFonte1(self, true, 1)
+      else funcoes.aumentaFonte(self, true, 1);
+  end;
+
+  if Key = '-' then
+  begin
+    if form22.Pgerais.Values['empresa'] = 'LIFENUTRE' then funcoes.aumentaFonte1(self, true, 2)
+    else funcoes.aumentaFonte(self, true, 2);
+  end;
+end;
+
 procedure TForm20.DBGrid2Exit(Sender: TObject);
 begin
   // if Compra = false then DBGrid2.Enabled := false;
@@ -8248,19 +8268,6 @@ end;
 procedure TForm20.escrveValor();
 begin
   total.Caption := formataCurrency(somaValor);
-end;
-
-procedure TForm20.FormKeyPress(Sender: TObject; var Key: Char);
-begin
-  if Key = '+' then
-  begin
-    funcoes.aumentaFonte(self, true, 1);
-  end;
-
-  if Key = '-' then
-  begin
-    funcoes.aumentaFonte(self, true, 2);
-  end;
 end;
 
 procedure TForm20.FiltraCompraPorFornec();

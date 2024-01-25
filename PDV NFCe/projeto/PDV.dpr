@@ -41,7 +41,8 @@ uses
   untnfceForm in '..\..\untnfceForm.pas' {Form72},
   Unit14 in 'Unit14.pas' {Form14},
   qrcodePIX in 'qrcodePIX.pas' {Form84},
-  pagamento in 'pagamento.pas' {Form82};
+  pagamento in 'pagamento.pas' {Form82},
+  Unit15 in 'Unit15.pas' {Form15};
 
 {$R *.res}
 var
@@ -69,6 +70,7 @@ begin
   Application.CreateForm(TForm84, Form84);
   Application.CreateForm(TForm84, Form84);
   Application.CreateForm(TForm82, Form82);
+  Application.CreateForm(TForm15, Form15);
   //Application.CreateForm(TForm65, Form65);
   //Application.CreateForm(TcadCliNFCe, cadCliNFCe);
   CtrlResize(tform(form33));

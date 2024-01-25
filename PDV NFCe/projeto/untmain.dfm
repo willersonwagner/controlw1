@@ -22,8 +22,6 @@ object frmMain: TfrmMain
   OnCreate = FormCreate
   OnKeyPress = FormKeyPress
   OnShow = FormShow
-  ExplicitWidth = 320
-  ExplicitHeight = 240
   PixelsPerInch = 96
   TextHeight = 13
   object stb: TStatusBar
@@ -133,6 +131,10 @@ object frmMain: TfrmMain
         object AtualizarTabelaIBPT1: TMenuItem
           Caption = 'Atualizar Tabela IBPT'
           OnClick = AtualizarTabelaIBPT1Click
+        end
+        object ConfiguraesPIX1: TMenuItem
+          Caption = 'Configura'#231#245'es PIX'
+          OnClick = ConfiguraesPIX1Click
         end
       end
       object ConfigurarECF1: TMenuItem

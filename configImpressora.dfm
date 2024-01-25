@@ -97,7 +97,7 @@ object Form52: TForm52
     Top = 0
     Width = 319
     Height = 326
-    ActivePage = TabSheet1
+    ActivePage = TabSheet2
     Align = alClient
     TabOrder = 1
     object TabSheet1: TTabSheet
@@ -378,9 +378,12 @@ object Form52: TForm52
       end
       object matri: TRadioButton
         Left = 16
-        Top = 168
+        Top = 139
         Width = 113
         Height = 17
+        Hint = 
+          'Para Comunica'#231#227'o em LPT1, direta no compartilhamento. deve funci' +
+          'onar em impressoras argox n'#227'o usb'
         Caption = 'Matricial'
         Checked = True
         TabOrder = 0
@@ -388,9 +391,12 @@ object Form52: TForm52
       end
       object usb: TRadioButton
         Left = 16
-        Top = 184
+        Top = 158
         Width = 113
         Height = 17
+        Hint = 
+          'Funciona em Impressoras USB  em comunica'#231#227'o por buffer. Em porta' +
+          ' coloque RAW:IMPRESSORA'
         Caption = 'USB'
         TabOrder = 1
       end
@@ -421,6 +427,7 @@ object Form52: TForm52
         Top = 24
         Width = 209
         Height = 21
+        Hint = 'Se for USB coloque RAW:Nome_IMP ou USB:Nome_IMP'
         ItemIndex = 5
         TabOrder = 4
         Text = '\\localhost\ZEBRA'
@@ -440,23 +447,32 @@ object Form52: TForm52
         Top = 112
         Width = 209
         Height = 21
-        ItemIndex = 1
         TabOrder = 5
         Text = '3 Colunas'
         OnKeyPress = ComboBox1KeyPress
         Items.Strings = (
           'Simples'
           '3 Colunas'
-          'Bloco de Etiqueta')
+          'Bloco de Etiqueta'
+          '2 Colunas'
+          '4 Colunas'
+          '')
+      end
+      object outro: TRadioButton
+        Left = 16
+        Top = 179
+        Width = 113
+        Height = 17
+        Hint = 
+          'Funciona em Impressoras USB  em comunica'#231#227'o por buffer. Em porta' +
+          ' coloque RAW:IMPRESSORA'
+        Caption = 'Outro'
+        TabOrder = 6
       end
     end
     object TabSheet3: TTabSheet
       Caption = 'Balan'#231'a'
       ImageIndex = 2
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Label12: TLabel
         Left = 15
         Top = 14

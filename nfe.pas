@@ -1122,8 +1122,9 @@ begin
    end;
 
   dm.IBselect.Close;
-  dm.IBselect.SQL.Text := 'select n.nota, d.CHAVENFE as chave from entrada n left join speddadosadic d on (d.nota = n.nota) where'+
-  ' right(extract(year from n.data), 2)|| lpad(extract(month from n.data), 2, 0) = :ini';
+  dm.IBselect.SQL.Text := 'select n.nota, d.CHAVENFE as chave from entrada n left join speddadosadic d on (d.nota = n.nota) and (d.fornec = n.fornec) '+
+  ' where'+
+  ' right(extract(year from n.chegada), 2)|| lpad(extract(month from n.chegada), 2, 0) = :ini';
   dm.IBselect.ParamByName('ini').AsString := FormatDateTime('yy', StrToDate(ini)) +  FormatDateTime('mm', StrToDate(ini));
   dm.IBselect.Open;
   dm.IBselect.FetchAll;

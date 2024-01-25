@@ -16,7 +16,7 @@ uses
   TLHelp32, PsAPI, ACBrCargaBal, pcnConversaoNFe,
   pcnConversao, System.Zip, ACBrMail
   , IdMultipartFormData, cadClicompleto, IBX.IBServices, mmsystem, ACBrUtil, RLReport,
-  FireDAC.Stan.Intf, calculadora;
+  FireDAC.Stan.Intf, calculadora, ACBrETQClass;
 
 const
   OffsetMemoryStream: Int64 = 0;
@@ -196,6 +196,7 @@ type
     enviandoCupom, enviandoBackup: boolean;
     fonteRelatorioForm19: integer;
     NegritoRelatorioForm19, saiComEnter: boolean;
+    procedure resizeCamposIdividualDBGRID(var dbgridi : TDBGrid);
     function LimpaNomes(nome : String) : String;
     FUNCTION ALIQ_INTEREST_ENTRADA(ESTADO_EMIT : String) : currency;
     procedure RotinaImportarListaMWM;
@@ -388,6 +389,8 @@ type
     procedure gravaAlteracao(altera: String; tipo : String = '');
     function buscaParamGeral(indice: integer; deafault: String): String;
     procedure aumentaFonte(formula: TForm; dbgridr: boolean; opcao: integer;
+      redimensionar: boolean = False);
+    procedure aumentaFonte1(formula: TForm; dbgridr: boolean; opcao: integer;
       redimensionar: boolean = False);
     procedure adicionaRegistrosBloqueio();
     procedure dbgrid1Registro(var dbgrid44: TDBGrid);
@@ -5523,7 +5526,9 @@ begin
   form48.DBGrid1.DataSource := form48.DataSource1;
 
   form48.ClientDataSet1.CreateDataSet;
-  form48.arquivoTemporario := caminhoEXE_com_barra_no_final + cnpjFOR +'_' + nota + '_'+Le_Nodo('serie', xml.GetText)+'.xml';
+  form48.arquivoTemporario  := caminhoEXE_com_barra_no_final + cnpjFOR +'_' + nota + '_'+Le_Nodo('serie', xml.GetText)+'.xml';
+
+  //ShowMessage(form48.arquivoTemporario);
 
 
   FormataCampos(TFDQuery(form48.ClientDataSet1), 3, '', 3);
@@ -5729,12 +5734,19 @@ begin
 
   form48.Label5.caption := 'Nota: ' + nota;
   form48.Label6.caption := 'Total R$: ' + FormatCurr('#,###,###0.00',
-    form48.ClientDataSet1.FieldByName('TOTnota').AsCurrency);
+  form48.ClientDataSet1.FieldByName('TOTnota').AsCurrency);
   form48.Label7.caption := 'Fornecedor: ' + form48.fornecedor + ' - ' + forn;
  
   if FileExists(form48.arquivoTemporario) then begin
     form48.ClientDataSet1.Close;
-    form48.ClientDataSet1.LoadFromFile(form48.arquivoTemporario);
+    try
+      form48.ClientDataSet1.LoadFromFile(form48.arquivoTemporario);
+    except
+      on e:exception do begin
+        ShowMessage('Ocorreu um erro em carregar informações de entrada e ela será reiniciada!');
+        DeleteFile(form48.arquivoTemporario);
+      end;
+    end;
   end;
 
   form48.Width := screen.Width - trunc(screen.Width * 0.1);
@@ -15588,7 +15600,7 @@ begin
           46) + funcoes.CompletaOuRepete('|Fone: ' + dm.ibquery4.FieldByName
           ('telres').AsString, '', ' ', 29), '|', ' ', tam) + #13 + #10);
         addRelatorioForm19(funcoes.CompletaOuRepete('| Obs: ' +
-          dm.ibquery4.FieldByName('obs').AsString, '|', ' ', tam) + #13 + #10);
+          LeftStr(dm.ibquery4.FieldByName('obs').AsString, 70), '|', ' ', tam) + #13 + #10);
       end;
       dm.ibquery4.Close;
     end;
@@ -20512,6 +20524,101 @@ begin
   arq.SaveToFile(caminhoEXE_com_barra_no_final + 'fonte.dat');
 end;
 
+
+procedure Tfuncoes.aumentaFonte1(formula: TForm; dbgridr: boolean;
+  opcao: integer; redimensionar: boolean = False);
+var
+  ini, fim, tu, idx, acc: integer;
+  fi: Smallint;
+  form: String;
+  arq: tstringList;
+  tamDBGR, tam: String;
+begin
+  { OPCAO
+    0 - ler
+    1 - aumenta
+    2 - diminui
+  }
+
+  arq := tstringList.Create;
+  if FileExists(caminhoEXE_com_barra_no_final + 'fonte.dat') then
+  begin
+    arq.LoadFromFile(caminhoEXE_com_barra_no_final + 'fonte.dat');
+  end
+  else
+  begin
+    arq.SaveToFile(caminhoEXE_com_barra_no_final + 'fonte.dat');
+  end;
+
+  tam := arq.Values[formula.Name];
+
+  idx := 0;
+
+  fim := formula.ComponentCount - 1;
+  for ini := 0 to fim do
+  begin
+    form := UpperCase(formula.Components[ini].ClassName);
+    if dbgridr //and (not((UpperCase(formula.Components[ini].Name) = 'DBGRID2')
+      and (UpperCase(formula.Name) = 'FORM20') then
+    begin
+      if (form = 'TDBGRID') then
+      begin
+        idx := ini;
+        tu  := StrToIntDef(LerConfig(tam, 0), TDBGrid(formula.Components[ini]).Font.Size);
+        if opcao = 1 then begin
+          if tu < 30 then tu := tu + 1;
+        end
+        else if opcao = 2 then begin
+          if tu > 10 then tu := tu - 1;
+        end;
+
+        if opcao = 0 then
+        begin
+          TDBGrid(formula.Components[ini]).Font.Size := tu;
+          TDBGrid(formula.Components[ini]).Font.Style := [fsbold];
+        end
+        else
+        begin
+          TDBGrid(formula.Components[ini]).Font.Size := tu;
+          //tu := tu + 1;
+        end;
+        // exit;
+      end;
+    end
+    else
+    begin
+
+    end;
+  end;
+
+  acc := 0;
+  if redimensionar then
+  begin
+    // if idx <> 0 then
+    // begin
+    fim := TDBGrid(formula.Components[idx]).Columns.count - 1;
+    for ini := 0 to fim do
+    begin
+      acc := acc + TDBGrid(formula.Components[idx]).Columns[ini].Width;
+    end;
+    if acc > screen.Width then
+    begin
+      formula.Width := screen.Width - trunc(screen.Width * 0.1);
+    end
+    else
+      formula.Width := acc + 30;
+
+    formula.Position := poScreenCenter;
+
+    // end;
+  end;
+
+  tam := '-0- -1- -2- -3- -4- -5- -6- -7- -8-';
+  arq.Values[formula.Name] := GravarConfig(tam, IntToStr(tu), 0);
+  DeleteFile(caminhoEXE_com_barra_no_final + 'fonte.dat');
+  arq.SaveToFile(caminhoEXE_com_barra_no_final + 'fonte.dat');
+end;
+
 function Tfuncoes.buscaParamGeral(indice: integer; deafault: String): String;
 begin
   Result := '';
@@ -20647,18 +20754,17 @@ begin
     Result := '';
     while true do
     begin
-      if StrNum(Result) = '0' then
-      begin
+      if StrNum(Result) = '0' then begin
         if MessageDlg
           ('O Cliente é Obrigatório para Vendas acima de 10mil Reais, Favor Cadastre um Cliente! Deseja Continuar ?',
-          mtInformation, [mbYes, mbNo], 1) = idno then
-        begin
+          mtInformation, [mbYes, mbNo], 1) = idno then begin
           Result := 'x';
           exit;
         end;
       end;
+
       if StrNum(Result) <> '0' then begin
-        if VerificaDadosBasicosCliente(Result) then begin
+        if VerificaDadosBasicosCliente(Result) = false then begin
           erro := '';
 
           if Result = '-1' then begin
@@ -20676,10 +20782,16 @@ begin
 
           Result := '0';
 
-          if erro <> '' then ShowMessage('O Cadastro do Cliente contem Erros, verifique: ' + #13 + erro);
-          exit;
+          if erro <> '' then begin
+            ShowMessage('O Cadastro do Cliente contem Erros, verifique: ' + #13 + erro);
+          end;
+        end
+        else begin
+          ShowMessage('erro1');
         end;
       end;
+
+
       if StrNum(Result) = '0' then
       begin
         cadCliNFCe := tcadCliNFCe.Create(self);
@@ -23395,7 +23507,7 @@ begin
   dm.ibquery4.Close;
   dm.ibquery4.SQL.text :=
     ('select i.nota,i.fornec,sum(i.total) as total, e.total_nota from item_entrada i join '
-    + 'entrada e on (e.nota||e.fornec||e.SERIE = i.nota||i.fornec||i.serie) where e.chegada >= :dataini AND e.chegada <= :datafim '
+    + 'entrada e on (e.nota||e.fornec||e.SERIE = i.nota||i.fornec||i.serie) where e.chegada >= :dataini AND e.chegada <= :datafim and xml = ''S'' '
     + 'group by i.nota, i.fornec, e.total_nota');
   { FORMATACAO DA DATA PARA ddmmyy }
   dm.ibquery4.ParamByName('dataini').AsDateTime := StrToDate(ini);
@@ -27677,14 +27789,17 @@ end;
 FUNCTION Tfuncoes.IMP_CODBAR(const cod: String): boolean;
 VAR
   _CB, _REF, linha, qtd, _PV, _COD, imp, _localiza: String;
-  LIDO, posi, ini, fim, tam, tam1: integer;
+  LIDO, posi, ini, fim, tam, tam1, qtdETQ: integer;
   hand, arqTXT: tstringList;
-  codbarValido : boolean;
+  codbarValido, variasCOMANDOS : boolean;
+  i: Integer;
 begin
   qtd := funcoes.dialogo('generico', 0, '1234567890' + #8, 0, False, '',
     'Control For Windows', 'Quantas Etiquetas Imprimir ?', '3');
   if qtd = '*' then
     exit;
+
+  variasCOMANDOS := false;
 
   form39 := tform39.Create(self);
   funcoes.CtrlResize(TForm(form39));
@@ -27711,6 +27826,8 @@ begin
     end;
 
   }
+
+
   dm.IBselect.Close;
   dm.IBselect.SQL.text := 'select * from produto where cod = :cod';
   dm.IBselect.ParamByName('cod').AsInteger := StrToIntDef(cod, 0);
@@ -27763,12 +27880,29 @@ begin
     exit;
   end;
 
+  qtdETQ := StrToIntDef(funcoes.LerConfig(form22.Pgerais.Values['imp'], 12), 0);
+
+  //ShowMessage(funcoes.LerConfig(form22.Pgerais.Values['imp'], 12));
+  if qtdETQ = 0 then qtdETQ := 1
+  else if qtdETQ = 1 then qtdETQ := 3
+  else if qtdETQ = 2 then qtdETQ := 1
+  else if qtdETQ = 3 then qtdETQ := 2
+  else if qtdETQ = 4 then qtdETQ := 4
+  else qtdETQ := 3;
+
+
 
   if funcoes.lista1 = '0' then begin
-    qtd := iif(StrToCurrDef(qtd, 0) / 3 = trunc(StrToCurrDef(qtd, 0) / 3),
-    CurrToStr(StrToCurrDef(qtd, 0) / 3),
-    CurrToStr(trunc(StrToCurrDef(qtd, 0) / 3) + 1));
+    qtd := iif(StrToCurrDef(qtd, 0) / qtdETQ = trunc(StrToCurrDef(qtd, 0) / qtdETQ),
+    CurrToStr(StrToCurrDef(qtd, 0) / qtdETQ),
+    CurrToStr(trunc(StrToCurrDef(qtd, 0) / qtdETQ) + 1));
   end;
+
+  if variasCOMANDOS then begin
+    qtdETQ := StrToInt(qtd);
+    qtd    := '1';
+  end;
+  
 
   hand.LoadFromFile(iif(lista1 = '0', caminhoEXE_com_barra_no_final +
     'JS000041.dat', caminhoEXE_com_barra_no_final + 'JS000042.dat'));
@@ -27824,6 +27958,7 @@ begin
     linha := troca_str(linha, 'PRECO', _PV);
 
     linha := troca_str(linha, 'PREC1', FormatCurr('#,###,###0.00', arredondaTRUNCA(dm.IBselect.FieldByName('p_venda').AsCurrency - (dm.IBselect.FieldByName('p_venda').AsCurrency * (StrToCurr(buscaParamGeral(28, '1')) /100)), 2)));
+    linha := troca_str(linha, 'PREC2', FormatCurr('#,###,###0.00', arredondaTRUNCA(dm.IBselect.FieldByName('p_venda').AsCurrency - (dm.IBselect.FieldByName('p_venda').AsCurrency * (StrToCurr(buscaParamGeral(29, '1')) /100)), 2)));
     linha := troca_str(linha, 'REFORI', _REF);
     linha := troca_str(linha, 'XQTD', STRZERO(qtd, 4));
     linha := troca_str(linha, 'xqtd', qtd);
@@ -27853,6 +27988,36 @@ begin
     exit;
   end;
 
+
+  if LerConfig(form22.Pgerais.Values['imp'], 9) = 'X' then
+  begin
+    //ShowMessage(dm.ACBrETQ1.Porta + #13 + dm.ACBrETQ1.ModeloStr);
+
+    imprime.AtivarACBrETQ;
+    dm.ACBrETQ1.DefinirCor(clBlue, 0, 0, 0);
+
+    for i := 0 to arqTXT.Count -1 do begin
+      linha := arqTXT[i];
+      if Contido('D', linha) then dm.ACBrETQ1.ListaCmd.Add(linha)
+      //if false then begin
+      //end
+      else begin
+        if Length(linha) > 15 then begin
+          if Contido('F', linha) then dm.ACBrETQ1.ImprimirBarras(orNormal, 'F', copy(linha, 3, 1 ), copy(linha, 4, 1 ), StrToInt(copy(linha, 8, 4 )), StrToInt(copy(linha, 12, 4 )), copy(linha, 16, length(linha) - 15), StrToInt(copy(linha, 5, 3 )))
+          else dm.ACBrETQ1.ImprimirTexto(orNormal,  StrToInt(copy(linha, 2, 1 )), StrToInt(copy(linha, 3, 1 )), StrToInt(copy(linha, 4, 1 )), StrToInt(copy(linha, 8, 4 )), StrToInt(copy(linha, 12, 4 )), copy(linha, 16, length(linha) - 15));
+
+          //ShowMessage('12-4='+copy(linha, 12, 4 ) +#13 +copy(linha, 8, 4 ));
+        end;
+      end;
+    end;
+
+    //dm.ACBrETQ1.ListaCmd.Add(linha);
+    //dm.ACBrETQ1.FinalizarEtiqueta(1, 20);
+    dm.ACBrETQ1.Imprimir(StrToInt(qtd), 0);
+    dm.ACBrETQ1.Desativar;
+    exit;
+  end;
+
   if imp = '' then
     imp := 'LPT1';
 
@@ -27863,16 +28028,31 @@ begin
   if (StrToCurrDef(qtd, 0) / 3) <> Int(StrToCurrDef(qtd, 0) / 3) then
     posi := posi + 1;
 
-  // for tam1 := 1 to posi do begin
-  try
-    arqTXT.SaveToFile(imp);
-  except
-    on e: exception do
-    begin
-      ShowMessage('Erro: ' + e.Message);
-    end;
+  if variasCOMANDOS then begin
+
+
+
+   for tam1 := 1 to qtdETQ do begin
+     //ShowMessage(IntToStr(tam1));
+     try
+       arqTXT.SaveToFile(imp);
+     except
+       on e: exception do begin
+         ShowMessage('Erro: ' + e.Message);
+       end;
+     end;
+   end;
+
+  end
+  else begin
+    try
+       arqTXT.SaveToFile(imp);
+     except
+       on e: exception do begin
+         ShowMessage('Erro: ' + e.Message);
+       end;
+     end;
   end;
-  // end;
 
   dm.IBselect.Close;
 
@@ -32197,6 +32377,20 @@ function Tfuncoes.LimpaNomes(nome : String) : String;
 begin
   Result := trim(nome);
   if Contido('|', Result) then Result := StringReplace(Result, '|', '', [rfReplaceAll]);
+end;
+
+procedure Tfuncoes.resizeCamposIdividualDBGRID(var dbgridi : TDBGrid);
+var
+  i : integer;
+  arq : TStringList;
+begin
+  arq := TStringList.Create;
+
+
+  for I := 0 to dbgridi.Columns.Count -1 do begin
+    //ShowMessage(dbgridi.Columns.Items[i].FieldName);
+  end;
+
 end;
 
 

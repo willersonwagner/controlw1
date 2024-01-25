@@ -325,7 +325,7 @@ procedure Tacerto.DOCUMENTOKeyUp(Sender: TObject; var Key: Word;
 begin
   if key = 116 then
     begin
-      DOCUMENTO.Text := funcoes.localizar('Localizar Acerto','acerto a left join produto p on (a.codigo = p.cod)','documento,data, cod, p.nome,a.quant as loja, a.deposito, a.usuario','documento','','acerto_seq','acerto_seq',false,false,false,'',600, nil);
+      DOCUMENTO.Text := funcoes.localizar('Localizar Acerto','acerto a left join produto p on (a.codigo = p.cod)','documento,data, cod, p.nome,a.quant as loja, a.deposito, a.usuario','documento','','acerto_seq','acerto_seq desc',false,false,false,'',600, nil);
     end;
 end;
 

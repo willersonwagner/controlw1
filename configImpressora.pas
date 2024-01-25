@@ -45,6 +45,7 @@ type
     TabSheet3: TTabSheet;
     cbxModelo: TComboBox;
     Label12: TLabel;
+    outro: TRadioButton;
     procedure FormShow(Sender: TObject);
     procedure JsBotao1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -107,8 +108,9 @@ begin
 
  if distancia.Text = '' then distancia.Text := '300';
 
- if funcoes.LerConfig(valor, 9) <> 'U' then matri.Checked := true
-   else usb.Checked := true;
+ if funcoes.LerConfig(valor, 9) = 'M' then matri.Checked := true
+  else if funcoes.LerConfig(valor, 9) = 'U' then usb.Checked := true
+  else if funcoes.LerConfig(valor, 9) = 'X' then outro.Checked := true;
 end;
 
 {
@@ -125,7 +127,7 @@ end;
 function TForm52.salvaConfig() : String;
 var
   arq : TStringList;
-  tt  : string;
+  tt, tipo  : string;
 begin
   tmp := '-0- -1- -2- -3- -4- -5- -6- -7- -8- -9- -10- -11- -12- -13- -14- -15- -16- -17- -18- ' +
   '-19- -20- -';
@@ -145,7 +147,12 @@ begin
 
   tmp := GravarConfig(tmp, JsEditInteiro4.Text,           7);
   tmp := GravarConfig(tmp, impressCodBar.Text, 8);
-  tmp := GravarConfig(tmp, IfThen(matri.Checked, 'M', 'U')  , 9);
+  if matri.Checked then      tipo := 'M'
+  else if usb.Checked then   tipo := 'U'
+  else if outro.Checked then tipo := 'X';
+
+
+  tmp := GravarConfig(tmp, tipo  , 9);
   tmp := GravarConfig(tmp, IntToStr(modelo.ItemIndex), 10);
   tmp := GravarConfig(tmp, distancia.Text, 11);
   tmp := GravarConfig(tmp, IntToStr(tipoEtiqueta.ItemIndex), 12);

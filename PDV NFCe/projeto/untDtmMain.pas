@@ -17,7 +17,10 @@ uses
   FireDAC.Stan.Async, FireDAC.DApt, FireDAC.UI.Intf, FireDAC.Stan.Def,
   FireDAC.Stan.Pool, FireDAC.Phys, FireDAC.Phys.FB, FireDAC.Comp.Client,
   ACBrNFeDANFEFR, FireDAC.Comp.DataSet, FireDAC.VCLUI.Wait, FireDAC.Comp.UI,
-  ACBrGAV;
+  ACBrGAV, ACBrPIXPSPInter, ACBrPIXPSPBradesco, ACBrPIXPSPGerenciaNet,
+  ACBrPIXPSPPagSeguro, ACBrPIXPSPShipay, ACBrPIXPSPSantander,
+  ACBrPIXPSPBancoDoBrasil, ACBrPIXCD, ACBrPIXPSPItau, ACBrPIXPSPPixPDV,
+  ACBrPIXPSPCielo, acbrpixutil, ACBrOpenSSLUtils;
 
 type
   TdtmMain = class(TDataModule)
@@ -51,7 +54,27 @@ type
     FDGUIxWaitCursor1: TFDGUIxWaitCursor;
     ACBrGAV1: TACBrGAV;
     FDTransaction1: TFDTransaction;
+    ACBrPixCD1: TACBrPixCD;
+    ACBrPSPPixPDV1: TACBrPSPPixPDV;
+    ACBrPSPItau1: TACBrPSPItau;
+    ACBrPSPBancoDoBrasil1: TACBrPSPBancoDoBrasil;
+    ACBrPSPSantander1: TACBrPSPSantander;
+    ACBrPSPShipay1: TACBrPSPShipay;
+    ACBrPSPPagSeguro1: TACBrPSPPagSeguro;
+    ACBrPSPGerenciaNet1: TACBrPSPGerenciaNet;
+    ACBrPSPBradesco1: TACBrPSPBradesco;
+    ACBrPSPInter1: TACBrPSPInter;
+    ACBrPSPCielo1: TACBrPSPCielo;
+    ACBrOpenSSLUtils1: TACBrOpenSSLUtils;
     procedure DataModuleCreate(Sender: TObject);
+    procedure ACBrPSPPixPDV1QuandoReceberRespostaHttp(const AURL,
+      AMethod: string; RespHeaders: TStrings; var AResultCode: Integer;
+      var RespostaHttp: AnsiString);
+    procedure ACBrPSPGerenciaNet1QuandoTransmitirHttp(var AURL, AMethod: string;
+      ReqHeaders: TStrings; ReqBody: AnsiString);
+    procedure ACBrPSPGerenciaNet1QuandoReceberRespostaHttp(const AURL,
+      AMethod: string; RespHeaders: TStrings; var AResultCode: Integer;
+      var RespostaHttp: AnsiString);
   private    { Private declarations }
     procedure LerDadosArquivo();
   public     { Public declarations }
@@ -84,7 +107,7 @@ const
 implementation
 
 uses FileCtrl, pcnNFe, pcnConversao, ACBrNFeNotasFiscais, DateUtils,
-  frmStatus, dialog, untConfiguracoesNFCe;
+  frmStatus, dialog, untConfiguracoesNFCe, Unit15;
 
 {$R *.DFM}
 
@@ -415,6 +438,27 @@ begin
   sincronizaNFCe;
 
   if BD_Servidor.Connected then BD_Servidor.Connected := false; 
+end;
+
+procedure TdtmMain.ACBrPSPGerenciaNet1QuandoReceberRespostaHttp(const AURL,
+  AMethod: string; RespHeaders: TStrings; var AResultCode: Integer;
+  var RespostaHttp: AnsiString);
+begin
+  form15.mLog.Lines.Add(AURL + #13+ #13 + AMethod + #13+ #13 + RespHeaders.Text + #13+ #13 + RespostaHttp + #13 +
+  '-----------------------------------------')
+end;
+
+procedure TdtmMain.ACBrPSPGerenciaNet1QuandoTransmitirHttp(var AURL,
+  AMethod: string; ReqHeaders: TStrings; ReqBody: AnsiString);
+begin
+  form15.mLog.Lines.Add(AURL + #13+ #13 + AMethod + #13+ #13 + ReqHeaders.Text + #13+ #13 + ReqBody + '************************************************')
+end;
+
+procedure TdtmMain.ACBrPSPPixPDV1QuandoReceberRespostaHttp(const AURL,
+  AMethod: string; RespHeaders: TStrings; var AResultCode: Integer;
+  var RespostaHttp: AnsiString);
+begin
+  form15.mLog.Lines.Add(RespostaHttp);
 end;
 
 procedure TdtmMain.ajustaHoraPelaInternet();

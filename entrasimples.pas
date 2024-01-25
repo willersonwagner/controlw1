@@ -14,25 +14,37 @@ uses
 type
   TForm17 = class(TForm)
     Panel1: TPanel;
+    produto: TLabel;
+    Label13: TLabel;
+    IBQuery1: TFDQuery;
+    DataSource1: TDataSource;
+    IBTransaction2: TFDTransaction;
+    BalloonHint1: TBalloonHint;
+    Panel2: TPanel;
+    tot: TLabel;
+    totXML: TLabel;
     Label1: TLabel;
+    Label4: TLabel;
+    Label8: TLabel;
     Label2: TLabel;
     Label3: TLabel;
-    Label4: TLabel;
-    Label5: TLabel;
-    Label6: TLabel;
     Label7: TLabel;
     Label9: TLabel;
+    Label5: TLabel;
     Label10: TLabel;
     Label11: TLabel;
+    Label6: TLabel;
     Label12: TLabel;
-    produto: TLabel;
     codigo: JsEditInteiro;
     fornec: JsEditInteiro;
+    serie1: JsEditInteiro;
     data: JsEditData;
     chegada: JsEditData;
     codbar: JsEdit;
     quant: JsEditNumero;
     GroupBox1: TGroupBox;
+    baseicm: JsEditNumero;
+    credicm: JsEditNumero;
     GroupBox2: TGroupBox;
     basedeb: JsEditNumero;
     debicm: JsEditNumero;
@@ -45,19 +57,9 @@ type
     info: TLabel;
     JsBotao1: JsBotao;
     DBGrid2: TDBGrid;
-    Label13: TLabel;
-    baseicm: JsEditNumero;
-    credicm: JsEditNumero;
     agreg: JsEditNumero;
-    IBQuery1: TFDQuery;
-    DataSource1: TDataSource;
-    IBTransaction2: TFDTransaction;
-    Panel2: TPanel;
-    tot: TLabel;
-    totXML: TLabel;
     DESC_COMP: JsEditNumero;
     ICMS_SUBS: JsEditNumero;
-    BalloonHint1: TBalloonHint;
     procedure Edit11KeyUp(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure codigoKeyPress(Sender: TObject; var Key: Char);
@@ -101,6 +103,8 @@ type
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure DBGrid2MouseMove(Sender: TObject; Shift: TShiftState; X,
       Y: Integer);
+    procedure serie1KeyPress(Sender: TObject; var Key: Char);
+    procedure dataKeyPress(Sender: TObject; var Key: Char);
 
   private
     cont:integer;
@@ -132,6 +136,7 @@ type
     procedure acertaPrecoDeVenda();
     procedure abreListaFormacao(linha : integer);
     procedure alinhaCampos;
+    procedure teclaEsc;
 
     { Private declarations }
   public
@@ -413,7 +418,7 @@ function TForm17.buscaDadosNota_e_preencheCampos(nota : String) : boolean;
 var
   serieaql : String;
 begin
-  if serie = '' then serieaql := ' and (serie is null)'
+  if serie = '' then serieaql := ' and ((serie is null) or (trim(serie) = ''''))'
   else serieaql := ' and (serie = '+QuotedStr(serie)+')';
 
   dm.IBQuery1.SQL.Clear;
@@ -558,6 +563,8 @@ procedure TForm17.abreDataSet;
 var
   serieaql : String;
 begin
+  serie := serie1.Text;
+
   if serie = '' then serieaql := ' and((a.serie is null) or (trim(a.serie) = ''''))'
   else serieaql := ' and (a.serie = '+QuotedStr(serie)+')';
 
@@ -584,47 +591,46 @@ begin
     IBQuery1.FieldByName('codbar').DisplayLabel := 'Ref. Original';
   end;
 
-
   DBGrid2.DataSource := DataSource1;
 
-  TcurrencyField(IBQuery1.FieldByName('p_compra')).DisplayFormat := '###,##0.0000000000';
-  TcurrencyField(IBQuery1.FieldByName('quant')).DisplayFormat := '###,##0.0000000000';
+  TcurrencyField(IBQuery1.FieldByName('p_compra')).DisplayFormat  := '###,##0.0000000000';
+  TcurrencyField(IBQuery1.FieldByName('quant')).DisplayFormat     := '###,##0.0000000000';
   TcurrencyField(IBQuery1.FieldByName('CRED_ICMS')).DisplayFormat := '###,##0.00';
   alinhaCampos;
 end;
 
 procedure TForm17.limpaCampos;
 begin
-  quant.Text := '0,00';
+  quant.Text   := '0,00';
   credicm.Text := '0,00';
   baseicm.Text := '0,00';
   basedeb.Text := '0,00';
   baseicm.Text := '0,00';
-  encargos.Text := '0,00';
-  frete.Text := '0,00';
-  p_venda.Text := '0,00';
-  lucro.Text := '0,00';
-  p_compra.Text := '0,00';
-  codbar.Text := '';
+  encargos.Text  := '0,00';
+  frete.Text     := '0,00';
+  p_venda.Text   := '0,00';
+  lucro.Text     := '0,00';
+  p_compra.Text  := '0,00';
+  codbar.Text    := '';
 end;
 
 procedure TForm17.limpaCamposGeral;
 begin
-  codigo.Text := '';
-  fornec.Text := '';
-  chegada.Text := '';
-  data.Text := '';
-  quant.Text := '0,00';
-  credicm.Text := '0,00';
-  baseicm.Text := '0,00';
-  basedeb.Text := '0,00';
-  baseicm.Text := '0,00';
+  codigo.Text   := '';
+  fornec.Text   := '';
+  chegada.Text  := '';
+  data.Text     := '';
+  quant.Text    := '0,00';
+  credicm.Text  := '0,00';
+  baseicm.Text  := '0,00';
+  basedeb.Text  := '0,00';
+  baseicm.Text  := '0,00';
   encargos.Text := '0,00';
-  frete.Text := '0,00';
-  p_venda.Text := '0,00';
-  lucro.Text := '0,00';
-  p_compra.Text := '0,00';
-  codbar.Text := '';
+  frete.Text    := '0,00';
+  p_venda.Text    := '0,00';
+  lucro.Text      := '0,00';
+  p_compra.Text   := '0,00';
+  codbar.Text     := '';
   produto.Caption := '';
 
   codigo.Enabled := true;
@@ -634,7 +640,11 @@ end;
 function tform17.lertotal(atualizaTotal : boolean = false) : currency;
 var i:integer;
   acc:currency;
+  serieaql : String;
 begin
+  if serie = '' then serieaql := ' and ((serie is null) or (trim(serie) = ''''))'
+  else serieaql := ' and (serie = '+QuotedStr(serie)+')';
+
  DBGrid2.DataSource.DataSet.Active := true;
  i := DBGrid2.DataSource.DataSet.RecNo;
  DBGrid2.DataSource.DataSet.DisableControls;
@@ -649,7 +659,7 @@ begin
  if atualizaTotal and (criadoPorXML <> 'S') then
    begin
      dm.IBQuery3.Close;
-     dm.IBQuery3.SQL.Text := 'update entrada set total_nota = :total where nota = :nota and fornec = :fornec';
+     dm.IBQuery3.SQL.Text := 'update entrada set total_nota = :total where nota = :nota and fornec = :fornec ' + serieaql;
      dm.IBQuery3.ParamByName('total').AsCurrency := acc;
      dm.IBQuery3.ParamByName('nota').AsString   := codigo.Text;
      dm.IBQuery3.ParamByName('fornec').AsString := fornec.Text;
@@ -704,9 +714,12 @@ end;
 
 function TForm17.GravaEntradanovo() : boolean;
 var
-  campo, cod, nota, tabela, sim, validade, codentrada : string;
+  campo, cod, nota, tabela, sim, validade, codentrada, serSql : string;
   total, qtd :currency;
 begin
+  //if serie1.Text = '' then serie1.Text := '1';
+
+
   dm.IBselect.Close;
   dm.IBselect.SQL.Text := 'select p_venda from produto where cod = :cod';
   dm.IBselect.ParamByName('cod').AsString := codigoProd;
@@ -798,8 +811,11 @@ begin
 
   total := lertotal;
 
+  if serie1.Text = '' then serSql := ' and ((serie is null) or (trim(serie) = ''''))'
+  else serSql := ' and serie = ' + serie1.Text;
+
   dm.IBQuery4.Close;
-  dm.IBQuery4.SQL.Text := 'select * from entrada where nota = :nota and fornec = :fornec';
+  dm.IBQuery4.SQL.Text := 'select * from entrada where nota = :nota and fornec = :fornec and serie = :serie ' + serSql;
   dm.IBQuery4.ParamByName('nota').AsString         := codigo.Text;
   dm.IBQuery4.ParamByName('fornec').AsString       := fornec.Text;
   dm.IBQuery4.Open;
@@ -808,23 +824,30 @@ begin
   if dm.IBQuery4.IsEmpty then begin
     dm.IBQuery4.Close;
     dm.IBQuery4.SQL.Clear;
-    dm.IBQuery4.SQL.Add('update or insert into entrada(nota, data,chegada,total_nota,fornec) VALUES  (:nota, :data,:chegada,:total_nota,:fornec) matching(nota, fornec) ');
+    dm.IBQuery4.SQL.Add('update or insert into entrada(nota, data,chegada,total_nota,fornec, serie) VALUES  (:nota, :data,:chegada,:total_nota,:fornec, :serie) matching(nota, fornec, serie) ');
     dm.IBQuery4.ParamByName('nota').AsString         := codigo.Text;
     dm.IBQuery4.ParamByName('chegada').AsDateTime    := StrToDate(chegada.Text);
     dm.IBQuery4.ParamByName('total_nota').AsCurrency := funcoes.ArredondaFinanceiro((quant.getValor * p_compra.getValor) + total, 2);
     dm.IBQuery4.ParamByName('data').AsDateTime       := StrToDate(data.Text);
     dm.IBQuery4.ParamByName('fornec').AsString       := fornec.Text;
+    if serie1.Text = '' then dm.IBQuery4.ParamByName('serie').AsString := ''
+     else dm.IBQuery4.ParamByName('serie').AsString := serie1.Text;
+
     try
       dm.IBQuery4.ExecSQL;
     except
+      on e:exception do begin
+        ShowMessage('Erro 837: ' + e.Message);
+        exit;
+      end;
     end;
   end;
 
   dm.IBQuery4.Close;
   dm.IBQuery4.SQL.Clear;
-  dm.IBQuery4.SQL.Add('update or insert into item_entrada(validade,COD, fornec,codentrada, QUANT, P_COMPRA, DESTINO, USUARIO, NOTA, DATA,total, qtd_ent) '+
+  dm.IBQuery4.SQL.Add('update or insert into item_entrada(validade,COD, fornec,codentrada, QUANT, P_COMPRA, DESTINO, USUARIO, NOTA, DATA,total, qtd_ent, serie) '+
   'values(:validade,:COD, :fornec,'+funcoes.novocod('entrada')+',:QUANT,'+
-  ' :P_COMPRA, :DESTINO, :USUARIO,  :NOTA, :DATA,:total, :qtd_ent) matching(cod, nota, fornec, destino)');
+  ' :P_COMPRA, :DESTINO, :USUARIO,  :NOTA, :DATA,:total, :qtd_ent, :serie) matching(cod, nota, fornec, destino)');
   dm.IBQuery4.ParamByName('validade').AsDateTime := StrToDate(validade);
   dm.IBQuery4.ParamByName('data').AsDateTime     := StrToDateDef(data.Text, now);
   dm.IBQuery4.ParamByName('cod').AsString        := codigoProd;
@@ -836,13 +859,24 @@ begin
   dm.IBQuery4.ParamByName('usuario').AsString    := form22.codusario;
   dm.IBQuery4.ParamByName('total').AsCurrency    := funcoes.ArredondaFinanceiro(quant.getValor * p_compra.getValor, 2);
   dm.IBQuery4.ParamByName('qtd_ent').AsCurrency  := quant.getValor;
+
+  if serie1.Text = '' then dm.IBQuery4.ParamByName('serie').AsString := ''
+     else dm.IBQuery4.ParamByName('serie').AsString := serie1.Text;
   dm.IBQuery4.ExecSQL;
 
   dm.IBQuery4.Close;
   dm.IBQuery4.SQL.Text := 'update produto set data_entrada1 = current_date where cod = ' + StrNum(codigoProd);
-  dm.IBQuery4.ExecSQL;
 
+
+  try
+  dm.IBQuery4.ExecSQL;
   dm.IBQuery4.Transaction.Commit;
+  except
+    on e:exception do begin
+      ShowMessage('ERRO 869: ' + e.Message);
+      exit;
+    end;
+  end;
 
   cod := codbar.Text;
 
@@ -993,6 +1027,8 @@ begin
 
    usarValidade := false;
    if funcoes.buscaParamGeral(58, 'N') = 'S' then usarValidade := true;
+
+   codigo.SetFocus;
 end;
 
 procedure TForm17.codbarEnter(Sender: TObject);
@@ -1105,6 +1141,10 @@ end;
 
 procedure TForm17.fornecKeyPress(Sender: TObject; var Key: Char);
 begin
+  if key = #27 then begin
+    teclaEsc;
+    exit;
+  end;
     if (key=#13) then begin
        if (tedit(sender).Text = '0') then begin
          form8 := tform8.Create(self);
@@ -1127,7 +1167,7 @@ begin
              end;
          end;
 
-       try
+       {try
          notaTemp   := codigo.Text;
          fornecTemp := fornec.Text;
          abreDataSet;
@@ -1137,7 +1177,7 @@ begin
        except
          exit;
        end;
-       exit;
+       exit;  }
      end;
 
   { if (Key = #13) then
@@ -1242,6 +1282,14 @@ procedure TForm17.chegadaKeyUp(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
 if key=116 then DBGrid2.SetFocus;
+end;
+
+procedure TForm17.dataKeyPress(Sender: TObject; var Key: Char);
+begin
+  if key = #27 then begin
+    teclaEsc;
+    abort;
+  end;
 end;
 
 procedure TForm17.dataKeyUp(Sender: TObject; var Key: Word;
@@ -1630,6 +1678,7 @@ begin
     end;
 
   serie := dm.IBselect.FieldByName('serie').AsString;
+  serie1.Text := serie;
  
   if forn <> '' then fornec.Text := forn;
   dm.IBselect.Close;
@@ -1664,6 +1713,29 @@ begin
   DBGrid2.Columns[funcoes.buscaFieldDBgrid1('TOTAL', DBGrid2)].Width     := 150;}
 end;
 
+
+procedure TForm17.serie1KeyPress(Sender: TObject; var Key: Char);
+begin
+  if key = #27 then begin
+    teclaEsc;
+    exit;
+  end;
+
+  if key = #13 then begin
+    try
+         notaTemp   := codigo.Text;
+         fornecTemp := fornec.Text;
+         abreDataSet;
+
+         buscaDadosNota_e_preencheCampos(codigo.Text);
+         tot.Caption := 'R$  '+FormatCurr('#,##,###0.00',lertotal(true));
+         resizeDBgrid;
+       except
+         exit;
+       end;
+       exit;
+  end;
+end;
 
 function TForm17.checaDataChegada() : boolean;
 begin
@@ -1801,6 +1873,14 @@ begin
     end;
   end;
 end;
+
+
+procedure TForm17.teclaEsc();
+begin
+  codigo.Enabled := true;
+  codigo.SetFocus;
+end;
+
 
 end.
 

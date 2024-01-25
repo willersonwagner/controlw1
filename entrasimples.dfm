@@ -21,6 +21,162 @@ object Form17: TForm17
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
+  object Label1: TLabel
+    Left = 16
+    Top = 16
+    Width = 38
+    Height = 16
+    Caption = 'Nota:'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'MS Sans Serif'
+    Font.Style = [fsBold]
+    ParentFont = False
+  end
+  object Label4: TLabel
+    Left = 111
+    Top = 16
+    Width = 85
+    Height = 16
+    Caption = 'Fornecedor:'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'MS Sans Serif'
+    Font.Style = [fsBold]
+    ParentFont = False
+  end
+  object Label8: TLabel
+    Left = 202
+    Top = 16
+    Width = 42
+    Height = 16
+    Caption = 'Serie:'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'MS Sans Serif'
+    Font.Style = [fsBold]
+    ParentFont = False
+  end
+  object Label2: TLabel
+    Left = 272
+    Top = 16
+    Width = 65
+    Height = 16
+    Caption = 'Emissao:'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'MS Sans Serif'
+    Font.Style = [fsBold]
+    ParentFont = False
+  end
+  object Label3: TLabel
+    Left = 360
+    Top = 16
+    Width = 68
+    Height = 16
+    Caption = 'Chegada:'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'MS Sans Serif'
+    Font.Style = [fsBold]
+    ParentFont = False
+  end
+  object Label7: TLabel
+    Left = 344
+    Top = 72
+    Width = 71
+    Height = 16
+    Caption = 'Encargos:'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'MS Sans Serif'
+    Font.Style = [fsBold]
+    ParentFont = False
+  end
+  object Label9: TLabel
+    Left = 424
+    Top = 72
+    Width = 41
+    Height = 16
+    Caption = 'Frete:'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'MS Sans Serif'
+    Font.Style = [fsBold]
+    ParentFont = False
+  end
+  object Label5: TLabel
+    Left = 472
+    Top = 16
+    Width = 33
+    Height = 16
+    Caption = 'Cod.'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'MS Sans Serif'
+    Font.Style = [fsBold]
+    ParentFont = False
+  end
+  object Label10: TLabel
+    Left = 504
+    Top = 72
+    Width = 44
+    Height = 16
+    Caption = 'Custo:'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'MS Sans Serif'
+    Font.Style = [fsBold]
+    ParentFont = False
+  end
+  object Label11: TLabel
+    Left = 584
+    Top = 72
+    Width = 43
+    Height = 16
+    Caption = 'Lucro:'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'MS Sans Serif'
+    Font.Style = [fsBold]
+    ParentFont = False
+  end
+  object Label6: TLabel
+    Left = 624
+    Top = 16
+    Width = 85
+    Height = 16
+    Caption = 'Quantidade:'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'MS Sans Serif'
+    Font.Style = [fsBold]
+    ParentFont = False
+  end
+  object Label12: TLabel
+    Left = 664
+    Top = 72
+    Width = 50
+    Height = 16
+    Caption = 'Venda:'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'MS Sans Serif'
+    Font.Style = [fsBold]
+    ParentFont = False
+  end
   object Panel1: TPanel
     Left = 0
     Top = 0
@@ -28,149 +184,6 @@ object Form17: TForm17
     Height = 600
     Align = alClient
     TabOrder = 0
-    object Label1: TLabel
-      Left = 16
-      Top = 16
-      Width = 38
-      Height = 16
-      Caption = 'Nota:'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -13
-      Font.Name = 'MS Sans Serif'
-      Font.Style = [fsBold]
-      ParentFont = False
-    end
-    object Label2: TLabel
-      Left = 240
-      Top = 16
-      Width = 65
-      Height = 16
-      Caption = 'Emissao:'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -13
-      Font.Name = 'MS Sans Serif'
-      Font.Style = [fsBold]
-      ParentFont = False
-    end
-    object Label3: TLabel
-      Left = 360
-      Top = 16
-      Width = 68
-      Height = 16
-      Caption = 'Chegada:'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -13
-      Font.Name = 'MS Sans Serif'
-      Font.Style = [fsBold]
-      ParentFont = False
-    end
-    object Label4: TLabel
-      Left = 128
-      Top = 16
-      Width = 85
-      Height = 16
-      Caption = 'Fornecedor:'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -13
-      Font.Name = 'MS Sans Serif'
-      Font.Style = [fsBold]
-      ParentFont = False
-    end
-    object Label5: TLabel
-      Left = 472
-      Top = 16
-      Width = 33
-      Height = 16
-      Caption = 'Cod.'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -13
-      Font.Name = 'MS Sans Serif'
-      Font.Style = [fsBold]
-      ParentFont = False
-    end
-    object Label6: TLabel
-      Left = 624
-      Top = 16
-      Width = 85
-      Height = 16
-      Caption = 'Quantidade:'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -13
-      Font.Name = 'MS Sans Serif'
-      Font.Style = [fsBold]
-      ParentFont = False
-    end
-    object Label7: TLabel
-      Left = 344
-      Top = 72
-      Width = 71
-      Height = 16
-      Caption = 'Encargos:'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -13
-      Font.Name = 'MS Sans Serif'
-      Font.Style = [fsBold]
-      ParentFont = False
-    end
-    object Label9: TLabel
-      Left = 424
-      Top = 72
-      Width = 41
-      Height = 16
-      Caption = 'Frete:'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -13
-      Font.Name = 'MS Sans Serif'
-      Font.Style = [fsBold]
-      ParentFont = False
-    end
-    object Label10: TLabel
-      Left = 504
-      Top = 72
-      Width = 44
-      Height = 16
-      Caption = 'Custo:'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -13
-      Font.Name = 'MS Sans Serif'
-      Font.Style = [fsBold]
-      ParentFont = False
-    end
-    object Label11: TLabel
-      Left = 584
-      Top = 72
-      Width = 43
-      Height = 16
-      Caption = 'Lucro:'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -13
-      Font.Name = 'MS Sans Serif'
-      Font.Style = [fsBold]
-      ParentFont = False
-    end
-    object Label12: TLabel
-      Left = 664
-      Top = 72
-      Width = 50
-      Height = 16
-      Caption = 'Venda:'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -13
-      Font.Name = 'MS Sans Serif'
-      Font.Style = [fsBold]
-      ParentFont = False
-    end
     object produto: TLabel
       Left = 16
       Top = 464
@@ -218,7 +231,7 @@ object Form17: TForm17
       TipoDeDado = teNumero
     end
     object fornec: JsEditInteiro
-      Left = 128
+      Left = 111
       Top = 32
       Width = 73
       Height = 24
@@ -237,8 +250,28 @@ object Form17: TForm17
       Indice = 0
       TipoDeDado = teNumero
     end
+    object serie1: JsEditInteiro
+      Left = 202
+      Top = 32
+      Width = 48
+      Height = 24
+      CharCase = ecUpperCase
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'MS Sans Serif'
+      Font.Style = [fsBold]
+      ParentFont = False
+      TabOrder = 2
+      OnKeyPress = serie1KeyPress
+      UsarCadastros = False
+      FormularioComp = 'Form17'
+      ColorOnEnter = clSkyBlue
+      Indice = 0
+      TipoDeDado = teNumero
+    end
     object data: JsEditData
-      Left = 240
+      Left = 256
       Top = 32
       Width = 81
       Height = 24
@@ -250,8 +283,9 @@ object Form17: TForm17
       Font.Style = [fsBold]
       MaxLength = 10
       ParentFont = False
-      TabOrder = 2
+      TabOrder = 3
       Text = '  /  /    '
+      OnKeyPress = dataKeyPress
       OnKeyUp = dataKeyUp
       ValidaCampo = False
       CompletaData = False
@@ -270,7 +304,7 @@ object Form17: TForm17
       Font.Style = [fsBold]
       MaxLength = 10
       ParentFont = False
-      TabOrder = 3
+      TabOrder = 4
       Text = '  /  /    '
       OnKeyUp = chegadaKeyUp
       ValidaCampo = False
@@ -289,7 +323,7 @@ object Form17: TForm17
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsBold]
       ParentFont = False
-      TabOrder = 4
+      TabOrder = 5
       OnEnter = codbarEnter
       OnKeyPress = codbarKeyPress
       OnKeyUp = codbarKeyUp
@@ -312,7 +346,7 @@ object Form17: TForm17
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsBold]
       ParentFont = False
-      TabOrder = 5
+      TabOrder = 6
       Text = '0,000'
       OnKeyDown = quantKeyDown
       UsarCadastros = False
@@ -334,7 +368,7 @@ object Form17: TForm17
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsBold]
       ParentFont = False
-      TabOrder = 6
+      TabOrder = 7
       object baseicm: JsEditNumero
         Left = 8
         Top = 20
@@ -379,7 +413,7 @@ object Form17: TForm17
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsBold]
       ParentFont = False
-      TabOrder = 7
+      TabOrder = 8
       object basedeb: JsEditNumero
         Left = 8
         Top = 20
@@ -423,7 +457,7 @@ object Form17: TForm17
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsBold]
       ParentFont = False
-      TabOrder = 8
+      TabOrder = 9
       Text = '0,00'
       UsarCadastros = False
       FormularioComp = 'Form17'
@@ -444,7 +478,7 @@ object Form17: TForm17
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsBold]
       ParentFont = False
-      TabOrder = 9
+      TabOrder = 10
       Text = '0,00'
       UsarCadastros = False
       FormularioComp = 'Form17'
@@ -465,7 +499,7 @@ object Form17: TForm17
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsBold]
       ParentFont = False
-      TabOrder = 10
+      TabOrder = 11
       Text = '0,000'
       UsarCadastros = False
       FormularioComp = 'Form17'
@@ -486,7 +520,7 @@ object Form17: TForm17
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsBold]
       ParentFont = False
-      TabOrder = 11
+      TabOrder = 12
       Text = '0,00'
       OnKeyPress = lucroKeyPress
       UsarCadastros = False
@@ -508,7 +542,7 @@ object Form17: TForm17
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsBold]
       ParentFont = False
-      TabOrder = 12
+      TabOrder = 13
       Text = '0,000'
       OnExit = p_vendaExit
       OnKeyPress = p_vendaKeyPress
@@ -525,7 +559,7 @@ object Form17: TForm17
       Width = 798
       Height = 40
       Align = alBottom
-      TabOrder = 13
+      TabOrder = 14
       object info: TLabel
         Left = 120
         Top = 7
@@ -611,9 +645,9 @@ object Form17: TForm17
     end
     object DBGrid2: TDBGrid
       Left = 8
-      Top = 136
+      Top = 127
       Width = 769
-      Height = 281
+      Height = 290
       DataSource = dm.entrada
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
@@ -622,7 +656,7 @@ object Form17: TForm17
       Font.Style = [fsBold]
       Options = [dgTitles, dgIndicator, dgColumnResize, dgColLines, dgRowLines, dgTabs, dgConfirmDelete, dgCancelOnExit]
       ParentFont = False
-      TabOrder = 14
+      TabOrder = 15
       TitleFont.Charset = DEFAULT_CHARSET
       TitleFont.Color = clWindowText
       TitleFont.Height = -11
@@ -642,7 +676,7 @@ object Form17: TForm17
       Width = 49
       Height = 21
       CharCase = ecUpperCase
-      TabOrder = 15
+      TabOrder = 16
       Text = '0,00'
       Visible = False
       AddLista = False
@@ -653,47 +687,9 @@ object Form17: TForm17
       TipoDeDado = teNumero
       CasasDecimais = 2
     end
-    object Panel2: TPanel
-      Left = 576
-      Top = 423
-      Width = 201
-      Height = 57
-      TabOrder = 16
-      object tot: TLabel
-        Left = 1
-        Top = 1
-        Width = 199
-        Height = 23
-        Align = alTop
-        Alignment = taCenter
-        Caption = 'R$ 0,00'
-        Font.Charset = ANSI_CHARSET
-        Font.Color = clBlack
-        Font.Height = -21
-        Font.Name = 'Courier New'
-        Font.Style = [fsBold]
-        ParentFont = False
-        ExplicitWidth = 91
-      end
-      object totXML: TLabel
-        Left = 1
-        Top = 33
-        Width = 199
-        Height = 23
-        Align = alBottom
-        Alignment = taCenter
-        Font.Charset = ANSI_CHARSET
-        Font.Color = clBlack
-        Font.Height = -21
-        Font.Name = 'Courier New'
-        Font.Style = [fsBold]
-        ParentFont = False
-        ExplicitWidth = 13
-      end
-    end
     object DESC_COMP: JsEditNumero
       Left = 540
-      Top = 168
+      Top = 166
       Width = 67
       Height = 24
       Hint = 'Desconto na Compra'
@@ -738,6 +734,44 @@ object Form17: TForm17
       Indice = 0
       TipoDeDado = teNumero
       CasasDecimais = 2
+    end
+  end
+  object Panel2: TPanel
+    Left = 576
+    Top = 423
+    Width = 201
+    Height = 57
+    TabOrder = 1
+    object tot: TLabel
+      Left = 1
+      Top = 1
+      Width = 199
+      Height = 23
+      Align = alTop
+      Alignment = taCenter
+      Caption = 'R$ 0,00'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clBlack
+      Font.Height = -21
+      Font.Name = 'Courier New'
+      Font.Style = [fsBold]
+      ParentFont = False
+      ExplicitWidth = 91
+    end
+    object totXML: TLabel
+      Left = 1
+      Top = 33
+      Width = 199
+      Height = 23
+      Align = alBottom
+      Alignment = taCenter
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clBlack
+      Font.Height = -21
+      Font.Name = 'Courier New'
+      Font.Style = [fsBold]
+      ParentFont = False
+      ExplicitWidth = 13
     end
   end
   object IBQuery1: TFDQuery
