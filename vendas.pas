@@ -132,6 +132,7 @@ type
     semCliente: boolean;
     produtosServico: TStringList;
     podeGravarParcelamentoTabela : integer;
+    function condicaoAumentarDBGRID2TrueZOOMnasDUAS : boolean ;
     procedure formataCamposPreco;
     procedure impNovo(TIPO1 : SMALLINT = 1);
     // function baixa
@@ -4362,9 +4363,9 @@ begin
           (funcoes.CompletaOuRepete(copy(codigo1 + '-' +
           ClientDataSet1.FieldByName('descricao').AsString, 1, 40), '', ' ',
           40) + CRLF);
-        addRelatorioForm19(funcoes.CompletaOuRepete(LeftStr(imprRefxx, 14), '',
-          ' ', 14) + funcoes.CompletaOuRepete('', FormatCurr('0.00',
-          ClientDataSet1.FieldByName('quant').AsCurrency), ' ', 9) +
+        addRelatorioForm19(funcoes.CompletaOuRepete(LeftStr(imprRefxx, 16), '',
+          ' ', 16) + funcoes.CompletaOuRepete('', FormatCurr('0.0',
+          ClientDataSet1.FieldByName('quant').AsCurrency), ' ', 7) +
           funcoes.CompletaOuRepete('', FormatCurr('0.00',
           ClientDataSet1PRECO.AsCurrency), ' ', 8) + funcoes.CompletaOuRepete
           ('', FormatCurr('0.00', total_item), ' ', 9) + CRLF);
@@ -6889,6 +6890,8 @@ begin
 
   alinhaComponentes;
   funcoes.aumentaFonte(self, true, 0);
+  if condicaoAumentarDBGRID2TrueZOOMnasDUAS then funcoes.aumentaFonte1(self, true, 0);
+
   arrumaComponentes800;
 
   if ((separaPecas = false) and (finaliza = false)) or (separaPecas and finaliza)
@@ -7845,6 +7848,7 @@ end;
 procedure TForm20.ClientDataSet1AfterOpen(DataSet: TDataSet);
 begin
   funcoes.resizeCamposIdividualDBGRID(DBGrid2);
+  funcoes.resizeCamposIdividualDBGRID(DBGrid1);
 end;
 
 procedure TForm20.ClientDataSet1AfterPost(DataSet: TDataSet);
@@ -8182,13 +8186,13 @@ procedure TForm20.FormKeyPress(Sender: TObject; var Key: Char);
 begin
   if Key = '+' then
   begin
-    if form22.Pgerais.Values['empresa'] = 'LIFENUTRE' then funcoes.aumentaFonte1(self, true, 1)
+    if condicaoAumentarDBGRID2TrueZOOMnasDUAS then funcoes.aumentaFonte1(self, true, 1)
       else funcoes.aumentaFonte(self, true, 1);
   end;
 
   if Key = '-' then
   begin
-    if form22.Pgerais.Values['empresa'] = 'LIFENUTRE' then funcoes.aumentaFonte1(self, true, 2)
+    if condicaoAumentarDBGRID2TrueZOOMnasDUAS then funcoes.aumentaFonte1(self, true, 2)
     else funcoes.aumentaFonte(self, true, 2);
   end;
 end;
@@ -9541,6 +9545,22 @@ begin
     TCurrencyField(dm.produto.FieldByName('preco')).DisplayFormat := '###,##0.' + CompletaOuRepete('', '', '0', StrToIntDef(funcoes.buscaParamGeral(111, '2'), 3));
   except
   end;
+end;
+
+function TForm20.condicaoAumentarDBGRID2TrueZOOMnasDUAS : boolean ;
+begin
+  Result := false;
+  
+  if form22.Pgerais.Values['empresa'] = 'LIFENUTRE' then begin
+    Result := true;
+    exit;
+  end;
+
+  if form22.fonteDAT.Values['ZOOM_DUAS_TABELAS_VENDAS'] = 'S' then begin
+    Result := true;
+    exit;
+  end;
+
 end;
 
 

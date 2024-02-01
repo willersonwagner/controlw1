@@ -1964,6 +1964,10 @@ begin
       IF StrToDateTime(dataIni) >= StrToDateTime('01/01/2021') THEN MODELO := '015';
       IF StrToDateTime(dataIni) >= StrToDateTime('01/01/2022') THEN MODELO := '016';
       IF StrToDateTime(dataIni) >= StrToDateTime('01/01/2023') THEN MODELO := '017';
+      IF StrToDateTime(dataIni) >= StrToDateTime('01/01/2024') THEN MODELO := '018';
+      IF StrToDateTime(dataIni) >= StrToDateTime('01/01/2025') THEN MODELO := '019';
+      IF StrToDateTime(dataIni) >= StrToDateTime('01/01/2026') THEN MODELO := '020';
+      IF StrToDateTime(dataIni) >= StrToDateTime('01/01/2027') THEN MODELO := '021';
 
       LINHA := '|0000|'+ MODELO +'|0|' + DATA_BRA_FULL(StrToDateTime(dataIni)) + '|' + DATA_BRA_FULL(StrToDateTime(DataFim)) + '|';
       dm.IBselect.Close;

@@ -1351,6 +1351,9 @@ begin
       end;
     end;
 
+    form22.fonteDAT := TStringList.Create;
+    form22.fonteDAT.LoadFromFile(caminhoEXE_com_barra_no_final + 'fonte.dat');
+
     if funcoes.le_configTerminalWindows(7, 'N') = 'S' then
     begin
       if funcoes.vercCountContigencia > 0 then

@@ -46,6 +46,7 @@ type
     cbxModelo: TComboBox;
     Label12: TLabel;
     outro: TRadioButton;
+    Memo1: TMemo;
     procedure FormShow(Sender: TObject);
     procedure JsBotao1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);

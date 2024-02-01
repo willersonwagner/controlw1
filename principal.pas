@@ -62,7 +62,7 @@ type
   public
     codusario, notaVenda, valorDeChecagem, nomeUsuario : string;
     usuario: string;
-    Pgerais, nomesServico : TStringList;
+    Pgerais, nomesServico, fonteDAT : TStringList;
     datamov: tdatetime;
     superUsu : integer;
     UnidInteiro, qrcodePIX,beneNome, beneCNPJ, beneFone, emailEnviar : String;

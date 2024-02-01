@@ -16659,9 +16659,9 @@ begin
         addRelatorioForm19
           (funcoes.CompletaOuRepete(copy(codigo1 + '-' + dm.IBQuery2.FieldByName
           ('nome').AsString, 1, 40), '', ' ', 40) + CRLF);
-        addRelatorioForm19(funcoes.CompletaOuRepete(LeftStr(trim(tmp), 14), '',
-          ' ', 14) + funcoes.CompletaOuRepete('', FormatCurr('0.00',
-          dm.IBQuery2.FieldByName('quant').AsCurrency), ' ', 9) +
+        addRelatorioForm19(funcoes.CompletaOuRepete(LeftStr(trim(tmp), 16), '',
+          ' ', 16) + funcoes.CompletaOuRepete('', FormatCurr('0.0',
+          dm.IBQuery2.FieldByName('quant').AsCurrency), ' ', 7) +
           funcoes.CompletaOuRepete('', FormatCurr('0.00',
           dm.IBQuery2.FieldByName('p_venda').AsCurrency), ' ', 8) +
           funcoes.CompletaOuRepete('', FormatCurr('0.00', tot_item), ' ',
@@ -28021,9 +28021,6 @@ begin
   if imp = '' then
     imp := 'LPT1';
 
-
-
-
   posi := trunc(StrToIntDef(qtd, 3) / 3);
   if (StrToCurrDef(qtd, 0) / 3) <> Int(StrToCurrDef(qtd, 0) / 3) then
     posi := posi + 1;
@@ -32383,14 +32380,18 @@ procedure Tfuncoes.resizeCamposIdividualDBGRID(var dbgridi : TDBGrid);
 var
   i : integer;
   arq : TStringList;
+  nomeComp : String;
 begin
-  arq := TStringList.Create;
-
-
   for I := 0 to dbgridi.Columns.Count -1 do begin
-    //ShowMessage(dbgridi.Columns.Items[i].FieldName);
-  end;
+    nomeComp := GetParentForm(dbgridi).Name + '|' + dbgridi.Name + '|' + dbgridi.Columns[i].FieldName;
+    nomeComp := UpperCase(nomeComp);
 
+    if form22.fonteDAT.Values[nomeComp] <> '' then  dbgridi.Columns[i].Width := StrToInt(form22.fonteDAT.Values[nomeComp]);
+
+
+
+    //ShowMessage(nomeComp);
+  end;
 end;
 
 

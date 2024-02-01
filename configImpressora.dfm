@@ -97,7 +97,7 @@ object Form52: TForm52
     Top = 0
     Width = 319
     Height = 326
-    ActivePage = TabSheet2
+    ActivePage = TabSheet1
     Align = alClient
     TabOrder = 1
     object TabSheet1: TTabSheet
@@ -468,6 +468,35 @@ object Form52: TForm52
           ' coloque RAW:IMPRESSORA'
         Caption = 'Outro'
         TabOrder = 6
+      end
+      object Memo1: TMemo
+        Left = 103
+        Top = 139
+        Width = 210
+        Height = 156
+        Lines.Strings = (
+          'Matricial: funciona direto no '
+          'compartilhamento, LPT e COM.'
+          ''
+          'USB: tem etiquetas prontas sem '
+          'possibilidade de altera'#231#227'o'
+          ''
+          'Outro: Funciona com impressoras USBs e '
+          'LPT e COM. Tem a possibilidade de'
+          'alterar o arquivo js000041.dat de acordo '
+          'com a necessidade. Sempre Deixar o'
+          ' modelo em PPLA pois ja foi testado '
+          'nesse.'#11
+          ''
+          'Tipo de Etiqueta: '#233' importante configurar '
+          'isso corretamente para calcular quantas '
+          'impressoes serao executadas. Ex esta '
+          'configurado com 3 colunas, se for '
+          'solicitado 3 etiquetas entao o sistema vai '
+          'imprimir uma carreira de etiquetas. 6 etiqu'
+          'etas vai sair duas fileiras e assim sucessiva'
+          'mente.')
+        TabOrder = 7
       end
     end
     object TabSheet3: TTabSheet
