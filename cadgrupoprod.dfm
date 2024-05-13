@@ -50,6 +50,7 @@ object Form3: TForm3
       FormularioComp = 'Form3'
       ColorOnEnter = clSkyBlue
       Indice = 0
+      TipoDeDado = teNumero
     end
     object nome: JsEdit
       Left = 104
@@ -63,6 +64,7 @@ object Form3: TForm3
       FormularioComp = 'Form3'
       ColorOnEnter = clSkyBlue
       Indice = 0
+      TipoDeDado = teNumero
     end
     object ToolBar1: TPanel
       Left = 2

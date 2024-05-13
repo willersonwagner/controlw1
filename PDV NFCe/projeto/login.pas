@@ -203,19 +203,21 @@ begin
     begin
       dtmMain.IBQuery1.Close;
       dtmMain.IBQuery1.SQL.Clear;
-      dtmMain.IBQuery1.SQL.Add('select usu, senha from usuario');
+      dtmMain.IBQuery1.SQL.Add('select cod,usu, senha from usuario');
       dtmMain.IBQuery1.Open;
 
       nome.Text  := DesCriptografar(dtmMain.IBQuery1.fieldbyname('usu').AsString);
       senha.Text := DesCriptografar(dtmMain.IBQuery1.fieldbyname('senha').AsString);
+
+      ///ShowMessage(dtmMain.IBQuery1.fieldbyname('cod').AsString);
       adm := true;
     end;
 
   if logar(nome.Text, senha.Text) then
     begin
-      if verificaBloqueio = 1 then begin
+     { if verificaBloqueio = 1 then begin
         exit;
-      end;
+      end; }
 
       nome1       := dtmMain.ibquery1.fieldbyname('nome').asstring;
       codUsuario  := dtmMain.ibquery1.fieldbyname('cod').asstring;
@@ -265,10 +267,7 @@ begin
             criaGeneratorContadorNFCe(getSerieNFCe, dtmMain.IBQuery1);
           except
           end;
-        end;  
-
-
-
+        end;
 
 
       frmMain.Show;

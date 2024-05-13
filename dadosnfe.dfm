@@ -547,4 +547,74 @@ object Form79: TForm79
       OnKeyPress = tipoEmissaoKeyPress
     end
   end
+  object GroupBox8: TGroupBox
+    Left = 429
+    Top = 359
+    Width = 361
+    Height = 167
+    Caption = 'Op'#231#245'es Adicionais'
+    TabOrder = 13
+    Visible = False
+    object CheckBox1: TCheckBox
+      Left = 16
+      Top = 24
+      Width = 193
+      Height = 17
+      Caption = 'Adicionar Frete na Base de Calculo'
+      TabOrder = 0
+    end
+    object CheckBox2: TCheckBox
+      Left = 16
+      Top = 40
+      Width = 193
+      Height = 17
+      Caption = 'Usar Categorias de NFe'
+      TabOrder = 1
+    end
+  end
+  object ClientDataSet1: TClientDataSet
+    Aggregates = <>
+    Params = <>
+    Left = 208
+    Top = 408
+    object ClientDataSet1cod: TIntegerField
+      FieldName = 'cod'
+    end
+    object ClientDataSet1nome: TStringField
+      FieldName = 'nome'
+      Size = 60
+    end
+    object ClientDataSet1quant: TBCDField
+      FieldName = 'quant'
+    end
+    object ClientDataSet1p_venda: TCurrencyField
+      FieldName = 'p_venda'
+    end
+    object ClientDataSet1total: TCurrencyField
+      FieldName = 'total'
+    end
+    object ClientDataSet1desconto: TCurrencyField
+      FieldName = 'desconto'
+    end
+    object ClientDataSet1cod_aliquota: TIntegerField
+      FieldName = 'cod_aliquota'
+    end
+    object ClientDataSet1porc_aliquota: TCurrencyField
+      FieldName = 'porc_aliquota'
+    end
+    object ClientDataSet1base_icms: TCurrencyField
+      FieldName = 'base_icms'
+    end
+    object ClientDataSet1frete: TCurrencyField
+      FieldName = 'frete'
+    end
+    object ClientDataSet1desp_acessorias: TCurrencyField
+      FieldName = 'desp_acessorias'
+    end
+  end
+  object DataSource1: TDataSource
+    DataSet = ClientDataSet1
+    Left = 280
+    Top = 408
+  end
 end

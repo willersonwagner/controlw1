@@ -982,17 +982,32 @@ procedure FormataCampos(query:TFDQuery;qtdCasasDecimais:integer;CampoFormatoDife
 var a:integer;
 begin
   a:=0;
-  while a<>query.FieldCount do
-  begin
-    if (FieldTypeNames[query.Fields.Fields[a].DataType]='BCD') and (query.Fields[a].FieldName<> CampoFormatoDiferente) then
+  //while a<>query.FieldCount do
+  for A := 0 to QUERY.FieldCount -1 do begin
+    //ShowMessage(query.Fields[a].FieldName + #13 + FieldTypeNames[query.Fields.Fields[a].DataType]);
+    if (POS('BCD', UpperCase(FieldTypeNames[query.Fields.Fields[a].DataType])) > 0) and (query.Fields[a].FieldName=campoFormatoDiferente) then
+      begin
+        TcurrencyField(query.FieldByName(query.Fields[a].FieldName)).DisplayFormat := '###,##0.'+CompletaOuRepete('','','0',qtd);
+      end
+    ELSE if (POS('BCD', UpperCase(FieldTypeNames[query.Fields.Fields[a].DataType])) > 0) then begin
+        TcurrencyField(query.FieldByName(query.Fields[a].FieldName)).DisplayFormat := '###,##0.'+CompletaOuRepete('','','0',qtdCasasDecimais);
+      end;
+
+
+   { if (POS('BCD', FieldTypeNames[query.Fields.Fields[a].DataType]) > 0) and (query.Fields[a].FieldName<> CampoFormatoDiferente) then
       begin
         TcurrencyField(query.FieldByName(query.Fields[a].FieldName)).DisplayFormat := '###,##0.'+CompletaOuRepete('','','0',qtdCasasDecimais);
       end;
-    if (FieldTypeNames[query.Fields.Fields[a].DataType]='BCD') and (query.Fields[a].FieldName=campoFormatoDiferente) then
+
+    if (POS('BCD', FieldTypeNames[query.Fields.Fields[a].DataType]) > 0) and (query.Fields[a].FieldName=campoFormatoDiferente) then
       begin
         TcurrencyField(query.FieldByName(query.Fields[a].FieldName)).DisplayFormat := '###,##0.'+CompletaOuRepete('','','0',qtd);
       end;
-    a:=a+1;
+
+    if (UpperCase(FieldTypeNames[query.Fields.Fields[a].DataType])='FMTBCDFIELD') and (query.Fields[a].FieldName=campoFormatoDiferente) then
+      begin
+        TcurrencyField(query.FieldByName(query.Fields[a].FieldName)).DisplayFormat := '###,##0.'+CompletaOuRepete('','','0',qtd);
+      end;   }
   end;
 end;
 

@@ -421,6 +421,7 @@ type
     Aniversariantes2: TMenuItem;
     Apagarprodutossemmovimento1: TMenuItem;
     ControledeGarantias1: TMenuItem;
+    RelAcessoPC1: TMenuItem;
     procedure LimparBloqueios1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure CadastrarUsurio1Click(Sender: TObject);
@@ -729,6 +730,7 @@ type
     procedure Aniversariantes2Click(Sender: TObject);
     procedure Apagarprodutossemmovimento1Click(Sender: TObject);
     procedure ControledeGarantias1Click(Sender: TObject);
+    procedure RelAcessoPC1Click(Sender: TObject);
   private
     b, cont: integer;
     ini: Smallint;
@@ -1352,6 +1354,8 @@ begin
     end;
 
     form22.fonteDAT := TStringList.Create;
+    if FileExists(caminhoEXE_com_barra_no_final + 'fonte.dat') then
+
     form22.fonteDAT.LoadFromFile(caminhoEXE_com_barra_no_final + 'fonte.dat');
 
     if funcoes.le_configTerminalWindows(7, 'N') = 'S' then
@@ -4532,6 +4536,7 @@ begin
   form40.tipo.Add('133=generico');
   form40.tipo.Add('134=generico');
   form40.tipo.Add('135=generico');
+  form40.tipo.Add('136=generico');
 
   form40.troca := TStringList.Create;
   form40.troca.Add('0=S');
@@ -4673,6 +4678,7 @@ begin
   form40.troca.Add('133=S');
   form40.troca.Add('134=S');
   form40.troca.Add('135=S');
+  form40.troca.Add('136=S');
   
   form40.teclas := TStringList.Create;
   form40.teclas.Add('0=FT');
@@ -4813,6 +4819,7 @@ begin
   form40.teclas.Add('133=SN');
   form40.teclas.Add('134=SN');
   form40.teclas.Add('135=SN');
+  form40.teclas.Add('136=SN');
 
   form40.ListBox1.Clear;
   form40.ListBox1.Items.Add
@@ -4985,7 +4992,7 @@ begin
     '0-Descricao ' + #13 + '1-Preço de Compra' + #13 + '2-Mínimo' + #13 +
     '3-Estoque Loja' + #13 + '4-Estoque Depósito' + #13 + '5-Sugestão' + #13 +
     '6-Unidade' + #13 + '7-Referência Original' + #13 + '8-Código Barras' + #13
-    + '9-Cod Sequência');
+    + '9-Cod Sequência'+#13+' X-Aplicação');
   form40.ListBox1.Items.Add
     ('102=Mostrar nome do cliente em formas de pagamento ?');
   form40.ListBox1.Items.Add
@@ -5041,6 +5048,7 @@ begin
   form40.ListBox1.Items.Add('133=Habilitar Impressao do desconto no pedido por Produto(Disponivel para impressao M e T) ?');
   form40.ListBox1.Items.Add('134=Exibir data e hora na rotina de Forma de Pagamento (padrao N) ?');
   form40.ListBox1.Items.Add('135=Permitir Preço de Venda 0 no Cadastro de Produto (padrao N) ?');
+  form40.ListBox1.Items.Add('136=Deseja cruzar estoque entre matriz e filial na sincronização de estoque(S/N) ?');
 
   form40.ListBox1.Selected[0] := true;
   form40.showmodal;
@@ -5854,6 +5862,12 @@ end;
 
 procedure TForm2.ControledeGarantias1Click(Sender: TObject);
 begin
+  if VerificaAcesso_Se_Nao_tiver_Nenhum_bloqueio_true_senao_false = false then begin
+    ShowMessage('Rotina Não Permitida. Acesso Negado!');
+    exit;
+  end;
+
+
   Form93 := tform93.Create(self);
   funcoes.CtrlResize(TForm(form93));
   form93.ShowModal;
@@ -6949,12 +6963,12 @@ end;
 
 procedure TForm2.ContasaPagar1Click(Sender: TObject);
 var
-  grupo, ini, fim, his, g1, h1, imprimirtotaldia: string;
-  totaldia, totalgeral: currency;
+  grupo, ini, fim, his, g1, h1, h2, filtro, filtrocaption, imprimirtotaldia: string;
+  totaldia, totalgeral, valConta, valPago: currency;
   dia: TDateTime;
   b: integer;
 begin
-  b := 62;
+  b := 0;
   totaldia := 0;
   totalgeral := 0;
   form19.RichEdit1.Clear;
@@ -6983,7 +6997,29 @@ begin
   if imprimirtotaldia = '*' then
     exit;
 
-  form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+  filtro := funcoes.dialogo('generico', 0, 'SNT', 20, false, 'S',
+    application.Title, 'Imprimir Contas a Pagar em aberto ?(Sim-Não Pagas, N-Pagas, T-Todas)', 'S');
+  if filtro = '*' then
+    exit;
+
+  if grupo <> '' then
+    g1 := '(codgru=' + grupo + ') and';
+  if his <> '' then
+    h1 := ' and (historico like ' + QuotedStr('%' + UpperCase(his) + '%') + ')';
+
+  h2 := '';
+  filtrocaption := 'Filtro: Todos';
+  if filtro = 'S'      then begin
+   h2 := 'and (pago=0)';
+   filtrocaption := 'Filtro: Somente nâo Pagas';
+  end
+  else if filtro = 'N' then begin
+   h2 := ' and (pago>0)';
+   filtrocaption := 'Filtro: Somente Pagas';
+  end;
+
+
+ {   form19.RichEdit1.Perform(EM_REPLACESEL, 1,
     Longint(PChar((funcoes.CompletaOuRepete('+', '+' + #13 + #10, '-', 81)))));
   form19.RichEdit1.Perform(EM_REPLACESEL, 1,
     Longint(PChar((funcoes.CompletaOuRepete('|' + funcoes.LerValorPGerais
@@ -7001,14 +7037,13 @@ begin
     + #13 + #10))));
   form19.RichEdit1.Perform(EM_REPLACESEL, 1,
     Longint(PChar((funcoes.CompletaOuRepete('+', '+' + #13 + #10, '-', 81)))));
-  if grupo <> '' then
-    g1 := '(codgru=' + grupo + ') and';
-  if his <> '' then
-    h1 := ' and (historico like ' + QuotedStr('%' + UpperCase(his) + '%') + ')';
+
+  }
+
   dm.ibselect.Close;
   dm.ibselect.SQL.Clear;
   dm.ibselect.SQL.Add('select * from contaspagar where ' + g1 +
-    ' ((vencimento>=:v1) and (vencimento<=:v2) and (pago=0)) ' + h1 +
+    ' ((vencimento>=:v1) and (vencimento<=:v2) '+h2+') ' + h1 +
     ' order by vencimento');
   dm.ibselect.ParamByName('v1').AsDateTime := StrToDate(ini);
   dm.ibselect.ParamByName('v2').AsDateTime := StrToDate(fim);
@@ -7016,14 +7051,19 @@ begin
   dm.ibselect.FetchAll;
   dm.ibselect.First;
   dia := dm.ibselect.FieldByName('vencimento').AsDateTime;
+  valPago := 0;
   while not dm.ibselect.Eof do
   begin
     if form19.RichEdit1.Lines.Count >= b then
     begin
-      b := b + 67;
+
+      if b > 0 then
+      
       form19.RichEdit1.Perform(EM_REPLACESEL, 1,
         Longint(PChar((funcoes.CompletaOuRepete('+', '+' + #13 + #10,
         '-', 81)))));
+
+      b := b + 67;
       addRelatorioForm19(#12);
       // form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((' '+#12+#13+#10))));
       form19.RichEdit1.Perform(EM_REPLACESEL, 1,
@@ -7038,7 +7078,7 @@ begin
         'Relatorio de Contas a Pagar de: ' + ini + ' a ' + fim,
         'HORA: ' + FormatDateTime('tt', now) + '|' + #13 + #10, ' ', 81)))));
       form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-        Longint(PChar((funcoes.CompletaOuRepete('+', '+'#13 + #10, '-', 81)))));
+        Longint(PChar((funcoes.CompletaOuRepete('+ ' + filtrocaption, '+'#13 + #10, '-', 81)))));
       form19.RichEdit1.Perform(EM_REPLACESEL, 1,
         Longint(PChar
         (('|Caixa| Vencto | Nr.Doc   | Historico                             |   Valor   |'
@@ -7048,7 +7088,11 @@ begin
         '-', 81)))));
     end;
 
-    addRelatorioForm19(funcoes.CompletaOuRepete('|',
+    valConta := dm.ibselect.FieldByName('total').AsCurrency;
+    if dm.ibselect.FieldByName('pago').AsCurrency > 0 then valPago := valPago + dm.ibselect.FieldByName('pago').AsCurrency;
+
+
+    addRelatorioForm19(funcoes.CompletaOuRepete('|' + IfThen(dm.ibselect.FieldByName('pago').AsCurrency > 0, 'PG', ''),
       dm.ibselect.FieldByName('codgru').AsString, ' ', 6) + ' ' +
       funcoes.CompletaOuRepete('', FormatDateTime('dd/mm/yy',
       dm.ibselect.FieldByName('vencimento').AsDateTime), ' ', 8) + ' ' +
@@ -7056,11 +7100,12 @@ begin
       .AsString, ' ', 10) + '  ' + funcoes.CompletaOuRepete
       (LeftStr(dm.ibselect.FieldByName('historico').AsString, 37), '', ' ', 37)
       + ' ' + funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00',
-      dm.ibselect.FieldByName('valor').AsCurrency) + '|', ' ', 13) + #13 + #10);
-    totalgeral := totalgeral + dm.ibselect.FieldByName('valor').AsCurrency;
+      valConta) + '|', ' ', 13) + #13 + #10);
+
+    totalgeral := totalgeral + valConta;
     if dia = dm.ibselect.FieldByName('vencimento').AsDateTime then
     begin
-      totaldia := totaldia + dm.ibselect.FieldByName('valor').AsCurrency;
+      totaldia := totaldia + valConta;
     end;
     if imprimirtotaldia = 'S' then
     begin
@@ -12136,7 +12181,7 @@ end;
 
 procedure TForm2.PorFornecedor1Click(Sender: TObject);
 var
-  ini, fim, minim, notas, ordem: string;
+  ini, fim, minim, notas, ordem, nomeprod: string;
   totalgeral, totalCompra, totalVenda, totVendas, totcomp, somaDesc, descMedio,
     minima: currency;
   i, linhas: integer;
@@ -12277,6 +12322,9 @@ begin
       end; }
     dm.ibselect.Next;
   end;
+
+
+
   totVendas := 0;
   totcomp := 0;
   somaDesc := 0;
@@ -12350,13 +12398,20 @@ begin
     totalCompra := lista[i].dep;
     totalVenda := lista[i].val1;
 
+    dm.IBselect.Close;
+    dm.IBselect.SQL.Text := 'select codbar, nome from produto where cod = ' + IntToStr(lista[i].cod);
+    dm.IBselect.Open;
+
+    nomeprod := IntToStr(lista[i].cod) + '-' + IfThen(dm.IBselect.FieldByName('nome').AsString = '', 'Desconhecido', dm.IBselect.FieldByName('nome').AsString);
+    if funcoes.buscaParamGeral(5, 'N') = 'S' then nomeprod := trim(dm.IBselect.FieldByName('codbar').AsString) + '-' + dm.IBselect.FieldByName('nome').AsString;
+
+    nomeprod := LeftStr(nomeprod, 31);
+
+
     totcomp := totcomp + totalCompra;
     totVendas := totVendas + totalVenda;
     form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-      Longint(PChar((funcoes.CompletaOuRepete('', IntToStr(lista[i].cod), ' ',
-      6) + '-' + funcoes.CompletaOuRepete(copy(funcoes.BuscaNomeBD(dm.IBQuery2,
-      'nome', 'produto', 'where cod=' + IntToStr(lista[i].cod)), 1, 25), '',
-      ' ', 25) + funcoes.CompletaOuRepete('', formataCurrency(lista[i].quant),
+      Longint(PChar((funcoes.CompletaOuRepete(nomeprod, '', ' ',31) + funcoes.CompletaOuRepete('', formataCurrency(lista[i].quant),
       ' ', 12) + funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00',
       totalCompra), ' ', 13) + funcoes.CompletaOuRepete('',
       FormatCurr('#,###,###0.00', totalVenda), ' ',
@@ -13710,6 +13765,7 @@ begin
     funcoes.mensagem(application.Title, '', 15, '', false, 0, clBlack, true);
   end;
 
+
   form79 := tform79.Create(self);
   form79.showmodal;
   form79.Free;
@@ -14068,9 +14124,6 @@ begin
           QuotedStr(conf) +
           ', codhis = :codhis, entrada = :entrada, usuario = :usu, usu_receb = :usu where nota = :nota');
       end;
-
-
-
 
       dm.IBQuery1.ParamByName('pc').AsString := strnum(form22.COD_PC);
       dm.IBQuery1.ParamByName('dth_receb').AsDateTime := DateOf(form22.datamov)
@@ -17326,6 +17379,15 @@ begin
     if nota = '*' then
       exit;
 
+
+    if funcoes.buscaParamGeral(119, 'N') = 'S' then
+    begin
+      caminho := caminhoEXE_com_barra_no_final + 'Backup\'+strnum(form22.Pgerais.Values['cnpj'])+'-' + nota +'.DAT';
+      funcoes.exportaNotaOnline(caminho, nota);
+      exit;
+    end;
+
+
     if funcoes.buscaParamGeral(33, '') = '' then
       caminho := 'E'
     else
@@ -17376,8 +17438,8 @@ begin
     begin
       linha := '-0- -1- -2- -3- -4- -5- -6- -7- -8- -9- -10- -11-';
       linha := GravarConfig(linha, dm.ibselect.FieldByName('cod').AsString, 0);
-      linha := GravarConfig(linha, dm.ibselect.FieldByName('unid').AsString, 1);
-      linha := GravarConfig(linha, dm.ibselect.FieldByName('nome').AsString, 2);
+      linha := GravarConfig(linha, funcoes.TiraOuTrocaSubstring(dm.ibselect.FieldByName('unid').AsString, '-', ''), 1);
+      linha := GravarConfig(linha, funcoes.TiraOuTrocaSubstring(dm.ibselect.FieldByName('nome').AsString, '-', ''), 2);
       linha := GravarConfig(linha, dm.ibselect.FieldByName('p_venda')
         .AsString, 3);
       linha := GravarConfig(linha, dm.ibselect.FieldByName('quant')
@@ -17388,8 +17450,7 @@ begin
         dm.ibselect.FieldByName('data').AsDateTime), 7);
       linha := GravarConfig(linha, CurrToStr(dm.ibselect.FieldByName('p_compra')
         .AsCurrency), 8);
-      linha := GravarConfig(linha, dm.ibselect.FieldByName('codbar')
-        .AsString, 9);
+      linha := GravarConfig(linha, funcoes.TiraOuTrocaSubstring(dm.ibselect.FieldByName('codbar').AsString, '-', ''), 9);
 
       // linha := funcoes.Criptografar(linha);
 
@@ -17419,6 +17480,21 @@ begin
     total: currency;
     arqi: TStringList;
   begin
+     if funcoes.buscaParamGeral(119, 'N') = 'S' then
+    begin
+      caminho := caminhoEXE_com_barra_no_final + 'Backup\'+strnum(form22.Pgerais.Values['cnpj'])+'-' + nota +'.DAT';
+      nota := funcoes.dialogo('generico', 0, '1234567890' + #8, 50, true, '',
+      application.Title,
+      'Qual a Número da Nota a ser Importada ?', '');
+    if nota = '*' then
+      exit;
+
+      funcoes.DownloadExportaNotaOnline(nota);
+      exit;
+    end;
+
+
+
     caminho := funcoes.dialogo('generico', 0, 'ABCDEFGHIJLMNOPKXYZWQRSTUVXZ',
       50, false, 'S', application.Title,
       'Confirme a unidade para Recebimento da Remessa:',
@@ -22988,7 +23064,7 @@ procedure TForm2.ValidarAssinaturaDigital1Click(Sender: TObject);
     dm.ibselect.SQL.Text :=
       ('select p.cod, p.nome, sum(i.quant) as quant from item_venda i inner join'
       + ' produto p on (p.cod = i.cod) where ' + h1 +
-      ' ((i.data >= :v1) and (i.data<=:v2)) group by p.cod, p.nome order by quant desc');
+      ' ((i.data >= :v1) and (i.data<=:v2)) and (i.cancelado = ''0'') group by p.cod, p.nome order by quant desc');
     dm.ibselect.ParamByName('v1').AsDateTime := StrToDate(ini);
     dm.ibselect.ParamByName('v2').AsDateTime := StrToDate(fim);
     dm.ibselect.Open;
@@ -24494,7 +24570,22 @@ procedure TForm2.ValidarAssinaturaDigital1Click(Sender: TObject);
     end;
   end;
 
-  procedure TForm2.RelatriodePendnciasNFCe1Click(Sender: TObject);
+  procedure TForm2.RelAcessoPC1Click(Sender: TObject);
+begin
+  form19.RichEdit1.Clear;
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select * from pc';
+  dm.IBselect.Open;
+
+  while not dm.IBselect.Eof do begin
+    addRelatorioForm19(CompletaOuRepete('', dm.IBselect.FieldByName('cod').AsString, '0', 5) + ' ' + CompletaOuRepete(dm.IBselect.FieldByName('nome').AsString, '', ' ', 50) + ' ' + CompletaOuRepete(IfThen(dm.IBselect.FieldByName('ult_acesso').IsNull, '00/00/0000', dm.IBselect.FieldByName('ult_acesso').AsString), '', ' ', 15) + CRLF);
+    dm.IBselect.Next;
+  end;
+
+  form19.ShowModal;
+end;
+
+procedure TForm2.RelatriodePendnciasNFCe1Click(Sender: TObject);
   begin
     funcoes.verificaNFCe;
   end;
@@ -25268,7 +25359,7 @@ procedure TForm2.ValidarAssinaturaDigital1Click(Sender: TObject);
 
   procedure TForm2.ProdutosVencidos1Click(Sender: TObject);
   var
-    sim, prec, data, h1, ordem: string;
+    sim, prec, data, h1, h2, ordem: string;
     tam, idx, atual: integer;
     produtos: TItensProduto;
     dataDeVencimento: TDateTime;
@@ -25289,15 +25380,26 @@ procedure TForm2.ValidarAssinaturaDigital1Click(Sender: TObject);
     if grupo = '*' then
       exit;
 
+    fornec := funcoes.dialogo('generico', 0, '1234567890' + #8, 50, false, '',
+      application.Title, 'Qual o Cód. do Fornecedor ?', '');
+    if fornec = '*' then
+      exit;
+
     ordem := funcoes.dialogo('generico', 0, '12', 50, false, 'S',
       application.Title, 'Qual a Ordem ? (1-CODIGO 2-DESCRICAO)', '1');
     if ordem = '*' then
       exit;
 
     h1 := '';
+    h2 := '';
     if grupo <> '' then
     begin
       h1 := ' and p.grupo = ' + strnum(grupo);
+    end;
+
+   if fornec <> '' then
+    begin
+      h2 := ' and p.fornec = ' + strnum(fornec);
     end;
 
     if ordem = '1' then
@@ -25311,7 +25413,7 @@ procedure TForm2.ValidarAssinaturaDigital1Click(Sender: TObject);
     dm.ibselect.SQL.Text :=
       'select i.cod, i.quant, p.nome, i.validade, i.nota, (p.quant + p.deposito) as estoque from item_entrada i left join produto p on (p.cod = i.cod) '
     // + 'where (i.validade > ''01.01.2000'') ' + h1 + ' order by ' + ordem +
-      + 'where (i.validade >= ''01.01.2000'') ' + h1 + ' order by ' + ordem +
+      + 'where (i.validade >= ''01.01.2000'') ' + h1 + h2 + ' order by ' + ordem +
       ', i.validade desc'; // jss-acrescentei ordem e campo validade
     // 'where i.validade <= :data and i.validade >= ''01.01.2000'' order by i.cod, i.validade desc'; //jss-acrescentei ordem e campo validade
     // dm.IBselect.ParamByName('data').AsDate := dataDeVencimento;

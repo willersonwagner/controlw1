@@ -27,7 +27,7 @@ object Form15: TForm15
     Top = 0
     Width = 751
     Height = 561
-    ActivePage = tsPSP
+    ActivePage = TabSheet1
     Align = alClient
     TabHeight = 25
     TabOrder = 1
@@ -3766,6 +3766,8 @@ object Form15: TForm15
     object TabSheet1: TTabSheet
       Caption = 'Teste'
       ImageIndex = 2
+      ExplicitLeft = -12
+      ExplicitTop = 35
       DesignSize = (
         743
         526)
@@ -3791,6 +3793,20 @@ object Form15: TForm15
         Center = True
         Proportional = True
         Stretch = True
+      end
+      object Label1: TLabel
+        Left = 273
+        Top = 366
+        Width = 26
+        Height = 13
+        Caption = 'TxId:'
+      end
+      object Label2: TLabel
+        Left = 273
+        Top = 390
+        Width = 17
+        Height = 13
+        Caption = 'loc:'
       end
       object mLog: TMemo
         Left = -4
@@ -3818,8 +3834,8 @@ object Form15: TForm15
         TabOrder = 2
       end
       object btQREGerar: TBitBtn
-        Left = 344
-        Top = 396
+        Left = 536
+        Top = 451
         Width = 161
         Height = 49
         Anchors = [akBottom]
@@ -3836,6 +3852,22 @@ object Form15: TForm15
         Caption = 'Analisar'
         TabOrder = 4
         OnClick = BitBtn1Click
+      end
+      object txidEstatico: TEdit
+        Left = 305
+        Top = 363
+        Width = 272
+        Height = 21
+        Anchors = [akLeft, akTop, akRight]
+        TabOrder = 5
+      end
+      object loca: TEdit
+        Left = 305
+        Top = 390
+        Width = 272
+        Height = 21
+        Anchors = [akLeft, akTop, akRight]
+        TabOrder = 6
       end
     end
   end

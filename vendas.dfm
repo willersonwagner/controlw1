@@ -528,4 +528,9 @@ object Form20: TForm20
       Expression = '(sum(TOT_ORIGI))'
     end
   end
+  object Timer2: TTimer
+    OnTimer = Timer2Timer
+    Left = 201
+    Top = 1
+  end
 end

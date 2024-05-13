@@ -272,25 +272,26 @@ if key=#27 then
          Pgerais.Values['acesso'] := acs;
        end;
 
-       COD_PC := funcoes.buscaNomePC;
 
        try
          funcoes.lerConfigIMPRESSORA();
        except
        end;
 
-      
        UnidInteiro := funcoes.buscaUnidadesFracionadas;
 
-       try
+       //try
          if ((funcoes.validaDataHora(datamov, usuario) = false) and (usuario <> 'ADMIN')) then begin
            self.Show;
            exit;
          end;
-       except
-       end;
+       //except
+      // end;
 
        acs := '';
+
+
+       COD_PC := funcoes.buscaNomePC;
 
        if superUsu = 1 then
          begin
@@ -307,7 +308,6 @@ if key=#27 then
            end;
        end;
 
-     
        if acs <> '' then
          begin
                 //ShowMessage('Verifique os Níveis de Acesso em Ultilitários > Níveis de Acesso');
@@ -525,7 +525,24 @@ procedure Tform22.Button2Click(Sender: TObject);
 var
   err1 : String;
 begin
-  err1 := InputBox('','','');
+  dm.IBselect.Close;
+ dm.IBselect.SQL.Clear;
+ dm.IBselect.SQL.Text :=
+    ('select i.nota, i.fornec,i.cod, i.p_compra, i.destino, i.quant, i.nota, i.data,'+
+    ' i.unid, e.chegada from item_entrada i '+
+    ' left join entrada e on ((i.nota = e.nota ) and (i.fornec = e.fornec)) where (i.cod =3922) and ''0-1-2'' containing cast(i.destino as varchar(1))');
+  try
+
+  dm.IBselect.Open;
+  except
+    on e:exception do begin
+      GravarTexto('sql.txt', dm.IBselect.SQL.Text);
+      ShowMessage('erro1635: '+ e.Message + #13 + #13 + dm.IBselect.SQL.Text);
+      exit;
+    end;
+  end;
+
+  //err1 := InputBox('','','');
   //ShowMessage(IntToStr(retornaIndiceProdutoErroNoNCM(err1)));
 end;
 

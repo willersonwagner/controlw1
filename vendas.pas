@@ -83,6 +83,7 @@ type
     ClientDataSet1estado: TStringField;
     ClientDataSet1seqServ: TIntegerField;
     ClientDataSet1unid: TStringField;
+    Timer2: TTimer;
     procedure DBGrid1KeyPress(Sender: TObject; var Key: Char);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormShow(Sender: TObject);
@@ -120,6 +121,7 @@ type
     procedure JsEdit1Enter(Sender: TObject);
     procedure FormKeyPress(Sender: TObject; var Key: Char);
     procedure ClientDataSet1AfterOpen(DataSet: TDataSet);
+    procedure Timer2Timer(Sender: TObject);
 
   private
     l1, l2, l3: TLabel;
@@ -1590,7 +1592,37 @@ begin
   if tipoNota = '' then
     form19.RichEdit1.Clear;
 
-  { if tipo='D' then
+  if tipo='DAV' then
+    begin
+    if funcoes.LerConfig(form22.Pgerais.Values['conf_ter'], 3) <> '' then
+    begin
+    //Termica elgin ou bematech
+    imprime.fontDif := true;
+    imprime.tamaFonte := StrToIntDef(funcoes.LerConfig(form22.Pgerais.Values['conf_ter'], 3), 11);
+    form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete('','','-',tamanho_nota)+#13+#10))));
+    form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete('NOTA: '+novocod,'',' ',tamanho_nota)+#13+#10))));
+    form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete('VENDEDOR: '+JsEdit2.Text+'-'+copy(funcoes.BuscaNomeBD(dm.ibquery1,'nome','vendedor','where cod='+JsEdit2.Text),1,10),'',' ',tamanho_nota)+#13+#10))));
+    form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete('FORMA PAGTO: '+ codhis + '-' + (funcoes.BuscaNomeBD(dm.ibquery1,'nome','formpagto','where cod='+codhis)), '', ' ',tamanho_nota)+#13+#10))));
+    form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete('DATA: ' + FormatDateTime('DD/MM/YYYY', StrToDate(JsEditData1.Text)), '',' ',tamanho_nota)+#13+#10))));
+    form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete('VALOR:' + FormatCurr('#,###,###0.00',total1),'',' ',tamanho_nota)+#13+#10))));
+    form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete('','','-',tamanho_nota)+#13+#10))));
+  //  imprime.textx('texto.txt');
+    exit;
+    end;
+
+    form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete('','','-',tamanho_nota)+#13+#10))));
+    form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete(' NOTA: '+novocod,'  VENDEDOR: '+JsEdit2.Text+'-'+copy(funcoes.BuscaNomeBD(dm.ibquery1,'nome','vendedor','where cod='+JsEdit2.Text),1,10),' ',tamanho_nota)+#13+#10))));
+    form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((#13+#10))));
+    form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar(('FORMA PAGTO: '+codhis+'-'+(funcoes.BuscaNomeBD(dm.ibquery1,'nome','formpagto','where cod='+codhis))+#13+#10))));
+    form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((#13+#10))));
+    form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar(('DATA: '+FormatDateTime('DD/MM/YY',StrToDate(JsEditData1.Text))+' VALOR:'+funcoes.CompletaOuRepete('',FormatCurr('#,###,###0.00',total1),' ',11)+#13+#10))));
+    form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete('','','-',tamanho_nota)+#13+#10))));
+
+  //  imprime.textx('texto.txt');
+    exit;
+   end;
+
+   if tipo='D' then
     begin
     if funcoes.LerConfig(form22.Pgerais.Values['conf_ter'], 3) <> '' then
     begin
@@ -1617,9 +1649,9 @@ begin
     form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete('','','-',tamanho_nota)+#13+#10))));
 
     imprime.textx('texto.txt');
+    exit;
+   end;
 
-    end;
-  }
 
   if tipo = 'D' then
   begin
@@ -3218,7 +3250,7 @@ begin
       begin
         addRelatorioForm19(' ' + CRLF);
         addRelatorioForm19(' ' + CRLF);
-        ImprimeNota('D');
+        ImprimeNota('DAV');
       end;
     end;
 
@@ -4124,7 +4156,7 @@ begin
       begin
         addRelatorioForm19(' ' + CRLF);
         addRelatorioForm19(' ' + CRLF);
-        ImprimeNota('D');
+        ImprimeNota('DAV');
       end;
     end;
   end;
@@ -4364,7 +4396,7 @@ begin
           ClientDataSet1.FieldByName('descricao').AsString, 1, 40), '', ' ',
           40) + CRLF);
         addRelatorioForm19(funcoes.CompletaOuRepete(LeftStr(imprRefxx, 16), '',
-          ' ', 16) + funcoes.CompletaOuRepete('', FormatCurr('0.0',
+          ' ', 16) + funcoes.CompletaOuRepete('', FormatCurr('0.00',
           ClientDataSet1.FieldByName('quant').AsCurrency), ' ', 7) +
           funcoes.CompletaOuRepete('', FormatCurr('0.00',
           ClientDataSet1PRECO.AsCurrency), ' ', 8) + funcoes.CompletaOuRepete
@@ -4584,10 +4616,8 @@ begin
       begin
         addRelatorioForm19(' ' + CRLF);
         addRelatorioForm19(' ' + CRLF);
-        ImprimeNota('D');
+        ImprimeNota('DAV');
       end;
-
-
     end;
   end;
 
@@ -4689,8 +4719,11 @@ begin
   dm.IBQuery1.Close;
   dm.produto.Close;
   dm.produto.Open;
+
+
   formataCamposPreco;
   funcoes.FormataCampos(dm.produto, 2, 'ESTOQUE', 3);
+  funcoes.resizeCamposIdividualDBGRID(DBGrid1);
   ClientDataSet1.EnableControls;
 
   impNovo(2);
@@ -4747,13 +4780,17 @@ begin
   dm.IBQuery1.Close;
   dm.produto.Close;
   dm.produto.Open;
+
+
   formataCamposPreco;
 
   if trim(ordemCompra) <> '' then
   begin
     funcoes.OrdenaCamposVenda(ordemCompra, true);
   end;
+
   funcoes.FormataCampos(dm.produto, 2, 'ESTOQUE', 3);
+  funcoes.resizeCamposIdividualDBGRID(DBGrid1);
 
   ClientDataSet1.EnableControls;
   { fim := funcoes.dialogo('generico',0,'SN',0,false,'S','Control for Windows:','Imprime os Preços das Mercadorias? S/N','S');
@@ -6032,9 +6069,7 @@ begin
 
     dm.IBQuery1.ParamByName('data').AsDateTime := form22.datamov;
     dm.IBQuery1.ParamByName('cod').AsString := StrNum(ClientDataSet1CODIGO.AsString);
-    dm.IBQuery1.ParamByName('codbar').AsString :=
-      funcoes.BuscaNomeBD(dm.IBQuery2, 'codbar', 'produto',
-      'where cod=' + ClientDataSet1CODIGO.AsString);
+
     dm.IBQuery1.ParamByName('quant').AsFloat := ClientDataSet1QUANT.AsFloat;
     dm.IBQuery1.ParamByName('p_venda').AsFloat := ClientDataSet1PRECO.AsFloat;
     dm.IBQuery1.ParamByName('total').AsCurrency := totProd;
@@ -6122,8 +6157,8 @@ begin
 
   dm.IBQuery1.Close;
   dm.IBQuery1.SQL.Text :=
-    ('insert into venda(USULIB,ENDE_ENTREGA, CLIENTE_ENTREGA, datamov,hora,vendedor,cliente,nota,data,total,codhis,desconto,prazo,entrada, EXPORTADO, USUARIO, tipo)'
-    + ' values(:USULIB,:ENDE_ENTREGA,:CLIENTE_ENTREGA, :datamov, :hora,:vend,:cliente,:nota,:data,:total,:pagto,:desc,:prazo,:entrada, :exportado, :USUARIO, :tipo)');
+    ('insert into venda(USULIB,ENDE_ENTREGA, CLIENTE_ENTREGA, datamov,hora,vendedor,cliente,nota,data,total,codhis,desconto,prazo,entrada, EXPORTADO, USUARIO, tipo, usu_venda)'
+    + ' values(:USULIB,:ENDE_ENTREGA,:CLIENTE_ENTREGA, :datamov, :hora,:vend,:cliente,:nota,:data,:total,:pagto,:desc,:prazo,:entrada, :exportado, :USUARIO, :tipo, :usu_venda)');
   dm.IBQuery1.ParamByName('USULIB').AsString           := LeftStr(form22.Pgerais.Values['codUsuNovo'], 3);
   dm.IBQuery1.ParamByName('ENDE_ENTREGA').AsInteger    := StrToIntDef(strnum(ENDE_ENTREGA), 0);
   dm.IBQuery1.ParamByName('CLIENTE_ENTREGA').AsInteger := StrToIntDef(strnum(CLIENTE_ENTREGA), 0);
@@ -6150,9 +6185,10 @@ begin
     StrToCurrDef(trim(JsEdit1.Text), 0);
   dm.IBQuery1.ParamByName('entrada').AsCurrency := entrada;
   dm.IBQuery1.ParamByName('exportado').AsInteger := EXPORTADO;
-  dm.IBQuery1.ParamByName('USUARIO').AsInteger :=
-    StrToIntDef(form22.codusario, 0);
+  dm.IBQuery1.ParamByName('USUARIO').AsInteger := StrToIntDef(form22.codusario, 0);
   dm.IBQuery1.ParamByName('tipo').AsString := LeftStr(tipoV, 3);
+  dm.IBQuery1.ParamByName('usu_venda').AsString := LeftStr(form22.codusario, 4);
+
 
   try
     dm.IBQuery1.ExecSQL;
@@ -6194,7 +6230,9 @@ begin
   dm.produto.Open;
 
 
+
   funcoes.FormataCampos(dm.produto, 2, 'ESTOQUE', 3);
+  funcoes.resizeCamposIdividualDBGRID(DBGrid1);
   formataCamposPreco;
   ClientDataSet1.EnableControls;
 
@@ -6618,7 +6656,10 @@ begin
               funcoes.emiteNfe(ultimaNota, true, true);
               dm.produto.Close;
               dm.produto.Open;
+
+
               funcoes.FormataCampos(dm.produto, 2, 'ESTOQUE', 3);
+              funcoes.resizeCamposIdividualDBGRID(DBGrid1);
               formataCamposPreco;
               formataCamposPreco;
               ClientDataSet1.EnableControls;
@@ -6640,7 +6681,10 @@ begin
               form22.enviNFCe(ultimaNota, '', total1);
               dm.produto.Close;
               dm.produto.Open;
+
+
               funcoes.FormataCampos(dm.produto, 2, 'ESTOQUE', 3);
+              funcoes.resizeCamposIdividualDBGRID(DBGrid1);
               formataCamposPreco;
               ClientDataSet1.EnableControls;
             end;
@@ -6915,6 +6959,8 @@ begin
       + campoEstoque + ',refori as ' + refori1 +
       ',unid,cod,aplic as Aplicacao,localiza as Localizacao from produto ';
     dm.produto.Open;
+
+
     formataCamposPreco;
     funcoes.fetchDataSet(dm.produto);
     funcoes.BuscaResizeDBgrid(DBGrid1, 'FORM20');
@@ -6971,15 +7017,21 @@ begin
 
     dm.produto.Open;
 
+
     try
       funcoes.fetchDataSet(dm.produto);
     finally
     end;
   end;
 
+
+  funcoes.resizeCamposIdividualDBGRID(DBGrid1);
+
   funcoes.FormataCampos(dm.produto, 2, 'ESTOQUE', 3);
+  funcoes.resizeCamposIdividualDBGRID(DBGrid1);
   formataCamposPreco;
   JsEditData1.Text := FormatDateTime('dd/mm/yyyy', form22.datamov);
+
 
   if separaPecas <> true then begin
     if ((form22.Pgerais.Values['codvendedor'] = '0') or
@@ -6999,7 +7051,7 @@ begin
 
   end;
 
-
+  Timer2.Enabled := TRUE;
 
   cont := 0;
   DBGrid1.DataSource := dm.dsprod;
@@ -7065,6 +7117,7 @@ begin
     dm.produto.Open;
 
 
+
     funcoes.fetchDataSet(dm.produto);
 
     sqlVenda :=
@@ -7076,6 +7129,7 @@ begin
     dm.produto.FieldByName('fracao').Visible := false;
 
     funcoes.FormataCampos(dm.produto, 2, 'ESTOQUE', 3);
+    funcoes.resizeCamposIdividualDBGRID(DBGrid1);
     formataCamposPreco;
 
     ordemCompra := funcoes.buscaParamGeral(101, '');
@@ -7435,6 +7489,7 @@ begin
     begin
       dm.produto.Open;
 
+
       funcoes.FormataCampos(dm.produto, 2, '', 2);
       formataCamposPreco;
     end;
@@ -7552,8 +7607,10 @@ begin
     dm.produto.Open;
 
     funcoes.FormataCampos(dm.produto, 2, 'ESTOQUE', 3);
+    funcoes.resizeCamposIdividualDBGRID(DBGrid1);
     formataCamposPreco;
     funcoes.OrdenaCamposVenda(funcoes.buscaParamGeral(1, ''));
+
     dm.produto.Locate('cod', cod, []);
 
     { }
@@ -7583,6 +7640,13 @@ procedure TForm20.Timer1Timer(Sender: TObject);
 begin
   procura := '';
   Timer1.Enabled := false;
+end;
+
+procedure TForm20.Timer2Timer(Sender: TObject);
+begin
+  Timer2.Enabled := FALSE;
+  FUNCOES.resizeCamposIdividualDBGRID(DBGrid1);
+
 end;
 
 procedure TForm20.JsEdit3KeyUp(Sender: TObject; var Key: Word;
@@ -7848,7 +7912,6 @@ end;
 procedure TForm20.ClientDataSet1AfterOpen(DataSet: TDataSet);
 begin
   funcoes.resizeCamposIdividualDBGRID(DBGrid2);
-  funcoes.resizeCamposIdividualDBGRID(DBGrid1);
 end;
 
 procedure TForm20.ClientDataSet1AfterPost(DataSet: TDataSet);
@@ -8287,6 +8350,7 @@ begin
     dm.produto.SQL.Text := sqlVenda + ' order by ' + orde1;
 
   dm.produto.Open;
+
 
 
   funcoes.FormataCampos(dm.produto, 2, '', 2);

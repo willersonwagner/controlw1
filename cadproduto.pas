@@ -1022,9 +1022,9 @@ begin
     'S') = 'S')) then
   begin
     basecred.Enabled := false;
-    credicm.Enabled := false;
-    basedeb.Enabled := false;
-    debicm.Enabled := false;
+    credicm.Enabled  := false;
+    basedeb.Enabled  := false;
+    debicm.Enabled   := false;
     agregado.Enabled := false;
   end;
 

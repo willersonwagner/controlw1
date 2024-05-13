@@ -43,6 +43,22 @@ type
     Label13: TLabel;
     tipoEmissao: TEdit;
     Label8: TLabel;
+    GroupBox8: TGroupBox;
+    CheckBox1: TCheckBox;
+    ClientDataSet1: TClientDataSet;
+    DataSource1: TDataSource;
+    ClientDataSet1cod: TIntegerField;
+    ClientDataSet1nome: TStringField;
+    ClientDataSet1p_venda: TCurrencyField;
+    ClientDataSet1frete: TCurrencyField;
+    ClientDataSet1base_icms: TCurrencyField;
+    ClientDataSet1desconto: TCurrencyField;
+    ClientDataSet1quant: TBCDField;
+    ClientDataSet1total: TCurrencyField;
+    ClientDataSet1desp_acessorias: TCurrencyField;
+    ClientDataSet1cod_aliquota: TIntegerField;
+    ClientDataSet1porc_aliquota: TCurrencyField;
+    CheckBox2: TCheckBox;
     procedure notaKeyPress(Sender: TObject; var Key: Char);
     procedure numnfKeyPress(Sender: TObject; var Key: Char);
     procedure clienteKeyPress(Sender: TObject; var Key: Char);
@@ -214,6 +230,7 @@ begin
     NfeVenda.FIN_NFE1    := finnfe.Text;
     NfeVenda.TAG_DOCREF  := TAG_DOCREF;
     NfeVenda.NFE_REF     := StrNum(NFE_REF);
+    NfeVenda.freteNaBaseDeCalculo := CheckBox1.Checked;
    except
     on e:exception do begin
       ShowMessage('erro188: ' + e.Message);

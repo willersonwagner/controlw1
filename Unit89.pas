@@ -286,7 +286,7 @@ end;
 
 procedure TForm89.pagamento;
 var
-  ini, fim, cod, ultcod, hist, pagto, mincod : String;
+  ini, fim, cod, ultcod, hist, pagto, mincod, cods : String;
   valor : currency;
   id : integer;
 begin
@@ -341,6 +341,7 @@ begin
   //ultcod := dm.ClientDataSet1.FieldByName('cod').AsString;
   //mincod := dm.ClientDataSet1.FieldByName('cod1').AsString;
   valor  := dm.ClientDataSet1.FieldByName('valor').AsCurrency;
+  cods   := dm.ClientDataSet1.FieldByName('cods').AsString;
 
   if ini = '' then exit;
 
@@ -374,11 +375,11 @@ begin
   end;
 
   dm.IBQuery1.Close;
-  dm.IBQuery1.SQL.Text := 'update entrega_novo set DATAHPAGTO = :data, USUARIOPAGTO = ' + StrNum(form22.codusario) + ' where usuario_baixa = :usu and (cast(data_entrega as date) >= :ini) and (cast(data_entrega as date) <= :fim)';
+  dm.IBQuery1.SQL.Text := 'update entrega_novo set DATAHPAGTO = :data, USUARIOPAGTO = ' + StrNum(form22.codusario) + ' where usuario_baixa = :usu and ('+QuotedStr(cods)+' like ''%-''||cod||''-%'')';
   dm.IBQuery1.ParamByName('data').AsDateTime  := DateOf(form22.datamov) + timeof(now) ;
   dm.IBQuery1.ParamByName('usu').AsInteger    := StrToIntDef(cod, 0);
-  dm.IBQuery1.ParamByName('ini').AsDate       := StrToDate(ini);
-  dm.IBQuery1.ParamByName('fim').AsDate       := StrToDate(fim);
+  //dm.IBQuery1.ParamByName('ini').AsDate       := StrToDate(ini);
+  //dm.IBQuery1.ParamByName('fim').AsDate       := StrToDate(fim);
   try
     dm.IBQuery1.ExecSQL;
   except

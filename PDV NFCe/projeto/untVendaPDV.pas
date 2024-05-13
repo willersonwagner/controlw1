@@ -175,7 +175,7 @@ implementation
 
 uses untDtmMain,  StrUtils, login1,
   MenuFiscal, consultaProduto, Math, dmecf, configImp, dialog, mens,
-  cadCli, importapedido, untConfiguracoesNFCe, untmain, qrcodePIX;
+  cadCli, importapedido, untConfiguracoesNFCe, untmain, qrcodePIX, Unit15;
 
 {$R *.dfm}
 procedure TForm3.setaCoresPDV();
@@ -887,7 +887,7 @@ begin
       PIX_Val := tot_ge;
     end;
 
-    IF qrcodePIX.Form84.recebePIX(PIX_Val, 'PDV CAIXA ' + getSerieNFCe) = 'OK' then begin
+    IF qrcodePIX.Form84.recebePIX1(PIX_Val, 'PDV CAIXA ' + getSerieNFCe) = 'OK' then begin
       //ShowMessage('PIX Recebido com Sucessso!');
     end
     else begin
@@ -1444,6 +1444,7 @@ begin
    form1.atualizaTabelaIBPT;
  except
  end;
+
 
  condicao := ' (left(nome, 1) <> ''_'') and ((desativado <> ''1'')or (desativado is null) )';
 
@@ -3153,6 +3154,12 @@ end;
 function TForm3.checaPIX : Boolean;
 begin
   Result := false;
+
+  //caso esses dois nao estajam preenchidos entao nao usa recebimento por pix no sistema
+  if ((form15.edtRecebedorNome.Text = '') or (form15.edtRecebedorCidade.Text = '')) then begin
+    exit;
+  end;
+
   formasPagamento.First;
   PIX_Val := 0;
   while not formasPagamento.Eof do begin
@@ -3165,9 +3172,17 @@ begin
     formasPagamento.Next;
   end;
 
+  if form15.VerificarConfiguracaoPIXCD = false then begin
+    exit;
+  end;
+
+  Result := true;
+
+  {
+
   if Result then begin
     if FileExists(ExtractFileDir(ParamStr(0)) + '\PIX.exe') = false then Result := false;
-  end;
+  end;   }
 end;
 
 

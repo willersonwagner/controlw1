@@ -41,6 +41,13 @@ type
     Label35: TLabel;
     Label36: TLabel;
     Label37: TLabel;
+    Label38: TLabel;
+    Label39: TLabel;
+    Label40: TLabel;
+    Label41: TLabel;
+    Label42: TLabel;
+    ulticod: TLabel;
+    Label44: TLabel;
     cod: JsEditInteiro;
     nome: JsEdit;
     tipo: JsEditInteiro;
@@ -51,21 +58,30 @@ type
     Label7: TLabel;
     Label8: TLabel;
     Label9: TLabel;
+    Label43: TLabel;
+    cnpj: JsEditCNPJ;
+    rota: JsEditInteiro;
+    ies: JsEdit;
+    org: JsEdit;
+    telres: JsEdit;
+    telcom: JsEdit;
     Panel2: TPanel;
     Label10: TLabel;
     Label12: TLabel;
     Label14: TLabel;
     Label13: TLabel;
     Label11: TLabel;
+    ende: JsEdit;
+    bairro: JsEdit;
+    cep: JsEdit;
+    est: JsEdit;
+    cid: JsEdit;
     obs: JsEdit;
     titular: JsEdit;
     nat: JsEdit;
     nac: JsEdit;
     estcv: JsEditInteiro;
     conj: JsEdit;
-    Label38: TLabel;
-    Label39: TLabel;
-    Label40: TLabel;
     tel: JsEdit;
     data: JsEditData;
     prof: JsEdit;
@@ -83,24 +99,9 @@ type
     nome2: JsEdit;
     end2: JsEdit;
     tel2: JsEdit;
-    Label41: TLabel;
-    Label42: TLabel;
-    ulticod: TLabel;
-    Label43: TLabel;
-    cnpj: JsEditCNPJ;
-    rota: JsEditInteiro;
-    ies: JsEdit;
-    org: JsEdit;
-    telres: JsEdit;
-    telcom: JsEdit;
-    cod_mun: JsEdit;
     email: JsEdit;
-    Label44: TLabel;
-    ende: JsEdit;
-    bairro: JsEdit;
-    cep: JsEdit;
-    est: JsEdit;
-    cid: JsEdit;
+    cod_mun: JsEdit;
+    ult_usuario: JsEdit;
     procedure FormShow(Sender: TObject);
     procedure JsBotao1Click(Sender: TObject);
     procedure JsBotao2Click(Sender: TObject);
@@ -120,6 +121,8 @@ type
     procedure nomeEnter(Sender: TObject);
     procedure FormKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure cidChange(Sender: TObject);
+    procedure cod_munKeyPress(Sender: TObject; var Key: Char);
+    procedure codExit(Sender: TObject);
   private
     codEstado : string;
     componente_a_retornar : JsEdit;
@@ -131,7 +134,7 @@ type
     procedure abreDataSet(codestado1 : String);
     { Private declarations }
   public
-    valor_a_retornar : string;
+    valor_a_retornar, campo_ativo : string;
     procedure setComponente_a_Retornar(componente : jsedit);
     procedure buscaCep(cep1 : String);
     { Public declarations }
@@ -240,6 +243,8 @@ procedure TForm16.JsBotao1Click(Sender: TObject);
 var
   att : boolean;
 begin
+  ult_usuario.Text := form22.codusario;
+
   if validaDados = false then exit;
 
   if verificaCadastroExiste(true) = false then exit;
@@ -248,6 +253,9 @@ begin
   att      := ativo.Enabled;
   ativo.Enabled := true;
   email.Text := LowerCase(email.Text);
+
+  if ((campo_ativo <> ativo.Text) and (cod.Text <> '0')) then funcoes.gravaAlteracao('Campo ATIVO alt de '+ campo_ativo + ' para '+ ativo.Text, 'ATV');
+
   valor_a_retornar := JsEdit.GravaNoBD(self);
 
   ativo.Enabled := att;
@@ -352,6 +360,12 @@ begin
     end;
 end;
 
+procedure TForm16.cod_munKeyPress(Sender: TObject; var Key: Char);
+begin
+  if key = #13 then JsBotao1.SetFocus;
+
+end;
+
 procedure TForm16.codKeyPress(Sender: TObject; var Key: Char);
 begin
   if key=#27 then
@@ -371,6 +385,11 @@ end;
 procedure TForm16.codEnter(Sender: TObject);
 begin
   ulticod.Caption := IntToStr(JsEdit.UltimoCodigoDaTabela(self.Name));
+end;
+
+procedure TForm16.codExit(Sender: TObject);
+begin
+  campo_ativo := ativo.Text;
 end;
 
 procedure TForm16.estKeyPress(Sender: TObject; var Key: Char);

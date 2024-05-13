@@ -311,6 +311,12 @@ begin
   begin
     if key = 116 then
       begin
+        {exit;
+        if VerificaAcesso_Se_Nao_tiver_Nenhum_bloqueio_true_senao_false = false then begin
+          ShowMessage('Rotina Bloqueada!');
+        end;     }
+
+
         data := '';
         cod  := DBGrid1.DataSource.DataSet.FieldByName('cod').AsString;
         dm.IBselect.Close;
@@ -383,8 +389,8 @@ begin
     valor     := query11.FieldByName('valor').AsCurrency;
 
     if valor <> 0 then begin
-      if query11.FieldByName('datamov').AsDateTime > query11.FieldByName('vencimento').AsDateTime then
-        datamaior := query11.FieldByName('datamov').AsDateTime;
+     // if query11.FieldByName('datamov').AsDateTime > query11.FieldByName('vencimento').AsDateTime then
+       // datamaior := query11.FieldByName('datamov').AsDateTime;
 
       //d := DaysBetween(datamaior, form22.datamov);
 
@@ -393,6 +399,7 @@ begin
       end;}
 
       d := trunc(form22.datamov - datamaior);
+
 
       //if form22.datamov > datamaior then
       if d > 0 then begin
@@ -417,7 +424,7 @@ begin
         end;
       end;
 
-
+   
       saldo := saldo + valor;
       ClientDataSet1.Append;
       ClientDataSet1.FieldByName('codgru').AsInteger      := query11.FieldByName('codgru').AsInteger;

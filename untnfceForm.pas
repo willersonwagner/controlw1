@@ -688,6 +688,7 @@ begin
   try
     DANFEEscPos.ImprimeNomeFantasia := true;
     ACBrNFe.DANFE                   := DANFEEscPos;
+    DANFEEscPos.FormularioContinuo  := true;
     ACBrNFe.NotasFiscais.Imprimir;
     DANFEEscPos.vTroco := 0;
   except
@@ -2944,7 +2945,12 @@ begin
       DANFE_Rave.ExibeCampoFatura := true;
       DANFE_Rave.logo := DANFELogomarca;
 
-      DANFE_Rave.CasasDecimais.qCom := ini.ReadInteger('SERVER','casasDecimais', 2);
+
+      DANFE_Rave.CasasDecimais.qCom  := ini.ReadInteger('SERVER','casasDecimais', 2);
+      DANFE_Rave.AltLinhaComun       := ini.ReadInteger('SERVER','AltLinhaComun', DANFE_Rave.AltLinhaComun);
+      DANFE_Rave.EspacoEntreProdutos := ini.ReadInteger('SERVER','espacoEntreLinhasNFe', DANFE_Rave.EspacoEntreProdutos);
+      DANFE_Rave.AlterarEscalaPadrao := Ini.ReadBool  ('SERVER', 'AlterarEscalaPadrao' , DANFE_Rave.AlterarEscalaPadrao);
+      DANFE_Rave.NovaEscala          := Ini.ReadInteger('SERVER','NovaEscala', DANFE_Rave.NovaEscala);
      // DANFE_Rave.ImprimeTotalLiquido := true;
       //DANFE_Rave.ImprimeDescPorPercentual := false;
 
@@ -2967,6 +2973,7 @@ begin
     DANFE.margemEsquerda := StrToCurrDef(margemEsquerda, 0.1);
     if DANFE.margemEsquerda = 0.6 then DANFE.margemEsquerda := 0.1;
     DANFE.LarguraBobina := 280;
+
     //
 
     EmailHost := ini.ReadString('Email', 'Host', '');
@@ -9338,6 +9345,7 @@ var
   th, site: String;
   arq: TStringList;
   SystemTime: TSystemTime;
+  cont : integer;
 begin
   Result := false;
   th := '';
@@ -9360,9 +9368,23 @@ begin
 
     retorno := th;
 
+    if Contido('|BLOQUEADO|', retorno) then begin
+    cont := 5;
+    //if form58.Showing = false then begin
+      //ShowMessage('1');
+      try
+        //adicionaRegistrosBloqueio;
+      except
+
+      end;
+    //end;
+  end;
+
     Result := true;
     arq := TStringList.Create;
     LE_CAMPOS(arq, th, '|', false);
+
+    //ShowMessage(arq.Text);
 
     //arq.SaveToFile('1.txt');
 

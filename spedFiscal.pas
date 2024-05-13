@@ -1706,7 +1706,7 @@ end;
 function leConhecimentos_de_frete_Bloco_D_SF(reg : integer = 1) : Smallint;
 var
   cfoptmp, CHV_CTE, codMunTransp : String;
-  aliqICMS  : currency;
+  aliqICMS, vlrICMS  : currency;
 begin
   Result := 0;
   
@@ -1759,31 +1759,39 @@ begin
           codMunTransp := dm.IBQuery1.FieldByName('cod_mun').AsString;
           dm.IBQuery1.Close;
 
+          vlrICMS := dm.IBselect.fieldbyname('VLR_ICMS').AsCurrency;
+          if dm.IBselect.fieldbyname('ALIQICMS').AsCurrency > 0 then begin
+            aliqICMS := dm.IBselect.fieldbyname('ALIQICMS').AsCurrency
+          end
+            else begin
+             aliqICMS := ArredondaFinanceiro(dm.IBselect.fieldbyname('VLR_ICMS').AsCurrency / dm.IBselect.fieldbyname('VLR_BC_ICM').AsCurrency * 100, 2);
+             vlrICMS  := ArredondaFinanceiro( dm.IBselect.fieldbyname('VLR_BC_ICM').AsCurrency * (aliqICMS /100), 2);
+            end;
+
           LINHA := '|D100|0|1|3' + strzero(dm.IBselect.fieldbyname('TRANSP').AsString, 6) + '|' + strzero(StrNum(dm.IBselect.fieldbyname('MOD_FRETE').AsString), 2) + '|00|' +
           dm.IBselect.fieldbyname('SERIE').AsString + '||' + dm.IBselect.fieldbyname('NUMDOC').AsString + '|'+ CHV_CTE +'|' + DATA_BRA_FULL(dm.IBselect.fieldbyname('DATA').AsDateTime) + '|' +
           DATA_BRA_FULL(dm.IBselect.fieldbyname('CHEGADA').AsDateTime) + '|||' + FORM_NUM1(dm.IBselect.fieldbyname('VLR_TOTAL').AsCurrency) + '|' +
           FORM_NUM1(dm.IBselect.fieldbyname('VLR_DESC').AsCurrency) + '|' + dm.IBselect.fieldbyname('IND_FRETE').AsString + '|' +
           FORM_NUM1(dm.IBselect.fieldbyname('VLR_SERV').AsCurrency) + '|' + FORM_NUM1(dm.IBselect.fieldbyname('VLR_BC_ICM').AsCurrency) + '|' +
-          FORM_NUM1(dm.IBselect.fieldbyname('VLR_ICMS').AsCurrency) + '|' + FORM_NUM1(dm.IBselect.fieldbyname('VLR_NT').AsCurrency) + '|||' +
+          FORM_NUM1(vlrICMS) + '|' + FORM_NUM1(dm.IBselect.fieldbyname('VLR_NT').AsCurrency) + '|||' +
           codMunTransp + '|' + codMunSistema + '|';
 
           GRAVA_SPED(ARQ_TMP, LINHA);
 
           //REGISTRO D190
 
-
-          if dm.IBselect.fieldbyname('ALIQICMS').AsCurrency > 0 then aliqICMS := dm.IBselect.fieldbyname('ALIQICMS').AsCurrency
-            else aliqICMS := dm.IBselect.fieldbyname('VLR_ICMS').AsCurrency / dm.IBselect.fieldbyname('VLR_BC_ICM').AsCurrency * 100;
-
           cfoptmp := IfThen(dm.IBselect.fieldbyname('VLR_ICMS').AsCurrency > 0, '000', '090');
           LINHA := '|D190|' + cfoptmp + '|' +
           dm.IBselect.fieldbyname('COD_CFOP').AsString + '|' + FORM_NUM1(IfThen(cfoptmp = '090', 0, aliqICMS)) + '|' +
           FORM_NUM1(dm.IBselect.fieldbyname('VLR_TOTAL').AsCurrency) + '|' + FORM_NUM1(dm.IBselect.fieldbyname('VLR_BC_ICM').AsCurrency) + '|' +
-          FORM_NUM1(dm.IBselect.fieldbyname('VLR_ICMS').AsCurrency) + '|0||';
+          FORM_NUM1(vlrICMS) + '|0||';
           GRAVA_SPED(ARQ_TMP, LINHA);
 
           //ACUMULA CREDITO DE ICMS PARA APURAÇÃO REG. E110
-          ACUM_ICM(dm.IBselect.fieldbyname('COD_CFOP').AsString, dm.IBselect.fieldbyname('VLR_ICMS').AsCurrency, 'Conhecimento de Frete: ' + dm.IBselect.fieldbyname('NUMDOC').AsString);
+          //ACUM_ICM(dm.IBselect.fieldbyname('COD_CFOP').AsString, vlrICMS, 'Conhecimento de Frete: ' + dm.IBselect.fieldbyname('NUMDOC').AsString);
+
+          TOTCREDICM := TOTCREDICM + vlrICMS;
+          //ShowMessage(dm.IBselect.fieldbyname('NUMDOC').AsString+#13 +CurrToStr(vlrICMS)+ #13+CurrToStr(TOTCREDICM));
 
           //ACUMULA CODIGO DO TRANSPORTADOR PARA REGISTROS 0150 - CAD. PARTICIPANTES
           ACUMULACOD(dm.IBselect.fieldbyname('TRANSP').AsString, ACUM_COD_FOR);

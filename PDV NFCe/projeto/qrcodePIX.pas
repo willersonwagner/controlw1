@@ -39,6 +39,7 @@ type
     cont, cont1, cont2 : integer;
     function PIXConsulta(txid : String) : string;
     function recebePIX(valor : currency; descricao : String) : string;
+    function recebePIX1(valor : currency; descricao : String) : string;
     procedure PIXcriarCobranca(valor : currency;desc, chave : String; var arq : TStringList);
     function PIXacessToken : string;
     function ProcessExists(exeFileName: string): Boolean;
@@ -52,7 +53,7 @@ implementation
 
 {$R *.dfm}
 
-uses untVendaPDV;
+uses untVendaPDV, Unit15;
 
 
 procedure TForm84.Button1Click(Sender: TObject);
@@ -119,7 +120,6 @@ begin
 
 
   PintarQRCode(qrcodePIX, Image1.Picture.Bitmap, qrAuto);
-
 end;
 
 procedure TForm84.Timer1Timer(Sender: TObject);
@@ -128,7 +128,9 @@ var
 begin
   Timer1.Enabled := false;
 
-  ret := PIXConsulta(txid1);
+  form15.BitBtn1.Click;
+  ret := form15.estado;
+  //ret := PIXConsulta(txid1);
   Label2.Caption := 'Estado: ' + ret;
 
   if trim(ret) = 'CONCLUIDA' then Label3.Caption := 'Recebimento Concluido com Sucesso!';
@@ -361,6 +363,7 @@ begin
   while True do begin
     inc(cont);
 
+
     PIXcriarCobranca(valor, descricao, 'a1f4102e-a446-4a57-bcce-6fa48899c1d1', arq);
     qrcodePIX := arq.Values['qrcode'];
     form84.Label2.Caption := 'Estado: ...' ;
@@ -400,6 +403,84 @@ begin
   form84.cont := 3;
   Form84.ShowModal;
   arq.Free;
+  if pos('Recebimento Concluido', form84.Label3.Caption) > 0 then Result := 'OK';
+end;
+
+function TForm84.recebePIX1(valor : currency; descricao : String) : string;
+begin
+  cont := 0;
+
+  valor_venda := valor;
+  //Timer3.Enabled := true;
+
+  Label4.Caption := 'Valor R$: ' + FormatCurr('#,###,###0.00', valor);
+  Result := '';
+  mensagemEnviandoNFCE('Aguarde...', true, false);
+
+  form15.fleQREValor.Text := CurrToStr(valor_venda);
+
+
+  while True do begin
+    inc(cont);
+    Application.ProcessMessages;
+
+     form15.qrcodees := '';
+     form15.btQREGerar.Click;
+    image1.Picture := form15.imgQRE.Picture;
+
+    if form15.qrcodees <>  '' then begin
+      qrcodePIX := form15.qrcodees;
+      break;
+    end;
+
+    if form15.ultimoErro <>  '' then begin
+      mensagemEnviandoNFCE('Aguarde, Enviando NFCe...', false, true);
+      ShowMessage(form15.ultimoErro);
+      exit;
+    end;
+
+    if cont > 10 then begin
+      break ;
+      ShowMessage('parou por tentativas');
+    end;
+
+
+
+    {PIXcriarCobranca(valor, descricao, 'a1f4102e-a446-4a57-bcce-6fa48899c1d1', arq);
+    qrcodePIX := arq.Values['qrcode'];
+    form84.Label2.Caption := 'Estado: ...' ;
+    txid1 := arq.Values['txid'];
+
+    passos.Add('**' + IntToStr(cont) + '**');
+    passos.Add(arq.GetText);
+
+    if ((arq.Values['ret'] = '200') or (arq.Values['ret'] = '201') and (Length(arq.Values['qrcode']) > 50)) then break;
+    if cont = 5 then break;
+
+
+    if arq.Values['ret'] = '401' then begin
+      PIXacessToken;
+
+      passos.Add('PIXacessToken **' + IntToStr(cont) + '**');
+      passos.Add(arq.GetText);
+
+      arq.Clear;
+    end;       }
+
+    sleep(1000);
+  end;
+
+  if ((qrcodePIX  = '') or (Length(qrcodePIX) < 50)) then begin
+    mensagemEnviandoNFCE('Aguarde, Enviando NFCe...', false, true);
+    ShowMessage('sem informação de cobrança');
+    exit;
+  end;
+
+  mensagemEnviandoNFCE('Aguarde, Enviando NFCe...', false, true);
+
+  form84.Label3.Caption := 'Aguardando Pagamento';
+  form84.cont := 3;
+  Form84.ShowModal;
   if pos('Recebimento Concluido', form84.Label3.Caption) > 0 then Result := 'OK';
 end;
 

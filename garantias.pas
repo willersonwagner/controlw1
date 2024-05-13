@@ -41,7 +41,7 @@ uses Unit1, func, consulta, principal, buscaSelecao, relatorio, imprime1;
 procedure TForm93.abreDataSet;
 begin
   dm.IBselect.Close;
-  dm.IBselect.SQL.Text := 'select i.cod_seq,i.cod_prod, p.nome, p.p_venda, i.quant, p.refori, p.fornec ||''-''||f.nome as fornec, i.data_criacao, i.data_finalizado,  case I.estado WHEN ''1'' THEN ''PENDENTE'' WHEN ''2'' THEN ''FINALIZADO'' END,'+
+  dm.IBselect.SQL.Text := 'select i.cod_seq,i.cod_prod, p.nome, p.p_compra as p_venda, i.quant, p.codbar as refori, p.fornec ||''-''||f.nome as fornec, i.data_criacao, i.data_finalizado,  case I.estado WHEN ''1'' THEN ''PENDENTE'' WHEN ''2'' THEN ''FINALIZADO'' END,'+
   ' i.usuario, i.usu_finalizado, i.nota from GARANTIA I'+
   ' LEFT JOIN PRODUTO P ON (P.COD = I.COD_PROD) left join fornecedor f on (f.cod = p.fornec) ' + filtro;
   try
@@ -66,6 +66,7 @@ begin
   dm.IBselect.FieldByName('fornec').DisplayLabel           := 'Fornecedor';
   dm.IBselect.FieldByName('cod_seq').Visible               := false;
   dm.IBselect.FieldByName('p_venda').Visible               := false;
+  //dm.IBselect.FieldByName('p_compra').Visible               := false;
 
   DataSource1.DataSet := dm.IBselect;
 
@@ -139,7 +140,7 @@ begin
   if (nota = '*') or (nota = '') then exit;
 
   dm.IBselect2.Close;
-  dm.IBselect2.SQL.text :=('select p.cod_seq, p.cod, c.codbar as refori, c.nome, p.quant, p.p_venda, p.total, p.nota from item_venda p left join produto c on (c.cod = p.cod) where (p.nota = :nota)');
+  dm.IBselect2.SQL.text :=('select p.cod_seq, p.cod, c.codbar as refori, c.nome, p.quant, c.p_compra as p_venda, p.total, p.nota from item_venda p left join produto c on (c.cod = p.cod) where (p.nota = :nota)');
   dm.IBselect2.ParamByName('nota').AsString := strnum(nota);
   dm.IBselect2.Open;
 
@@ -314,7 +315,7 @@ begin
 
 
   dm.IBselect2.Close;
-  dm.IBselect2.SQL.Text := 'select g.cod_prod, g.nota, p.refori, p.nome, g.valor as p_venda, g.quant  from GARANTIA g join produto p on (p.cod = g.cod_prod) where ((g.usuario = :usu) and'+
+  dm.IBselect2.SQL.Text := 'select g.cod_prod, g.nota, p.codbar as refori, p.nome, g.valor as p_venda, g.quant  from GARANTIA g join produto p on (p.cod = g.cod_prod) where ((g.usuario = :usu) and'+
   '(cast(g.DATA_FINALIZADO as date) >= :ini) and (cast(g.DATA_FINALIZADO as date) <= :fim) )';
   dm.IBselect2.ParamByName('usu').AsString := StrNum(usuario);
   dm.IBselect2.ParamByName('ini').AsDateTime := StrToDate(ini);
@@ -373,3 +374,4 @@ end;
 
 
 end.
+

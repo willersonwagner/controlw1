@@ -431,6 +431,7 @@ object Form16: TForm16
       ParentFont = False
       TabOrder = 0
       OnEnter = codEnter
+      OnExit = codExit
       OnKeyPress = codKeyPress
       OnKeyUp = codKeyUp
       FormularioComp = 'Form16'
@@ -1316,24 +1317,6 @@ object Form16: TForm16
       Indice = 0
       TipoDeDado = teNumero
     end
-    object cod_mun: JsEdit
-      Left = 368
-      Top = 477
-      Width = 121
-      Height = 24
-      CharCase = ecUpperCase
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -13
-      Font.Name = 'MS Sans Serif'
-      Font.Style = [fsBold]
-      ParentFont = False
-      TabOrder = 29
-      FormularioComp = 'Form16'
-      ColorOnEnter = clSkyBlue
-      Indice = 0
-      TipoDeDado = teNumero
-    end
     object email: JsEdit
       Left = 8
       Top = 477
@@ -1347,7 +1330,45 @@ object Form16: TForm16
       Font.Style = [fsBold]
       MaxLength = 200
       ParentFont = False
+      TabOrder = 29
+      FormularioComp = 'Form16'
+      ColorOnEnter = clSkyBlue
+      Indice = 0
+      TipoDeDado = teNumero
+    end
+    object cod_mun: JsEdit
+      Left = 368
+      Top = 477
+      Width = 121
+      Height = 24
+      CharCase = ecUpperCase
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'MS Sans Serif'
+      Font.Style = [fsBold]
+      ParentFont = False
       TabOrder = 30
+      OnKeyPress = cod_munKeyPress
+      FormularioComp = 'Form16'
+      ColorOnEnter = clSkyBlue
+      Indice = 0
+      TipoDeDado = teNumero
+    end
+    object ult_usuario: JsEdit
+      Left = 512
+      Top = 485
+      Width = 121
+      Height = 24
+      CharCase = ecUpperCase
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'MS Sans Serif'
+      Font.Style = [fsBold]
+      ParentFont = False
+      TabOrder = 31
+      Visible = False
       FormularioComp = 'Form16'
       ColorOnEnter = clSkyBlue
       Indice = 0

@@ -100,6 +100,7 @@ type
     valida : boolean;
     COFINS_ST, PIS_ST, PIS_NT, vST : currency;
     aliquotasGrupoDeICMS : TItensPISCOFINS;
+
     function geraCodNumerico(nota12 : String ) : String;
     function getSerieNFe : string;
     function getNNF() : String;
@@ -171,6 +172,7 @@ type
     TotalFrete, VLR_DESP : currency;
     pasta_Acbr, UF_EMI, UF_DEST, IND_FINAL, indIEDest, nodoFAT,
      ambienteProducao1homologacao2, generator, TAG_DI, notaComplementarDeICMS : String;
+     freteNaBaseDeCalculo : boolean;
 
     procedure CriaLista_De_itens_Venda(var lista : Tlist);
     function abreDataSetIBselectPelaChave(chave : String) : boolean;
@@ -484,8 +486,15 @@ var
   tmp : string;
 begin
   tmp := Le_Nodo1('infNFe', ent);
-  tmp := copy(tmp, pos('Id="', tmp) + 7, pos('">', tmp));
-  tmp := copy(tmp, 1, pos('">', tmp) - 1);
+
+  ini := pos('Id="', tmp) + 7;
+  fim := 44;
+
+
+  tmp := copy(tmp, ini, fim);
+  //tmp := copy(tmp, pos('Id="', tmp) + 7, pos('">', tmp) - (pos('Id="', tmp) + 7));
+  //tmp := copy(tmp, 1, pos('"', tmp));
+  //ShowMessage(tmp);
   Result := '';
   Result := tmp;
 end;
@@ -1123,8 +1132,7 @@ begin
 
   dm.IBselect.Close;
   dm.IBselect.SQL.Text := 'select n.nota, d.CHAVENFE as chave from entrada n left join speddadosadic d on (d.nota = n.nota) and (d.fornec = n.fornec) '+
-  ' where'+
-  ' right(extract(year from n.chegada), 2)|| lpad(extract(month from n.chegada), 2, 0) = :ini';
+  ' where right(extract(year from n.chegada), 2)|| lpad(extract(month from n.chegada), 2, 0) = :ini';
   dm.IBselect.ParamByName('ini').AsString := FormatDateTime('yy', StrToDate(ini)) +  FormatDateTime('mm', StrToDate(ini));
   dm.IBselect.Open;
   dm.IBselect.FetchAll;
@@ -1481,23 +1489,22 @@ begin
     if length(email) <= 10 then exit;
   end;
 
-  email := LowerCase(email);
-  dm.ACBrMail1.Clear;
-  dm.ACBrMail1.ClearAttachments;
-  dm.ACBrMail1.FromName := email;
 
+  if chave = '' then begin
   dm.IBQuery1.Close;
   dm.IBQuery1.SQL.Text := 'update cliente set email = :email where cod = :cod';
   dm.IBQuery1.ParamByName('email').AsString := LowerCase(email);
   dm.IBQuery1.ParamByName('cod').AsInteger := StrToInt(StrNum(codCliente));
   dm.IBQuery1.ExecSQL;
   dm.IBQuery1.Transaction.Commit;
+  end;
 
 
   funcoes.configuraMail(dm.ACBrMail1);
-
+  dm.ACBrMail1.ClearAttachments;
 
   LE_CAMPOS(destinatario, ','+email+',', ',',true);
+
 
 
   mmEmailMsg   :=  TStringList.Create;
@@ -1537,6 +1544,7 @@ begin
 
       //mbody.Text := texto;
       dm.ACBrMail1.IsHTML := false;
+
       dm.ACBrMail1.Body.Assign(mBody.Lines);
       dm.ACBrMail1.Body.Text := mbody.text;
 
@@ -2803,6 +2811,7 @@ FUNCTION TNfeVenda.NODO_TOTAL(TOTNOTA, TOT_BASEICM, TOT_ICM, TOT_PIS, TOT_COFINS
 begin
   TOTDESCICM := 0; vst :=0;
 
+  
   Result := '<total><ICMSTot><vBC>' + FORMAT_NUM(TOT_BASEICM) + '</vBC><vICMS>' + FORMAT_NUM(TOT_ICM) +
   '</vICMS><vBCST>0.00</vBCST><vST>'+Format_num(vst)+'</vST><vProd>' + FORMAT_NUM(TOTNOTA) +
   '</vProd><vFrete>'+ Format_num(TotalFrete) +'</vFrete><vSeg>0.00</vSeg><vDesc>' + FORMAT_NUM(TOTDESCICM + TOTDESC) + '</vDesc>' +
@@ -2996,13 +3005,17 @@ var
   tot, icms : currency;
 begin
   tot := mat.total - mat.Desconto;
+  if freteNaBaseDeCalculo then tot := tot + item.Vlr_Frete;
   Result := '';
   item.base_icm := 0;
   //se a empresa é optante do simples nacional
   //if (ConfParamGerais.Strings[10] = '1') and (FIN_NFE1 <> '4') then
+
+
   if (funcoes.buscaParamGeral(10, '') = '1') then
     begin
       if (((mat.Reducao <> 0) or (FIN_NFE1 = '4')) and (indIEDest <> '9')) then begin
+
         BASE_ICM := tot;
         if item.PercICMS = 0 then begin
           BASE_ICM := 0;
@@ -3672,6 +3685,8 @@ begin
   Result := Result + NODO_EMIT(dadosEmitente.Values['cnpj'],dadosEmitente.Values['razao'],dadosEmitente.Values['empresa'],dadosEmitente.Values['ende'],dadosEmitente.Values['bairro'],dadosEmitente.Values['cod_mun'],dadosEmitente.Values['cid'],dadosEmitente.Values['est'],funcoes.StrNum(dadosEmitente.Values['cep']),dadosEmitente.Values['telres'],dadosEmitente.Values['ies'],funcoes.buscaParamGeral(10, ''));
   Result := Result + NODO_DEST(dadosDest.Values['tipo'],dadosDest.Values['cnpj'],dadosDest.Values['cnpj'],dadosDest.Values['nome'],dadosDest.Values['ende'],dadosDest.Values['bairro'],dadosDest.Values['cod_mun'],dadosDest.Values['cid'],dadosDest.Values['est'],dadosDest.Values['cep'], dadosDest.Values['telres'], dadosDest.Values['ies'], dadosEmitente.Values['cod_mun']);
   Result := Result + NODO_ITENS(lista_itens,cod_OP,'','','', _ORIGEM);
+
+
   Result := Result + NODO_TOTAL(totalNota,TOT_BASEICM,TOTICM,TOT_PIS,TOT_COFINS,0,totDesc);
   Result := Result + NODO_TRANSP(frete);
   Result := Result + NODO_PAG(parcelamento);
@@ -3846,6 +3861,9 @@ begin
              p_venda := abs(p_venda);
 
              tem := ProcuraItemNaLista1(lista, query1.fieldbyname('cod').AsInteger, p_venda);
+             //adicionei aqui pra nao somar no mesmo produto pq cada item tem seu arrodondamento
+             // em vidraçaria que tem 4 decimais dá errado e nao pode agrupar em um produto
+             tem := -1;
              if tem <> -1 then
                begin
                  item := lista.Items[tem];
@@ -4125,6 +4143,7 @@ begin
             if i = fim then item.Vlr_Frete := desc;
             item.Vlr_Frete := (item.total /totalNota) * TotalFrete;
             desc := desc - item.Vlr_Frete;
+
           end;
       end;
 end;
@@ -4134,7 +4153,9 @@ var
   ini, fim : integer;
 begin
   ini := pos('<' + nome, texto);
-  fim := pos('</' + nome + '>', texto);
+  fim := pos('</' + nome + '>', texto) + Length('</' + nome + '>') ;
+  //aqui achou o final agora tem que calcular quantos cacteres
+  fim := fim - ini;
 
   Result := '';
   Result := copy(texto, ini, fim);

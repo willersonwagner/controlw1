@@ -12338,6 +12338,10 @@ object Form2: TForm2
             Caption = 'Apagar produtos sem Movimento'
             OnClick = Apagarprodutossemmovimento1Click
           end
+          object RelAcessoPC1: TMenuItem
+            Caption = 'Rel Acesso PC'
+            OnClick = RelAcessoPC1Click
+          end
         end
       end
       object Nfe1: TMenuItem

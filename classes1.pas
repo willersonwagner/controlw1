@@ -67,6 +67,7 @@ type
     val1       : currency;
     val2       : currency;
     unid       : String;
+    temp       : String;
     nota       : String[8];
     data       : tdate;
   end;

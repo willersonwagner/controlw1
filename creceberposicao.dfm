@@ -95,7 +95,7 @@ object Form34: TForm34
       Top = 8
       Width = 68
       Height = 13
-      Caption = 'F5-Previs'#227'o'
+      Caption = 'F5-Previsao'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -11

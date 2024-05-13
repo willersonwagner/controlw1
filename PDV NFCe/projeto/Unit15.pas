@@ -455,6 +455,10 @@ type
     btSalvarParametros: TBitBtn;
     btLerParametros: TBitBtn;
     OpenDialog1: TOpenDialog;
+    txidEstatico: TEdit;
+    Label1: TLabel;
+    Label2: TLabel;
+    loca: TEdit;
     procedure FormCreate(Sender: TObject);
     procedure btSalvarParametrosClick(Sender: TObject);
     procedure btQREGerarClick(Sender: TObject);
@@ -465,6 +469,7 @@ type
     { Private declarations }
    NomeArquivoConfiguracao : String;
    fFluxoDados: TFluxoPagtoDados;
+   procedure AnalisarBRCode(aBRCode: TACBrBRCode);
    function AdicionarPathAplicacao(const AFileName: String): String;
    procedure ConfigurarACBrPSPs;
    procedure GravarConfiguracao;
@@ -478,8 +483,7 @@ type
    procedure LerConfiguracao;
    function RemoverPathAplicacao(const AFileName: String): String;
    function FormatarJSON(const AJSON: String): String;
-   procedure VerificarConfiguracao;
-   procedure VerificarConfiguracaoPIXCD;
+
 
   { procedure ValidarChaveCertificadoPSPItau;
     procedure ValidarChavePSPItau;
@@ -505,6 +509,10 @@ type
     procedure ValidarCertificadoPSPBB;
     procedure ValidarPFXPSPBB;  }
   public
+    qrcodees, ultimoErro, estado : String;
+    procedure VerificarConfiguracao;
+    function VerificarConfiguracaoPIXCD : Boolean;
+
     { Public declarations }
   end;
 
@@ -519,8 +527,56 @@ uses untDtmMain,ACBrPIXSchemasCobV;
 
 procedure TForm15.btQREGerarClick(Sender: TObject);
 var
-  qrcodees : String;
+  s, qrcode: String;
+  Ok: Boolean;
 begin
+  //VerificarConfiguracao;
+
+  ultimoErro := '';
+
+  with dtmMain.ACBrPixCD1.PSP.epCob.CobSolicitada do
+  begin
+    Clear;
+    s := dtmMain.ACBrPixCD1.PSP.ChavePIX;
+    chave := dtmMain.ACBrPixCD1.PSP.ChavePIX;
+    calendario.expiracao := seCobrancaExpiracao.Value;
+
+    valor.original := StrToFloatDef(fleQREValor.Text, 0);
+    valor.modalidadeAlteracao := false;
+
+   end;
+
+    Ok := dtmMain.ACBrPixCD1.PSP.epCob.CriarCobrancaImediata;
+
+  if Ok then
+  begin
+    //mLog.Lines.Add('');
+    //mLog.Lines.Add( FormatarJSON(dtmMain.ACBrPixCD1.PSP.epCob.CobGerada.AsJSON));
+    qrcode := Trim(dtmMain.ACBrPixCD1.PSP.epCob.CobGerada.pixCopiaECola);
+    qrcodees := qrcode;
+
+    //dtmMain.ACBrPixCD1.PSP.epCob.CobGerada.
+
+    txidEstatico.Text := dtmMain.ACBrPixCD1.PSP.epCob.CobGerada.txId;
+    //AdicionarLinhaLog( dtmMain.ACBrPixCD1.PSP.epCob.CobGerada.AsJSON);
+
+
+    PintarQRCode(qrcode, imgQRE.Picture.Bitmap, qrUTF8BOM);
+  end
+  else begin
+    ultimoErro := 'Erro Desconhecido.' + #13 + FormatarJSON(dtmMain.ACBrPixCD1.PSP.epCob.Problema.AsJSON) ;//mLog.Lines.Add('Não deu certo!');
+
+  end;
+   { if (qrcode = '') then
+      qrcode := ACBrPixCD1.GerarQRCodeDinamico( ACBrPixCD1.PSP.epCob.CobGerada.location );
+    PintarQRCode(qrcode, imgQRCriarCobrancaImediata.Picture.Bitmap, qrUTF8BOM);
+    mCriarCobrancaImediata.Lines.Add('');
+    mCriarCobrancaImediata.Lines.Add('- pixCopiaECola -');
+    mCriarCobrancaImediata.Lines.Add(qrcode);
+  end
+  else
+    mCriarCobrancaImediata.Lines.Text := FormatarJSON(ACBrPixCD1.PSP.epCob.Problema.AsJSON);
+}exit;
   //PintarQRCodeEstatico;
 
   AdicionarLinhaLog('ClientID: '+dtmMain.ACBrPSPGerenciaNet1.ClientID);
@@ -531,27 +587,33 @@ begin
   dtmMain.ACBrOpenSSLUtils1.LoadPFXFromFile(edGerenciaNetArqPFX.Text);
 
   dtmMain.ACBrPixCD1.PSP := dtmMain.ACBrPSPGerenciaNet1;
+
+  qrcodees := dtmMain.ACBrPixCD1.GerarQRCodeEstatico(StrToCurr(fleQREValor.Text), '', txidEstatico.Text);
+  PintarQRCode(qrcodees, imgQRE.Picture.Bitmap, qrUTF8BOM);
+
+  {dtmMain.ACBrPixCD1.PSP.Clear;
+  dtmMain.ACBrPixCD1.PSP.epCob.
   dtmMain.ACBrPixCD1.PSP.epCob.CobSolicitada.Clear;
   dtmMain.ACBrPixCD1.PSP.epCob.CobSolicitada.chave := dtmMain.ACBrPixCD1.PSP.ChavePIX;
   dtmMain.ACBrPixCD1.PSP.epCob.CobSolicitada.calendario.expiracao := seCobrancaExpiracao.Value;
-  dtmMain.ACBrPixCD1.PSP.epCob.CobSolicitada.devedor.nome := 'CONSUMIDOR FINAL';
-  dtmMain.ACBrPixCD1.PSP.epCob.CobSolicitada.devedor.cpf  := '00548352240';
+  //dtmMain.ACBrPixCD1.PSP.epCob.CobSolicitada.devedor.nome := 'CONSUMIDOR FINAL';
+  //dtmMain.ACBrPixCD1.PSP.epCob.CobSolicitada.devedor.cpf  := '00548352240';
   dtmMain.ACBrPixCD1.PSP.epCob.CobSolicitada.valor.original := StrToCurr(fleQREValor.Text);
 
   IF dtmMain.ACBrPixCD1.PSP.epCob.CriarCobrancaImediata then begin
     qrcodees := dtmMain.ACBrPixCD1.PSP.epCob.CobGerada.pixCopiaECola;
-    AdicionarLinhaLog(qrcodees);
+    AdicionarLinhaLog('*****'+qrcodees);
     //AdicionarLinhaLog(dtmMain.ACBrPixCD1.PSP.Http.ToString epCob.CobCompleta.AsJSON);
     PintarQRCode(qrcodees, imgQRE.Picture.Bitmap, qrUTF8BOM);
   end
   else begin
     fFluxoDados.EmErro := True;
-    AdicionarLinhaLog('Erro ao criar cobrança: ' + sLineBreak +
+    AdicionarLinhaLog('>>>>>>>>Erro ao criar cobrança: ' + sLineBreak +
         (dtmMain.ACBrPixCD1.PSP.epCob.Problema.AsJSON));
-    {ShowMessage('Erro ao criar cobrança: ' + sLineBreak +
+    ShowMessage('Erro ao criar cobrança: ' + sLineBreak +
         FormatarJSON(dtmMain.ACBrPixCD1.PSP.epCob.Problema.AsJSON));
-  }end;
-
+  end;
+  }
 
 
 end;
@@ -833,27 +895,27 @@ begin
 end;
 
 procedure TForm15.BitBtn1Click(Sender: TObject);
+var
+  qrd: TACBrPIXQRCodeEstatico;
 begin
-  ShowMessage(dtmMain.ACBrPixCD1.PSP.epCob.CobGerada.location);
+  if dtmMain.ACBrPixCD1.PSP.epCob.ConsultarCobrancaImediata(txidEstatico.Text, 0) then begin
+    AdicionarLinhaLog(#13+#13+'Cobrança'+#13+#13+FormatarJSON(dtmMain.ACBrPixCD1.PSP.epCob.CobCompleta.AsJSON));
+  end
+  else AdicionarLinhaLog('Nenhum Resultado!');
 
-  ShowMessage(dtmMain.ACBrPixCD1.PSP.epCob.CobGerada.txId);
-  if (not dtmMain.ACBrPixCD1.PSP.epCob.ConsultarCobrancaImediata(dtmMain.ACBrPixCD1.PSP.epCob.CobGerada.txId)) then
-    begin
-      ShowMessage('Erro ao consultar cobrança' + sLineBreak +
-        dtmMain.ACBrPixCD1.PSP.epCob.Problema.title + sLineBreak +
-        dtmMain.ACBrPixCD1.PSP.epCob.Problema.detail);
-    end;
+  if dtmMain.ACBrPixCD1.PSP.epCob.CobCompleta.status = stcATIVA then estado := 'ATIVA'
+  else if dtmMain.ACBrPixCD1.PSP.epCob.CobCompleta.status = stcCONCLUIDA then estado := 'CONCLUIDA';
 
-  if dtmMain.ACBrPixCD1.PSP.epCob.CobCompleta.status = stcCONCLUIDA then begin
-    AdicionarLinhaLog('txtId=' + dtmMain.ACBrPixCD1.PSP.epCob.CobGerada.txId);
-    AdicionarLinhaLog('Estado=Concluida' );
+
+exit;
+  qrd := TACBrPIXQRCodeEstatico.Create;
+  try
+    qrd.IgnoreErrors := True;
+    qrd.AsString := Trim(qrcodees);
+    AnalisarBRCode(qrd);
+  finally
+    qrd.Free;
   end;
-
-  if dtmMain.ACBrPixCD1.PSP.epCob.CobCompleta.status = stcATIVA then begin
-    AdicionarLinhaLog('txtId=' + dtmMain.ACBrPixCD1.PSP.epCob.CobGerada.txId);
-    AdicionarLinhaLog('Estado=Aguardando' );
-  end;
-  //dtmMain.ACBrPixCD1.PSP.epCob.ConsultarCobrancaImediata(dtmMain.ACBrPixCD1.PSP.epCob.CobGerada.txId);
 end;
 
 procedure TForm15.ConfigurarACBrPIXCD;
@@ -1225,11 +1287,56 @@ begin
   VerificarConfiguracaoPIXCD;
 end;
 
-procedure TForm15.VerificarConfiguracaoPIXCD;
+function TForm15.VerificarConfiguracaoPIXCD : boolean;
+var
+  erro : String;
 begin
-  exit;
+  erro := '';
+  Result := false;
+  if cbxPSPAtual.ItemIndex = 1 then begin
+    if edGerenciaNetChavePIX.Text = '' then erro := erro + 'GerenciaNet: Chave PIX Nao Informada.' + #13;
+    if edGerenciaNetClientSecret.Text = '' then erro := erro + 'GerenciaNet: ClientSecret Nao Informada.' + #13;
+    if edGerenciaNetClientID.Text = '' then erro := erro + 'GerenciaNet: ClientID Nao Informada.' + #13;
+    if edGerenciaNetArqPFX.Text = '' then erro := erro + 'GerenciaNet: ArqPFX Nao Informada.' + #13;
+    exit;
+  end;
+
+  if erro <> '' then begin
+    ShowMessage('ERRO: ' + erro);
+    exit;
+  end;
+
+  Result := true;
+
 end;
 
+
+procedure TForm15.AnalisarBRCode(aBRCode: TACBrBRCode);
+begin
+  AdicionarLinhaLog('');
+  if (aBRCode is TACBrPIXQRCodeEstatico) then
+  with TACBrPIXQRCodeEstatico(aBRCode) do
+  begin
+    AdicionarLinhaLog('----- Analise do QRCode Estático -----');
+    AdicionarLinhaLog('ChavePix: ' + PixKey);
+    AdicionarLinhaLog('TipoChavePix: ' + GetEnumName(TypeInfo(TACBrPIXTipoChave), Integer(PixKeyType)));
+    AdicionarLinhaLog('infoAdicional: ' + AdditionalInfo);
+    AdicionarLinhaLog('pss: ' + IntToStr(pss));
+  end
+  else if (aBRCode is TACBrPIXQRCodeDinamico) then
+  begin
+    AdicionarLinhaLog('----- Analise do QRCode Dinâmico -----');
+    AdicionarLinhaLog('URL: ' + TACBrPIXQRCodeDinamico(aBRCode).URL);
+  end;
+
+  AdicionarLinhaLog('NomeRecebedor: ' + aBRCode.MerchantName);
+  AdicionarLinhaLog('CidadeRecebedor: ' + aBRCode.MerchantCity);
+  AdicionarLinhaLog('CEPRecebedor: ' + aBRCode.PostalCode);
+  AdicionarLinhaLog('Valor: ' + FormatFloat('0.00', aBRCode.TransactionAmount));
+  AdicionarLinhaLog('TxId: ' + aBRCode.TxId);
+  AdicionarLinhaLog(aBRCode.Text);
+
+end;
 
 
 

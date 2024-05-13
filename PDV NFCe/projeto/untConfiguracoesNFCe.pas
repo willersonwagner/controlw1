@@ -11,7 +11,6 @@ uses
 type
   TfrmConfiguracoesNFe = class(TForm)
     Panel5: TPanel;
-    OpenDlg: TOpenDialog;
     BtnOK: TBitBtn;
     BtnCancelar: TBitBtn;
     PageControl1: TPageControl;
@@ -150,6 +149,15 @@ type
     Label45: TLabel;
     espacoFinal: TEdit;
     Label46: TLabel;
+    Label47: TLabel;
+    OpenDlg: TOpenDialog;
+    espacoEntreLinhasNFe: TEdit;
+    Label48: TLabel;
+    Label49: TLabel;
+    AltLinhaComun: TEdit;
+    AlterarEscalaPadrao: TCheckBox;
+    Label50: TLabel;
+    NovaEscala: TEdit;
     procedure sbtnCaminhoCertClick(Sender: TObject);
     procedure sbtnGetCertClick(Sender: TObject);
     procedure BtnOKClick(Sender: TObject);
@@ -449,8 +457,15 @@ begin
    LOGOWIDTH.Text      := Ini.ReadString('SERVER','LOGOWIDTH', '1');
    fonteRazao.Text     := Ini.ReadString('SERVER','fonteRazao', '8');
    espacoEntreLinhas.Text := Ini.ReadString('SERVER','espacoEntreLinhas', '50');
-   espacoFinal.Text := Ini.ReadString('SERVER','espacoFinal', '38');
+   NovaEscala.Text := Ini.ReadString('SERVER','NovaEscala', IntToStr(DANFE_Rave.NovaEscala));
+   AlterarEscalaPadrao.Checked := Ini.ReadBool  ('SERVER', 'AlterarEscalaPadrao' , DANFE_Rave.AlterarEscalaPadrao);
 
+
+   espacoEntreLinhasNFe.Text := Ini.ReadString('SERVER','espacoEntreLinhasNFe', IntToStr(DANFE_Rave.EspacoEntreProdutos));
+   espacoFinal.Text          := Ini.ReadString('SERVER','espacoFinal', '38');
+   AltLinhaComun.Text        := Ini.ReadString('SERVER','AltLinhaComun', IntToStr(DANFE_Rave.AltLinhaComun));
+
+   //DANFE_Rave.AltLinhaComun
    casasDecimais.Text  := Ini.ReadString('SERVER','casasDecimais', '2');
 
 
@@ -590,6 +605,11 @@ begin
   if espacoEntreLinhas.Text = '' then espacoEntreLinhas.Text := '50';
   Ini.WriteString('SERVER', 'espacoEntreLinhas'    , espacoEntreLinhas.Text);
   Ini.WriteString('SERVER', 'espacoFinal'    , espacoFinal.Text);
+  Ini.WriteString('SERVER', 'espacoEntreLinhasNFe'    , espacoEntreLinhasNFe.Text);
+  Ini.WriteString('SERVER', 'AltLinhaComun'    , AltLinhaComun.Text);
+
+  Ini.WriteBool('SERVER', 'AlterarEscalaPadrao' , AlterarEscalaPadrao.Checked);
+  Ini.WriteString('SERVER', 'NovaEscala'    , NovaEscala.Text);
 
   ini.Free;
 

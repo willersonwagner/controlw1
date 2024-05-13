@@ -865,8 +865,8 @@ begin
   dm.IBQuery4.ExecSQL;
 
   dm.IBQuery4.Close;
-  dm.IBQuery4.SQL.Text := 'update produto set data_entrada1 = current_date where cod = ' + StrNum(codigoProd);
-
+  dm.IBQuery4.SQL.Text := 'update produto set data_entrada1 = current_date, p_compra = :p_compra where cod = ' + StrNum(codigoProd);
+  dm.IBQuery4.ParamByName('p_compra').AsCurrency := p_compra.getValor;
 
   try
   dm.IBQuery4.ExecSQL;
@@ -904,9 +904,13 @@ end;
 procedure tform17.ExcluiEntrada;
 var
   ult, origi : Smallint;
-  nota, cod, campo, unid : string;
+  nota, cod, codEntrada, campo, unid : string;
   total, quant : currency;
+  serieaql : String;
 begin
+  if serie = '' then serieaql := ' and ((serie is null) or (trim(serie) = ''''))'
+  else serieaql := ' and (serie = '+QuotedStr(serie)+')';
+
   if (VerificaAcesso_Se_Nao_tiver_Nenhum_bloqueio_true_senao_false = false) then begin
     if (funcoes.LerConfig(form22.Pgerais.Values['configu'], 21) <> 'S') then begin
       ShowMessage('Rotina Bloqueada para Este Usuário!');
@@ -917,54 +921,62 @@ begin
  begin
     if messageDlg('Deseja Excluir?', mtConfirmation, [mbyes, mbNo], 0) = mrYes then
      begin
-      if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
-      dm.IBQuery1.Transaction.StartTransaction;
+      //dm.IBQuery1.Transaction.StartTransaction;
       ult := 0;
-      nota := DBGrid2.DataSource.DataSet.fieldbyname('nota').AsString;
+      nota       := DBGrid2.DataSource.DataSet.fieldbyname('nota').AsString;
+      codEntrada := DBGrid2.DataSource.DataSet.fieldbyname('codentrada').AsString;
 
+
+      //ShowMessage(codEntrada);
+      sleep(500);
       dm.IBselect.Close;
-      dm.IBselect.SQL.Clear;
-      dm.IBselect.SQL.Add('select nota from item_entrada where nota = :nota and fornec = :fornec');
-      dm.IBselect.ParamByName('nota').AsString   := nota;
+      dm.IBselect.SQL.Text := ('select nota from item_entrada where nota = :nota and fornec = :fornec ' + serieaql );
+      dm.IBselect.ParamByName('nota').AsString   := StrNum(codigo.Text);
       dm.IBselect.ParamByName('fornec').AsString := strnum(fornec.Text);
       dm.IBselect.Open;
       dm.IBselect.FetchAll;
 
       ult := dm.IBselect.RecordCount;
 
+     if (ult >= 1) then begin
       dm.IBQuery1.Close;
-      dm.IBQuery1.SQL.Clear;
-      dm.IBQuery1.SQL.Add('delete from item_entrada where codentrada = :cod');
-      dm.IBQuery1.ParamByName('cod').AsString := DBGrid2.DataSource.DataSet.fieldbyname('codentrada').AsString;
+      dm.IBQuery1.SQL.Text := ('delete from item_entrada where codentrada = :cod');
+      dm.IBQuery1.ParamByName('cod').AsString := codEntrada;
       dm.IBQuery1.ExecSQL;
 
-      if ult = 1 then
+     end;
+
+      if (ult <= 1) then
         begin
           dm.IBQuery1.Close;
-          dm.IBQuery1.SQL.Clear;
-          dm.IBQuery1.SQL.Add('delete from entrada where ((nota = :nota) and (fornec = :fornec))');
-          dm.IBQuery1.ParamByName('nota').AsString   := nota;
+          dm.IBQuery1.SQL.Text := ('delete from entrada where ((nota = :nota) and (fornec = :fornec)) ' + serieaql);
+          dm.IBQuery1.ParamByName('nota').AsString   := StrNum(codigo.Text);
           dm.IBQuery1.ParamByName('fornec').AsString := fornec.text;
           dm.IBQuery1.ExecSQL;
         end;
-      try
-        if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
 
-        if ult = 1 then
+
+        dm.IBQuery1.Transaction.Commit;
+
+        if ult <= 1 then
           begin
             limpaCamposGeral;
           end;
-      except
+    {  except
         WWMessage('Ocorreu Um Erro Inesperado. Tente Novamente!',mtWarning,[mbOK],clYellow,true,false,clred);
         exit;
       end;
-
-      DBGrid2.DataSource.DataSet.Active := false;
+     }
+      {DBGrid2.DataSource.DataSet.Active := false;
       DBGrid2.DataSource.DataSet.Active := true;
       funcoes.FormataCampos(IBQuery1,2,'',2);
       //formatcamposEntrada;
       DBGrid2.DataSource.DataSet.FieldByName('codentrada').Visible := false;
       DBGrid2.DataSource.DataSet.FieldByName('nota').Visible       := false;
+      }
+
+      abreDataSet;
+      dm.IBselect.Close;
       lertotal(true);
    end;
   end;
@@ -1029,6 +1041,16 @@ begin
    if funcoes.buscaParamGeral(58, 'N') = 'S' then usarValidade := true;
 
    codigo.SetFocus;
+
+   if ((funcoes.buscaParamGeral(10, '3') = '1') and (funcoes.buscaParamGeral(121,
+    'S') = 'S')) then
+  begin
+    baseicm.Enabled := false;
+    credicm.Enabled := false;
+    basedeb.Enabled := false;
+    debicm.Enabled := false;
+    agreg.Enabled := false;
+  end;
 end;
 
 procedure TForm17.codbarEnter(Sender: TObject);

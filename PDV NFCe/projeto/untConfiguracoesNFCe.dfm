@@ -17,6 +17,13 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
+  object Label47: TLabel
+    Left = 304
+    Top = 410
+    Width = 127
+    Height = 13
+    Caption = 'Casas Decimais QTD NFe:'
+  end
   object Panel5: TPanel
     Left = 0
     Top = 582
@@ -944,7 +951,7 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
         Left = 16
         Top = 192
         Width = 345
-        Height = 209
+        Height = 249
         Caption = 'Logo Marca NFe'
         TabOrder = 8
         object Label23: TLabel
@@ -956,7 +963,7 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
         end
         object Label24: TLabel
           Left = 156
-          Top = 21
+          Top = 5
           Width = 105
           Height = 13
           Caption = 'Tamanho Logo Altura:'
@@ -970,7 +977,7 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
         end
         object Label27: TLabel
           Left = 156
-          Top = 63
+          Top = 40
           Width = 115
           Height = 13
           Caption = 'Tam. Fnte Out, Campos:'
@@ -984,14 +991,14 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
         end
         object Label29: TLabel
           Left = 156
-          Top = 101
+          Top = 75
           Width = 119
           Height = 13
           Caption = 'Margem Esquerda NFCe:'
         end
         object Label32: TLabel
           Left = 156
-          Top = 141
+          Top = 113
           Width = 127
           Height = 13
           Caption = 'Casas Decimais QTD NFe:'
@@ -1003,6 +1010,27 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
           Height = 13
           Caption = 'Margem Esquerda NFe:'
         end
+        object Label48: TLabel
+          Left = 126
+          Top = 202
+          Width = 120
+          Height = 13
+          Caption = 'Espa'#231'o entre Linhas NFe'
+        end
+        object Label49: TLabel
+          Left = 252
+          Top = 202
+          Width = 81
+          Height = 13
+          Caption = 'Alt Linha Produto'
+        end
+        object Label50: TLabel
+          Left = 157
+          Top = 153
+          Width = 64
+          Height = 13
+          Caption = 'Nova Escala:'
+        end
         object LOGOWIDTH: TEdit
           Left = 16
           Top = 40
@@ -1012,7 +1040,7 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
         end
         object logoheigth: TEdit
           Left = 156
-          Top = 40
+          Top = 20
           Width = 121
           Height = 21
           TabOrder = 1
@@ -1026,7 +1054,7 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
         end
         object FonteOutCampos: TEdit
           Left = 156
-          Top = 78
+          Top = 53
           Width = 121
           Height = 21
           TabOrder = 3
@@ -1034,7 +1062,7 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
         object expandirLogo: TCheckBox
           Left = 18
           Top = 187
-          Width = 121
+          Width = 94
           Height = 15
           Caption = 'Expandir Logo'
           Font.Charset = DEFAULT_CHARSET
@@ -1054,7 +1082,7 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
         end
         object MargemEsquerda: JsEditNumero
           Left = 156
-          Top = 120
+          Top = 91
           Width = 121
           Height = 21
           CharCase = ecUpperCase
@@ -1067,7 +1095,7 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
         end
         object casasDecimais: TEdit
           Left = 156
-          Top = 160
+          Top = 127
           Width = 121
           Height = 21
           TabOrder = 7
@@ -1084,6 +1112,41 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
           Indice = 0
           TipoDeDado = teNumero
           CasasDecimais = 2
+        end
+        object espacoEntreLinhasNFe: TEdit
+          Left = 126
+          Top = 221
+          Width = 76
+          Height = 21
+          TabOrder = 9
+        end
+        object AltLinhaComun: TEdit
+          Left = 252
+          Top = 221
+          Width = 76
+          Height = 21
+          TabOrder = 10
+        end
+        object AlterarEscalaPadrao: TCheckBox
+          Left = 18
+          Top = 208
+          Width = 94
+          Height = 15
+          Caption = 'Alt Esc Padrao'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -11
+          Font.Name = 'MS Sans Serif'
+          Font.Style = []
+          ParentFont = False
+          TabOrder = 11
+        end
+        object NovaEscala: TEdit
+          Left = 157
+          Top = 167
+          Width = 121
+          Height = 21
+          TabOrder = 12
         end
       end
       object impDescontoNFCe: TCheckBox
@@ -1118,7 +1181,7 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
       end
       object GroupBox5: TGroupBox
         Left = 16
-        Top = 400
+        Top = 440
         Width = 345
         Height = 73
         Caption = 'Logo Marca NFCe'
@@ -1317,7 +1380,7 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
       'Arquivos NFE (*-nfe.XML)|*-nfe.XML|Arquivos XML (*.XML)|*.XML|To' +
       'dos os Arquivos (*.*)|*.*'
     Title = 'Selecione a NFe'
-    Left = 328
-    Top = 376
+    Left = 344
+    Top = 280
   end
 end

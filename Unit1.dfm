@@ -618,8 +618,8 @@ object dm: Tdm
     EspessuraBorda = 1
     BorderIcon = [biSystemMenu, biMinimize, biMaximize]
     ThreadSafe = False
-    Left = 264
-    Top = 328
+    Left = 248
+    Top = 344
   end
   object ACBrNCMs1: TACBrNCMs
     ProxyPort = '8080'
