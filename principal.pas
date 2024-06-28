@@ -62,6 +62,7 @@ type
   public
     codusario, notaVenda, valorDeChecagem, nomeUsuario : string;
     usuario: string;
+    tipoRegistro : char;
     Pgerais, nomesServico, fonteDAT : TStringList;
     datamov: tdatetime;
     superUsu : integer;
@@ -314,7 +315,9 @@ if key=#27 then
          end;
 
        funcoes.Traca_Nome_Rota;
-       reg := VerificaRegistro(1, bloq);
+       reg := VerificaRegistro(1, bloq, tipoRegistro);
+
+
 
        if (not reg) then
          begin
@@ -326,6 +329,17 @@ if key=#27 then
          begin
            if demo then form2.Caption := Form2.Caption + ' (Demonstração)';
            form2.empresa.Caption := form22.Pgerais.Values['empresa'];
+
+           if tipoRegistro = '2' then begin
+             form2.Caption := 'ControlW Sistemas - Versão Econômica';
+           end;
+           if tipoRegistro = '1' then begin
+             form2.Caption := 'ControlW Sistemas - Versão Completa';
+           end;
+
+           if tipoRegistro = '3' then begin
+             form2.Caption := 'ControlW Sistemas - Versão Demonstração';
+           end;
 
            if bloq then
              begin

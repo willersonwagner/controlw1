@@ -47,9 +47,6 @@ object aliq1: Taliq1
     Align = alBottom
     Caption = 'F2-Adicionar F3-Aplicar Altera'#231#245'es'
     TabOrder = 1
-    ExplicitLeft = 88
-    ExplicitTop = 136
-    ExplicitWidth = 185
   end
   object IBTable1: TFDTable
     BeforeInsert = IBTable1BeforeInsert

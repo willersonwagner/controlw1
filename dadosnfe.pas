@@ -755,7 +755,7 @@ end;
 function TForm79.buscaFinalidadeMaiorQue1 : String;
 var
   i : integer;
-  ies : String;
+  ies,serie1 : String;
 begin
   if FIN_NFE = '2' then
       nomeFIN_NFE := 'em complemento'
@@ -787,6 +787,12 @@ begin
         exit;
       end;
 
+      serie1 := funcoes.dialogo('not', 0, '1234567890' + #8 + #32, 50, true, '',
+      application.Title, 'Qual a Série da NFe ?', IntToStr(serie2));
+    if serie1 = '*' then
+      exit;
+
+
 
       if finnfe.Text = '3' then begin
         estorno := funcoes.dialogo('generico', 0, 'SN', 50, true, 'S',Application.Title, 'Nota Fiscal de Estorno ?', 'S');
@@ -796,7 +802,7 @@ begin
         end;
       end;
 
-      NFE_REF := funcoes.recuperaChaveNFe(NFE_REF);
+      NFE_REF := funcoes.recuperaChaveNFe(NFE_REF, serie1);
       if length(StrNum(NFE_REF)) = 44 then begin
         TAG_DOCREF := '<NFref><refNFe>' + StrNum(NFE_REF) + '</refNFe></NFref>';
         infoAdi := 'NF-e ' + nomeFIN_NFE + ' a NF-e Chave: ' +

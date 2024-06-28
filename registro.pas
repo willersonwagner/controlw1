@@ -51,6 +51,8 @@ type
     cid: JsEdit;
     obs: JsEdit;
     JsEdit1: JsEdit;
+    email: JsEdit;
+    Label18: TLabel;
     procedure texClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -75,10 +77,12 @@ type
     procedure telcomKeyPress(Sender: TObject; var Key: Char);
     procedure endeKeyPress(Sender: TObject; var Key: Char);
     procedure bairroKeyPress(Sender: TObject; var Key: Char);
+    procedure emailKeyPress(Sender: TObject; var Key: Char);
   private
     cod_mun : string;
     ativadoOk,demo1 : boolean;
     valorDeChecagem,codEstado:string;
+    tipoRegistro : char;
     { Private declarations }
   public
     { Public declarations }
@@ -95,16 +99,44 @@ uses Unit1, DB, Unit2, func, cadcliente, principal, nfe;
 
 procedure TForm35.texClick(Sender: TObject);
 var
-  regime : String;
+  regime, dadosObriga : String;
   CONT : INTEGER;
 begin
-  CONT := 0;
+  CONT := 1;
+  dadosObriga := '';
 
-  if StrNum(cnpj.Text) <> '0' then CONT := CONT + 1;
-  if StrNum(CPF.Text)  <> '0' then CONT := CONT + 1;
+  if StrNum(cnpj.Text) = '0'  then begin
+    if StrNum(CPF.Text)  <> '0' then begin
+      CONT := 1;
+    end
+    else begin
+       cont := 0;
+       dadosObriga :=  dadosObriga + 'CNPJ/CPF Inválido'+ #13;
+    end;
+  end;
+
+  if StrNum(cpf.Text) = '0'  then begin
+    if StrNum(cnpj.Text)  <> '0' then begin
+      CONT := 1;
+    end
+    else begin
+      cont := 0;
+      dadosObriga :=  dadosObriga + 'CNPJ/CPF Inválido'+ #13;
+    end;
+  end;
+
+  if trim(email.Text)  = ''   then begin
+    CONT := 0;
+    dadosObriga :=  dadosObriga + 'Email Obrigatório Inválido'+ #13;
+  end;
+
+  if trim(telres.Text)  = ''   then begin
+    CONT := 0;
+    dadosObriga :=  dadosObriga + 'Telefone para Contato Obrigatório Inválido'+ #13;
+  end;
 
   if CONT = 0 then BEGIN
-    ShowMessage('O SISTEMA NAO PODE SER REGISTRADO SEM INFORMAÇÕES DE CNPJ OU CPF!');
+    ShowMessage('O SISTEMA NAO PODE SER REGISTRADO SEM INFORMAÇÕES Obrigátorias: ' + #13 + dadosObriga);
     EXIT;
   END;
 
@@ -129,13 +161,24 @@ begin
       empresa.Text := trim(empresa.Text);
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Clear;
-      dm.IBQuery1.SQL.Add('update registro set cpf = :cpf, empresa = :emp,registro=:reg,nome=:nome,cnpj=:cnpj,ies=:ies,ende=:ende,cep=:cep,telres=:telres,telcom=:telcom, cid = :cid,est=:est,obs=:obs,titular=:titular,crip=:crip,cod_mun=:mun, suframa = :suframa');
+      dm.IBQuery1.SQL.Add('update registro set cpf = :cpf, empresa = :emp,registro=:reg,nome=:nome,cnpj=:cnpj,ies=:ies,ende=:ende,cep=:cep,telres=:telres,telcom=:telcom, cid = :cid,est=:est,obs=:obs,titular=:titular,crip=:crip,cod_mun=:mun, suframa = :suframa, email = :email');
       //dm.IBQuery1.ParamByName('cod').AsString := funcoes.Criptografar(cod.Text);
       dm.IBQuery1.ParamByName('cpf').AsString    :=  cpf.Text;
       dm.IBQuery1.ParamByName('emp').AsString := REMOVE_ACENTO(empresa.Text);
 
-      if demo1 then dm.IBQuery1.ParamByName('reg').AsInteger := trunc(StringToInteger(empresa.Text) / 2)
-        else  dm.IBQuery1.ParamByName('reg').AsInteger := StringToInteger(empresa.Text);
+      if tipoRegistro = '1' then begin
+        dm.IBQuery1.ParamByName('reg').AsInteger := StringToInteger(empresa.Text);
+      end
+      else if tipoRegistro = '2' then begin
+        dm.IBQuery1.ParamByName('reg').AsInteger := trunc(StringToInteger(empresa.Text) / 3)
+      end
+      else if tipoRegistro = '3' then begin
+        dm.IBQuery1.ParamByName('reg').AsInteger := trunc(StringToInteger(empresa.Text) / 2)
+      end
+      else begin
+        dm.IBQuery1.ParamByName('reg').AsInteger := 0;
+      end;
+
       dm.IBQuery1.ParamByName('nome').AsString := nome.Text;
       dm.IBQuery1.ParamByName('cnpj').AsString := cnpj.Text;
       dm.IBQuery1.ParamByName('ies').AsString := ies.Text;
@@ -150,6 +193,7 @@ begin
       dm.IBQuery1.ParamByName('crip').AsString := (empresa.Text);
       dm.IBQuery1.ParamByName('mun').AsString := (JsEdit1.Text);
       dm.IBQuery1.ParamByName('suframa').AsString := suframa.Text;
+      dm.IBQuery1.ParamByName('email').AsString := email.Text;
       try
 
         dm.IBQuery1.ExecSQL;
@@ -178,7 +222,7 @@ begin
    begin
     dm.IBQuery1.Close;
     dm.IBQuery1.SQL.Clear;
-    dm.IBQuery1.SQL.Add('update registro set cpf = :cpf, nome = :nome,cnpj = :cnpj,ies=:ies,ende=:ende,bairro = :bairro,cep=:cep,telres=:telres,telcom=:telcom,cid=:cid,est=:est,obs=:obs,titular=:titular,cod_mun=:mun, suframa = :suframa');
+    dm.IBQuery1.SQL.Add('update registro set cpf = :cpf, nome = :nome,cnpj = :cnpj,ies=:ies,ende=:ende,bairro = :bairro,cep=:cep,telres=:telres,telcom=:telcom,cid=:cid,est=:est,obs=:obs,titular=:titular,cod_mun=:mun, suframa = :suframa, email = :email');
     //dm.IBQuery1.ParamByName('cod').AsString := funcoes.Criptografar(cod.Text);
     dm.IBQuery1.ParamByName('cpf').AsString    :=  cpf.Text;
     dm.IBQuery1.ParamByName('nome').AsString    := nome.Text;
@@ -195,6 +239,7 @@ begin
     dm.IBQuery1.ParamByName('titular').AsString := titular.Text;
     dm.IBQuery1.ParamByName('mun').AsString     := (JsEdit1.Text);
     dm.IBQuery1.ParamByName('suframa').AsString := suframa.Text;
+    dm.IBQuery1.ParamByName('email').AsString := email.Text;
     try
      dm.IBQuery1.ExecSQL;
      dm.IBQuery1.Transaction.Commit;
@@ -307,6 +352,8 @@ if key = #13 then
   begin
     if StrToint(funcoes.StrNum(JsEdit4.Text)) = trunc(StrToCurr(valorDeChecagem) / 87) then
       begin
+        tipoRegistro := '1';
+        check.Caption := 'Versão Completa';
         Image1.Picture.Assign(nil);
         ImageList1.Draw(Image1.Canvas,0,0,0);
         ativadoOk := true;
@@ -317,10 +364,28 @@ if key = #13 then
         try
           funcoes.addRegSite(copy('**' + empresa.Text, 1, 37), dm.IBQuery2);
         except
-        end;  
+        end;
       end
+    //versao simplificada do sistema
+    else if StrToint(funcoes.StrNum(JsEdit4.Text)) = trunc(StrToCurr(valorDeChecagem) / 77) then begin
+      tipoRegistro := '2';
+      check.Caption := 'Versão Econômica';
+      Image1.Picture.Assign(nil);
+        ImageList1.Draw(Image1.Canvas,0,0,0);
+        ativadoOk := true;
+        demo1 := false;
+        GroupBox1.Enabled := true;
+        key := #0;
+        nome.SetFocus;
+        try
+          funcoes.addRegSite(copy('**' + empresa.Text, 1, 37), dm.IBQuery2);
+        except
+        end;
+    end
     else if JsEdit4.Text = valorDeChecagem then
       begin
+        tipoRegistro := '3';
+        check.Caption := 'Versão DEMO';
         if demo then
           begin
             Image1.Picture.Assign(nil);
@@ -417,6 +482,11 @@ if (key=#13) and (tedit(sender).Text = '') then
  }
 end;
 
+procedure TForm35.emailKeyPress(Sender: TObject; var Key: Char);
+begin
+  if key = #13 then email.SetFocus;
+end;
+
 procedure TForm35.empresaKeyPress(Sender: TObject; var Key: Char);
 begin
   if key = #27 then
@@ -457,8 +527,7 @@ end;
 procedure TForm35.JsEdit1KeyPress(Sender: TObject; var Key: Char);
 begin
   if (key = #27) then key := #0;
-  if key = #13 then tex
-  .SetFocus;
+  if key = #13 then email.SetFocus;
 end;
 
 procedure TForm35.codKeyPress(Sender: TObject; var Key: Char);

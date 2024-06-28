@@ -11,6 +11,7 @@ object Form72: TForm72
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
+  OnCreate = FormCreate
   PixelsPerInch = 96
   TextHeight = 13
   object IdThreadComponent1: TIdThreadComponent
@@ -51,8 +52,8 @@ object Form72: TForm72
   object BMDThread2: TBMDThread
     UpdateEnabled = False
     OnExecute = BMDThread2Execute
-    Left = 256
-    Top = 104
+    Left = 248
+    Top = 80
   end
   object ACBrNFeDANFEFR1: TACBrNFeDANFEFR
     Sistema = 'Projeto ACBr - www.projetoacbr.com.br'

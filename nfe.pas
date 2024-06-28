@@ -94,7 +94,7 @@ type
     , _EXPORTA, _FORMPG, Caminho, chaveRecuperada, IND_PAG, tipoPessoa, idDest, codNumerico : string;
     i, INVALIDO : integer;
     OK : BOOLEAN;
-    TOTICM, TOT_BASEICM, TOT_PIS, TOT_COFINS,BASE_ICM, VLR_ICM, totalNota, totalNota_achado, totImp,
+    TOTICM, TOT_BASEICM, TOT_ICM_ST, TOT_vBCST, TOT_vICMSDeson, TOT_PIS, TOT_COFINS,BASE_ICM, VLR_ICM, totalNota, totalNota_achado, totImp,
     totalNotaORIGI, totDesc, totAcres, totDesc1, TRIB_ALIQ_PIS, TRIB_ALIQ_COFINS, TOTvICMSUFDest, TOTvICMSUFRemet : currency;
     dadosEmitente,dadosDest : TStringList;
     valida : boolean;
@@ -2811,12 +2811,11 @@ FUNCTION TNfeVenda.NODO_TOTAL(TOTNOTA, TOT_BASEICM, TOT_ICM, TOT_PIS, TOT_COFINS
 begin
   TOTDESCICM := 0; vst :=0;
 
-  
   Result := '<total><ICMSTot><vBC>' + FORMAT_NUM(TOT_BASEICM) + '</vBC><vICMS>' + FORMAT_NUM(TOT_ICM) +
-  '</vICMS><vBCST>0.00</vBCST><vST>'+Format_num(vst)+'</vST><vProd>' + FORMAT_NUM(TOTNOTA) +
+  '</vICMS><vBCST>'+Format_num(TOT_vBCST)+'</vBCST><vICMSDeson>'+FORMAT_NUM(toT_vICMSDeson)+'</vICMSDeson><vST>'+Format_num(TOT_ICM_ST)+'</vST><vProd>' + FORMAT_NUM(TOTNOTA) +
   '</vProd><vFrete>'+ Format_num(TotalFrete) +'</vFrete><vSeg>0.00</vSeg><vDesc>' + FORMAT_NUM(TOTDESCICM + TOTDESC) + '</vDesc>' +
   '<vII>0.00</vII><vIPI>0.00</vIPI><vPIS>' + FORMAT_NUM(TOT_PIS) + '</vPIS><vCOFINS>' +
-  FORMAT_NUM(TOT_COFINS) + '</vCOFINS><vOutro>'+FORMAT_NUM(VLR_DESP + totAcres)+'</vOutro><vNF>' + FORMAT_NUM(TOTNOTA - TOTDESC - TOTDESCICM + iif(tipo_frete <> 9, TotalFrete, 0) + VLR_DESP) +
+  FORMAT_NUM(TOT_COFINS) + '</vCOFINS><vOutro>'+FORMAT_NUM(VLR_DESP + totAcres)+'</vOutro><vNF>' + FORMAT_NUM(TOTNOTA - TOTDESC - TOTDESCICM + iif(tipo_frete <> 9, TotalFrete, 0) + VLR_DESP + TOT_ICM_ST) +
   '</vNF><vICMSUFDest>'+FORMAT_NUM(TOTvICMSUFDest)+'</vICMSUFDest><vICMSUFRemet>'+FORMAT_NUM(TOTvICMSUFRemet)+'</vICMSUFRemet></ICMSTot></total>';
 
   totalNota := TOTNOTA - TOTDESC - TOTDESCICM + iif(tipo_frete <> 9, TotalFrete, 0) + VLR_DESP;
@@ -3002,7 +3001,7 @@ end;
 
 FUNCTION TNfeVenda.NODO_ICMS(var MAT : Item_venda; CSTICM_CFOP, _ORIGE : string) : string;
 var
-  tot, icms : currency;
+  tot, icms, vbst, vdeson : currency;
 begin
   tot := mat.total - mat.Desconto;
   if freteNaBaseDeCalculo then tot := tot + item.Vlr_Frete;
@@ -3079,6 +3078,8 @@ begin
          exit;
       end;
 
+
+
       if mat.CodAliq = 11 then
         begin
           Result := '<ICMS><ICMSSN102><orig>' + _ORIGE + '</orig><CSOSN>400</CSOSN></ICMSSN102></ICMS>';
@@ -3114,6 +3115,72 @@ begin
       Result := '<ICMS><ICMSSN102><orig>' + _ORIGE + '</orig><CSOSN>102</CSOSN></ICMSSN102></ICMS>';
       exit;
     end;
+
+  if trim(item.CST_ICMS) = '10' then begin
+    //mva é o campo fracao no cad de produto
+    //reducao na aliquota é a aliq st
+
+    tot := item.total;
+    vbst := tot +(tot * (item.mva /100));
+    icms := vbst * (item.Reducao /100);
+
+    TOT_vBCST      := TOT_vBCST  + vbst;
+    TOT_ICM_ST     := TOT_ICM_ST + icms;
+    //TOT_vICMSDeson := TOT_vICMSDeson +
+
+    BASE_ICM := arrendondaNFe(tot, 2);
+    VLR_ICM := arrendondaNFe(BASE_ICM * ITEM.PercICMS / 100, 2);
+    TOTICM := TOTICM + VLR_ICM;
+    TOT_BASEICM := TOT_BASEICM + BASE_ICM;
+
+    Result := '<ICMS><ICMS10><orig>0</orig><CST>10</CST>'+
+    '<modBC>0</modBC>'+
+    '<vBC>' + FORMAT_NUM(BASE_ICM) + '</vBC>' +
+    '<pICMS>' + FORMAT_NUM(ITEM.PercICMS) + '</pICMS>' +
+    '<vICMS>' + FORMAT_NUM(VLR_ICM) + '</vICMS>'+
+    '<modBCST>4</modBCST>'+
+    '<pMVAST>'+FORMAT_NUM(item.mva)+'</pMVAST>'+
+    '<vBCST>'+Format_num(vbst)+'</vBCST>'+
+    '<pICMSST>'+FORMAT_NUM(item.Reducao)+'</pICMSST>'+
+    '<vICMSST>'+Format_num(icms)+'</vICMSST>'+
+    //'<vICMSDeson>22.90</vICMSDeson>'+
+    //'<motDesICMS>7</motDesICMS>'+
+    '</ICMS10></ICMS>';
+    exit;
+  end;
+
+
+
+  if trim(item.CST_ICMS) = '30' then begin
+    //mva é o campo fracao no cad de produto
+    //reducao na aliquota é a aliq st
+
+    tot := item.total;
+    vbst := tot +(tot * (item.mva /100));
+    icms := vbst * (item.Reducao /100);
+
+    TOT_vBCST      := TOT_vBCST  + vbst;
+    TOT_ICM_ST     := TOT_ICM_ST + icms;
+    TOT_vICMSDeson := TOT_vICMSDeson + item.icmsDeson;
+
+    //BASE_ICM := arrendondaNFe(tot, 2);
+    //VLR_ICM := arrendondaNFe(BASE_ICM * ITEM.PercICMS / 100, 2);
+    //TOTICM := TOTICM + VLR_ICM;
+    //TOT_BASEICM := TOT_BASEICM + BASE_ICM;
+
+    Result := '<ICMS><ICMS30><orig>0</orig><CST>30</CST><modBCST>4</modBCST>'+
+    '<vBC>' + FORMAT_NUM(BASE_ICM) + '</vBC>' +
+    //'<pICMS>' + FORMAT_NUM(ITEM.PercICMS) + '</pICMS>' +
+    //'<vICMS>' + FORMAT_NUM(VLR_ICM) + '</vICMS>'+
+    '<pMVAST>'+FORMAT_NUM(item.mva)+'</pMVAST><vBCST>'+Format_num(vbst)+'</vBCST>'+
+    '<pICMSST>'+FORMAT_NUM(item.Reducao)+'</pICMSST>'+
+    '<vICMSST>'+Format_num(icms)+'</vICMSST>'+
+    '<vICMSDeson>'+Format_num(item.icmsDeson)+'</vICMSDeson>'+
+    '<motDesICMS>7</motDesICMS>'+
+    '</ICMS30></ICMS>';
+    exit;
+  end;
+
 
   //EXPORTAÇÃO - CST = 41
   IF funcoes.Contido(LeftStr(cod_OP, 1), '4-7') then
@@ -3360,8 +3427,6 @@ begin
     end;
   end;
 
-
-
   dm.IBselect.Close;
   dm.IBselect.SQL.Clear;
   dm.IBselect.SQL.Add('select * from registro');
@@ -3371,6 +3436,8 @@ begin
   dadosDest := TStringList.Create;
 
    codNFe := Incrementa_Generator(generator, 0);
+   if codNFe = '0' then codNFe := '1';
+
 
   dadosEmitente.Values['cod_mun'] := dm.IBselect.fieldbyname('cod_mun').AsString;
   dadosEmitente.Values['ies']     := funcoes.StrNum(dm.IBselect.fieldbyname('ies').AsString);
@@ -3668,6 +3735,10 @@ begin
   parcelamento := VER_PARCELAS(notas);
   IND_PAG := '0';
 
+  TOT_vBCST      := 0;
+  TOT_ICM_ST     := 0;
+  TOT_vICMSDeson := 0;
+
   try
     if StrToIntDef(StrNum(venda.codForma), 1) = 2 then
       begin
@@ -3850,8 +3921,8 @@ begin
 
           query2.SQL.Clear;
 
-          if existeCampoTipo_item then query2.SQL.Add('select p.cod,p.obs, a.reducao, p.dev_icm, p.nome, p.tipo_item, p.codbar, p.unid, p.aliquota, p.is_pis, p.cod_ispis, p.p_compra, p.p_venda,'+' p.obs from produto p left join aliq a on (iif(p.aliquota = '''', 0, p.aliquota) = a.cod) where p.cod = :cod')
-          else query2.SQL.Add('select p.cod,p.obs, a.reducao, p.dev_icm, p.nome, p.tipo_item, p.codbar, p.unid, p.aliquota, p.is_pis, p.cod_ispis, p.p_compra, p.p_venda, p.obs from produto p'+' left join aliq a on (iif(p.aliquota = '''', 0, p.aliquota) = a.cod) where p.cod = :cod');
+          if existeCampoTipo_item then query2.SQL.Add('select p.cod,p.obs, a.reducao, p.dev_icm, p.nome, p.tipo_item, p.codbar, p.unid, p.aliquota, p.is_pis, p.cod_ispis, p.p_compra, p.p_venda,'+' p.obs, p.fracao as mva, p_venda1 as ICMSDeson from produto p left join aliq a on (iif(p.aliquota = '''', 0, p.aliquota) = a.cod) where p.cod = :cod')
+          else query2.SQL.Add('select p.cod,p.obs, a.reducao, p.dev_icm, p.nome, p.tipo_item, p.codbar, p.unid, p.aliquota, p.is_pis, p.cod_ispis, p.p_compra, p.p_venda, p.obs, p.fracao as mva, p_venda1 as ICMSDeson from produto p'+' left join aliq a on (iif(p.aliquota = '''', 0, p.aliquota) = a.cod) where p.cod = :cod');
           query2.ParamByName('cod').AsString := query1.fieldbyname('cod').AsString;
           query2.Open;
 
@@ -3930,6 +4001,8 @@ begin
                  item.codISPIS           := query2.fieldbyname('cod_ispis').AsString;
                  item.Desconto           := 0;
                  item.obs                := query2.fieldbyname('obs').AsString;
+                 item.mva      := query2.fieldbyname('mva').AsCurrency;
+                 item.icmsDeson      := query2.fieldbyname('ICMSDeson').AsCurrency;
 
                  if existeCampoTipo_item then begin
                    if contido('|'+ query2.fieldbyname('tipo_item').AsString + '|', '|07|09|') then begin
@@ -3947,11 +4020,19 @@ begin
                  item.Vlr_Frete := 0;
                  aliq := query1.fieldbyname('aliquota').AsString;
 
+
+
                  query2.Close;
                  query2.SQL.Clear;
                  query2.SQL.Add('select * from aliq where cod = :cod');
                  query2.ParamByName('cod').Asinteger := item.CodAliq;
                  query2.Open;
+
+                 //mva é o campo fracao na tabela de produto que vai ser
+                 //usado caso o cst da aliquota for 30, isso foi feito pra nota de
+                 //devolução da retificabv
+
+                 item.CST_ICMS := query2.FieldByName('cst').AsString;
 
                  temp1 := 0;
                  temp := 0;
@@ -5167,7 +5248,7 @@ begin
     Result := '<pag>'+
                 '<detPag>'+
                   '<tpag>'+tpag+'</tpag>'+
-                  IfThen(tpag = '99', '<xPag>'+listaPagamentos[0].CST+'</xpag>', '') +
+                  IfThen(tpag = '99', '<xPag>'+listaPagamentos[0].CST+'</xPag>', '') +
                   '<vpag>' + Format_num(TOTAL) +  '</vpag>' +
                 '</detPag>' +
                 '</pag>';
@@ -5200,7 +5281,7 @@ begin
   for i := 0 to listaPagamentos.Count -1 do begin
       Result := Result +  '<detPag>' + '<tpag>' + listaPagamentos[i].cod + '</tpag>' +
       //IfThen(listaPagamentos[i].cod = '99', '<xPag>'+listaPagamentos[i].CST+'</xpag>', '') +
-      IfThen(listaPagamentos[i].cod = '99', '<xPag>'+listaPagamentos[i].CST+'</xpag>', '') +
+      IfThen(listaPagamentos[i].cod = '99', '<xPag>'+listaPagamentos[i].CST+'</xPag>', '') +
       '<vpag>' + Format_num(listaPagamentos[i].total) + '</vpag>' + '</detPag>';
       tmp := tmp + listaPagamentos[i].total;
   end;
@@ -5215,7 +5296,7 @@ begin
      Result := '<pag>'+
                 '<detPag>'+
                   '<tpag>'+tpag+'</tpag>'+
-                  IfThen(tpag = '99', '<xPag>'+listaPagamentos[0].CST+'</xpag>', '') +
+                  IfThen(tpag = '99', '<xPag>'+listaPagamentos[0].CST+'</xPag>', '') +
                   '<vpag>' + Format_num(TOTAL) +  '</vpag>' +
                 '</detPag>' +
                 '</pag>';

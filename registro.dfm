@@ -2,7 +2,7 @@ object Form35: TForm35
   Left = 195
   Top = 110
   Caption = 'Formul'#225'rio de Registro'
-  ClientHeight = 445
+  ClientHeight = 461
   ClientWidth = 392
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -83,8 +83,8 @@ object Form35: TForm35
   object GroupBox1: TGroupBox
     Left = -1
     Top = 64
-    Width = 393
-    Height = 377
+    Width = 400
+    Height = 401
     Caption = 'Dados da Empresa'
     TabOrder = 1
     object Label2: TLabel
@@ -205,9 +205,16 @@ object Form35: TForm35
       Height = 13
       Caption = ' CPF:'
     end
+    object Label18: TLabel
+      Left = 16
+      Top = 358
+      Width = 27
+      Height = 13
+      Caption = 'email:'
+    end
     object tex: TBitBtn
-      Left = 328
-      Top = 320
+      Left = 327
+      Top = 336
       Width = 57
       Height = 49
       Caption = 'Registrar'
@@ -432,12 +439,26 @@ object Form35: TForm35
       Indice = 2
       TipoDeDado = teNumero
     end
+    object email: JsEdit
+      Left = 17
+      Top = 373
+      Width = 249
+      Height = 21
+      CharCase = ecUpperCase
+      MaxLength = 40
+      TabOrder = 17
+      OnKeyPress = emailKeyPress
+      FormularioComp = 'Form16'
+      ColorOnEnter = clSkyBlue
+      Indice = 2
+      TipoDeDado = teNumero
+    end
   end
   object ImageList1: TImageList
     Left = 352
     Top = 255
     Bitmap = {
-      494C010102003000440010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010102003000480010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       000000000000000000000000000000000000CCCCCC00C8C8C800C4C4C400BABA
       BA00B4B4B400A7A7A700A2A2A2009E9E9E00A2A2A200B0B0B000B6B6B600C2C2

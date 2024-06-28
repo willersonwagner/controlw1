@@ -16,7 +16,8 @@ uses
   pcnNFe, Math, DB, ACBrNFeNotasFiscais, pcnEventoNFe, pcnEnvEventoNFe,
   ACBrNFeWebServices, IdBaseComponent, BMDThread, IdComponent, IdTCPConnection,
   IdTCPClient, IdHTTP, IdMultipartFormData, ibdatabase, FireDAC.Comp.Client,
-  ACBrBase, ACBrDFeReport, ACBrDFeDANFeReport, ACBrNFeDANFEFR;
+  ACBrBase, ACBrDFeReport, ACBrDFeDANFeReport, ACBrNFeDANFEFR, IdAntiFreezeBase,
+  Vcl.IdAntiFreeze;
 
 type
   TTWtheadNFeEnvia = class(TThread)
@@ -55,6 +56,7 @@ type
       var Data: Pointer);
     procedure BMDThread2Execute(Sender: TObject; Thread: TBMDExecuteThread;
       var Data: Pointer);
+    procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
   public
@@ -7040,7 +7042,7 @@ begin
         if ((listaPagamentos.Count > 1) and (tmp < total ) and ((listaPagamentos.Count -1) = i)) then listaPagamentos[i].total := listaPagamentos[i].total + abs(tmp - total);
 
         Result := Result + '<detPag>' + '<tpag>' + listaPagamentos[i].cod + '</tpag>' +
-        IfThen(listaPagamentos[i].cod = '99', '<xPag>'+listaPagamentos[i].CST+'</xpag>', '') +
+        IfThen(listaPagamentos[i].cod = '99', '<xPag>'+listaPagamentos[i].CST+'</xPag>', '') +
          '<vpag>' + Format_num(listaPagamentos[i].total) + '</vpag>'
         + '</detPag>';
       end;
@@ -7067,7 +7069,7 @@ begin
   end;
 
   Result := '<pag>' + '<tpag>' + venda.codFormaNFCE + '</tpag>' +
-  IfThen(venda.codFormaNFCE = '99', '<xPag>'+venda._FORMPG+'</xpag>', '') +
+  IfThen(venda.codFormaNFCE = '99', '<xPag>'+venda._FORMPG+'</xPag>', '') +
   '<vpag>' + FormatCurr('0.00', totalNota - TOTDESC) + '</vpag>' + '</pag>';
 end;
 
@@ -8930,6 +8932,12 @@ begin
   if enviouNFE = 'N' then
     enviouNFE := 'S';
   sleep(1);
+end;
+
+procedure TForm72.FormCreate(Sender: TObject);
+begin
+  IdHTTP1.ReadTimeout    := 10000;
+  IdHTTP1.ConnectTimeout := 10000;
 end;
 
 procedure TForm72.IdThreadComponent1Exception(Sender: TIdThreadComponent;

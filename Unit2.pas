@@ -422,6 +422,7 @@ type
     Apagarprodutossemmovimento1: TMenuItem;
     ControledeGarantias1: TMenuItem;
     RelAcessoPC1: TMenuItem;
+    PagamentoporPIX1: TMenuItem;
     procedure LimparBloqueios1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure CadastrarUsurio1Click(Sender: TObject);
@@ -731,6 +732,7 @@ type
     procedure Apagarprodutossemmovimento1Click(Sender: TObject);
     procedure ControledeGarantias1Click(Sender: TObject);
     procedure RelAcessoPC1Click(Sender: TObject);
+    procedure PagamentoporPIX1Click(Sender: TObject);
   private
     b, cont: integer;
     ini: Smallint;
@@ -750,6 +752,7 @@ type
     dataset: TClientDataSet;
     procedure atualizaLabel(cont1: integer);
     procedure relClienteNota(cliente: String = '');
+    procedure ativaModoSistemaEconomico;
     { Public declarations }
   end;
 
@@ -1168,6 +1171,9 @@ var
   cupons: TTWtheadEnviaCupons1;
   nomeMecanico: String;
 begin
+ // self.WindowState := wsMaximized;
+ // self.Position    := poScreenCenter;
+
 
   stb.Panels[3].Text := FileAgeCreate(ParamStr(0));
 
@@ -4328,6 +4334,7 @@ begin
     dm.ProdutoQY.First;
 
     funcoes.informacao(1, 2, 'AGUARDE... ', true, false, 2);
+
     while not dm.ProdutoQY.Eof do
     begin
       if funcoes.PerguntasRel(dm.ProdutoQY, '12', true, '', '') then
@@ -4819,7 +4826,7 @@ begin
   form40.teclas.Add('133=SN');
   form40.teclas.Add('134=SN');
   form40.teclas.Add('135=SN');
-  form40.teclas.Add('136=SN');
+  form40.teclas.Add('136=SNX');
 
   form40.ListBox1.Clear;
   form40.ListBox1.Items.Add
@@ -5048,7 +5055,7 @@ begin
   form40.ListBox1.Items.Add('133=Habilitar Impressao do desconto no pedido por Produto(Disponivel para impressao M e T) ?');
   form40.ListBox1.Items.Add('134=Exibir data e hora na rotina de Forma de Pagamento (padrao N) ?');
   form40.ListBox1.Items.Add('135=Permitir Preço de Venda 0 no Cadastro de Produto (padrao N) ?');
-  form40.ListBox1.Items.Add('136=Deseja cruzar estoque entre matriz e filial na sincronização de estoque(S/N) ?');
+  form40.ListBox1.Items.Add('136=Deseja cruzar estoque entre matriz e filial na sincronização de estoque(S-somente QTD/N/X-estoque e qtd) ?');
 
   form40.ListBox1.Selected[0] := true;
   form40.showmodal;
@@ -10435,8 +10442,8 @@ begin
       ('13=Quantas Linhas para Completar a Impressao da ordem de Serviço M(Padrao 25) ?');
     form39.ListBox1.Items.Add('14=Imprimir Reimpressao em quantas vias ?');
     form39.ListBox1.Items.Add('15=Imprimir Entrega em quantas Vias ?');
-    form39.ListBox1.Items.Add
-      ('16=Imprimir Pedido de Compra Gráfico Fortes Reports ?');
+    form39.ListBox1.Items.Add('16=Imprimir Pedido de Compra Gráfico Fortes Reports ?');
+    form39.ListBox1.Items.Add('16=Imprimir Saída de Estoque ?');
 
     form39.substitui := TStringList.Create;
     form39.substitui.Add('S'); // 0
@@ -10456,6 +10463,7 @@ begin
     form39.substitui.Add(''); // 14
     form39.substitui.Add(''); // 15
     form39.substitui.Add('S'); // 16
+    form39.substitui.Add('S'); // 17
 
     form39.teclas := TStringList.Create;
     form39.teclas.Add('TGMLADRFVXEB');
@@ -10475,6 +10483,7 @@ begin
     form39.teclas.Add('1234567890' + #8);
     form39.teclas.Add('1234567890' + #8);
     form39.teclas.Add('SN'); // 16
+    form39.teclas.Add('SN'); // 17
     form39.showmodal;
   end
   else if funcoes.lista1 = '2' then
@@ -12503,6 +12512,11 @@ begin
 
 end;
 
+procedure TForm2.PagamentoporPIX1Click(Sender: TObject);
+begin
+  form84.Show;
+end;
+
 procedure TForm2.Panel2MouseEnter(Sender: TObject);
 begin
   TPanel(Sender).Color := clGreen;
@@ -14140,6 +14154,13 @@ begin
           dm.IBQuery1.Transaction.Rollback;
           exit;
         end;
+      end;
+
+      if atualizarData then begin
+        dm.IBQuery1.Close;
+        dm.IBQuery1.SQL.Text := ('update item_venda set data = :data where nota = :nota');
+        dm.IBQuery1.ParamByName('data').AsDate := form22.datamov;
+        dm.IBQuery1.ExecSQL;
       end;
 
 
@@ -19521,7 +19542,7 @@ procedure TForm2.ValidarAssinaturaDigital1Click(Sender: TObject);
     dm.ibselect.SQL.Text :=
       'select i.cod, v.vendedor, i.quant, i.total from item_venda i inner join'
       + ' produto p on (p.cod = i.cod) left join venda v on (v.nota = i.nota) where  '
-      + h1 + ' (v.cancelado = 0) and ((i.data >= :v1) and' +
+      + h1 + ' (i.cancelado = 0) and ((i.data >= :v1) and' +
       ' (i.data<=:v2)) order by i.cod';
     { dm.IBselect.SQL.Text := ('select p.cod, p.nome, v.vendedor, SUM(i.quant)as quant, SUM(i.total)as total  from item_venda i inner join' +
       ' produto p on (p.cod = i.cod) left join venda v on (v.nota = i.nota) where '+ h1 +' ((i.data >= :v1) and'+
@@ -20918,7 +20939,7 @@ procedure TForm2.ValidarAssinaturaDigital1Click(Sender: TObject);
 
   procedure TForm2.EntradasPorNota1Click(Sender: TObject);
   var
-    ini, fim, cons, cab, h1: String;
+    ini, fim, cons, cab, h1, h2: String;
     TOT, totNota: currency;
   begin
     ini := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,
@@ -20948,6 +20969,17 @@ procedure TForm2.ValidarAssinaturaDigital1Click(Sender: TObject);
     else
       cons := 'cast(data as date)';
 
+    h2 := funcoes.dialogo('generico', 0, 'SN', 0, false, 'S',
+      'Control For Windows',
+      'Somente Entradas de Transferencia entre Matriz/Filial?', 'N');
+    if h2 = '*' then
+      exit;
+
+    if h2 = 'N' then h2 := ''
+    else begin
+      h2 := ' and fornec = 0 ';
+    end;
+
     h1 := '';
     if fornec <> '' then
       h1 := ' and (fornec = ' + strnum(fornec) + ')';
@@ -20969,7 +21001,7 @@ procedure TForm2.ValidarAssinaturaDigital1Click(Sender: TObject);
     dm.ibselect.SQL.Text :=
       'select e.nota, (select nome from fornecedor f where f.cod = e.fornec) as nome, e.fornec, e.data, e.chegada, (select sum(total) from item_entrada i where i.nota = e.nota and i.fornec = e.fornec) as total_nota1, total_nota, xml'+
       ' from entrada e where ( '
-      + cons + ' >= :ini) and (' + cons + ' <= :fim) ' + h1;
+      + cons + ' >= :ini) and (' + cons + ' <= :fim) ' + h1 + h2;
     try
       dm.ibselect.ParamByName('ini').AsDate := StrToDate(ini);
       dm.ibselect.ParamByName('fim').AsDate := StrToDate(fim);
@@ -25526,5 +25558,11 @@ procedure TForm2.RelatriodePendnciasNFCe1Click(Sender: TObject);
       end;
     end;
   end;
+
+
+procedure TForm2.ativaModoSistemaEconomico;
+begin
+
+end;
 
 end.

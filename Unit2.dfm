@@ -14,7 +14,7 @@ object Form2: TForm2
   KeyPreview = True
   Menu = MainMenu1
   OldCreateOrder = False
-  Position = poDesigned
+  Position = poScreenCenter
   WindowState = wsMaximized
   OnClose = FormClose
   OnCreate = FormCreate
@@ -12342,6 +12342,10 @@ object Form2: TForm2
             Caption = 'Rel Acesso PC'
             OnClick = RelAcessoPC1Click
           end
+        end
+        object PagamentoporPIX1: TMenuItem
+          Caption = 'Pagamento por PIX'
+          OnClick = PagamentoporPIX1Click
         end
       end
       object Nfe1: TMenuItem

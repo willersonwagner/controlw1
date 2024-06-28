@@ -241,13 +241,15 @@ type
     p_vendaOriginal : Double;
     total : currency;
     total_achado : currency;
+    CST_ICMS : string[2];
+    mva      : currency;
     PercICMS : currency;
-    VlrICMS : Currency;
+    VlrICMS  : Currency;
     DescICMS : currency;
-    Aliq : string[2];
-    Reducao : currency;
+    Aliq     : string[2];
+    Reducao  : currency;
     DespAcessorias : currency;
-    CodAliq : Smallint;
+    CodAliq  : Smallint;
     Total_Preco_Compra : currency; //Preço compra x quantidade
     Pis : string[1];
     Desconto : currency;
@@ -259,6 +261,7 @@ type
     vlr_imposto : currency;
     base_icm : currency;
     vOutro : currency;
+    icmsDeson : currency;
   end;
 
   Item_venda1 = class

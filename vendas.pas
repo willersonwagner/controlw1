@@ -125,6 +125,7 @@ type
 
   private
     l1, l2, l3: TLabel;
+    dinheiro, aprazoFormaDiferenteDe2 : string;
     entrada, avista, aprazo, troco, recebido, totVolumes, totVenda: currency;
     testa, EXPORTADO, tamanhoFonteTotal, tamFontDesc, CasasDecimaisQuantidade: Smallint;
     pedido, configUsuarioConfirmarPreco, NomeOrcamento, formaAlterada: string;
@@ -188,6 +189,7 @@ type
     function validaVendedor() : boolean;
     { Private declarations }
   public
+
     ordenaCampos: boolean;
     decimaisPrecoUsuario : SmallInt;
     tamanho_nota, finalizouServico, fimVenda: integer;
@@ -4879,14 +4881,20 @@ end;
 
 function TForm20.VerificaForma_de_Pagamento_e_Prazo: Smallint;
 begin
+  if aprazoFormaDiferenteDe2 = 'P' then codhis := '2';
+  
+
 
   if (StrToIntDef(codhis, 0) = 1) then
   begin
     exit;
   end;
 
-  if (StrToIntDef(codhis, 0) <> 2) then
-    exit;
+  if (StrToIntDef(codhis, 0) <> 2) then begin
+    if aprazoFormaDiferenteDe2 = '' then exit;
+  end;
+
+
 
   if (StrToIntDef(codhis, 0) = 2) and (StrToIntDef(JsEdit1.Text, 0) = 0) then
   begin
@@ -5916,6 +5924,7 @@ begin
   ClientDataSet1.EmptyDataSet;
   total.Caption := 'R$ 0,00';
   JsEdit3.Text := '';
+  aprazoFormaDiferenteDe2 := '';
 
   JsEdit3.Enabled := true;
   JsEdit1.Enabled := true;
@@ -6048,7 +6057,7 @@ begin
     cod := ClientDataSet1CODIGO.AsString;
     dm.IBQuery1.Close;
 
-    //ShowMessage(recnoItem_venda);
+   // ShowMessage(recnoItem_venda + #13 + IntToStr(Length(recnoItem_venda)));
 
   if LeftStr(tipoV, 1) = 'V' then
     begin
@@ -6801,7 +6810,8 @@ end;
 
 procedure TForm20.FormCreate(Sender: TObject);
 begin
-  ultOrcamentoRecuperado := '';
+  aprazoFormaDiferenteDe2 := '';
+  ultOrcamentoRecuperado  := '';
   fimVenda := 0;
   tipoTrocaDescontoUsuario := '';
 
@@ -9433,7 +9443,7 @@ end;
 procedure TForm20.lancaDescontoPorFormaDePagamento(formapagamento: integer);
 var
   ini, fim : integer;
-  dinheiro : string;
+
 begin
   if funcoes.buscaParamGeral(105, 'N') <> 'S' then
     exit;
@@ -9442,11 +9452,12 @@ begin
   aprazo := StrToCurrDef(funcoes.buscaParamGeral(29, ''), 0);
 
   dm.IBselect.Close;
-  dm.IBselect.SQL.Text := 'select dinheiro, desc_pag from FORMPAGTO where cod = :cod';
+  dm.IBselect.SQL.Text := 'select dinheiro, desc_pag, imp_fiscal from FORMPAGTO where cod = :cod';
   dm.IBselect.ParamByName('cod').AsInteger := formapagamento;
   dm.IBselect.Open;
 
   dinheiro := trim(dm.IBselect.FieldByName('dinheiro').AsString);
+  aprazoFormaDiferenteDe2 := trim(dm.IBselect.FieldByName('imp_fiscal').AsString);
 
   ClientDataSet1.DisableControls;
   ClientDataSet1.First;
@@ -9590,6 +9601,10 @@ var
   tipo : String;
 begin
   funcoes.ultimaVenda := novocod;
+
+  if  ((funcoes.LerConfig(form22.Pgerais.Values['conf_ter'], 17) = 'N') and (saidaDeEstoque)) then exit;
+
+
   if Modo_Orcamento then funcoes.tipo1       := 2
   else if Modo_Venda then funcoes.tipo1      := 1;
 

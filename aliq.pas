@@ -32,7 +32,7 @@ var
 
 implementation
 
-uses Unit1, func;
+uses Unit1, func, cadAliq;
 
 {$R *.dfm}
 
@@ -48,7 +48,10 @@ procedure Taliq1.DBGrid1KeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
   if key = 113 then begin
-    IBTable1.Append;
+    form94.ShowModal;
+    IBTable1.Close;
+    IBTable1.Open;
+    funcoes.FormataCampos(TFDQuery(ibtable1),2,'',2);
   end;
 
   if key = 114 then begin
