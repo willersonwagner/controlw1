@@ -4421,15 +4421,25 @@ begin
           ('', FormatCurr('0.00', total_item), ' ', 13) + #13 + #10);
       end;
 
-
-
       if funcoes.buscaParamGeral(133, 'N') = 'S' then begin
-        //ShowMessage('tot_origi=' + CurrToStr(ClientDataSet1TOT_ORIGI2.AsCurrency) + #13 + 'total=' + CurrToStr(ClientDataSet1TOTAL.AsCurrency));
         if (ClientDataSet1TOT_ORIGI2.AsCurrency - ClientDataSet1TOTAL.AsCurrency) > 0 then begin
           addRelatorioForm19(funcoes.CompletaOuRepete('-->Desconto R$', formataCurrency(ClientDataSet1TOT_ORIGI2.AsCurrency - ClientDataSet1TOTAL.AsCurrency), '.', 40) + CRLF);
           desconto := desconto  -(ClientDataSet1TOT_ORIGI2.AsCurrency - ClientDataSet1TOTAL.AsCurrency);
         end;
       end;
+
+      if funcoes.buscaParamGeral(133, 'N') = 'X' then begin
+        if (ClientDataSet1TOT_ORIGI2.AsCurrency - ClientDataSet1TOTAL.AsCurrency) > 0 then begin
+          addRelatorioForm19(funcoes.CompletaOuRepete('-->Desconto R$', formataCurrency(ClientDataSet1TOT_ORIGI2.AsCurrency - ClientDataSet1TOTAL.AsCurrency), '.', 40) + CRLF);
+          desconto := desconto  -(ClientDataSet1TOT_ORIGI2.AsCurrency - ClientDataSet1TOTAL.AsCurrency);
+        end;
+
+        if (ClientDataSet1TOT_ORIGI2.AsCurrency - ClientDataSet1TOTAL.AsCurrency) < 0 then begin
+          addRelatorioForm19(funcoes.CompletaOuRepete('->Acrescimo R$', formataCurrency(ClientDataSet1TOTAL.AsCurrency - ClientDataSet1TOT_ORIGI2.AsCurrency), '.', 40) + CRLF);
+          desconto := desconto  -(ClientDataSet1TOT_ORIGI2.AsCurrency - ClientDataSet1TOTAL.AsCurrency);
+        end;
+      end;
+
 
 
       dm.IBQuery2.Close;
@@ -4467,13 +4477,14 @@ begin
 
     ClientDataSet1.EnableControls;
 
-    if funcoes.buscaParamGeral(81, 'N') = 'N' then
+    if (funcoes.buscaParamGeral(81, 'N') = 'N')  then
     begin
       if Desconto < 0 then
       begin
         // form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar(('DESCONTO('+FormatCurr('#,###,###0.00',(desconto * 100)/ total)+'%) ---------->'+funcoes.CompletaOuRepete('',formatCurr('#,###,###0.00',desconto),' ',11)+#13+#10))));
         addRelatorioForm19('VOCE ECONOMIZOU(' + FormatCurr('#,###,###0.00',(Desconto * 100) / total) + '%) --->' + funcoes.CompletaOuRepete('',FormatCurr('#,###,###0.00', Desconto), ' ', 11) + CRLF);
       end;
+
       form19.RichEdit1.Perform(EM_REPLACESEL, 1,
         Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 40) + #13+ #10))));
 
@@ -4496,14 +4507,29 @@ begin
             ''), totVolumes), '.', 40) + CRLF);
       end;
 
+      if desconto <> 0 then begin
+
+
       addRelatorioForm19(funcoes.CompletaOuRepete('SUBTOTAL:',
         FormatCurr('#,##,###0.00', total1 - Desconto), '.', 40) + CRLF);
-      if total > 0 then begin
+
+      //ShowMessage(CurrToStr(desconto));
+      if desconto < 0 then begin
 
       addRelatorioForm19(funcoes.CompletaOuRepete('DESCONTO(' +
         FormatCurr('#,###,###0.00', (Desconto * 100) / total) + '%):',
         FormatCurr('#,##,###0.00', Desconto), '.', 40) + CRLF);
+      end
+      else if desconto > 0 then begin
+        if (funcoes.buscaParamGeral(81, 'N') = 'X')  then begin
+
+
+        addRelatorioForm19(funcoes.CompletaOuRepete('ACRESCIMO(' +
+        FormatCurr('#,###,###0.00', (Desconto * 100) / total) + '%):',
+        FormatCurr('#,##,###0.00', Desconto), '.', 40) + CRLF);
+        end;
       end;
+    end;
     end;
 
     addRelatorioForm19(funcoes.CompletaOuRepete('TOTAL:',
@@ -6700,6 +6726,7 @@ begin
           end;
         end;
 
+        funcoes.fecharTransacoesClose;
         limpatela;
       end;
 

@@ -231,6 +231,7 @@ type
     obs  : String;
     CST_PIS : String;
     cod : integer;
+    codAlternativo : String;
     nome : string;
     nomeInfAdProd : string;
     unid : string[6];

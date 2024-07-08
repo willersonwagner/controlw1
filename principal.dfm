@@ -12041,13 +12041,13 @@ object form22: Tform22
   object ApplicationEvents1: TApplicationEvents
     OnMinimize = ApplicationEvents1Minimize
     Left = 128
-    Top = 72
+    Top = 48
   end
   object ClientDataSet1: TClientDataSet
     Aggregates = <>
     Params = <>
-    Left = 64
-    Top = 144
+    Left = 40
+    Top = 152
     object ClientDataSet1COOD: TIntegerField
       FieldName = 'COOD'
     end

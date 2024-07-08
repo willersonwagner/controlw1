@@ -1075,7 +1075,7 @@ begin
   dm.IBselect.FetchAll;
 
   if dm.IBselect.IsEmpty then begin
-    ShowMessage('Nenhuma NFe Para Copiar!');
+    //ShowMessage('Nenhuma NFe Para Copiar!');
     dm.IBselect.Close;
   end;
 
@@ -3155,7 +3155,7 @@ begin
     //mva é o campo fracao no cad de produto
     //reducao na aliquota é a aliq st
 
-    tot := item.total;
+    tot  := item.total;
     vbst := tot +(tot * (item.mva /100));
     icms := vbst * (item.Reducao /100);
 
@@ -3379,7 +3379,7 @@ begin
       //ShowMessage(detExport.Text + #13 + #13 + IntToStr(i));
 
       Result := Result + '<det nItem=' + LITERAL(TRIM(IntToStr(qtd))) + '><prod>' +
-      '<cProd>' + strzero(IntToStr(item.cod), 6) + '</cProd><cEAN>' + barras + '</cEAN>' +
+      '<cProd>' + IfThen(item.codAlternativo <> '', item.codAlternativo, strzero(IntToStr(item.cod), 6))  + '</cProd><cEAN>' + barras + '</cEAN>' +
       '<xProd>' + CampoString(item.nome) + '</xProd><NCM>' + item.Ncm + '</NCM>'+ve_cest(item.CodAliq, item.Ncm)+'<CFOP>' + CFOP1 + '</CFOP>' +
       '<uCom>' + removeCarateresEspeciais(item.unid) + '</uCom><qCom>' + Format_num(item.quant, 4) + '</qCom><vUnCom>' +
       Format_num(item.p_venda, 8) + '</vUnCom><vProd>' + FORMAT_NUM(item.total) + '</vProd><cEANTrib>'+ barras +'</cEANTrib>' +
@@ -3963,6 +3963,13 @@ begin
                 end;
 
                  item.cod     := query2.fieldbyname('cod').AsInteger;
+                 item.codAlternativo := '';
+
+                 if Contido('@COD', query2.fieldbyname('obs').AsString) then begin
+                   item.codAlternativo := copy(query2.fieldbyname('obs').AsString, 5, length(query2.fieldbyname('obs').AsString));
+                   item.nomeInfAdProd := 'Produto Codigo: '+ query2.fieldbyname('cod').AsString;
+                 end;
+
                  //AQUI CONCATENA COM O CAMPO OBS PRA AUMENTAR A DESCRIÇÃO
                  if Contido('@OBS', query2.fieldbyname('obs').AsString) then begin
                    item.nome := query2.fieldbyname('nome').AsString;

@@ -4771,7 +4771,7 @@ begin
   form40.teclas.Add('78=SN');
   form40.teclas.Add('79=1234567890' + #8);
   form40.teclas.Add('80=1234567890' + #8);
-  form40.teclas.Add('81=SN');
+  form40.teclas.Add('81=SNX');
   form40.teclas.Add('82=SN');
   form40.teclas.Add('83=SN');
   form40.teclas.Add('84=1234567890' + #8);
@@ -4823,7 +4823,7 @@ begin
   form40.teclas.Add('130=SN');
   form40.teclas.Add('131=SN');
   form40.teclas.Add('132=SN');
-  form40.teclas.Add('133=SN');
+  form40.teclas.Add('133=SNX');
   form40.teclas.Add('134=SN');
   form40.teclas.Add('135=SN');
   form40.teclas.Add('136=SNX');
@@ -4961,7 +4961,7 @@ begin
     ('79=Qual o Limite de dias para Emissao de NFCe em Contingência ?');
   form40.ListBox1.Items.Add
     ('80=Qual o periodo de Dias para Backup de Vendas ?');
-  form40.ListBox1.Items.Add('81=Imprimir SUBTOTAL no Ticket de Venda ?');
+  form40.ListBox1.Items.Add('81=Imprimir SUBTOTAL no Ticket de Venda (S-SIM N-NAO X-DESC ACRESC)?');
   form40.ListBox1.Items.Add('82=Bloquear Cadastro de Cod. Barras Duplicados ?');
   form40.ListBox1.Items.Add('83=Usar parcelamento na venda ?');
   form40.ListBox1.Items.Add
@@ -5052,7 +5052,7 @@ begin
   form40.ListBox1.Items.Add
     ('131=Habilitar conferência de entrega de mercadorias ?');
   form40.ListBox1.Items.Add('132=Habilitar Rotina de Forma de Pagamento com Emissao de NFCe, NFe e NFe Simplificada ?');
-  form40.ListBox1.Items.Add('133=Habilitar Impressao do desconto no pedido por Produto(Disponivel para impressao M e T) ?');
+  form40.ListBox1.Items.Add('133=Habilitar Impressao do desconto no pedido por Produto(Disponivel para impressao M e T) (S-SIM N-NAO X-Des,Acres)?');
   form40.ListBox1.Items.Add('134=Exibir data e hora na rotina de Forma de Pagamento (padrao N) ?');
   form40.ListBox1.Items.Add('135=Permitir Preço de Venda 0 no Cadastro de Produto (padrao N) ?');
   form40.ListBox1.Items.Add('136=Deseja cruzar estoque entre matriz e filial na sincronização de estoque(S-somente QTD/N/X-estoque e qtd) ?');
@@ -17335,6 +17335,8 @@ begin
         dm.IBQuery1.Transaction.Commit;
         ConfParamGerais1.Values['33'] := unid;
       end;
+
+      funcoes.fecharTransacoesClose;
       ShowMessage('Sincronizado com sucesso.');
     end;
   end;
