@@ -57,9 +57,9 @@ object imprime: Timprime
     PrintDialog = False
     ShowProgress = False
     object rlbRodape: TRLBand
-      Left = 11
-      Top = 285
-      Width = 258
+      Left = 2
+      Top = 282
+      Width = 276
       Height = 71
       BandType = btFooter
       Font.Charset = DEFAULT_CHARSET
@@ -71,7 +71,7 @@ object imprime: Timprime
       object RLDraw2: TRLDraw
         Left = 0
         Top = 0
-        Width = 258
+        Width = 276
         Height = 8
         Align = faTop
         DrawKind = dkLine
@@ -80,7 +80,7 @@ object imprime: Timprime
       object pGap05: TRLPanel
         Left = 0
         Top = 54
-        Width = 258
+        Width = 276
         Height = 17
         Align = faBottom
         Font.Charset = DEFAULT_CHARSET
@@ -92,7 +92,7 @@ object imprime: Timprime
         object lSistema: TRLLabel
           Left = 0
           Top = 7
-          Width = 258
+          Width = 276
           Height = 10
           Align = faBottom
           Alignment = taRightJustify
@@ -109,7 +109,7 @@ object imprime: Timprime
       object RLPanel1: TRLPanel
         Left = 0
         Top = 8
-        Width = 258
+        Width = 276
         Height = 53
         Align = faClientTop
         Font.Charset = DEFAULT_CHARSET
@@ -132,7 +132,7 @@ object imprime: Timprime
         object nota: TRLLabel
           Left = 0
           Top = 30
-          Width = 258
+          Width = 276
           Height = 23
           Align = faBottom
           Alignment = taCenter
@@ -148,9 +148,9 @@ object imprime: Timprime
       end
     end
     object rlsbDetItem: TRLSubDetail
-      Left = 11
-      Top = 171
-      Width = 258
+      Left = 2
+      Top = 168
+      Width = 276
       Height = 29
       AllowedBands = [btDetail, btSummary]
       Font.Charset = DEFAULT_CHARSET
@@ -162,13 +162,13 @@ object imprime: Timprime
       object rlbDetItem: TRLBand
         Left = 0
         Top = 0
-        Width = 258
+        Width = 276
         Height = 24
         AutoSize = True
         object mLinhaItem: TRLMemo
           Left = 0
           Top = 0
-          Width = 258
+          Width = 276
           Height = 24
           Align = faTop
           Behavior = [beSiteExpander]
@@ -185,20 +185,20 @@ object imprime: Timprime
       object rlbGap: TRLBand
         Left = 0
         Top = 24
-        Width = 258
+        Width = 276
         Height = 2
         BandType = btSummary
       end
     end
     object rlsbPagamentos: TRLSubDetail
-      Left = 11
-      Top = 200
-      Width = 258
+      Left = 2
+      Top = 197
+      Width = 276
       Height = 65
       object rlbPagamento: TRLBand
         Left = 0
         Top = 56
-        Width = 258
+        Width = 276
         Height = 12
         AutoSize = True
         object lPagamento: TRLLabel
@@ -232,7 +232,7 @@ object imprime: Timprime
       object rlbTroco: TRLBand
         Left = 0
         Top = 80
-        Width = 258
+        Width = 276
         Height = 12
         AutoSize = True
         BandType = btSummary
@@ -273,7 +273,7 @@ object imprime: Timprime
       object rlbTotal: TRLBand
         Left = 0
         Top = 0
-        Width = 258
+        Width = 276
         Height = 56
         BandType = btHeader
         Font.Charset = DEFAULT_CHARSET
@@ -366,7 +366,7 @@ object imprime: Timprime
         object RLDraw7: TRLDraw
           Left = 0
           Top = 0
-          Width = 258
+          Width = 276
           Height = 8
           Align = faTop
           DrawKind = dkLine
@@ -403,7 +403,7 @@ object imprime: Timprime
       object Desconto: TRLBand
         Left = 0
         Top = 68
-        Width = 258
+        Width = 276
         Height = 12
         BandType = btSummary
         Font.Charset = DEFAULT_CHARSET
@@ -442,14 +442,14 @@ object imprime: Timprime
       end
     end
     object rlbsCabecalho: TRLSubDetail
-      Left = 11
-      Top = 11
-      Width = 258
+      Left = 2
+      Top = 8
+      Width = 276
       Height = 160
       object rlbDadosCliche: TRLBand
         Left = 0
         Top = 0
-        Width = 258
+        Width = 276
         Height = 59
         AutoSize = True
         BandType = btTitle
@@ -457,7 +457,7 @@ object imprime: Timprime
         object pLogoeCliche: TRLPanel
           Left = 0
           Top = 0
-          Width = 258
+          Width = 276
           Height = 59
           Align = faTop
           AutoExpand = True
@@ -465,7 +465,7 @@ object imprime: Timprime
           object lEndereco: TRLMemo
             Left = 0
             Top = 29
-            Width = 258
+            Width = 276
             Height = 30
             Align = faTop
             Alignment = taCenter
@@ -482,7 +482,7 @@ object imprime: Timprime
           object imgLogo: TRLImage
             Left = 0
             Top = 0
-            Width = 258
+            Width = 276
             Height = 1
             Align = faTop
             AutoSize = True
@@ -493,7 +493,7 @@ object imprime: Timprime
           object lNomeFantasia: TRLMemo
             Left = 0
             Top = 1
-            Width = 258
+            Width = 276
             Height = 16
             Align = faTop
             Alignment = taCenter
@@ -511,7 +511,7 @@ object imprime: Timprime
           object lRazaoSocial: TRLMemo
             Left = 0
             Top = 17
-            Width = 258
+            Width = 276
             Height = 12
             Align = faTop
             Alignment = taCenter
@@ -530,13 +530,13 @@ object imprime: Timprime
       object RLBand1: TRLBand
         Left = 0
         Top = 129
-        Width = 258
+        Width = 276
         Height = 25
         BandType = btColumnFooter
         object RLDraw4: TRLDraw
           Left = 0
           Top = 17
-          Width = 258
+          Width = 276
           Height = 8
           Align = faTop
           DrawKind = dkLine
@@ -545,7 +545,7 @@ object imprime: Timprime
         object lCPF_CNPJ1: TRLLabel
           Left = 0
           Top = 0
-          Width = 258
+          Width = 276
           Height = 17
           Align = faTop
           Caption = '#|COD|DESC|QTD|UN| VL UN R$|(VLTR R$)*| VL ITEM R$'
@@ -561,13 +561,13 @@ object imprime: Timprime
       object dadosCliente: TRLBand
         Left = 0
         Top = 99
-        Width = 258
+        Width = 276
         Height = 30
         BandType = btColumnFooter
         object lcliente: TRLLabel
           Left = 0
           Top = 0
-          Width = 258
+          Width = 276
           Height = 25
           Align = faTop
           Caption = 'Cliente'
@@ -582,7 +582,7 @@ object imprime: Timprime
         object RLDraw8: TRLDraw
           Left = 0
           Top = 22
-          Width = 258
+          Width = 276
           Height = 8
           Align = faBottom
           DrawKind = dkLine
@@ -592,13 +592,13 @@ object imprime: Timprime
       object dadosNota: TRLBand
         Left = 0
         Top = 59
-        Width = 258
+        Width = 276
         Height = 40
         AlignToBottom = True
         object ldadosNota: TRLLabel
           Left = 0
           Top = 8
-          Width = 258
+          Width = 276
           Height = 13
           Align = faTop
           Caption = 'Vendedor: 0-Vendedor'
@@ -613,7 +613,7 @@ object imprime: Timprime
         object RLDraw1: TRLDraw
           Left = 0
           Top = 0
-          Width = 258
+          Width = 276
           Height = 8
           Align = faTop
           DrawKind = dkLine
@@ -622,7 +622,7 @@ object imprime: Timprime
         object RLDraw5: TRLDraw
           Left = 0
           Top = 32
-          Width = 258
+          Width = 276
           Height = 8
           Align = faBottom
           DrawKind = dkLine
@@ -631,16 +631,16 @@ object imprime: Timprime
       end
     end
     object rlbMensagemContribuinte: TRLBand
-      Left = 11
-      Top = 265
-      Width = 258
+      Left = 2
+      Top = 262
+      Width = 276
       Height = 20
       AutoSize = True
       BandType = btSummary
       object RLDraw3: TRLDraw
         Left = 0
         Top = 0
-        Width = 258
+        Width = 276
         Height = 8
         Align = faTop
         DrawKind = dkLine
@@ -649,7 +649,7 @@ object imprime: Timprime
       object lObservacoes: TRLMemo
         Left = 0
         Top = 8
-        Width = 258
+        Width = 276
         Height = 12
         Align = faTop
         Alignment = taCenter
@@ -681,9 +681,9 @@ object imprime: Timprime
     PageSetup.PaperWidth = 74.000000000000000000
     PageSetup.PaperHeight = 200.000000000000000000
     object RLBand2: TRLBand
-      Left = 11
-      Top = 135
-      Width = 258
+      Left = 2
+      Top = 132
+      Width = 276
       Height = 341
       GreenBarColor = clBlack
       AutoSize = True
@@ -693,14 +693,14 @@ object imprime: Timprime
       object RLPanel5: TRLPanel
         Left = 0
         Top = 0
-        Width = 258
+        Width = 276
         Height = 341
         Align = faClient
         Transparent = False
         object RLMemo4: TRLMemo
           Left = 0
           Top = 0
-          Width = 258
+          Width = 276
           Height = 288
           Align = faTop
           Behavior = [beSiteExpander]
@@ -730,21 +730,21 @@ object imprime: Timprime
       end
     end
     object RLBand3: TRLBand
-      Left = 11
-      Top = 11
-      Width = 258
+      Left = 2
+      Top = 8
+      Width = 276
       Height = 124
       BandType = btHeader
       object RLPanel2: TRLPanel
         Left = 0
         Top = 0
-        Width = 258
+        Width = 276
         Height = 57
         Align = faTop
         object RLMemo1: TRLMemo
           Left = 0
           Top = 0
-          Width = 258
+          Width = 276
           Height = 18
           Align = faTop
           Alignment = taCenter
@@ -762,7 +762,7 @@ object imprime: Timprime
         object RLMemo2: TRLMemo
           Left = 0
           Top = 18
-          Width = 258
+          Width = 276
           Height = 12
           Align = faTop
           Alignment = taCenter
@@ -779,7 +779,7 @@ object imprime: Timprime
         object RLMemo3: TRLMemo
           Left = 0
           Top = 30
-          Width = 258
+          Width = 276
           Height = 12
           Align = faTop
           Alignment = taCenter
@@ -797,7 +797,7 @@ object imprime: Timprime
       object RLDraw6: TRLDraw
         Left = 0
         Top = 91
-        Width = 258
+        Width = 276
         Height = 8
         Align = faTop
         DrawKind = dkLine
@@ -806,7 +806,7 @@ object imprime: Timprime
       object RLLabel1: TRLLabel
         Left = 0
         Top = 78
-        Width = 258
+        Width = 276
         Height = 13
         Align = faTop
         Caption = 'Vendedor: 0-Vendedor'
@@ -821,7 +821,7 @@ object imprime: Timprime
       object RLLabel5: TRLLabel
         Left = 0
         Top = 65
-        Width = 258
+        Width = 276
         Height = 13
         Align = faTop
         Caption = 'Cliente'
@@ -836,7 +836,7 @@ object imprime: Timprime
       object RLDraw9: TRLDraw
         Left = 0
         Top = 57
-        Width = 258
+        Width = 276
         Height = 8
         Align = faTop
         DrawKind = dkLine
@@ -845,7 +845,7 @@ object imprime: Timprime
       object RLDraw10: TRLDraw
         Left = 0
         Top = 111
-        Width = 258
+        Width = 276
         Height = 8
         Align = faTop
         DrawKind = dkLine
@@ -854,7 +854,7 @@ object imprime: Timprime
       object RLLabel6: TRLLabel
         Left = 0
         Top = 99
-        Width = 258
+        Width = 276
         Height = 12
         Align = faTop
         Caption = '#|COD|DESC|QTD|UN| VL UN R$|(VLTR R$)*| VL ITEM R$'
@@ -868,9 +868,9 @@ object imprime: Timprime
       end
     end
     object RLBand4: TRLBand
-      Left = 11
-      Top = 476
-      Width = 258
+      Left = 2
+      Top = 473
+      Width = 276
       Height = 71
       BandType = btFooter
       Font.Charset = DEFAULT_CHARSET
@@ -882,7 +882,7 @@ object imprime: Timprime
       object RLDraw11: TRLDraw
         Left = 0
         Top = 0
-        Width = 258
+        Width = 276
         Height = 8
         Align = faTop
         DrawKind = dkLine
@@ -891,7 +891,7 @@ object imprime: Timprime
       object RLPanel3: TRLPanel
         Left = 0
         Top = 54
-        Width = 258
+        Width = 276
         Height = 17
         Align = faBottom
         Font.Charset = DEFAULT_CHARSET
@@ -903,7 +903,7 @@ object imprime: Timprime
         object RLLabel7: TRLLabel
           Left = 0
           Top = 7
-          Width = 258
+          Width = 276
           Height = 10
           Align = faBottom
           Alignment = taRightJustify
@@ -920,7 +920,7 @@ object imprime: Timprime
       object RLPanel4: TRLPanel
         Left = 0
         Top = 8
-        Width = 258
+        Width = 276
         Height = 53
         Align = faClientTop
         Font.Charset = DEFAULT_CHARSET
@@ -943,7 +943,7 @@ object imprime: Timprime
         object RLLabel8: TRLLabel
           Left = 0
           Top = 30
-          Width = 258
+          Width = 276
           Height = 23
           Align = faBottom
           Alignment = taCenter
@@ -1453,9 +1453,9 @@ object imprime: Timprime
     PreviewOptions.Caption = 'Pr'#233'-visualiza'#231#227'o - ControlW Sistemas'
     ShowProgress = False
     object RLBand14: TRLBand
-      Left = 11
+      Left = 8
       Top = 39
-      Width = 745
+      Width = 748
       Height = 40
       AutoSize = True
       BandType = btHeader
@@ -1504,7 +1504,7 @@ object imprime: Timprime
       object RLLabel35: TRLLabel
         Left = 0
         Top = 0
-        Width = 745
+        Width = 748
         Height = 22
         Align = faTop
         Alignment = taCenter
@@ -1515,9 +1515,9 @@ object imprime: Timprime
       end
     end
     object RLBand17: TRLBand
-      Left = 11
+      Left = 8
       Top = 79
-      Width = 745
+      Width = 748
       Height = 64
       AutoExpand = False
       BandType = btHeader
@@ -1912,9 +1912,9 @@ object imprime: Timprime
       end
     end
     object RLBand18: TRLBand
-      Left = 11
+      Left = 8
       Top = 143
-      Width = 745
+      Width = 748
       Height = 53
       AutoSize = True
       BandType = btHeader
@@ -2020,9 +2020,9 @@ object imprime: Timprime
       end
     end
     object RLBand13: TRLBand
-      Left = 11
+      Left = 8
       Top = 196
-      Width = 745
+      Width = 748
       Height = 22
       BandType = btHeader
       Borders.Sides = sdCustom
@@ -2129,9 +2129,9 @@ object imprime: Timprime
     end
     object RLBand15: TRLBand
       AlignWithMargins = True
-      Left = 11
+      Left = 8
       Top = 218
-      Width = 745
+      Width = 748
       Height = 19
       AlignToBottom = True
       AutoExpand = False
@@ -2215,9 +2215,9 @@ object imprime: Timprime
       end
     end
     object RLBand16: TRLBand
-      Left = 11
+      Left = 8
       Top = 287
-      Width = 745
+      Width = 748
       Height = 85
       BandType = btSummary
       Borders.Sides = sdCustom
@@ -2400,9 +2400,9 @@ object imprime: Timprime
       end
     end
     object RLBand19: TRLBand
-      Left = 11
+      Left = 8
       Top = 237
-      Width = 745
+      Width = 748
       Height = 50
       AutoExpand = False
       Background.Align = faNone
@@ -2427,7 +2427,7 @@ object imprime: Timprime
         AlignWithMargins = True
         Left = 0
         Top = 1
-        Width = 745
+        Width = 748
         Height = 48
         Align = faClient
         Behavior = [beSiteExpander]

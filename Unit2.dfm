@@ -11912,6 +11912,10 @@ object Form2: TForm2
           Caption = 'Aniversariantes'
           OnClick = Aniversariantes2Click
         end
+        object DuplicadorporCNPJCPF1: TMenuItem
+          Caption = 'Duplicado por CNPJ/CPF'
+          OnClick = DuplicadorporCNPJCPF1Click
+        end
       end
       object MalaDireta1: TMenuItem
         Caption = 'Mala Direta'
@@ -11988,6 +11992,10 @@ object Form2: TForm2
         object ProdutosVencidos1: TMenuItem
           Caption = 'Mercadorias Vencidas'
           OnClick = ProdutosVencidos1Click
+        end
+        object MercadoriasVencidasPorPeriodo1: TMenuItem
+          Caption = 'Mercadorias Vencidas Por Periodo'
+          OnClick = MercadoriasVencidasPorPeriodo1Click
         end
         object NFesCanceladas1: TMenuItem
           Caption = 'NFes Canceladas'
@@ -12341,6 +12349,10 @@ object Form2: TForm2
           object RelAcessoPC1: TMenuItem
             Caption = 'Rel Acesso PC'
             OnClick = RelAcessoPC1Click
+          end
+          object ExcluirEntradasduplicadas1: TMenuItem
+            Caption = 'Excluir Entradas duplicadas'
+            OnClick = ExcluirEntradasduplicadas1Click
           end
         end
         object PagamentoporPIX1: TMenuItem

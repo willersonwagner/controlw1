@@ -729,6 +729,14 @@ var
  tipoIMP2 : String;
  tipo1 : SmallInt;
 begin
+  try
+    form19.RichEdit1.Lines.SaveToFile(caminhoEXE_com_barra_no_final+ 'UltImp.txt');
+    funcoes.salvaRicheditForm19comoPDF;
+  except
+
+  end;
+
+
   textx1(arquivo, ImplinhasFinal);
 
   if nomeImpressora = 'x1' then begin
@@ -831,7 +839,7 @@ begin
   Printer.Canvas.Font.Name := 'Courier New';
   //Printer.Canvas.Font.Name := 'Courier';
   Printer.Canvas.Font.Charset := OEM_CHARSET;
-  printer.canvas.font.size := 11;
+  printer.canvas.font.size := StrToIntDef(funcoes.LerConfig(form22.Pgerais.Values['imp'], 4), 11);
 
   if negrito then printer.Canvas.Font.Style := [fsBold];
 

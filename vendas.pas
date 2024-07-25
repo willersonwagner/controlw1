@@ -3566,26 +3566,30 @@ begin
 
     if Desconto <> 0 then
     begin
-      form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-        Longint(PChar((funcoes.CompletaOuRepete(#179,
-        funcoes.CompletaOuRepete('Sub-Total:', FormatCurr('#,###,###0.00',
-        total), '.', 28) + ' ' + #179, ' ', tam) + #13 + #10))));
+      addRelatorioForm19(funcoes.CompletaOuRepete(#179, funcoes.CompletaOuRepete('Sub-Total:', FormatCurr('#,###,###0.00', total), '.', 23)  + #179, ' ', tam) + #13 + #10);
 
       if Desconto > 0 then
         Desconto := 0;
       form19.RichEdit1.Perform(EM_REPLACESEL, 1,
         Longint(PChar((funcoes.CompletaOuRepete(#179,
-        funcoes.CompletaOuRepete('Desconto(' + FormatCurr('#,###,###0.00',
+        funcoes.CompletaOuRepete('Desc(' + FormatCurr('#,###,###0.00',
         (Desconto * 100) / total) + '%):', FormatCurr('#,###,###0.00',
-        Desconto), '.', 28) + ' ' + #179, ' ', tam) + #13 + #10))));
+        Desconto), '.', 23)  + #179, ' ', tam) + #13 + #10))));
     end;
     // end;
 
-    form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-      Longint(PChar((funcoes.CompletaOuRepete(#179 + ' Volumes: ' +
-      funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00', sub), ' ', 9),
-      funcoes.CompletaOuRepete('Total:', FormatCurr('#,###,###0.00', total1),
-      '.', 28) + ' ' + #179, ' ', tam) + #13 + #10))));
+    addRelatorioForm19(funcoes.CompletaOuRepete(#179 +IfThen(funcoes.buscaParamGeral(137, 'N') = 'N', ' Volumes: ' + FormatCurr('#,###,###0.00', sub), '') ,
+      funcoes.CompletaOuRepete('Total:', FormatCurr('#,###,###0.00', total1),'.',23)  + #179, ' ', tam) + #13 + #10);
+
+    if funcoes.buscaParamGeral(137, 'N') = 'S' then begin
+      if Desconto = 0 then begin
+        addRelatorioForm19(funcoes.CompletaOuRepete(#179, #179, ' ', tam) +CRLF);
+        addRelatorioForm19(funcoes.CompletaOuRepete(#179, #179, ' ', tam) +CRLF);
+        addRelatorioForm19(funcoes.CompletaOuRepete(#179, #179, ' ', tam) +CRLF);
+        addRelatorioForm19(funcoes.CompletaOuRepete(#179, #179, ' ', tam) +CRLF);
+      end
+      else  addRelatorioForm19(funcoes.CompletaOuRepete(#179, #179, ' ', tam) +CRLF);
+    end;
 
     if Modo_Orcamento then
     begin
@@ -4907,9 +4911,22 @@ end;
 
 function TForm20.VerificaForma_de_Pagamento_e_Prazo: Smallint;
 begin
-  if aprazoFormaDiferenteDe2 = 'P' then codhis := '2';
-  
 
+  //se nao informou o desconto em F1 entao busca os dados da forma
+  //de pagamento pra ver se esta preenchido com P para lançar nas vendas a prazo
+  if funcoes.buscaParamGeral(105, 'N') = 'S' then begin
+    if aprazoFormaDiferenteDe2 = '' then begin
+      dm.IBselect.Close;
+      dm.IBselect.SQL.Text := 'select dinheiro, desc_pag, imp_fiscal from FORMPAGTO where cod = :cod';
+      dm.IBselect.ParamByName('cod').AsInteger := StrToIntDef(codhis, 0);
+      dm.IBselect.Open;
+
+      dinheiro := trim(dm.IBselect.FieldByName('dinheiro').AsString);
+      aprazoFormaDiferenteDe2 := trim(dm.IBselect.FieldByName('imp_fiscal').AsString);
+    end;
+  end;
+
+  if aprazoFormaDiferenteDe2 = 'P' then codhis := '2';
 
   if (StrToIntDef(codhis, 0) = 1) then
   begin
@@ -5964,6 +5981,8 @@ begin
 
   JsEdit1.Text := '0';
   desco.Caption := '';
+
+  configUsuarioConfirmarPreco := trim(funcoes.LerConfig(form22.Pgerais.Values['configu'], 2));
 end;
 
 procedure TForm20.GeraParcelamento(cli123 : string);
@@ -6259,6 +6278,8 @@ begin
   if dm.bd.InTransaction then dm.bd.commit;
 
  if podeGravarParcelamentoTabela = 1 then GeraParcelamento(ultimoCliente);
+
+ funcoes.fecharTransacoesClose;
 
   dm.IBQuery1.Close;
   dm.produto.Close;
@@ -8273,6 +8294,7 @@ begin
   begin
     try
       funcoes.trocaDeUsuario(tipoTrocaDescontoUsuario);
+      configUsuarioConfirmarPreco := trim(funcoes.LerConfig(form22.Pgerais.Values['configu'], 2));
       // troca somente o desconto do usuario
       // e pode colocar o desconto permitido para o usuario
     except

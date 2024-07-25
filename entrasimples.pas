@@ -110,7 +110,7 @@ type
     cont:integer;
     arr:TStringList;
     valores : array[1..13] of currency ;
-    codigoProd, notaTemp, fornecTemp, criadoPorXML, destino : String;
+    codigoProd, notaTemp, fornecTemp, criadoPorXML, destino, dataChegadaEmissaoTemp : String;
     usarCODBAR, usarValidade, dataok : boolean;
     procedure formatcamposEntrada();
     procedure buscaFornecedores(cod1 : String);
@@ -1360,7 +1360,13 @@ end;
 procedure TForm17.JsBotao1Click(Sender: TObject);
 var
   ok : boolean;
+var
+  serieaql : String;
 begin
+  if serie = '' then serieaql := ' and ((serie is null) or (trim(serie) = ''''))'
+  else serieaql := ' and (serie = '+QuotedStr(serie)+')';
+
+
   if not checaDataChegada then begin
      exit;
   end;
@@ -1371,33 +1377,37 @@ begin
        if trim(fornec.Text) = '' then exit;
        if trim(notaTemp)    = '' then exit;
        if trim(fornecTemp)  = '' then exit;
+       if (dataChegadaEmissaoTemp = (data.Text + chegada.Text)) then exit;
+       
+
        if messageDlg('Deseja ALTERAR os dados da nota ? ' + #13 +
        'Nota Antiga: '+ notaTemp + #13 +
        'Nota   Nova: '+ codigo.Text+ #13 +
        'Fornec Ant.: '+ fornecTemp + #13 +
        'Fornec Novo: '+ fornec.Text, mtConfirmation, [mbyes, mbNo], 0) = mrYes then
          begin
-           dm.IBQuery3.Close;
-           dm.IBQuery3.SQL.Clear;
-           dm.IBQuery3.SQL.Add('update entrada set nota = :nota, fornec = :fornec, data = :data, chegada = :chegada where ((nota = :nota1) and (fornec = :fornec1))');
-           dm.IBQuery3.ParamByName('nota').AsString      := codigo.Text;
-           dm.IBQuery3.ParamByName('fornec').AsString    := fornec.Text;
-           dm.IBQuery3.ParamByName('data').AsDateTime    := StrToDateDef(data.Text, now);
-           dm.IBQuery3.ParamByName('chegada').AsDateTime := StrToDateDef(chegada.Text, now);
-           dm.IBQuery3.ParamByName('nota1').AsString     := notaTemp;
-           dm.IBQuery3.ParamByName('fornec1').AsString   := fornecTemp;
-           dm.IBQuery3.ExecSQL;
+           dm.IBQuery1.Close;
+           dm.IBQuery1.SQL.Clear;
+           dm.IBQuery1.SQL.Add('update entrada set nota = :nota, fornec = :fornec, data = :data, chegada = :chegada where ((nota = :nota1) and (fornec = :fornec1) '+serieaql+' ) ');
+           dm.IBQuery1.ParamByName('nota').AsString      := codigo.Text;
+           dm.IBQuery1.ParamByName('fornec').AsString    := fornec.Text;
+           dm.IBQuery1.ParamByName('data').AsDateTime    := StrToDate(data.Text);
+           dm.IBQuery1.ParamByName('chegada').AsDateTime := StrToDate(chegada.Text);
+           dm.IBQuery1.ParamByName('nota1').AsString     := notaTemp;
+           dm.IBQuery1.ParamByName('fornec1').AsString   := fornecTemp;
+           dm.IBQuery1.ExecSQL;
 
-           dm.IBQuery3.Close;
-           dm.IBQuery3.SQL.Clear;
-           dm.IBQuery3.SQL.Add('update item_entrada set nota = :nota, fornec = :fornec where ((nota = :nota1) and (fornec = :fornec1))');
-           dm.IBQuery3.ParamByName('nota').AsString      := codigo.Text;
-           dm.IBQuery3.ParamByName('fornec').AsString    := fornec.Text;
-           dm.IBQuery3.ParamByName('nota1').AsString     := notaTemp;
-           dm.IBQuery3.ParamByName('fornec1').AsString   := fornecTemp;
-           dm.IBQuery3.ExecSQL;
+           dm.IBQuery1.Close;
+           dm.IBQuery1.SQL.Clear;
+           dm.IBQuery1.SQL.Add('update item_entrada set nota = :nota, fornec = :fornec where ((nota = :nota1) and (fornec = :fornec1) '+serieaql+') ');
+           dm.IBQuery1.ParamByName('nota').AsString      := codigo.Text;
+           dm.IBQuery1.ParamByName('fornec').AsString    := fornec.Text;
+           dm.IBQuery1.ParamByName('nota1').AsString     := notaTemp;
+           dm.IBQuery1.ParamByName('fornec1').AsString   := fornecTemp;
+           dm.IBQuery1.ExecSQL;
 
-           dm.IBQuery3.Transaction.Commit;
+           dm.IBQuery1.Transaction.Commit;
+
            codigo.Enabled := true;
            notaTemp   := '';
            fornecTemp := '';
@@ -1750,6 +1760,8 @@ begin
          abreDataSet;
 
          buscaDadosNota_e_preencheCampos(codigo.Text);
+
+         dataChegadaEmissaoTemp := data.Text + chegada.Text;
          tot.Caption := 'R$  '+FormatCurr('#,##,###0.00',lertotal(true));
          resizeDBgrid;
        except

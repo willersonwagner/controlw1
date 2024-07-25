@@ -12012,8 +12012,8 @@ object form22: Tform22
       end
     end
     object Button2: TButton
-      Left = 24
-      Top = 99
+      Left = 120
+      Top = 9
       Width = 75
       Height = 25
       Caption = 'Button2'

@@ -21,6 +21,7 @@ type
       DataCol: Integer; Column: TColumn; State: TGridDrawState);
     procedure FormCreate(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure DBGrid1KeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
   private
      procedure marcaOK;
     { Private declarations }
@@ -317,6 +318,27 @@ begin
     end;
 end;
 
+procedure TForm33.DBGrid1KeyUp(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+var
+  list : TStringList;
+  i : integer;
+begin
+  if campobusca = 'arq' then begin
+    if (Shift = [ssCtrl]) and (Key = 46) then begin
+        list := funcoes.listaArquivos(caminhoEXE_com_barra_no_final + '*.xml');
+        for i := 0 to list.Count -1 do begin
+          DeleteFile(caminhoEXE_com_barra_no_final + list[i]);
+        end;
+
+        ShowMessage(IntToStr(list.Count)+' Arquivos Temporários Apagados');
+        list.Free;
+      end;
+
+
+  end;
+end;
+
 procedure TForm33.FormShow(Sender: TObject);
   var fim, i, tot : integer;
 begin
@@ -360,6 +382,7 @@ procedure TForm33.DBGrid1KeyDown(Sender: TObject; var Key: Word;
 var
   cod, codbar : string;
   list : TStringList;
+  i: Integer;
 begin
   //Entra aqui na tela de gerar nfe F2 pra ver os produtos
   if captionficha = 'NfeProd' then begin
@@ -473,7 +496,6 @@ begin
         end;
       end;
 
-
       if key = 119 then //F8 DOWNLOAD XML
         begin
           form78 := TForm78.Create(self);
@@ -481,7 +503,7 @@ begin
           form78.Free;
 
           funcoes.buscaXMl(caminhoEXE_com_barra_no_final + 'ENTRADAXML\', false);
-          //form63.Free; 
+          //form63.Free;
           {codbar := funcoes.dialogo('mask',300, '!0000.0000.0000.0000.0000.0000.0000.0000.0000.0000.0000;1;_', 300, false, '', 'ControlW', 'Informe a Chave:', '');
           if codbar = '*' then exit;
 
@@ -495,6 +517,9 @@ begin
           downloadXML(codbar, cod, caminhoEXE_com_barra_no_final);
           close;}
         end;
+
+
+
         //downloadXML(codbar, cod, caminhoEXE_com_barra_no_final);
       exit;
     end;

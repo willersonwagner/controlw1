@@ -46,6 +46,7 @@ object Form33: TForm33
     OnDrawColumnCell = DBGrid1DrawColumnCell
     OnKeyDown = DBGrid1KeyDown
     OnKeyPress = DBGrid1KeyPress
+    OnKeyUp = DBGrid1KeyUp
   end
   object DataSource1: TDataSource
     Left = 264

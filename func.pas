@@ -858,7 +858,7 @@ begin
 
   if novo then begin
     form33 := tform33.Create(self);
-    form33.caption := 'Consulta de XML - F8 Download de XML';
+    form33.caption := 'Consulta de XML - F8 Download de XML CTRL+DELETE-Apaga Progresso notas';
     form33.ClientDataSet1.FieldDefs.Clear;
     form33.ClientDataSet1.FieldDefs.Add('arq', ftString, 60);
     form33.ClientDataSet1.FieldDefs.Add('ARQUIVO', ftString, 50);
@@ -5787,7 +5787,7 @@ var
   // Input: TIBInputRawFile;
   item: Ptr_sinc;
   i, tot, RecNo: integer;
-  linha, sim, promoc1, camposLocal, cods, exclui, prodsRemessa: String;
+  linha, sim, promoc1, camposLocal, cods, exclui, prodsRemessa, codbarAtual: String;
   F: TextFile;
   arq, arquivo, listaProdLocal, listaTempLocal: tstringList;
   lista: Tlist;
@@ -5896,12 +5896,12 @@ begin
   dm.IBselect.Close;
     dm.IBselect.SQL.Clear;
     dm.IBselect.SQL.Add
-      ('select cod, nome, p_venda, deposito from produto order by cod');
+      ('select cod, nome, p_venda, deposito, codbar from produto order by cod');
     dm.IBselect.Open;
     dm.IBselect.FetchAll;
 
  while not dm.IBselect.Eof do begin
-    listaProdLocal.Add(dm.IBselect.FieldByName('cod').AsString + '=|'+ dm.IBselect.FieldByName('p_venda').AsString + '|'+ dm.IBselect.FieldByName('deposito').AsString+ '|');
+    listaProdLocal.Add(dm.IBselect.FieldByName('cod').AsString + '=|'+ dm.IBselect.FieldByName('p_venda').AsString + '|'+ dm.IBselect.FieldByName('deposito').AsString+ '|'+ dm.IBselect.FieldByName('codbar').AsString+ '|');
 
     dm.IBselect.Next;
   end;
@@ -5947,6 +5947,7 @@ begin
       LE_CAMPOS(listaTempLocal, camposLocal, '|', False);
       p_venda_atual := StrToCurrDef(listaTempLocal.Values['0'], -1);
       depositoLocal := StrToCurrDef(listaTempLocal.Values['1'], 0);
+      codbarAtual   := trim(listaTempLocal.Values['2']);
     end;
 
     {ShowMessage(arq.Values['0'] + #13 + CurrToStr(p_venda_atual) + #13 + CurrToStr(depositoLocal) + #13 + arq.Values['30']);
@@ -5960,20 +5961,28 @@ begin
     dm.IBselect.ParamByName('cod').AsString := arq.Values['0'];
     dm.IBselect.Open;    }
 
-    if p_venda_atual <> -1 then
-    begin
-      if ((p_venda_atual <> StrToCurrDef(arq.Values['5'], 0)) ) then
-      begin
+    if arq.Values['0'] = '52428' then begin
+      ShowMessage(arq.Values['0'] + #13 + CurrToStr(p_venda_atual) + #13 + arq.Values['5'] + #13 + codbarAtual + #13 + trim(arq.Values['1']));
+    end;
+
+
+    if p_venda_atual <> -1 then begin
+      if ((p_venda_atual <> StrToCurrDef(arq.Values['5'], 0)) or (codbarAtual <> trim(arq.Values['1']))) then begin
 
         atualiza := true;
         item := new(Ptr_sinc);
         item.cod := StrToInt(arq.Values['0']);
         item.nome := arq.Values['3'];
+
+        if (codbarAtual <> trim(arq.Values['1'])) then item.nome := 'Atu. Ref. '+arq.Values['3'];
+
         item.p_vendaEstoque := p_venda_atual;
         item.p_vendaSincronizacao := StrToCurrDef(arq.Values['5'], 0);
 
         lista.Add(item);
       end;
+
+
 
       if (depositoLocal <> StrToCurrDef(arq.Values['30'], 0)) then begin
         if (contido(buscaParamGeral(136, ''), 'SX')) then begin
@@ -5989,6 +5998,8 @@ begin
           lista.Add(item);
         end;
       end;
+
+
 
     end
     else atualiza := true;
@@ -6239,7 +6250,8 @@ var
   // Input: TIBInputRawFile;
   item: Ptr_sinc;
   i, tot, RecNo, a, tempA, prodAtualizado: integer;
-  linha, sim, promoc1, camposLocal, cods, exclui, prodsRemessa, codproduto, produtosatualiz: String;
+  linha, sim, promoc1, camposLocal, cods, codbarAtual,
+  exclui, prodsRemessa, codproduto, produtosatualiz: String;
   F: TextFile;
   arq, arquivo, listaProdLocal, listaTempLocal: tstringList;
   lista: Tlist;
@@ -6352,12 +6364,12 @@ begin
   dm.IBselect.Close;
     dm.IBselect.SQL.Clear;
     dm.IBselect.SQL.Add
-      ('select cod, nome, p_venda, deposito from produto order by cod');
+      ('select cod, nome, p_venda, deposito, codbar from produto order by cod');
     dm.IBselect.Open;
     dm.IBselect.FetchAll;
 
  while not dm.IBselect.Eof do begin
-    listaProdLocal.Add(dm.IBselect.FieldByName('cod').AsString + '=|'+ dm.IBselect.FieldByName('p_venda').AsString + '|'+ dm.IBselect.FieldByName('deposito').AsString+ '|');
+    listaProdLocal.Add(dm.IBselect.FieldByName('cod').AsString + '=|'+ dm.IBselect.FieldByName('p_venda').AsString + '|'+ dm.IBselect.FieldByName('deposito').AsString+ '|'+ dm.IBselect.FieldByName('codbar').AsString+ '|');
 
     dm.IBselect.Next;
   end;
@@ -6396,6 +6408,7 @@ begin
 
         p_venda_atual  := StrToCurrDef(listaTempLocal.Values['0'], -1);
         depositoLocal  := StrToCurrDef(listaTempLocal.Values['1'], 0);
+        codbarAtual    := trim(listaTempLocal.Values['2']);
         break;
       end;
       //else ShowMessage(listaProdLocal.Names[a] + #13 +codproduto);
@@ -6422,12 +6435,14 @@ begin
 
     if p_venda_atual <> -1 then
     begin
-      if ((p_venda_atual <> StrToCurrDef(arq.Values['5'], 0)) ) then
-      begin
+      //if ((p_venda_atual <> StrToCurrDef(arq.Values['5'], 0)) or (codbarAtual <> trim(arq.Values['1']))) then
+      if (p_venda_atual <> StrToCurrDef(arq.Values['5'], 0)) then begin
         atualiza := true;
         item := new(Ptr_sinc);
         item.cod := StrToInt(codproduto);
         item.nome := arq.Values['3'];
+        //if (codbarAtual <> trim(arq.Values['1'])) then item.nome := 'Atu. Ref. '+arq.Values['3'];
+
         item.p_vendaEstoque := p_venda_atual;
         item.p_vendaSincronizacao := StrToCurrDef(arq.Values['5'], 0);
 
@@ -15079,10 +15094,12 @@ begin
       'where cod=' + dm.IBselect.FieldByName('vendedor').AsString), 1, 16), '|',
       ' ', 17) + CompletaOuRepete('Recebido Por: ', '|', ' ', 49) + #13
       + #10))));
-    form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-      Longint(PChar(('| Vencimento: ' + CompletaOuRepete(FormatDateTime
-      ('DD/MM/YY', dm.IBselect.FieldByName('data').AsDateTime), '|', ' ',
-      15) + CompletaOuRepete('', '|', ' ', 49) + #13 + #10))));
+
+    if (dm.IBselect.FieldByName('data').IsNull = false )  then
+
+    addRelatorioForm19('| Vencimento: ' + CompletaOuRepete(FormatDateTime('DD/MM/YY', dm.IBselect.FieldByName('data').AsDateTime), '|', ' ', 15) + CompletaOuRepete('', '|', ' ', 49) + #13 + #10);
+
+
     form19.RichEdit1.Perform(EM_REPLACESEL, 1,
       Longint(PChar((funcoes.CompletaOuRepete('+', '+', '-', tam) + #13
       + #10))));
@@ -15090,6 +15107,8 @@ begin
     if EnviarImpressora = 'S' then
     begin
       imprime.textx('texto.txt');
+
+
     end
     else
       form19.ShowModal;
@@ -16049,7 +16068,7 @@ begin
       form19.RichEdit1.Perform(EM_REPLACESEL, 1,
         Longint(PChar((funcoes.CompletaOuRepete(#179,
         funcoes.CompletaOuRepete('Sub-Total:', FormatCurr('#,###,###0.00',
-        total), '.', 28) + ' ' + #179, ' ', tam) + #13 + #10))));
+        total), '.', 23) + ' ' + #179, ' ', tam) + #13 + #10))));
 
       desco := dm.IBselect.FieldByName('desconto').AsCurrency;
       if desco > 0 then
@@ -16058,17 +16077,31 @@ begin
         Longint(PChar((funcoes.CompletaOuRepete(#179,
         funcoes.CompletaOuRepete('Desconto(' + FormatCurr('#,###,###0.00',
         (desco * 100) / total) + '%):', FormatCurr('#,###,###0.00', desco), '.',
-        28) + ' ' + #179, ' ', tam) + #13 + #10))));
+        23) + ' ' + #179, ' ', tam) + #13 + #10))));
     end;
+
 
     if opcao = 1 then
     begin
-      form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-        Longint(PChar((funcoes.CompletaOuRepete(#179 + ' Volumes: ' +
-        funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00', sub), ' ', 9),
+      //addRelatorioForm19(funcoes.CompletaOuRepete(#179 +IfThen(funcoes.buscaParamGeral(137, 'N') = 'N', ' Volumes: ' + FormatCurr('#,###,###0.00', sub), '') ,
+
+      addRelatorioForm19(funcoes.CompletaOuRepete(#179 + IfThen(funcoes.buscaParamGeral(137, 'N') = 'N', ' Volumes: ' + FormatCurr('#,###,###0.00', sub), '') ,
         funcoes.CompletaOuRepete('Total:', FormatCurr('#,###,###0.00',
-        dm.IBselect.FieldByName('total').AsCurrency), '.', 28) + ' ' + #179,
-        ' ', tam) + #13 + #10))));
+        dm.IBselect.FieldByName('total').AsCurrency), '.', 23) + ' ' + #179,
+        ' ', tam) + #13 + #10);
+
+
+         if funcoes.buscaParamGeral(137, 'N') = 'S' then begin
+           if desco = 0 then begin
+             //addRelatorioForm19(funcoes.CompletaOuRepete(#179, #179, ' ', tam) +CRLF);
+            // addRelatorioForm19(funcoes.CompletaOuRepete(#179, #179, ' ', tam) +CRLF);
+             //addRelatorioForm19(funcoes.CompletaOuRepete(#179, #179, ' ', tam) +CRLF);
+             addRelatorioForm19(funcoes.CompletaOuRepete(#179, #179, ' ', tam) +CRLF);
+           end
+         else  addRelatorioForm19(funcoes.CompletaOuRepete(#179, #179, ' ', tam) +CRLF);
+    end;
+
+
 
       if (funcoes.LerConfig(form22.Pgerais.Values['configu'], 3) = 'S') and
         (txt <> '') then
@@ -16098,7 +16131,7 @@ begin
         Longint(PChar((funcoes.CompletaOuRepete(#179 + ' Volumes: ' +
         funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00', sub), ' ', 9),
         funcoes.CompletaOuRepete('Total:', FormatCurr('#,###,###0.00',
-        total + desco), '.', 28) + ' ' + #179, ' ', tam) + #13 + #10))));
+        total + desco), '.', 23) + ' ' + #179, ' ', tam) + #13 + #10))));
       if (txt <> '') then
       begin
 
@@ -16113,7 +16146,7 @@ begin
         Longint(PChar((funcoes.CompletaOuRepete(#179 + ' Volumes: ' +
         funcoes.CompletaOuRepete('', FormatCurr('#,###,###0.00', sub), ' ', 9),
         funcoes.CompletaOuRepete('Total:', FormatCurr('#,###,###0.00', total),
-        '.', 28) + ' ' + #179, ' ', tam) + #13 + #10))));
+        '.', 23) + ' ' + #179, ' ', tam) + #13 + #10))));
 
     addRelatorioForm19(funcoes.CompletaOuRepete(#195, #180, #196, tam) + CRLF);
 
@@ -19005,6 +19038,7 @@ begin
     nomeCampo.Add('7=' + refori1);
     nomeCampo.Add('8=codbar');
     nomeCampo.Add('9=cod');
+    nomeCampo.Add('D=Equivalente');
     nomeCampo.Add('X=aplicacao');
   end
   else begin
@@ -19018,6 +19052,8 @@ begin
     nomeCampo.Add('7=' + refori1);
     nomeCampo.Add('8=localizacao');
     nomeCampo.Add('9=deposito');
+    nomeCampo.Add('D=Equivalente');
+    nomeCampo.Add('X=aplicacao');
   end;
 
   fim := length(CAMPOS) + 1;
@@ -19027,6 +19063,9 @@ begin
     try
       dm.produto.FieldByName(nomeCampo.Values[CAMPOS[i]]).index := i;
     except
+      on e:exception do begin
+        //ShowMessage(IntToStr(i)+'erro19066: '+e.Message);
+      end;
     end;
     i := i + 1;
   end;
@@ -31586,7 +31625,7 @@ end;
 
 procedure Tfuncoes.recebeNotaMatriz(caminho : String);
 var
-  nota, linha, sim, genProd: String;
+  nota, linha, sim, genProd, cods: String;
   i, fim: integer;
   total: currency;
   arqi: TStringList;
@@ -31648,10 +31687,10 @@ arqi := TStringList.Create;
     // 8 - p_compra
     // 9 - codbar
 
-    for i := 0 to fim do
+    {for i := 0 to fim do
     begin
       // arqi[i] := funcoes.DesCriptografar(arqi[i]);
-    end;
+    end;  }
 
     total := 0;
     for i := 0 to fim do
@@ -31715,14 +31754,13 @@ arqi := TStringList.Create;
       exit;
     end;
 
-    if dm.IBQuery4.Connection.InTransaction then
-      dm.IBQuery4.Transaction.Commit;
-    dm.IBQuery4.Transaction.StartTransaction;
+    if dm.IBQuery1.Connection.InTransaction then
+      dm.IBQuery1.Transaction.Commit;
+    dm.IBQuery1.Transaction.StartTransaction;
 
     // Aqui vai verificar se o produto está cadastrado, se nao existir então cadastra
     form33.ClientDataSet1.First;
-    while not form33.ClientDataSet1.Eof do
-    begin
+    while not form33.ClientDataSet1.Eof do begin
       dm.ibselect.Close;
       dm.ibselect.SQL.Text := ('select cod from produto where cod = :cod');
       dm.ibselect.ParamByName('cod').AsString := form33.ClientDataSet1.FieldByName('codigo').AsString;
@@ -31745,14 +31783,16 @@ arqi := TStringList.Create;
           form33.ClientDataSet1.FieldByName('P_COMPRA').AsCurrency;
         dm.IBQuery1.ParamByName('p_venda').AsCurrency :=
           form33.ClientDataSet1.FieldByName('P_VENDA').AsCurrency;
-        dm.IBQuery1.ExecSQL;
-        dm.IBQuery1.Transaction.Commit;
 
-        if form33.ClientDataSet1.FieldByName('codigo').AsInteger >
-          StrToInt(genProd) then // Se o código deste produto for maior que
-        begin // o ultimo numero de cadastro então pega ele como o ultimo
-          reStartGenerator('produto',
-            form33.ClientDataSet1.FieldByName('codigo').AsInteger);
+        try
+          dm.IBQuery1.ExecSQL;
+        except
+          on e:exception do begin
+            dm.IBQuery1.Transaction.Rollback;
+            funcoes.fecharTransacoesClose;
+            ShowMessage('erro31755: ' + e.Message);
+            exit;
+          end;
         end;
 
       end;
@@ -31760,87 +31800,93 @@ arqi := TStringList.Create;
       form33.ClientDataSet1.Next;
     end;
 
-    dm.IBQuery4.Close;
-    dm.IBQuery4.SQL.Text :=
-      ('update or insert into entrada(nota, data,chegada,total_nota,fornec) VALUES  (:nota, :data,:chegada,:total_nota,:fornec) matching(nota, fornec) ');
-    dm.IBQuery4.ParamByName('nota').AsString := nota;
-    dm.IBQuery4.ParamByName('chegada').AsDateTime := form22.datamov;
-    dm.IBQuery4.ParamByName('total_nota').AsCurrency := total;
-    dm.IBQuery4.ParamByName('data').AsDateTime := form22.datamov;
-    dm.IBQuery4.ParamByName('fornec').AsString := '0';
     try
-      dm.IBQuery4.ExecSQL;
+      dm.IBQuery1.Transaction.Commit;
     except
       on e:exception do begin
-        dm.IBQuery4.Transaction.Rollback;
-        ShowMessage('erro31397: ' + e.Message);
+        dm.IBQuery1.Transaction.Rollback;
+        funcoes.fecharTransacoesClose;
+        ShowMessage('erro31778: ' + e.Message);
+        exit;
+      end;
+    end;
+
+    dm.IBQuery1.Close;
+    dm.IBQuery1.SQL.Text :=
+      ('update or insert into entrada(nota, data,chegada,total_nota,fornec) VALUES  (:nota, :data,:chegada,:total_nota,:fornec) matching(nota, fornec) ');
+    dm.IBQuery1.ParamByName('nota').AsString         := nota;
+    dm.IBQuery1.ParamByName('chegada').AsDateTime    := form22.datamov;
+    dm.IBQuery1.ParamByName('total_nota').AsCurrency := total;
+    dm.IBQuery1.ParamByName('data').AsDateTime       := form22.datamov;
+    dm.IBQuery1.ParamByName('fornec').AsString       := '0';
+    try
+      dm.IBQuery1.ExecSQL;
+    except
+      on e:exception do begin
+        dm.IBQuery1.Transaction.Rollback;
+        funcoes.fecharTransacoesClose;
+        ShowMessage('erro31797: ' + e.Message);
         exit;
       end;
     end;
 
     form33.ClientDataSet1.First;
+    cods := '-';
 
     while not form33.ClientDataSet1.Eof do
     begin
-      dm.IBQuery4.Close;
-      dm.IBQuery4.SQL.Clear;
-      dm.IBQuery4.SQL.Add
+      if Contido('-'+form33.ClientDataSet1.FieldByName('codigo').AsString+'-', cods) = false then begin
+       cods := cods + form33.ClientDataSet1.FieldByName('codigo').AsString+'-';
+
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text :=
         ('insert into item_entrada(COD,codentrada, QUANT, P_COMPRA, DESTINO, USUARIO, NOTA, DATA,total, qtd_ent) values(:COD,'
-        + funcoes.novocod('entrada') +
-        ',:QUANT, :P_COMPRA, :DESTINO, :USUARIO,  :NOTA, :DATA,:total, :qtd_ent)');
-      dm.IBQuery4.ParamByName('data').AsDateTime := form22.datamov;
-      dm.IBQuery4.ParamByName('cod').AsString :=
-        form33.ClientDataSet1.FieldByName('codigo').AsString;
-      dm.IBQuery4.ParamByName('nota').AsString := nota;
-      dm.IBQuery4.ParamByName('quant').AsCurrency :=
-        form33.ClientDataSet1.FieldByName('quant').AsCurrency;
-      dm.IBQuery4.ParamByName('P_compra').AsCurrency :=
-        form33.ClientDataSet1.FieldByName('P_COMPRA').AsCurrency;
-      dm.IBQuery4.ParamByName('destino').AsInteger := 1;
-      dm.IBQuery4.ParamByName('usuario').AsString := form22.codusario;
-      dm.IBQuery4.ParamByName('total').AsCurrency :=
-        Arredonda(form33.ClientDataSet1.FieldByName('P_COMPRA').AsCurrency *
-        form33.ClientDataSet1.FieldByName('QUANT').AsCurrency, 2);
-      dm.IBQuery4.ParamByName('qtd_ent').AsCurrency :=
-        form33.ClientDataSet1.FieldByName('quant').AsCurrency;
+        + funcoes.novocod('entrada') + ',:QUANT, :P_COMPRA, :DESTINO, :USUARIO,  :NOTA, :DATA,:total, :qtd_ent)');
+      dm.IBQuery1.ParamByName('data').AsDateTime  := form22.datamov;
+      dm.IBQuery1.ParamByName('cod').AsString     := form33.ClientDataSet1.FieldByName('codigo').AsString;
+      dm.IBQuery1.ParamByName('nota').AsString    := nota;
+      dm.IBQuery1.ParamByName('quant').AsCurrency := form33.ClientDataSet1.FieldByName('quant').AsCurrency;
+      dm.IBQuery1.ParamByName('P_compra').AsCurrency := form33.ClientDataSet1.FieldByName('P_COMPRA').AsCurrency;
+      dm.IBQuery1.ParamByName('destino').AsInteger   := 1;
+      dm.IBQuery1.ParamByName('usuario').AsString    := form22.codusario;
+      dm.IBQuery1.ParamByName('total').AsCurrency    := Arredonda(form33.ClientDataSet1.FieldByName('P_COMPRA').AsCurrency * form33.ClientDataSet1.FieldByName('QUANT').AsCurrency, 2);
+      dm.IBQuery1.ParamByName('qtd_ent').AsCurrency  := form33.ClientDataSet1.FieldByName('quant').AsCurrency;
 
       try
-        dm.IBQuery4.ExecSQL;
+        dm.IBQuery1.ExecSQL;
       except
         on e:exception do begin
-          dm.IBQuery4.Transaction.Rollback;
-          ShowMessage('erro31334: ' + e.Message);
+          dm.IBQuery1.Transaction.Rollback;
+          ShowMessage('erro31834: ' + e.Message);
           exit;
         end;
       end;
 
-      dm.IBQuery4.Close;
+      dm.IBQuery1.Close;
       // dm.IBQuery4.SQL.Text := ('update produto set nome = :nome, p_compra = :p_compra, p_venda = :p_venda, QUANT = QUANT + :quant where cod = :cod');
-      dm.IBQuery4.SQL.Text :=
+      dm.IBQuery1.SQL.Text :=
         ('update produto set nome = :nome, p_compra = :p_compra, p_venda = :p_venda, data_entrada1 = current_date where cod = :cod');
-      dm.IBQuery4.ParamByName('nome').AsString :=
-        form33.ClientDataSet1.FieldByName('descricao').AsString;
-      dm.IBQuery4.ParamByName('p_compra').AsCurrency :=
-        form33.ClientDataSet1.FieldByName('p_compra').AsCurrency;
-      dm.IBQuery4.ParamByName('p_venda').AsCurrency :=
-        form33.ClientDataSet1.FieldByName('p_venda').AsCurrency;
+      dm.IBQuery1.ParamByName('nome').AsString := form33.ClientDataSet1.FieldByName('descricao').AsString;
+      dm.IBQuery1.ParamByName('p_compra').AsCurrency := form33.ClientDataSet1.FieldByName('p_compra').AsCurrency;
+      dm.IBQuery1.ParamByName('p_venda').AsCurrency := form33.ClientDataSet1.FieldByName('p_venda').AsCurrency;
       // dm.IBQuery4.ParamByName('quant').AsCurrency := form33.ClientDataSet1.FieldByName('quant').AsCurrency;
-      dm.IBQuery4.ParamByName('cod').AsString :=
-        form33.ClientDataSet1.FieldByName('codigo').AsString;
+      dm.IBQuery1.ParamByName('cod').AsString := form33.ClientDataSet1.FieldByName('codigo').AsString;
       try
-        dm.IBQuery4.ExecSQL;
+        dm.IBQuery1.ExecSQL;
       except
         on e:exception do begin
-          dm.IBQuery4.Transaction.Rollback;
+          dm.IBQuery1.Transaction.Rollback;
           ShowMessage('erro31357: ' + e.Message);
           exit;
         end;
+      end;
       end;
 
       form33.ClientDataSet1.Next;
     end;
 
-    dm.IBQuery4.Transaction.Commit;
+    dm.IBQuery1.Transaction.Commit;
     form33.Free;
 
     ShowMessage('Venda Recebida com Sucesso!');
