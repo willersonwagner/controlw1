@@ -839,7 +839,7 @@ begin
   Printer.Canvas.Font.Name := 'Courier New';
   //Printer.Canvas.Font.Name := 'Courier';
   Printer.Canvas.Font.Charset := OEM_CHARSET;
-  printer.canvas.font.size := StrToIntDef(funcoes.LerConfig(form22.Pgerais.Values['imp'], 4), 11);
+  printer.canvas.font.size := StrToIntDef(funcoes.LerConfig(form22.Pgerais.Values['imp'], 17), 11);
 
   if negrito then printer.Canvas.Font.Style := [fsBold];
 
@@ -946,11 +946,10 @@ begin
        printer.canvas.font.size := 11;
      end;
 
-   if funcoes.Contido('/n', lin) then
-     begin
-       result := StringReplace(result, '/n', '',[rfReplaceAll, rfIgnoreCase]);
-       Writeln(PrintText, #12);
-     end;
+   if funcoes.Contido('/n', lin) then begin
+     result := StringReplace(result, '/n', '',[rfReplaceAll, rfIgnoreCase]);
+     Writeln(PrintText, #12);
+   end;
 
 
    {if funcoes.Contido('/n', lin) then

@@ -1626,12 +1626,16 @@ begin
   form39 := tform39.Create(self);
   form39.conf := 3;
   form39.padraoSeNaoExistir := cod;
-  form39.ListBox1.Items.Add('  - TRIBUTADO');
-  form39.ListBox1.Items.Add('I - ISENTO             (07)');
-  form39.ListBox1.Items.Add('R - Aliq. Red. Zero    (06)');
-  form39.ListBox1.Items.Add('M - Monofásico         (04)');
-  form39.ListBox1.Items.Add('X - Sem Incidencia     (08)');
-  form39.ListBox1.Items.Add('D - Aliq. Diferenciada (02)');
+    form39.ListBox1.Items.Add('  - TRIBUTADO');
+    form39.ListBox1.Items.Add('I - ISENTO                (07)');
+    form39.ListBox1.Items.Add('R - Aliq. Red. Zero       (06)');
+    form39.ListBox1.Items.Add('M - Monofásico            (04)');
+    form39.ListBox1.Items.Add('X - Sem Incidencia        (08)');
+    form39.ListBox1.Items.Add('D - Aliq. Diferenciada    (02)');
+    form39.ListBox1.Items.Add('S - Suspensão da Contrib. (09)');
+    form39.ListBox1.Items.Add('N - Trib Subst. Tributaria(05)');
+
+
   codNovo := funcoes.lista(ob, true, 3);
   if codnovo = '*' then exit;
 

@@ -136,6 +136,7 @@ type
     FUNCTION NODO_EMIT(CNPJ, RAZAO, FANTASIA, ENDE, BAIRRO, COD_MUN, NOM_MUN, UF, CEP, FONE, IE, CRT : string) : string;
     FUNCTION SUB_NODO_END(ENDE : String) : string;
     FUNCTION NODO_DEST(TIPO, CPF, CNPJ, NOME, ENDE, BAIRRO, COD_MUN, NOM_MUN, UF, CEP, FONE, IE, CODMUN_EMI : String) : string;
+    function NODO_AUTHXML : String;
     FUNCTION NODO_ITENS(var lista : tlist; CFOP, POS, CSTICM_CFP, CSTPIS_CFP, _ORIGE : string) : string;
     Function LITERAL(ent : string) : string;
     FUNCTION NODO_ICMS(var MAT : Item_venda; CSTICM_CFOP, _ORIGE : string) : string;
@@ -2946,8 +2947,8 @@ begin
    IF ((item1.Pis = 'N') and (length(strnum(item1.codISPIS)) = 3)) then
      begin
        PIS_NT := PIS_NT + TOT;
-       Result := '<PIS>'  + '<PISNT><CST>06</CST></PISNT></PIS>' +
-       '<COFINS>'  + '<COFINSNT><CST>06</CST></COFINSNT></COFINS>';
+       Result := '<PIS>'  + '<PISNT><CST>05</CST></PISNT></PIS>' +
+       '<COFINS>'  + '<COFINSNT><CST>05</CST></COFINSNT></COFINS>';
        exit;
      end;
 
@@ -3755,7 +3756,8 @@ begin
   Result := Result + NODO_IDE('14',dadosEmitente.Values['nf'], FIN_NFE1,natOp,'0', FormataData(form22.datamov), IND_PAG,'1400100', DigiVerifi);
   Result := Result + NODO_EMIT(dadosEmitente.Values['cnpj'],dadosEmitente.Values['razao'],dadosEmitente.Values['empresa'],dadosEmitente.Values['ende'],dadosEmitente.Values['bairro'],dadosEmitente.Values['cod_mun'],dadosEmitente.Values['cid'],dadosEmitente.Values['est'],funcoes.StrNum(dadosEmitente.Values['cep']),dadosEmitente.Values['telres'],dadosEmitente.Values['ies'],funcoes.buscaParamGeral(10, ''));
   Result := Result + NODO_DEST(dadosDest.Values['tipo'],dadosDest.Values['cnpj'],dadosDest.Values['cnpj'],dadosDest.Values['nome'],dadosDest.Values['ende'],dadosDest.Values['bairro'],dadosDest.Values['cod_mun'],dadosDest.Values['cid'],dadosDest.Values['est'],dadosDest.Values['cep'], dadosDest.Values['telres'], dadosDest.Values['ies'], dadosEmitente.Values['cod_mun']);
-  Result := Result + NODO_ITENS(lista_itens,cod_OP,'','','', _ORIGEM);
+  Result := Result + NODO_AUTHXML;
+ Result := Result + NODO_ITENS(lista_itens,cod_OP,'','','', _ORIGEM);
 
 
   Result := Result + NODO_TOTAL(totalNota,TOT_BASEICM,TOTICM,TOT_PIS,TOT_COFINS,0,totDesc);
@@ -4059,7 +4061,7 @@ begin
                      temp := 0;
                      item.Aliq := '0';
                    end
-                 else if UF_EMI <> UF_DEST then
+                 else if (UF_EMI <> UF_DEST) and (item.CodAliq <> 4) then
                    begin
                      temp1 := menor(ALIQ_INTEREST(UF_DEST), temp1);
                      temp := 0;
@@ -4214,7 +4216,7 @@ begin
                 break;
               end;
 
-            item.DespAcessorias := (item.total /totalNota) * VLR_DESP;
+            item.DespAcessorias := arrendondaNFe((item.total /totalNota) * VLR_DESP, 2);
             desc := desc - item.DespAcessorias;
           end;
      end;
@@ -5503,6 +5505,36 @@ begin
     '</exportInd></detExport>';
 
   list.Free;
+end;
+
+function TNfeVenda.NODO_AUTHXML : String;
+var
+  lin : String;
+  arq : TStringList;
+  i : integer;
+begin
+  Result := '';
+  lin    := funcoes.buscaParamGeral(138, '');
+
+  if lin = '' then exit;
+
+  if LeftStr(lin, 1) <> '|' then lin := '|'+lin;
+  if RightStr(lin, 1) <> '|' then lin := lin + '|';
+
+  arq := TStringList.Create;
+  LE_CAMPOS(arq, lin, '|', false);
+
+  for i := 0 to arq.Count -1 do begin
+     if Length(arq.ValueFromIndex[i]) = 11 then begin
+       Result := Result + '<autXML><CPF>'+arq.ValueFromIndex[i]+'</CPF></autXML>';
+     end
+     else begin
+       Result := Result + '<autXML><CNPJ>'+arq.ValueFromIndex[i]+'</CNPJ></autXML>';
+     end;
+
+  end;
+
+  arq.Free;
 end;
 
 end.

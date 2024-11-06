@@ -11862,6 +11862,10 @@ object Form2: TForm2
           Caption = 'Entregador'
           OnClick = Entregador1Click
         end
+        object PorVendedorCliente1: TMenuItem
+          Caption = 'Por Vendedor/Cliente'
+          OnClick = PorVendedorCliente1Click
+        end
       end
       object ResumoMensal1: TMenuItem
         Caption = 'Resumo Mensal'

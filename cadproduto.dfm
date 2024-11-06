@@ -527,7 +527,7 @@ object Form9: TForm9
       Font.Height = -13
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsBold]
-      MaxLength = 60
+      MaxLength = 80
       ParentFont = False
       TabOrder = 1
       OnEnter = nomeEnter
@@ -1215,7 +1215,7 @@ object Form9: TForm9
       Font.Height = -13
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsBold]
-      MaxLength = 40
+      MaxLength = 60
       ParentFont = False
       TabOrder = 27
       UsarCadastros = False

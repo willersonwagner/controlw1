@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, dbclient, db,FireDAC.Comp.Client;
+  Dialogs, StdCtrls, dbclient, db,FireDAC.Comp.Client, System.StrUtils;
 
 type
   TForm40 = class(TForm)
@@ -33,7 +33,8 @@ uses func, principal, Unit1;
 {$R *.dfm}
 
 procedure TForm40.ListBox1KeyPress(Sender: TObject; var Key: Char);
-var tempo : string;
+var
+  tempo, valorDeChecagem, codChe : string;
 begin
  if key = #32 then begin
    buscaParametro;
@@ -54,6 +55,23 @@ begin
     if ((ListBox1.ItemIndex = 24) or (ListBox1.ItemIndex = 39) or (ListBox1.ItemIndex = 41)) and (form22.usuario <> 'ADMIN') then // Usar saída de estoque
       begin
         ShowMessage('Esta Opção só pode ser modificada pelo usuário administrador');
+        exit;
+      end;
+
+     if (ListBox1.ItemIndex = 140) then // Usar saída de estoque
+      begin
+        Randomize;
+        valorDeChecagem := funcoes.GeraAleatorio(8);
+        codChe := funcoes.dialogo('normal',0,'',0,true,'',Application.Title,'Qual o Cód de desbloqueio ? Cod: ' + valorDeChecagem,'');
+        if LeftStr(codChe, Length(codChe) -1)  =  IntToStr(trunc(StrToCurr(valorDeChecagem) / 87)) then
+          begin
+            //tempo :=  funcoes.dialogo(tipo.Values[IntToStr(ListBox1.ItemIndex)], 0, teclas.Values[IntToStr(ListBox1.ItemIndex)],  30, false,troca.Values[IntToStr(ListBox1.ItemIndex)], Application.Title, ListBox1.Items.Values[IntToStr(ListBox1.ItemIndex)], temp.Values[IntToStr(ListBox1.ItemIndex)]);
+            tempo := RightStr(codChe, 1);
+            temp.Values[IntToStr(ListBox1.ItemIndex)] := tempo;
+          end
+        else begin
+          ShowMessage('Codigo Invalido!');
+        end;
         exit;
       end;
       

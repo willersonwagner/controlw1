@@ -341,11 +341,11 @@ function Tprodutos.GetText() : String;
 var
   ini, fim : integer;
 begin
-  Result := '';
+  Result := '|';
   fim    := Count -1;
   for ini := 0 to fim do
     begin
-      //Result := Result + Items[ini].cod + ' ' + Items[ini].CST + ' ' + IntToStr(Items[ini].codAliq) + ' ' + CurrToStr(Items[ini].totECF) + ' ' + CurrToStr(Items[ini].totVendas) + #13;
+      Result := Result + IntToStr(Items[ini].cod) + '|' + Items[ini].codbar + '|' + (Items[ini].refori) + '|' + #13;
     end;
 end;
 

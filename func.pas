@@ -196,6 +196,7 @@ type
     enviandoCupom, enviandoBackup: boolean;
     fonteRelatorioForm19: integer;
     NegritoRelatorioForm19, saiComEnter: boolean;
+    function VerificaQTDpcs : String;
     procedure fecharTransacoesClose;
     procedure recebeNotaMatriz(caminho : String);
     procedure DownloadExportaNotaOnline(nota : String);
@@ -3865,10 +3866,15 @@ begin
     begin
       fim := listaProdutos.Add(TProduto.Create);
       listaProdutos[fim].cod := dm.produtotemp.FieldByName('cod').AsInteger;
-      listaProdutos[fim].refori := dm.produtotemp.FieldByName('equiva')
-        .AsString;
-      listaProdutos[fim].codbar := dm.produtotemp.FieldByName('codbar')
-        .AsString;
+      listaProdutos[fim].refori := trim(dm.produtotemp.FieldByName('equiva').AsString);
+      listaProdutos[fim].codbar := trim(dm.produtotemp.FieldByName('codbar').AsString);
+
+    {      if listaProdutos[fim].cod = 183444 then begin
+      ShowMessage(listaProdutos[fim].codbar + #13 + listaProdutos[fim].refori + #13+#13 + codigos);
+
+    end;    }
+
+
       dm.produtotemp.Next;
     end;
 
@@ -3891,7 +3897,6 @@ begin
 
   // abriu o ClientDataSet que irá varrer no OnCreate deste formulário
   // para não ficar criando toda hora
-
   fim := listaProdutos.count - 1;
 
   funcoes.informacao(0, fim, 'Localizando Equivalentes...', true, False, 2);
@@ -3899,12 +3904,11 @@ begin
   // cdsEquiva.First;
   // while not cdsEquiva.Eof do
   fim := listaProdutos.count - 1;
+ // GravarTexto('texto.dat', listaProdutos.getText);
   ini := 0;
   // for ini := 0 to fim do
   while true do
   begin
-    if ini = fim then
-      break;
     funcoes.informacao(ini, fim, 'Localizando Equivalentes...', False,
       False, 2);
     OK := False;
@@ -3937,11 +3941,16 @@ begin
       end;
     end;
 
+
     if OK then
     begin
       ini := -1;
       // ShowMessage(codigos);
     end;
+
+
+    if ini >= fim then break;
+
     ini := ini + 1;
   end;
 
@@ -5609,6 +5618,7 @@ begin
     form48.ClientDataSet1.FieldByName('ALIQ').AsString := buscaAliqICMSxml(item1.CSTICMS, item1.ICMSOSN);
     form48.ClientDataSet1.FieldByName('PIS').AsString  := buscaAliqPISxml(item1.CSTPIS, item1.CSTPIS);
 
+    //ShowMessage(form48.ClientDataSet1.FieldByName('PIS').AsString + #13 + buscaAliqPISxml(item1.CSTPIS, item1.CSTPIS));
     TOTvICMSDeson_Produtos := TOTvICMSDeson_Produtos + item1.vDeson;
 
     // form48.ClientDataSet1.FieldByName('DESONERADO').AsCurrency := item1.vDeson;
@@ -5698,10 +5708,10 @@ begin
       form48.ClientDataSet1.FieldByName('REFORI').AsString :=
         dm.IBselect.FieldByName('REFORI').AsString;
 
-      form48.ClientDataSet1.FieldByName('pis').AsString :=
+      {form48.ClientDataSet1.FieldByName('pis').AsString :=
         dm.IBselect.FieldByName('is_pis').AsString;
        form48.ClientDataSet1.FieldByName('cod_ispis').AsString :=
-        dm.IBselect.FieldByName('cod_ispis').AsString;
+        dm.IBselect.FieldByName('cod_ispis').AsString;   }
 
       if dm.IBselect.FieldByName('unid2').AsString <> '' then
       begin
@@ -6251,7 +6261,7 @@ var
   item: Ptr_sinc;
   i, tot, RecNo, a, tempA, prodAtualizado: integer;
   linha, sim, promoc1, camposLocal, cods, codbarAtual,
-  exclui, prodsRemessa, codproduto, produtosatualiz: String;
+  exclui, prodsRemessa, codproduto, produtosatualiz, camposLocalTeste, camposLocalTestematriz: String;
   F: TextFile;
   arq, arquivo, listaProdLocal, listaTempLocal: tstringList;
   lista: Tlist;
@@ -6325,7 +6335,7 @@ begin
 
 
   // 0 - cod
-  // 1 - codbar
+  // 1 - codbar      143
   // 2 - unid
   // 3 - nome
   // 4 - p_compra
@@ -6355,21 +6365,34 @@ begin
   // 28 - ICMS_SUBS
   // 29 - fracao
   // 30 - quant
-  // 32 - localiza
-  // 33 - aplic
-  // 34 - refori
+  // 31 - localiza
+  // 32 - aplic
+  // 33 - refori
 
 
 
   dm.IBselect.Close;
     dm.IBselect.SQL.Clear;
     dm.IBselect.SQL.Add
-      ('select cod, nome, p_venda, deposito, codbar from produto order by cod');
+      ('select * from produto order by cod');
     dm.IBselect.Open;
     dm.IBselect.FetchAll;
 
  while not dm.IBselect.Eof do begin
-    listaProdLocal.Add(dm.IBselect.FieldByName('cod').AsString + '=|'+ dm.IBselect.FieldByName('p_venda').AsString + '|'+ dm.IBselect.FieldByName('deposito').AsString+ '|'+ dm.IBselect.FieldByName('codbar').AsString+ '|');
+    listaProdLocal.Add(dm.IBselect.FieldByName('cod').AsString + '=|'+ dm.IBselect.FieldByName('p_venda').AsString + '|'+ dm.IBselect.FieldByName('deposito').AsString+ '|'+ dm.IBselect.FieldByName('codbar').AsString+ '|' +
+    dm.IBselect.FieldByName('codbar').AsString + //1 4 3 18 20 21 22 23 24 34 32
+    dm.IBselect.FieldByName('p_compra').AsString+
+    dm.IBselect.FieldByName('nome').AsString+
+    dm.IBselect.FieldByName('credICM').AsString +
+    dm.IBselect.FieldByName('debicm').AsString +
+    dm.IBselect.FieldByName('basedeb').AsString +
+    dm.IBselect.FieldByName('frete').AsString +
+    dm.IBselect.FieldByName('encargos').AsString +
+    dm.IBselect.FieldByName('agregado').AsString +
+    dm.IBselect.FieldByName('refori').AsString +
+    dm.IBselect.FieldByName('aplic').AsString +
+
+    '|');
 
     dm.IBselect.Next;
   end;
@@ -6408,7 +6431,9 @@ begin
 
         p_venda_atual  := StrToCurrDef(listaTempLocal.Values['0'], -1);
         depositoLocal  := StrToCurrDef(listaTempLocal.Values['1'], 0);
-        codbarAtual    := trim(listaTempLocal.Values['2']);
+        codbarAtual      := trim(listaTempLocal.Values['2']);
+        camposLocalTeste := trim(listaTempLocal.Values['3']);
+
         break;
       end;
       //else ShowMessage(listaProdLocal.Names[a] + #13 +codproduto);
@@ -6435,8 +6460,19 @@ begin
 
     if p_venda_atual <> -1 then
     begin
-      //if ((p_venda_atual <> StrToCurrDef(arq.Values['5'], 0)) or (codbarAtual <> trim(arq.Values['1']))) then
-      if (p_venda_atual <> StrToCurrDef(arq.Values['5'], 0)) then begin
+      //1 4 3 18 20 21 22 23 24 33 32
+      camposLocalTestematriz := trim(arq.Values['1'] + arq.Values['4'] + arq.Values['3'] + arq.Values['18'] + arq.Values['20'] + arq.Values['21'] +arq.Values['22'] +arq.Values['23'] +arq.Values['24'] +arq.Values['33'] + arq.Values['32']);
+
+      {if camposLocalTeste <> camposLocalTestematriz then begin
+
+        ShowMessage(IntToStr(RecNo) + #13 + 'cod='+arq.Values['0'] + #13 +
+        camposLocalTeste + #13 + camposLocalTestematriz + #13 + #13 + arq.Text);
+       // exit;
+      end;               }
+
+      if ((p_venda_atual <> StrToCurrDef(arq.Values['5'], 0)) or (codbarAtual <> trim(arq.Values['1'])) or
+      (camposLocalTeste <> camposLocalTestematriz))  then begin
+      //if (p_venda_atual <> StrToCurrDef(arq.Values['5'], 0)) then begin
         atualiza := true;
         item := new(Ptr_sinc);
         item.cod := StrToInt(codproduto);
@@ -6470,11 +6506,7 @@ begin
   if atualiza then begin
     prodAtualizado := prodAtualizado + 1;
     produtosatualiz := produtosatualiz + codproduto +  '-';
-    //ShowMessage('atualizado');
-    //ShowMessage(listaProdLocal.Names[a] + '=' +codproduto +#13+ CurrToStr(p_venda_atual) + '=' + arq.Values['5']  + #13 +
-    //CurrToStr(depositoLocal) + '=' + arq.Values['30']);
-  //ShowMessage(arq.Values['0'] + #13 +'estoque='+ CurrToStr(p_venda_atual) + #13 + 'sinc=' + arq.Values['5']);
-
+ 
     dm.IBQuery1.Close;
     dm.IBQuery1.SQL.text :=
       ('update or insert into produto(aplic,cod, codbar, unid, nome, p_compra, p_venda, aliquota, classif, is_pis, cod_ispis, grupo, p_venda1, fornec, fabric, localiza, refori, lucro, comissao,'
@@ -6844,9 +6876,9 @@ begin
     // 28 - ICMS_SUBS
     // 29 - fracao
     // 30 - quant
-    // 32 - localiza
-    // 33 - aplic
-    // 34 - refori
+    // 31 - localiza
+    // 32 - aplic
+    // 33 - refori
 
 
     funcoes.informacao(0, tot, 'Gerando Sincronização...', true, False, 5);
@@ -6857,9 +6889,10 @@ begin
         False, False, 5);
       linha := '|' + dm.IBselect.FieldByName('cod').AsString + '|' +
         dm.IBselect.FieldByName('codbar').AsString + '|' +
-        dm.IBselect.FieldByName('unid').AsString + '|' + LimpaNomes(dm.IBselect.FieldByName
-        ('nome').AsString) + '|' + dm.IBselect.FieldByName('p_compra').AsString +
-        '|' + dm.IBselect.FieldByName('p_venda').AsString + '|' +
+        dm.IBselect.FieldByName('unid').AsString + '|' +
+        LimpaNomes(dm.IBselect.FieldByName('nome').AsString) +'|'+
+        dm.IBselect.FieldByName('p_compra').AsString +'|' +
+        dm.IBselect.FieldByName('p_venda').AsString + '|' +
         dm.IBselect.FieldByName('aliquota').AsString + '|' +
         dm.IBselect.FieldByName('classif').AsString + '|' +
         trim(dm.IBselect.FieldByName('is_pis').AsString) + '|' +
@@ -12819,6 +12852,24 @@ begin
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Clear;
       dm.IBQuery1.SQL.Add('ALTER TABLE registro ADD email VARCHAR(100) DEFAULT '''' ');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
+    if funcoes.retornaTamanhoDoCampoBD('aplic', 'produto') = 40 then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add
+        ('alter table produto alter aplic type VARCHAR(60)');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
+    if funcoes.retornaTamanhoDoCampoBD('nome', 'produto') = 60 then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add
+        ('alter table produto alter nome type VARCHAR(80)');
       if execSqlMostraErro(dm.IBQuery1) = false then exit;
       dm.IBQuery1.Transaction.Commit;
     end;
@@ -20852,6 +20903,7 @@ begin
   lista.Add('X=TB040315.TXT');
   lista.Add('D=TB040317.TXT');
   lista.Add('S=TB040316.TXT');
+  lista.Add('N=TB040312.TXT');
 
   nome := lista.Values[trim(_ISPIS)];
   if nome = '' then
@@ -27610,7 +27662,7 @@ var
   cnpj, UltNSU, sStat: string[20];
   sChave, CODestado, msgERRO, Impresso, sTemMais, xml: String;
   dataset: TClientDataSet;
-  i, fim, xmlsBaixados, xmlsResumos, xmlsEventos: integer;
+  i, fim, xmlsBaixados, xmlsResumos, xmlsEventos, nsuMaior: integer;
   lista: tstringlist;
 begin
   dataset := TClientDataSet.Create(self);
@@ -27679,6 +27731,8 @@ begin
 
   //ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.LerXMLFromFile('F:\clientes\agropesca\Distri_nfes.xml');
   //ShowMessage('1');
+
+  nsuMaior := 0;
 
   while true do begin
     Inc(i);
@@ -27778,6 +27832,9 @@ begin
   begin
     sChave := ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[i].resDFe.chDFe;
     UltNSU := ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[i].NSU;
+
+    if StrToIntDef(UltNSU, 0) > nsuMaior   then nsuMaior := StrToIntDef(UltNSU, 0);
+
     xml := ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[i].XML;
 
     if Contido('nfeProc', ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.docZip.Items[i].XML) then begin
@@ -27885,13 +27942,13 @@ begin
   end;
 
 
-  UltNSU := ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.maxNSU;
+  //UltNSU := ACBrNFe.WebServices.DistribuicaoDFe.retDistDFeInt.maxNSU;
 
   if sStat = '138' then begin
     dm.IBQuery1.Close;
     dm.IBQuery1.SQL.text :=
       'update or insert into pgerais(cod, valor) values(10000, :valor) matching(cod)';
-    dm.IBQuery1.ParamByName('valor').AsString := StrNum(UltNSU);
+    dm.IBQuery1.ParamByName('valor').AsString := IntToStr(nsuMaior);
     dm.IBQuery1.ExecSQL;
 
     dm.IBQuery1.Close;
@@ -28179,7 +28236,7 @@ procedure Tfuncoes.restaurarbackup();
 var
   op: TOpenDialog;
   arq, CAMPOS, temp, sqls: tstringList;
-  i, fim, a, f1: integer;
+  i, fim, a, f1, recnoItem: integer;
   tabela, linha, SQL, valor, erros: String;
 begin
   op := TOpenDialog.Create(self);
@@ -28204,6 +28261,7 @@ begin
   dm.IBQuery2.Transaction.Commit;
 
   funcoes.informacao(1, fim, 'Restaurando Backup...', true, False, 2);
+  recnoItem := 0;
   while true do begin
     if i >= fim then
       break;
@@ -28309,9 +28367,47 @@ begin
             else valor := trocaChar(valor, '/', '.');
           end;
 
-          if ((tabela = 'VENDA') and (a = 23)) then begin
-            if StrNum(valor) = '0' then valor := QuotedStr('01.01.1900');
+          if ((tabela = 'VENDA') and (a = 19)) then begin
+            if StrNum(valor) = '0' then valor := QuotedStr('01.01.1900')
+            else valor := trocaChar(valor, '/', '.');
           end;
+
+          if ((tabela = 'VENDA') and (a = 22)) then begin
+            if StrNum(valor) = '0' then valor := QuotedStr('01.01.1900')
+            else valor := trocaChar(valor, '/', '.');
+          end;
+
+          if ((tabela = 'VENDA') and (a = 23)) then begin
+            if StrNum(valor) = '0' then valor := 'null';
+          end;
+
+          if ((tabela = 'VENDA') and (a = 24)) then begin
+            if Length(valor) > 3 then valor := '';
+          end;
+
+          if ((tabela = 'VENDA') and (a = 20)) then begin
+            if StrNum(valor) = '0' then valor := 'null'
+            else valor := trocaChar(valor, '/', '.');
+            //ShowMessage(valor);
+          end;
+
+          if ((tabela = 'VENDA') and (a = 19)) then begin
+            //ShowMessage(valor);
+            if contido('.',valor) then valor := '0';
+          end;
+
+          if ((tabela = 'VENDA') and (a = 22)) then begin
+            //ShowMessage(valor);
+            if contido('.',valor) then valor := '0';
+          end;
+
+          if ((tabela = 'ITEM_VENDA') and (a = 18)) then begin
+            if StrNum(valor) = '0' then begin
+              recnoItem := recnoItem + 1;
+              valor := IntToStr(recnoItem);
+            end;
+          end;
+
 
           if ((tabela = 'VENDA') and (a = 20)) then begin
             //ShowMessage(valor);
@@ -28387,8 +28483,15 @@ begin
               + #13 + SQL + #13 + #13 + e.Message, mtInformation, [mbYes, mbNo],
               1) = idyes then
             begin
-              CAMPOS.Clear;
-              CAMPOS.text := SQL;
+
+              campos.Add('');
+              campos.Add('');
+              campos.Add('');
+              campos.Add(SQL);
+              campos.Add('');
+              campos.Add('');
+              campos.Add(temp.Text);
+
               CAMPOS.SaveToFile(caminhoEXE_com_barra_no_final + 'sql.txt');
               funcoes.informacao(1, fim, 'Restaurando Backup...', False, true, 2);
               CAMPOS.Free;
@@ -29705,6 +29808,8 @@ function Tfuncoes.buscaAliqPISxml(cst : String; icmsosn : String) : string;
 begin
   Result := '';
   IF      cst = '04' then Result := 'M';
+  IF      cst = '05' then Result := 'N';
+
   //else IF cst = '06' then Result := 'R';
   //else IF cst = '07' then Result := 'M';
 end;
@@ -33162,6 +33267,41 @@ begin
     end;    }
 end;
 
+function Tfuncoes.VerificaQTDpcs : String;
+var
+  param140 : SmallInt;
+  acc : string;
+begin
+  Result := '';
+
+  param140 := StrToInt(funcoes.buscaParamGeral(140, '0'));
+
+  if param140 = 0 then exit;
+
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select * from pc where ult_acesso = :data';
+  dm.IBselect.ParamByName('data').AsDate := form22.datamov;
+  dm.IBselect.Open;
+  dm.IBselect.FetchAll;
+
+  acc := '-';
+  while not dm.IBselect.Eof do begin
+    acc := acc + dm.IBselect.FieldByName('nome').AsString + '-';
+    dm.IBselect.Next;
+  end;
+
+  if ((dm.IBselect.RecordCount = param140) and (Contido('-'+LeftStr(NomedoComputador, 50)+'-', acc) = false)) then begin
+    MessageDlg('Quantidade de PCs ATIVOS foram Excedidos, contate o suporte!', mtError, [mbOK], 0, mbOK);
+    Result := 'X';
+    dm.IBselect.Close;
+    exit;
+  end;
+
+  form22.COD_PC := funcoes.buscaNomePC;
+
+
+end;
+
 
 function Tfuncoes.buscaNomePC : String;
 begin
@@ -33192,10 +33332,13 @@ begin
 
   Result := Incrementa_Generator('pc', 1);
   dm.IBQuery1.Close;
-  dm.IBQuery1.SQL.Text := 'insert into pc(cod, nome) values('+Result+', :nome)';
+  dm.IBQuery1.SQL.Text := 'insert into pc(cod, nome, ult_acesso) values('+Result+', :nome, :data)';
   dm.IBQuery1.ParamByName('nome').AsString := LeftStr(NomedoComputador, 50);
+  dm.IBQuery1.ParamByName('data').AsDate := form22.datamov;
   dm.IBQuery1.ExecSQL;
   dm.IBQuery1.Transaction.Commit;
+
+
 end;
 
 

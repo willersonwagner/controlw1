@@ -426,6 +426,7 @@ type
     ExcluirEntradasduplicadas1: TMenuItem;
     DuplicadorporCNPJCPF1: TMenuItem;
     MercadoriasVencidasPorPeriodo1: TMenuItem;
+    PorVendedorCliente1: TMenuItem;
     procedure LimparBloqueios1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure CadastrarUsurio1Click(Sender: TObject);
@@ -739,6 +740,7 @@ type
     procedure ExcluirEntradasduplicadas1Click(Sender: TObject);
     procedure DuplicadorporCNPJCPF1Click(Sender: TObject);
     procedure MercadoriasVencidasPorPeriodo1Click(Sender: TObject);
+    procedure PorVendedorCliente1Click(Sender: TObject);
   private
     b, cont: integer;
     ini: Smallint;
@@ -1844,7 +1846,7 @@ end;
 
 procedure TForm2.AlfabticaGeralGrfico1Click(Sender: TObject);
 var
-  sim, prec, h1, h2, h3, h4, ordem, estoqueZero: string;
+  sim, prec, h1, h2, h3, h4, ordem, estoqueZero, filtroNome, h5: string;
   tam: integer;
 begin
   form19.RichEdit1.Clear;
@@ -1915,11 +1917,19 @@ begin
     h4 := ' (quant + deposito = 0) and ';
   end;
 
+  filtroNome := funcoes.dialogo('normal', 0, '1234567890' + #8, 40, false, '',
+    'Control For Windows', 'Deseja Filtrar Por Nome?','');
+  if filtroNome = '*' then
+    exit;
+
+  h5 := '';
+  if filtroNome <> '' then h5 := '(nome like '+QuotedStr(filtroNome)+') and ';
+
   dm.ProdutoQY.Close;
   dm.ProdutoQY.SQL.Clear;
   dm.ProdutoQY.SQL.Add('select cod,unid as UN,emb,codbar,nome, ' + prec +
     ' as P_venda, quant,fabric,fornec,grupo from produto where ' + h1 + ' ' + h2
-    + ' ' + h3 + ' ' + h4 + ' (cod <> -1) order by ' + ordem);
+    + ' ' + h3 + ' ' + h4 + h5+' (cod <> -1) order by ' + ordem);
   dm.ProdutoQY.Open;
   dm.ProdutoQY.FetchAll;
 
@@ -3641,9 +3651,9 @@ var
   codNat_imp, CST_PIS_imp: String;
 begin
   CST_PIS := '';
-  CST_PIS := funcoes.dialogo('generico', 0, 'IMSTR' + #8, 50, false, 'S',
+  CST_PIS := funcoes.dialogo('generico', 0, 'IMSTRNXD' + #8, 50, false, 'S',
     application.Title,
-    'Qual a aliquota de PIS/COFINS (I(07)-Isento, R(06)-Aliq Red Zero, M(04)-Monofasico, S(09)-Suspensao da contrib., T(01)-Tributado)?',
+    'Qual a aliquota de PIS/COFINS (I,N, R, M, X, D, S, T(tributado))?',
     CST_PIS);
   if CST_PIS = '*' then
     exit;
@@ -4551,6 +4561,9 @@ begin
   form40.tipo.Add('135=generico');
   form40.tipo.Add('136=generico');
   form40.tipo.Add('137=generico');
+  form40.tipo.Add('138=normal');
+  form40.tipo.Add('139=generico');
+  form40.tipo.Add('140=generico');
 
   form40.troca := TStringList.Create;
   form40.troca.Add('0=S');
@@ -4694,6 +4707,9 @@ begin
   form40.troca.Add('135=S');
   form40.troca.Add('136=S');
   form40.troca.Add('137=S');
+  form40.troca.Add('138=');
+  form40.troca.Add('139=S');
+  form40.troca.Add('140=S');
   
   form40.teclas := TStringList.Create;
   form40.teclas.Add('0=FT');
@@ -4836,6 +4852,9 @@ begin
   form40.teclas.Add('135=SN');
   form40.teclas.Add('136=SNX');
   form40.teclas.Add('137=SN');
+  form40.teclas.Add('138=1234567890ABCDEFGHIJLMNOPKXYZWQRSTUVXZ|' + #46);
+  form40.teclas.Add('139=SN');
+  form40.teclas.Add('140=1234567890' + #8);
 
   form40.ListBox1.Clear;
   form40.ListBox1.Items.Add
@@ -5066,6 +5085,11 @@ begin
   form40.ListBox1.Items.Add('135=Permitir Preço de Venda 0 no Cadastro de Produto (padrao N) ?');
   form40.ListBox1.Items.Add('136=Deseja cruzar estoque entre matriz e filial na sincronização de estoque(S-somente QTD/N/X-estoque e qtd) ?');
   form40.ListBox1.Items.Add('137=Usar Espaço para carimbo no pedido X-Media (S/N)?');
+  form40.ListBox1.Items.Add('138=Quais os CNPJ/CPF que podem ter acesso as NFes No Portal da Sefaz ?(separador | entre CNPJ/CPFs)');
+  form40.ListBox1.Items.Add('139=Bloquear a Exibicao avista aprazo na Tela de Vendas(S/N)');
+  form40.ListBox1.Items.Add('140=Limitar QTD de telas no sistema ?');
+
+
 
   form40.ListBox1.Selected[0] := true;
   form40.showmodal;
@@ -6983,7 +7007,7 @@ var
   grupo, ini, fim, his, g1, h1, h2, filtro, filtrocaption, imprimirtotaldia: string;
   totaldia, totalgeral, valConta, valPago: currency;
   dia: TDateTime;
-  b: integer;
+  b, pag: integer;
 begin
   b := 0;
   totaldia := 0;
@@ -7036,6 +7060,8 @@ begin
   end;
 
 
+  b := 20;
+
  {   form19.RichEdit1.Perform(EM_REPLACESEL, 1,
     Longint(PChar((funcoes.CompletaOuRepete('+', '+' + #13 + #10, '-', 81)))));
   form19.RichEdit1.Perform(EM_REPLACESEL, 1,
@@ -7069,20 +7095,22 @@ begin
   dm.ibselect.First;
   dia := dm.ibselect.FieldByName('vencimento').AsDateTime;
   valPago := 0;
+
   while not dm.ibselect.Eof do
   begin
-    if form19.RichEdit1.Lines.Count >= b then
+    if ((form19.RichEdit1.Lines.Count >= b) or (b=20)) then
     begin
 
-      if b > 0 then
-      
+      if b > 20 then
+
       form19.RichEdit1.Perform(EM_REPLACESEL, 1,
         Longint(PChar((funcoes.CompletaOuRepete('+', '+' + #13 + #10,
         '-', 81)))));
 
-      b := b + 67;
-      addRelatorioForm19(#12);
-      // form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((' '+#12+#13+#10))));
+      if b > 20 then addRelatorioForm19(#12 + '@');
+      if b = 20 then b := b + 40
+      else  b := b + 64;
+
       form19.RichEdit1.Perform(EM_REPLACESEL, 1,
         Longint(PChar(('  ' + funcoes.CompletaOuRepete('+', '+' + #13 + #10,
         '-', 81)))));
@@ -10960,7 +10988,7 @@ begin
         Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 60) + #13
         + #10))));
       form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-        Longint(PChar(('DATA      NOTA VEND PAG       TOTAL          RECEBIDO' +
+        Longint(PChar(('DATA      NOTA VEND PAG   TOTAL      RECEBIDO' +
         #13 + #10))));
       form19.RichEdit1.Perform(EM_REPLACESEL, 1,
         Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 60) + #13
@@ -11056,7 +11084,7 @@ begin
           #13 + #10);
         // form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar(('DATA      NOTA     VEND  PAG            TOTAL  RECEBIDO'+#13+#10))));
         addRelatorioForm19
-          ('DATA      NOTA VEND PAG       TOTAL          RECEBIDO' + #13 + #10);
+          ('DATA      NOTA VEND PAG     TOTAL   RECEBIDO' + #13 + #10);
         addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 60) +
           #13 + #10);
       end
@@ -11126,31 +11154,22 @@ begin
       begin
         if form22.Pgerais.Values['nota'] = 'T' then
         begin
-          addRelatorioForm19(FormatDateTime('dd/mm/yy',
-            dm.ibselect.FieldByName('data').AsDateTime) + ' ' +
-            funcoes.CompletaOuRepete('', dm.ibselect.FieldByName('nota')
-            .AsString, '0', 7) + ' ' + funcoes.CompletaOuRepete('',
-            dm.ibselect.FieldByName('vendedor').AsString, '0', 3) + ' ' +
-            funcoes.CompletaOuRepete('', dm.ibselect.FieldByName('codhis')
-            .AsString, '0', 3) + ' ' + funcoes.CompletaOuRepete('',
-            FormatCurr('0.00', dm.ibselect.FieldByName('total').AsCurrency -
-            dm.ibselect.FieldByName('entrada').AsCurrency), ' ', 10) +
-            funcoes.CompletaOuRepete(IfThen(dm.ibselect.FieldByName('entrada')
-            .AsCurrency > 0, ' +' + FormatCurr('0.00',
-            dm.ibselect.FieldByName('entrada').AsCurrency), ''), '', ' ', 11) +
+          addRelatorioForm19(FormatDateTime('dd/mm/yy',dm.ibselect.FieldByName('data').AsDateTime) + ' ' +
+          funcoes.CompletaOuRepete('', dm.ibselect.FieldByName('nota').AsString, '0', 7) + ' ' + funcoes.CompletaOuRepete('',dm.ibselect.FieldByName('vendedor').AsString, '0', 3) +' ' +
+          funcoes.CompletaOuRepete('', dm.ibselect.FieldByName('codhis').AsString, '0', 3) + ' ' +
+          funcoes.CompletaOuRepete('',FormatCurr('0.00', dm.ibselect.FieldByName('total').AsCurrency - dm.ibselect.FieldByName('entrada').AsCurrency), ' ', 10) +
+          IfThen(dm.ibselect.FieldByName('entrada').AsCurrency > 0, funcoes.CompletaOuRepete(' +' + FormatCurr('0.00',dm.ibselect.FieldByName('entrada').AsCurrency), '', ' ', 11), '') + ' ' +
 
-            funcoes.CompletaOuRepete(IfThen(trim(dm.ibselect.FieldByName('ok')
-            .AsString) = '', '*', CompletaOuRepete('',
-            dm.ibselect.FieldByName('usuario').AsString, '0', 2)), '', ' ', 2) +
+          funcoes.CompletaOuRepete(IfThen(trim(dm.ibselect.FieldByName('ok').AsString) = '', '*', CompletaOuRepete('',dm.ibselect.FieldByName('usuario').AsString, '0', 3)), '', ' ', 3) +
 
             tmp +
 
             IfThen(trim(dm.ibselect.FieldByName('usulib').AsString) = '', '',
 
-            funcoes.CompletaOuRepete('AUT.:' +
+            funcoes.CompletaOuRepete('AUT:' +
             copy(funcoes.BuscaNomeBD(dm.IBQuery1, 'nome', 'usuario',
             'where cod=' + strnum(dm.ibselect.FieldByName('usulib').AsString)),
-            1, 9), '', ' ', 14)) +
+            1, 7), '', ' ', 12)) +
 
             #13 + #10);
         end
@@ -11178,7 +11197,7 @@ begin
             011) + funcoes.CompletaOuRepete('',
             IfThen(trim(dm.ibselect.FieldByName('ok').AsString) = '', '*',
             CompletaOuRepete('', dm.ibselect.FieldByName('usuario').AsString,
-            '0', 2)), ' ', 5) +
+            '0', 3)), ' ', 5) +
 
             tmp +
 
@@ -11191,7 +11210,7 @@ begin
 
             ,
 
-            funcoes.CompletaOuRepete('AUT.:' +
+            funcoes.CompletaOuRepete('AUT:' +
             copy(funcoes.BuscaNomeBD(dm.IBQuery1, 'nome', 'usuario',
             'where cod=' + strnum(dm.ibselect.FieldByName('usulib').AsString)),
             1, 9), '', ' ', 14)) +
@@ -11287,24 +11306,14 @@ begin
         if form22.Pgerais.Values['nota'] = 'T' then
         begin
           // form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((FormatDateTime('dd/mm/yy',dm.IBselect.fieldbyname('data').AsDateTime)+funcoes.CompletaOuRepete('',dm.IBselect.fieldbyname('nota').AsString,' ',8)+funcoes.CompletaOuRepete('',dm.IBselect.fieldbyname('vendedor').AsString,' ',7)+funcoes.CompletaOuRepete('',dm.IBselect.fieldbyname('codhis').AsString,' ',5)+funcoes.CompletaOuRepete('',FormatCurr('0.00',dm.IBselect.fieldbyname('total').AsCurrency),' ',13)+ IfThen(dm.IBselect.fieldbyname('entrada').AsCurrency > 0,funcoes.CompletaOuRepete(' + ', FormatCurr('0.00',dm.IBselect.fieldbyname('entrada').AsCurrency),' ',10), funcoes.CompletaOuRepete('','',' ',10))  +funcoes.CompletaOuRepete('','canc.:'+copy(funcoes.BuscaNomeBD(dm.ibquery1,'nome','usuario','where cod='+dm.IBselect.FieldByName('cancelado').AsString),1,9),' ',15)+#13+#10))))
-          form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-            Longint(PChar((FormatDateTime('dd/mm/yy',
-            dm.ibselect.FieldByName('data').AsDateTime) + ' ' +
-            funcoes.CompletaOuRepete('', dm.ibselect.FieldByName('nota')
-            .AsString, '0', 7) + ' ' + funcoes.CompletaOuRepete('',
-            dm.ibselect.FieldByName('vendedor').AsString, '0', 3) + ' ' +
-            funcoes.CompletaOuRepete('', dm.ibselect.FieldByName('codhis')
-            .AsString, '0', 3) + ' ' + funcoes.CompletaOuRepete('',
-            FormatCurr('0.00', dm.ibselect.FieldByName('total').AsCurrency -
-            dm.ibselect.FieldByName('entrada').AsCurrency), ' ',
-            10) + funcoes.CompletaOuRepete(IfThen(dm.ibselect.FieldByName
-            ('entrada').AsCurrency > 0, ' + ' + FormatCurr('0.00',
-            dm.ibselect.FieldByName('entrada').AsCurrency), ''), '', ' ',
-            10) + funcoes.CompletaOuRepete('',
-            'canc.:' + copy(funcoes.BuscaNomeBD(dm.IBQuery1, 'nome', 'usuario',
-            'where cod=' + dm.ibselect.FieldByName('cancelado').AsString), 1,
-            9), ' ', 15) + #13 + #10))));
+          addRelatorioForm19(FormatDateTime('dd/mm/yy', dm.ibselect.FieldByName('data').AsDateTime) + ' ' +
+          funcoes.CompletaOuRepete('', dm.ibselect.FieldByName('nota').AsString, '0', 7) + ' ' +
+          funcoes.CompletaOuRepete('', dm.ibselect.FieldByName('vendedor').AsString, '0', 3) + ' ' +
+          funcoes.CompletaOuRepete('', dm.ibselect.FieldByName('codhis').AsString, '0', 3) + ' ' +
+          funcoes.CompletaOuRepete('', FormatCurr('0.00', dm.ibselect.FieldByName('total').AsCurrency - dm.ibselect.FieldByName('entrada').AsCurrency), ' ',10) +
+          IfThen(dm.ibselect.FieldByName('entrada').AsCurrency > 0, funcoes.CompletaOuRepete(' +' + FormatCurr('0.00',dm.ibselect.FieldByName('entrada').AsCurrency), '', ' ', 11), '') + ' ' +
 
+          funcoes.CompletaOuRepete('', copy('canc:' + funcoes.BuscaNomeBD(dm.IBQuery1, 'nome', 'usuario','where cod=' + dm.ibselect.FieldByName('cancelado').AsString), 1,9), ' ', 15) + #13 + #10);
         end
         else
           form19.RichEdit1.Perform(EM_REPLACESEL, 1,
@@ -16390,7 +16399,154 @@ begin
     funcoes.RelVendasPorVendedor('M');
   end;
 
-  procedure TForm2.PorVendedorNota1Click(Sender: TObject);
+  procedure TForm2.PorVendedorCliente1Click(Sender: TObject);
+var
+  ini, fim, h1, h2, cliente, ee, vend, VendAtual: string;
+  totalgeral: currency;
+  i: integer;
+  arq : TStringList;
+begin
+  cliente := funcoes.dialogo('generico', 100, '1234567890' + #8, 100, false, '',
+    application.Title, 'Qual o Código do cliente?', '');
+
+  if (cliente = '*') then
+    exit;
+
+  vend := funcoes.dialogo('generico', 100, '1234567890' + #8, 100, false, '',
+    application.Title, 'Qual o Código do Vendedor?', '');
+
+  if (vend = '*') then
+    exit;
+
+  ini := funcoes.dialogo('data', 0, '', 50, true, '', application.Title,
+    'Qual a Data Inicial?', '');
+  if ini = '*' then
+    exit;
+
+  fim := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,
+    'Qual a Data Final?', '');
+  if fim = '*' then
+    exit;
+
+  h1 := ''; h2 := '';
+  if cliente <> '' then h1 := ' and (cliente=' + cliente + ')';
+  if vend    <> '' then h2 := ' and (vendedor=' + vend + ')';
+
+
+  form19.RichEdit1.Clear;
+  {form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+    Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10))));
+  form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+    Longint(PChar((funcoes.CompletaOuRepete(funcoes.LerValorPGerais('empresa',
+    form22.Pgerais), 'DATA: ' + FormatDateTime('dd/mm/yy', now) + '|', ' ',
+    80) + #13 + #10))));
+  form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+    Longint(PChar((funcoes.CompletaOuRepete('VENDAS POR CLIENTE/NOTA DE: ' +
+    FormatDateTime('dd/mm/yy', StrToDate(ini)) + ' A ' +
+    FormatDateTime('dd/mm/yy', StrToDate(fim)), 'HORA: ' + FormatDateTime('tt',
+    now) + '|', ' ', 80) + #13 + #10))));
+
+  if (cliente <> '') or (vend <> '') then begin
+    addRelatorioForm19('Cliente: ' + cliente + ' Vendedor: ' + vend+ CRLF);
+  end;
+
+  form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+    Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10))));
+
+
+  form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+    Longint(PChar(('    NOTA  DATA     FORMPAGTO  VALOR CLIENTE                  TEL CLIENTE' + #13
+    + #10))));
+  form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+    Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10))));
+  form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+    Longint(PChar((funcoes.CompletaOuRepete('CLIENTE: ' + cliente + '-' +
+    funcoes.BuscaNomeBD(dm.IBQuery1, 'nome', 'cliente', 'where cod=' + cliente),
+    '', ' ', 80) + #13 + #10))));
+  form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((#13 + #10))));
+  }
+  dm.ibselect.Close;
+  dm.ibselect.SQL.Clear;
+  dm.ibselect.SQL.Add
+    ('select V.nota,V.data, V.CODHIS,V.total, V.CLIENTE, C.NOME as nomecli, c.telres, c.telcom, V.VENDEDOR, a.nome as nomevend from venda V left join cliente c on (v.cliente = c.cod) left join vendedor a on (a.cod = v.vendedor) '+
+    'where ((V.cancelado = 0) and(V.data >= :v1) and (V.data<=:v2)) '+H1+H2+
+    '  order by V.VENDEDOR, V.CLIENTE');
+  dm.ibselect.ParamByName('v1').AsDateTime := StrToDate(ini);
+  dm.ibselect.ParamByName('v2').AsDateTime := StrToDate(fim);
+  dm.ibselect.Open;
+  dm.ibselect.First;
+  totalgeral := 0;
+  b := 60;
+  VendAtual := 'XX';
+
+  arq := TStringList.Create;
+  arq.Add('NOTA;DATA;PAGTO;VALOR;CLIENTE;TEL CLIENTE;VENDEDOR;SALDO');
+
+  while not dm.ibselect.Eof do
+  begin
+    if VendAtual <> dm.IBselect.FieldByName('vendedor').AsString then begin
+       if VendAtual <> 'XX' then begin
+         addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10);
+         addRelatorioForm19(funcoes.CompletaOuRepete('TOTAL', formataCurrency(totalgeral), '.', 80) + #13 + #10);
+         addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10);
+
+         totalgeral := 0;
+       end;
+
+       addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10);
+       addRelatorioForm19(funcoes.CompletaOuRepete(funcoes.LerValorPGerais('empresa',form22.Pgerais), 'DATA: ' + FormatDateTime('dd/mm/yy', now) + '|', ' ',80) + #13 + #10);
+       addRelatorioForm19(funcoes.CompletaOuRepete('VENDAS POR CLIENTE/NOTA DE: ' +FormatDateTime('dd/mm/yy', StrToDate(ini)) + ' A ' +FormatDateTime('dd/mm/yy', StrToDate(fim)), 'HORA: ' + FormatDateTime('tt',now) + '|', ' ', 80) + #13 + #10);
+
+       addRelatorioForm19('Vendedor: ' + dm.IBselect.FieldByName('vendedor').AsString + '-' + dm.IBselect.FieldByName('nomevend').AsString + CRLF);
+
+       addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10);
+       addRelatorioForm19('    NOTA  DATA     PAGTO    VALOR CLIENTE                     TEL CLIENTE' + #13+ #10);
+       addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10);
+
+       VendAtual := dm.IBselect.FieldByName('vendedor').AsString;
+    end;
+
+
+    totalgeral := totalgeral + dm.ibselect.FieldByName('total').AsCurrency;
+
+    addRelatorioForm19(funcoes.CompletaOuRepete('',
+      dm.ibselect.FieldByName('nota').AsString, ' ', 8) + ' ' +
+      funcoes.CompletaOuRepete(FormatDateTime('dd/mm/yy',
+      dm.ibselect.FieldByName('data').AsDateTime), '', ' ', 8) + '  ' +
+      funcoes.CompletaOuRepete('', dm.ibselect.FieldByName('codhis').AsString, ' ',5) +
+      funcoes.CompletaOuRepete('', formataCurrency(dm.ibselect.FieldByName('total').AsCurrency), ' ',9) +
+      ' ' + funcoes.CompletaOuRepete(LeftStr(dm.ibselect.FieldByName('cliente').AsString + '-' + dm.ibselect.FieldByName('nomecli').AsString, 27), '', ' ',27) +
+      ' ' + funcoes.CompletaOuRepete(LeftStr(alltrim(dm.ibselect.FieldByName('telres').AsString) + '-' + alltrim(dm.ibselect.FieldByName('telcom').AsString), 26), '', ' ',26) + #13 + #10);
+
+    arq.Add(dm.ibselect.FieldByName('nota').AsString+';'+
+    FormatDateTime('dd/mm/yy',dm.ibselect.FieldByName('data').AsDateTime) + ';' +
+    dm.ibselect.FieldByName('codhis').AsString + ';' +
+    formataCurrency(dm.ibselect.FieldByName('total').AsCurrency) + ';' +
+    dm.ibselect.FieldByName('cliente').AsString + '-' + dm.ibselect.FieldByName('nomecli').AsString + ';'+
+    alltrim(dm.ibselect.FieldByName('telres').AsString) + '-' + alltrim(dm.ibselect.FieldByName('telcom').AsString) + ';' +
+    dm.IBselect.FieldByName('vendedor').AsString + '-' + dm.IBselect.FieldByName('nomevend').AsString +';'+
+    formataCurrency(totalgeral));
+
+    dm.ibselect.Next;
+  end;
+
+  criaPasta(caminhoEXE_com_barra_no_final + 'REL\');
+  arq.SaveToFile(caminhoEXE_com_barra_no_final + 'REL\relatorio.csv');
+
+  arq.Free;
+
+  dm.ibselect.Close;
+  form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+    Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10))));
+  form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+    Longint(PChar((funcoes.CompletaOuRepete('TOTAL' , FormatCurr('#,###,###0.00', totalgeral), '.', 80) + #13 + #10))));
+  form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+    Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10))));
+  form19.showmodal;
+
+end;
+
+procedure TForm2.PorVendedorNota1Click(Sender: TObject);
   var
     ini, fim, h1, vend, cliente, sim, no: string;
     totalgeral, desc, totVend: currency;
@@ -24650,7 +24806,8 @@ procedure TForm2.ValidarAssinaturaDigital1Click(Sender: TObject);
         FormatDateTime('dd/mm/yy', dm.ibselect.FieldByName('data').AsDateTime) +
         ' ' + CompletaOuRepete(sit, '', ' ', 30) + CompletaOuRepete('',
         formataCurrency(vnf), ' ', 10)
-        + '  ' + formataCurrency(valVenda)  + CRLF);
+        //+ '  ' + formataCurrency(valVenda)  + CRLF);
+        + CRLF);
 
       dm.ibselect.Next;
       cont := cont + 1;

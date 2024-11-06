@@ -135,6 +135,7 @@ type
     semCliente: boolean;
     produtosServico: TStringList;
     podeGravarParcelamentoTabela : integer;
+    MinimoPromoc : currency;
     function condicaoAumentarDBGRID2TrueZOOMnasDUAS : boolean ;
     procedure formataCamposPreco;
     procedure impNovo(TIPO1 : SMALLINT = 1);
@@ -1555,6 +1556,8 @@ begin
     txt := form22.Pgerais.Values['mensORC'];
   end;
 
+
+
   if Compra then
   begin
     tipo := 'COM';
@@ -1814,6 +1817,15 @@ begin
       // txt := 'OBS: ' + txt;
     end;
 
+    if ((funcoes.LerConfig(form22.Pgerais.Values['configu'], 3) = 'X') and (Contido('ORCAMEN', pedido))) then
+    begin
+      txt := funcoes.dialogo('not', 70, '', 200, false, '',
+        'Mensagem no Pedido1', 'Confirme:', txt);
+      if txt = '*' then
+        txt := '';
+      // txt := 'OBS: ' + txt;
+    end;
+
     refOriCodbar := ' refori ';
 
     try
@@ -2033,6 +2045,22 @@ begin
       except
       end;
     end;
+
+
+    if ((funcoes.LerConfig(form22.Pgerais.Values['configu'], 3) = 'X') and
+      (txt <> '') AND (Contido('ORCAMENT', PEDIDO))) then
+    begin
+      form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+        Longint(PChar((funcoes.CompletaOuRepete('+', '+', '-', tam) + #13
+        + #10))));
+      form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+        Longint(PChar((funcoes.CompletaOuRepete('|OBS: ' + txt, '|', ' ',
+        tam) + #13 + #10))));
+     { try
+        funcoes.atualizaMensagemUsuario(txt, novocod);
+      except
+      end;}
+    end;
     form19.RichEdit1.Perform(EM_REPLACESEL, 1,
       Longint(PChar((funcoes.CompletaOuRepete('+', '+', '-', tam) + #13
       + #10))));
@@ -2051,11 +2079,16 @@ begin
       dm.IBQuery1.ParamByName('nota').AsString := novocod;
       dm.IBQuery1.Open;
 
-      form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-        Longint(PChar(('| Vencimento1: ' + CompletaOuRepete(FormatDateTime
+      if dm.IBQuery1.FieldByName('data').AsDateTime >= StrToDate('01/01/2020') then begin
+
+      addRelatorioForm19('| Vencimento: ' + CompletaOuRepete(FormatDateTime
         ('DD/MM/YY', dm.IBQuery1.FieldByName('data').AsDateTime), '|', ' ',
-        15) + CompletaOuRepete('', '|', ' ', 49) + #13 + #10))));
+        15) + CompletaOuRepete('', '|', ' ', 49) + #13 + #10);
       dm.IBQuery1.Close;
+      end
+      else begin
+      addRelatorioForm19('|             ' + CompletaOuRepete('', '|', ' ', 15) + CompletaOuRepete('', '|', ' ', 49) + #13 + #10);
+      end;
     end;
 
     form19.RichEdit1.Perform(EM_REPLACESEL, 1,
@@ -4249,6 +4282,13 @@ begin
       '-' + funcoes.BuscaNomeBD(dm.IBQuery1, 'nome', 'vendedor',
       'where cod=' + JsEdit2.Text), 1, 39), '', ' ', 40) + #13 + #10);
 
+    if trim(form22.Pgerais.Values['codUsuNovo']) <> '' then begin
+      dm.IBselect.Close;
+      dm.IBselect.Open('select nome nome from usuario where cod = '+ form22.Pgerais.Values['codUsuNovo']);
+      addRelatorioForm19( 'DESCONTO AUTORIZADO POR ' + form22.Pgerais.Values['codUsuNovo'] + '-' + dm.IBselect.FieldByName('nome').AsString + CRLF);
+      addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 40) + #13+ #10);
+      dm.IBselect.Close;
+    end;
 
     form19.RichEdit1.Perform(EM_REPLACESEL, 1,
       Longint(PChar((funcoes.CompletaOuRepete('FORMA PAGTO: ' + codhis + '-' +
@@ -4505,10 +4545,15 @@ begin
         + #10))));
 
       if funcoes.buscaParamGeral(112, 'S') = 'S' then begin
-        if Modo_Venda then
+        if Modo_Venda then begin
           addRelatorioForm19(funcoes.CompletaOuRepete(nomevol,
             FormatCurr('#,###,###0.00' + IfThen(contido('M3', nomevol), '00',
             ''), totVolumes), '.', 40) + CRLF);
+
+          if Contido('MANO TIN', form22.Pgerais.Values['empresa']) then begin
+            addRelatorioForm19('*'+CRLF);
+          end;
+        end;
       end;
 
       if desconto <> 0 then begin
@@ -4553,14 +4598,15 @@ begin
     end
     else if Modo_Venda then
     begin
-
-
-      if (funcoes.LerConfig(form22.Pgerais.Values['configu'], 3) = 'S') then
+      if ((funcoes.LerConfig(form22.Pgerais.Values['configu'], 3) = 'S')) then
       begin
-        txt := funcoes.dialogo('not', 70, '', 200, false, '',
-          'Mensagem no Pedido', 'Confirme:', txt);
-        if txt = '*' then
-          txt := '';
+        if ((Modo_Venda) and (funcoes.LerConfig(form22.Pgerais.Values['configu'], 3) = 'S')) then begin
+          txt := funcoes.dialogo('not', 70, '', 200, false, '',
+            'Mensagem no Pedido1', 'Confirme:', txt);
+          if txt = '*' then
+            txt := '';
+        end;
+
         if contido('NAO TEM VALOR', txt) = false then
         begin
           addRelatorioForm19(funcoes.QuebraLinhas('', '', txt, 40));
@@ -4586,6 +4632,7 @@ begin
 
       end;
     end;
+
 
     if funcoes.buscaParamGeral(32, '') = 'S' then
     // parametros gerais de operacao de troco na venda
@@ -8238,6 +8285,8 @@ begin
     begin
       if Key = 38 then
       begin
+        if funcoes.buscaParamGeral(139, '') = 'S' then exit;
+
         PanelValores.Visible := true;
         avista := Arredonda(dm.produto.FieldByName('preco').AsCurrency -
           (dm.produto.FieldByName('preco').AsCurrency *
@@ -8250,6 +8299,9 @@ begin
       end;
       if Key = 40 then
       begin
+        if funcoes.buscaParamGeral(139, '') = 'S' then exit;
+
+
         PanelValores.Visible := true;
         avista := Arredonda(dm.produto.FieldByName('preco').AsCurrency -
           (dm.produto.FieldByName('preco').AsCurrency *
@@ -8571,8 +8623,7 @@ begin
   dm.IBQuery3.ParamByName('cod').AsInteger := cod;
   dm.IBQuery3.Open;
 
-  Result := StrToCurrDef(funcoes.LerConfig(form22.Pgerais.Values
-    ['configu'], 0), 0);
+  Result := StrToCurrDef(funcoes.LerConfig(form22.Pgerais.Values['configu'], 0), 0);
 
   if funcoes.buscaParamGeral(55, 'N') = 'S' then
   begin
@@ -8581,6 +8632,10 @@ begin
       Result := dm.IBQuery3.FieldByName('desconto').AsCurrency;
     end;
   end;
+
+
+  if MinimoPromoc > 0 then Result := MinimoPromoc;
+  
   dm.IBQuery3.Close;
 end;
 
@@ -9103,11 +9158,15 @@ begin
     dm.IBQuery1.Next;
   end;
 
+  MinimoPromoc := prec;
+
   if tipo = '1' then
   begin
     prec := p_venda - (p_venda * (prec / 100));
     //prec := Arredonda(prec, 2);
   end;
+
+
 
   ClientDataSet1.First;
 
@@ -9325,7 +9384,10 @@ begin
   if funcoes.buscaParamGeral(107, 'N') = 'S' then
   begin
     // busca o preço promocional em PROMOC1 que é desconto por quantidade
+    MinimoPromoc := 0;
     tmp := buscaPreco(dm.produto.FieldByName('cod').AsInteger, qtd);
+
+
     if tmp <> 0 then
     begin
       valor := tmp;

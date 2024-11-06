@@ -47,6 +47,8 @@ type
     Label12: TLabel;
     outro: TRadioButton;
     Memo1: TMemo;
+    fonteDuplicata: JsEditInteiro;
+    Label13: TLabel;
     procedure FormShow(Sender: TObject);
     procedure JsBotao1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -112,6 +114,8 @@ begin
  if funcoes.LerConfig(valor, 9) = 'M' then matri.Checked := true
   else if funcoes.LerConfig(valor, 9) = 'U' then usb.Checked := true
   else if funcoes.LerConfig(valor, 9) = 'X' then outro.Checked := true;
+
+ fonteDuplicata.Text := funcoes.LerConfig(valor, 17);
 end;
 
 {
@@ -163,6 +167,9 @@ begin
 
    tt := IfThen(negritoFonteVisual.Checked, 'S', 'N');
   tmp := GravarConfig(tmp, tt,                            16);
+
+  if fonteDuplicata.Text = '' then fonteDuplicata.Text := JsEditInteiro3.Text;
+  tmp := GravarConfig(tmp, fonteDuplicata.Text , 17);
 
   arq.Values['1'] := tmp;
   form22.Pgerais.Values['imp'] := tmp;

@@ -183,7 +183,7 @@ end;
 
 procedure Tform22.senhaKeyPress(Sender: TObject; var Key: Char);
 var
-  temp, acs : string;
+  temp, acs, bloqueadoNumPCS : string;
   dias, t1 : integer;
   reg, bloq : boolean;
 begin
@@ -292,7 +292,17 @@ if key=#27 then
        acs := '';
 
 
-       COD_PC := funcoes.buscaNomePC;
+       //param geral 140 onde se estiver informado bloqueia o numero de pcs
+       //que podem entrar no sistema
+       if funcoes.buscaParamGeral(140, '0') <> '0' then begin
+         if funcoes.VerificaQTDpcs = 'X' then begin
+           self.Show;
+           exit;
+         end;
+       end
+       else begin
+         COD_PC := funcoes.buscaNomePC;
+       end;
 
        if superUsu = 1 then
          begin
@@ -538,8 +548,9 @@ end;
 procedure Tform22.Button2Click(Sender: TObject);
 var
   err1 : String;
+  arq :TStringList;
 begin
-  dm.IBselect.Close;
+{  dm.IBselect.Close;
  dm.IBselect.SQL.Clear;
  dm.IBselect.SQL.Text :=
     ('select i.nota, i.fornec,i.cod, i.p_compra, i.destino, i.quant, i.nota, i.data,'+
@@ -554,10 +565,12 @@ begin
       ShowMessage('erro1635: '+ e.Message + #13 + #13 + dm.IBselect.SQL.Text);
       exit;
     end;
-  end;
+  end;         }
 
-  //err1 := InputBox('','','');
-  //ShowMessage(IntToStr(retornaIndiceProdutoErroNoNCM(err1)));
+  err1 := InputBox('','','');
+
+  LE_CAMPOS(arq, err1, '|', true);
+  ShowMessage(arq.Text);
 end;
 
 procedure Tform22.Button3Click(Sender: TObject);

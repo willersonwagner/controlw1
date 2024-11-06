@@ -4165,6 +4165,10 @@ begin
                    listaProdutos[ini].CST_PIS := '06';
                  end;
 
+                 if (listaProdutos[ini].CST_PIS = '04') and (COD_ISPIS = '405') then begin
+                   COD_ISPIS := '303';
+                 end;
+
 
               //004 nao existe mais, muda pra cst 06 segundo nos termos do art. 28 da Lei 13.097/2015, deve ser escriturada com o código 918 da Tabela 4.3.13
                 if listaProdutos[ini].COD_ISPIS = '004' then begin

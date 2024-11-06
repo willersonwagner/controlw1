@@ -389,10 +389,10 @@ begin
     valor     := query11.FieldByName('valor').AsCurrency;
 
     if valor <> 0 then begin
-     // if query11.FieldByName('datamov').AsDateTime > query11.FieldByName('vencimento').AsDateTime then
-       // datamaior := query11.FieldByName('datamov').AsDateTime;
+      if query11.FieldByName('datamov').AsDateTime > query11.FieldByName('vencimento').AsDateTime then
+        datamaior := query11.FieldByName('datamov').AsDateTime;
 
-      //d := DaysBetween(datamaior, form22.datamov);
+      d := DaysBetween(datamaior, form22.datamov);
 
       {if ((query11.FieldByName('cod').AsInteger = 48940) or (query11.FieldByName('cod').AsInteger = 48939)) then begin
         ShowMessage('cod='+query11.FieldByName('cod').AsString+#13+'dias=' + IntToStr(d) + #13 + IntToStr(trunc(form22.datamov - datamaior)));

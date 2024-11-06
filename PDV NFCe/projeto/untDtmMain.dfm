@@ -7,7 +7,7 @@ object dtmMain: TdtmMain
     Left = 17
     Top = 3
     Bitmap = {
-      494C01019500A000580010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C01019500A0005C0010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000006002000001002000000000000060
       0200000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -5053,9 +5053,9 @@ object dtmMain: TdtmMain
     ExpandeLogoMarcaConfig.Dimensionar = False
     ExpandeLogoMarcaConfig.Esticar = True
     CasasDecimais.Formato = tdetMascara
-    CasasDecimais.qCom = 2
+    CasasDecimais.qCom = 3
     CasasDecimais.vUnCom = 2
-    CasasDecimais.MaskqCom = ',0.00'
+    CasasDecimais.MaskqCom = ',0.000'
     CasasDecimais.MaskvUnCom = ',0.00'
     CasasDecimais.Aliquota = 2
     CasasDecimais.MaskAliquota = ',0.00'
@@ -5276,9 +5276,9 @@ object dtmMain: TdtmMain
     ExpandeLogoMarcaConfig.Dimensionar = False
     ExpandeLogoMarcaConfig.Esticar = True
     CasasDecimais.Formato = tdetInteger
-    CasasDecimais.qCom = 2
+    CasasDecimais.qCom = 3
     CasasDecimais.vUnCom = 2
-    CasasDecimais.MaskqCom = ',0.00'
+    CasasDecimais.MaskqCom = ',0.000'
     CasasDecimais.MaskvUnCom = ',0.00'
     CasasDecimais.Aliquota = 2
     CasasDecimais.MaskAliquota = ',0.00'
@@ -5319,9 +5319,9 @@ object dtmMain: TdtmMain
     ExpandeLogoMarcaConfig.Dimensionar = False
     ExpandeLogoMarcaConfig.Esticar = True
     CasasDecimais.Formato = tdetInteger
-    CasasDecimais.qCom = 2
+    CasasDecimais.qCom = 3
     CasasDecimais.vUnCom = 2
-    CasasDecimais.MaskqCom = ',0.00'
+    CasasDecimais.MaskqCom = ',0.000'
     CasasDecimais.MaskvUnCom = ',0.00'
     CasasDecimais.Aliquota = 2
     CasasDecimais.MaskAliquota = ',0.00'

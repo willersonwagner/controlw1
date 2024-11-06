@@ -2934,6 +2934,9 @@ begin
       DANFEEscPos.Sistema := 'Controlw Sistemas';
     end;
 
+    DANFE.CasasDecimais.qCom  := 3;
+    DANFEEscPos.CasasDecimais.qCom := 3;
+
     if DANFE <> nil then
     begin
       DANFE.Sistema := 'Controlw Sistemas';
@@ -2978,12 +2981,12 @@ begin
 
     //
 
-    EmailHost := ini.ReadString('Email', 'Host', '');
-    EmailPorta := ini.ReadString('Email', 'Port', '');
+    EmailHost    := ini.ReadString('Email', 'Host', '');
+    EmailPorta   := ini.ReadString('Email', 'Port', '');
     EmailUsuario := ini.ReadString('Email', 'User', '');
-    EmailSenha := ini.ReadString('Email', 'Pass', '');
+    EmailSenha   := ini.ReadString('Email', 'Pass', '');
     EmailAssunto := ini.ReadString('Email', 'Assunto', '');
-    EmailSSL := ini.ReadBool('Email', 'SSL', false);
+    EmailSSL     := ini.ReadBool('Email', 'SSL', false);
 
     if AcbrEmail <> nil then
     begin

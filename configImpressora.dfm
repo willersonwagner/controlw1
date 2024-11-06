@@ -3,7 +3,7 @@ object Form52: TForm52
   Top = 212
   Caption = 'Config. Impressora'
   ClientHeight = 363
-  ClientWidth = 319
+  ClientWidth = 396
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -20,10 +20,11 @@ object Form52: TForm52
   object ToolBar1: TPanel
     Left = 0
     Top = 326
-    Width = 319
+    Width = 396
     Height = 37
     Align = alBottom
     TabOrder = 0
+    ExplicitWidth = 319
     object JsBotao1: JsBotao
       Left = 0
       Top = 2
@@ -95,13 +96,15 @@ object Form52: TForm52
   object PageControl1: TPageControl
     Left = 0
     Top = 0
-    Width = 319
+    Width = 396
     Height = 326
     ActivePage = TabSheet1
     Align = alClient
     TabOrder = 1
+    ExplicitWidth = 319
     object TabSheet1: TTabSheet
       Caption = 'Impressora'
+      ExplicitWidth = 311
       object Label1: TLabel
         Left = 16
         Top = 3
@@ -173,6 +176,19 @@ object Form52: TForm52
         Width = 98
         Height = 16
         Caption = 'Linhas em Cima:'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
+        ParentFont = False
+      end
+      object Label13: TLabel
+        Left = 223
+        Top = 236
+        Width = 128
+        Height = 16
+        Caption = 'Tam Fonte Duplicata:'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = -13
@@ -320,10 +336,24 @@ object Form52: TForm52
           OnKeyPress = CheckBox1KeyPress
         end
       end
+      object fonteDuplicata: JsEditInteiro
+        Left = 223
+        Top = 252
+        Width = 128
+        Height = 21
+        CharCase = ecUpperCase
+        TabOrder = 9
+        OnKeyPress = JsEditInteiro3KeyPress
+        AddLista = False
+        FormularioComp = 'Form52'
+        Indice = 0
+        TipoDeDado = teNumero
+      end
     end
     object TabSheet2: TTabSheet
       Caption = 'Etiqueta'
       ImageIndex = 1
+      ExplicitWidth = 311
       object Label7: TLabel
         Left = 16
         Top = 10
@@ -502,6 +532,7 @@ object Form52: TForm52
     object TabSheet3: TTabSheet
       Caption = 'Balan'#231'a'
       ImageIndex = 2
+      ExplicitWidth = 311
       object Label12: TLabel
         Left = 15
         Top = 14

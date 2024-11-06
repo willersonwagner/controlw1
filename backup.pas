@@ -736,9 +736,12 @@ procedure TForm44.excluiEntrega;
 var
   sim : string;
 begin
-  MessageDlg('Atenção, não será possível excluir item já entregue!', mtInformation, [mbOK], 1);
+ // MessageDlg('Atenção, não será possível excluir item já entregue!', mtInformation, [mbOK], 1);
+  //if VerificaAcesso_Se_Nao_tiver_Nenhum_bloqueio_true_senao_false = false then
 
-  {sim := funcoes.dialogo('generico',0,'SN'+#8,0,false,'S','Control For Windows','Deseja Excluir','N') ;
+  if funcoes.senhaDodia = false then exit;
+
+  sim := funcoes.dialogo('generico',0,'SN'+#8,0,false,'S','Control For Windows','Deseja Excluir','N') ;
   if ((sim = '*') or (sim <> 'S')) then exit;
 
   dm.IBQuery1.Close;
@@ -748,7 +751,7 @@ begin
   dm.IBQuery1.Transaction.Commit;
 
   abreDataSetEntrega;
-  DBGrid1.SetFocus;  }
+  DBGrid1.SetFocus;
 end;
 
 function TForm44.buscaEnrtada : String;

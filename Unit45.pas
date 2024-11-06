@@ -24,10 +24,6 @@ type
     Label14: TLabel;
     Label2: TLabel;
     Label1: TLabel;
-    Panel3: TPanel;
-    Label16: TLabel;
-    JsBotao1: JsBotao;
-    JsBotao2: JsBotao;
     Label15: TLabel;
     Label17: TLabel;
     Label18: TLabel;
@@ -35,9 +31,9 @@ type
     Label20: TLabel;
     nota: JsEditInteiro;
     fornec: JsEditInteiro;
+    serie: JsEditInteiro;
     tipo: JsEditInteiro;
     cod_sit: JsEditInteiro;
-    serie: JsEditInteiro;
     cfop: JsEditInteiro;
     tipofrete: JsEditInteiro;
     totfrete: JsEditNumero;
@@ -52,6 +48,10 @@ type
     CREDICMS_REAIS: JsEditNumero;
     TOTICMSST: JsEditNumero;
     chavenfe: TMaskEdit;
+    Panel3: TPanel;
+    Label16: TLabel;
+    JsBotao1: JsBotao;
+    JsBotao2: JsBotao;
     procedure notaKeyPress(Sender: TObject; var Key: Char);
     procedure JsBotao1Click(Sender: TObject);
     procedure chavenfeKeyPress(Sender: TObject; var Key: Char);
@@ -65,11 +65,11 @@ type
     procedure JsBotao2Click(Sender: TObject);
     procedure notaKeyUp(Sender: TObject; var Key: Word;
       Shift: TShiftState);
-    procedure fornecKeyPress(Sender: TObject; var Key: Char);
     procedure FormCreate(Sender: TObject);
     procedure TOTICMSSTKeyPress(Sender: TObject; var Key: Char);
     procedure cod_sitKeyPress(Sender: TObject; var Key: Char);
     procedure FormShow(Sender: TObject);
+    procedure serieKeyPress(Sender: TObject; var Key: Char);
   private
     cnpjFornec : string;
     function validaPreenchimentos() : boolean;
@@ -93,8 +93,14 @@ uses Unit1, func, caixaLista, DB, principal, Unit63, Unit78;
 
 {$R *.dfm}
 function TdadosAdicSped.preencheDados() : boolean;
+var
+  seriesql : String;
 begin
   Result := false;
+
+  seriesql := '';
+  if serie.Text <> '' then seriesql := ' and (serie = '+QuotedStr(serie.Text)+')'
+  else seriesql := '';
 
   dm.IBselect.Close;
   dm.IBselect.SQL.Clear;
@@ -107,7 +113,7 @@ begin
 
   dm.IBselect.Close;
   dm.IBselect.SQL.Clear;
-  dm.IBselect.SQL.Add('select * from SPEDDADOSADIC where nota = :nota and fornec = :fornec');
+  dm.IBselect.SQL.Add('select * from SPEDDADOSADIC where nota = :nota and fornec = :fornec ' + seriesql);
   dm.IBselect.ParamByName('nota').AsString   := funcoes.StrNum(nota.text);
   dm.IBselect.ParamByName('fornec').AsString := fornec.text;
   dm.IBselect.Open;
@@ -144,6 +150,20 @@ begin
   Result := true;
 end;
 
+procedure TdadosAdicSped.serieKeyPress(Sender: TObject; var Key: Char);
+begin
+  if key = #13 then
+    begin
+      if tedit(sender).Text = '' then
+        begin
+          tedit(sender).Text := funcoes.localizar('Localizar Fornecedor','fornecedor','cod,nome, cnpj, estado','cod','','nome','nome',true,false,false,'',300, nil);
+        end;
+
+      preencheDados;
+      buscaCFOP;
+    end;
+end;
+
 procedure TdadosAdicSped.limpaCampos();
 begin
   JsEdit.LimpaCampos(self.Name);
@@ -157,7 +177,7 @@ begin
   dm.IBQuery1.SQL.Clear;
   dm.IBQuery1.SQL.Add('update or insert into SPEDDADOSADIC(nota, cod_sit, fornec, tipo, serie, cfop, tipofrete, totseg, ' +
   ' totdesc, totdescnt, totdespaces, totpis, CREDICMS_REAIS, TOTICMS_DESON, totconfins, credicms, chavenfe, totfrete, TOTICMSST) values(:nota, :cod_sit, :fornec, :tipo, :serie, :cfop, :tipofrete, :totseg, ' +
-  ':totdesc, :totdescnt, :totdespaces, :totpis, :CREDICMS_REAIS, :TOTICMS_DESON, :totcofins, :credicms, :chavenfe, :totfrete, :TOTICMSST) matching(nota, fornec)'  );
+  ':totdesc, :totdescnt, :totdespaces, :totpis, :CREDICMS_REAIS, :TOTICMS_DESON, :totcofins, :credicms, :chavenfe, :totfrete, :TOTICMSST) matching(nota, fornec, serie)'  );
   dm.IBQuery1.ParamByName('nota').AsString          := nota.Text;
   dm.IBQuery1.ParamByName('cod_sit').AsString       := cod_sit.Text;
   dm.IBQuery1.ParamByName('fornec').AsString        := fornec.Text;
@@ -234,7 +254,7 @@ procedure TdadosAdicSped.fornecKeyUp(Sender: TObject; var Key: Word;
 begin
 if (Key = 116) then
    begin
-    tedit(sender).Text := funcoes.localizar1('Localizar Fornecedor','fornecedor','cod,nome','cod','','nome','nome',false,false,false,'','',300,sender);
+    tedit(sender).Text := funcoes.localizar('Localizar Fornecedor','fornecedor','cod,nome, cnpj, estado','cod','','nome','nome',true,false,false,'',300, nil);
    end;
 end;
 
@@ -403,20 +423,6 @@ if (Key = 116) then
    begin
     tedit(sender).Text := funcoes.localizar1('Localizar Dados Adicionais','SPEDDADOSADIC',' * ','nota','','','',false,false,false,'','', 300,sender);
    end;
-end;
-
-procedure TdadosAdicSped.fornecKeyPress(Sender: TObject; var Key: Char);
-begin
-  if key = #13 then
-    begin
-      if tedit(sender).Text = '' then
-        begin
-          tedit(sender).Text := funcoes.localizar('Localizar Fornecedor','fornecedor','cod,nome, cnpj, estado','cod','','nome','nome',true,false,false,'',300, nil);
-        end;
-          
-      preencheDados;
-      buscaCFOP;
-    end;
 end;
 
 procedure TdadosAdicSped.buscaFornecedores(cod1 : String);

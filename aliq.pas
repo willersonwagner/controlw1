@@ -48,6 +48,7 @@ procedure Taliq1.DBGrid1KeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
   if key = 113 then begin
+    form94 := tform94.Create(self);
     form94.ShowModal;
     IBTable1.Close;
     IBTable1.Open;
