@@ -196,6 +196,7 @@ type
     enviandoCupom, enviandoBackup: boolean;
     fonteRelatorioForm19: integer;
     NegritoRelatorioForm19, saiComEnter: boolean;
+    function gravaultimaDataComunicacaoComSite(var retorno : String) : String;
     function VerificaQTDpcs : String;
     procedure fecharTransacoesClose;
     procedure recebeNotaMatriz(caminho : String);
@@ -12856,6 +12857,14 @@ begin
       dm.IBQuery1.Transaction.Commit;
     end;
 
+    if not VerificaCampoTabela('data_ult_sinc', 'registro') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('ALTER TABLE registro ADD data_ult_sinc date DEFAULT ''19.11.2024'' ');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
     if funcoes.retornaTamanhoDoCampoBD('aplic', 'produto') = 40 then begin
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Clear;
@@ -24776,7 +24785,13 @@ begin
           funcoes.Mensagem(Application.Title, '', 15, '',False, 0, clBlack, true);
         end;
 
-        //ShowMessage('data=' +DateToStr(ultDataMov1));
+        
+        if ParamCount = 0 then begin
+          if gravaultimaDataComunicacaoComSite(bomdia) = 'X' then begin
+             Application.Terminate;
+             exit;
+          end;
+        end;
 
         funcoes.processaRetornoDataBloqueioPIX(bomdia);
 
@@ -24787,7 +24802,7 @@ begin
           dataMo :=  ultDataMov;
           exit;
         end;
-      
+
        { temp := funcoes.dialogo('data', 0, '', 0, true, '', 'Confirmação de data - usuário normal - até 5 dias',
         'Confirme a Data de Movimento:', FormatDateTime('dd/mm/yy', now));
         if temp = '*' then exit else ultDataMov := StrToDateDef(temp, ultDataMov);
@@ -28091,8 +28106,7 @@ begin
   end;
 
   if length(versaoSite) > 20 then begin
-    ShowMessage('Versao do WebService Inválida!' + #13 + 'Versão: ' +
-      versaoSite);
+    //ShowMessage('Versao do WebService Inválida!' + #13 + 'Versão: ' +versaoSite);
     exit;
   end;
 
@@ -33199,19 +33213,19 @@ begin
   cont := 5;
 
   if Contido('|BLOQUEADO|', retorno) then begin
-        funcoes.adicionaRegistroDataBloqueio(false, true, cont,dm.IBQuery1, true);
-
-
+    funcoes.adicionaRegistroDataBloqueio(false, true, cont,dm.IBQuery1, true);
   end;
 
   if Contido('|DESBLOQUEADO|', retorno) then begin
     funcoes.limpaBloqueado(dm.IBQuery1);
   end;
 
+  if StrToIntDef(ContaChar(retorno, '|'), 0) > 6 then begin
+
+  end;
 
   arq := TStringList.Create;
   LE_CAMPOS(arq, retorno, '|', false);
-
 
   form22.qrcodePIX := arq.Values['7'];
   form22.beneNome  := arq.Values['8'];
@@ -33773,5 +33787,72 @@ begin
   if dm.bd.InTransaction then dm.bd.Transaction.Commit;
 end;
 
+function Tfuncoes.gravaultimaDataComunicacaoComSite(var retorno : String) : String;
+var
+  arq : TStringList;
+  data : TDateTime;
+  ok : string;
+begin
+  ok := '';
+  Result := '';
+  //se o retorno do servidorWEB veio vazio
+  if retorno = '' then ok := 'X';
+
+  //se o retorno do servidorWEB veio invalido
+  if StrToIntDef(ContaChar(retorno, '|'), 0) < 6 then ok := 'X';
+
+  //se for terminal de rede sai
+  if ParamCount > 0 then exit;
+
+
+  //vai entrar aqui caso nao tenha vindo o retorno valido da internet
+  if ok = 'X' then begin
+    dm.IBselect.Close;
+    dm.IBselect.SQL.Text := 'select data_ult_sinc from registro';
+    try
+     dm.IBselect.Open;
+    except
+      on e:exception do begin
+        ShowMessage('campo data_ult_sinc nao encontrado!');
+        exit;
+      end;
+
+    end;
+
+    data := dm.IBselect.FieldByName('data_ult_sinc').AsDateTime;
+    if (DaysBetween(now, data) > 60) then begin
+      MessageDlg('A Comunicação com a Internet nao foi Estabelecida. Favor, Ajuste a conexão para que sistema volte a operar!', mtInformation, [mbOK], 0);
+      Result := 'X';
+    end;
+
+    exit;
+  end;
+
+
+  //se esta aqui é pq veio um retorno valido do webservice
+  arq := TStringList.Create;
+  LE_CAMPOS(arq, retorno, '|', false);
+
+  Data := EncodeDate(StrToInt(arq.Values['2']), StrToInt(arq.Values['1']),
+      StrToInt(arq.Values['0'])) + EncodeTime(StrToInt(arq.Values['3']),
+      StrToInt(arq.Values['4']), StrToInt(arq.Values['5']), 0);
+
+  if (data > StrToDate('01/11/2024')) then begin
+    dm.IBQuery1.Close;
+    dm.IBQuery1.SQL.Text := 'update registro set data_ult_sinc = :data';
+    dm.IBQuery1.ParamByName('data').AsDate := data;
+
+    try
+    dm.IBQuery1.ExecSQL;
+    dm.IBQuery1.Transaction.Commit;
+    except
+      on e:exception do begin
+        ShowMessage('campo data_ult_sinc nao encontrado!');
+      end;
+
+    end;
+
+  end;
+end;
 
 end.

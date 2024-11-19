@@ -68,6 +68,8 @@ begin
             //tempo :=  funcoes.dialogo(tipo.Values[IntToStr(ListBox1.ItemIndex)], 0, teclas.Values[IntToStr(ListBox1.ItemIndex)],  30, false,troca.Values[IntToStr(ListBox1.ItemIndex)], Application.Title, ListBox1.Items.Values[IntToStr(ListBox1.ItemIndex)], temp.Values[IntToStr(ListBox1.ItemIndex)]);
             tempo := RightStr(codChe, 1);
             temp.Values[IntToStr(ListBox1.ItemIndex)] := tempo;
+
+            ShowMessage(tempo + ' Maquinas LIberadas!');
           end
         else begin
           ShowMessage('Codigo Invalido!');

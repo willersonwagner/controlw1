@@ -276,6 +276,8 @@ begin
      exit;
    end;
 
+   funcoes.gravaAlteracao('Exclusao de cliente: ' + cod.Text + '-' + nome.Text + ' usuario: ' + form22.codusario, '005');
+
    jsedit.ExcluiDoBD(self.Name);
 end;
 

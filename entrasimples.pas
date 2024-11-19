@@ -906,7 +906,7 @@ var
   ult, origi : Smallint;
   nota, cod, codEntrada, campo, unid : string;
   total, quant : currency;
-  serieaql : String;
+  serieaql, log : String;
 begin
   if serie = '' then serieaql := ' and ((serie is null) or (trim(serie) = ''''))'
   else serieaql := ' and (serie = '+QuotedStr(serie)+')';
@@ -926,6 +926,7 @@ begin
       nota       := DBGrid2.DataSource.DataSet.fieldbyname('nota').AsString;
       codEntrada := DBGrid2.DataSource.DataSet.fieldbyname('codentrada').AsString;
 
+      log := 'entrada ' + DBGrid2.DataSource.DataSet.fieldbyname('nota').AsString+ ' fornec: '+ fornec.Text + ' codEnt: ' +DBGrid2.DataSource.DataSet.fieldbyname('codentrada').AsString + ' cod:' +DBGrid2.DataSource.DataSet.fieldbyname('cod').AsString+ ' quant: ' + DBGrid2.DataSource.DataSet.fieldbyname('quant').AsString + ' excluido por: ' + form22.codusario +' as ' + FormatDateTime('c', now);
 
       //ShowMessage(codEntrada);
       sleep(500);
@@ -957,6 +958,7 @@ begin
 
 
         dm.IBQuery1.Transaction.Commit;
+        funcoes.gravaAlteracao(log, '99');
 
         if ult <= 1 then
           begin

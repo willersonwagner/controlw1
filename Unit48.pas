@@ -395,6 +395,8 @@ begin
     insereDadosAdic(fornecedor);
 
     funcoes.copiaXMLEntrada(caminhoXML, chave);
+
+    Incrementa_Generator('ATUALIZACADPROD', 1);
    
     ClientDataSet1.Free;
     i := 0;
@@ -1227,6 +1229,9 @@ begin
 
 
   if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
+
+  sleep(2000);
+  Incrementa_Generator('ATUALIZACADPROD', 1);
 
   if ini > 0 then ShowMessage(IntToStr(ini) + ' Produtos Cadastrados');
   finally

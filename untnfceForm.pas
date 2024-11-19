@@ -9395,17 +9395,12 @@ begin
     arq := TStringList.Create;
     LE_CAMPOS(arq, th, '|', false);
 
-    //ShowMessage(arq.Text);
-
-    //arq.SaveToFile('1.txt');
-
     Data := EncodeDate(StrToInt(arq.Values['2']), StrToInt(arq.Values['1']),
       StrToInt(arq.Values['0'])) + EncodeTime(StrToInt(arq.Values['3']),
       StrToInt(arq.Values['4']), StrToInt(arq.Values['5']), 0);
 
     DateTimeToSystemTime(Data, SystemTime);
-    // date('|d|m|Y|H|i|s|');
-
+ 
     SetLocalTime(SystemTime);
     arq.Free;
   end

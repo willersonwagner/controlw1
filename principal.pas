@@ -281,6 +281,9 @@ if key=#27 then
 
        UnidInteiro := funcoes.buscaUnidadesFracionadas;
 
+
+       //nessa rotinaGrava validaDataHora() a data da ultmima comunicação com o site
+       //caso tenha comunicado há mais de 60 dias entao bloqueia
        //try
          if ((funcoes.validaDataHora(datamov, usuario) = false) and (usuario <> 'ADMIN')) then begin
            self.Show;
