@@ -93,7 +93,7 @@ var
   Form24: TForm24;
 
 implementation
-uses Unit1,subconsulta, StrUtils, func, principal;
+uses Unit1,subconsulta, StrUtils, func, principal, Unit94, Unit95;
 
 {$R *.dfm}
 procedure TForm24.buscaReferencia();
@@ -505,6 +505,18 @@ begin
   if (ssCtrl in Shift) and (chr(Key) in ['P', 'p']) then
     begin
       funcoes.IMP_CODBAR(DBGrid1.DataSource.DataSet.fieldbyname('cod').AsString);
+    end;
+
+   if (ssCtrl in Shift) and (chr(Key) in ['F', 'f']) then
+    begin
+      form95 := TForm95.Create(self);
+      form95.venda := true;
+      form95.Caption := 'Visualização de Imagem';
+      form95.cod := DBGrid1.DataSource.DataSet.FieldByName('cod').AsString;
+      form95.Panel1.Caption := DBGrid1.DataSource.DataSet.FieldByName('cod').AsString + '-' + DBGrid1.DataSource.DataSet.FieldByName('descricao').AsString;
+      form95.mostraFoto;
+      form95.ShowModal;
+      form95.Free;
     end;
 
   if (ssCtrl in Shift) and (chr(Key) in ['A', 'a']) then

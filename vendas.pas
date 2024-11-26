@@ -248,7 +248,8 @@ implementation
 
 uses Unit1, Math, localizar, entrasimples, func, formpagtoformulario,
   principal, subconsulta, Unit38, DateUtils, relatorio, imprime1,
-  cadcliente, cadfornecedor, dm1, StrUtils, Unit2, Unit83, cadproduto, troco;
+  cadcliente, cadfornecedor, dm1, StrUtils, Unit2, Unit83, cadproduto, troco,
+  Unit95;
 
 {$R *.dfm}
 
@@ -8206,6 +8207,19 @@ begin
       JsEdit.LiberaMemoria(form9);
       form9.Free;
       exit;
+    end;
+
+
+  if (ssCtrl in Shift) and (chr(Key) in ['F', 'f']) then
+    begin
+      form95 := TForm95.Create(self);
+      form95.venda := true;
+      form95.Caption := 'Visualização de Imagem';
+      form95.cod := DBGrid1.DataSource.DataSet.FieldByName('cod').AsString;
+      form95.Panel1.Caption := DBGrid1.DataSource.DataSet.FieldByName('cod').AsString + '-' + DBGrid1.DataSource.DataSet.FieldByName('descricao').AsString;
+      form95.mostraFoto;
+      form95.ShowModal;
+      form95.Free;
     end;
 
 

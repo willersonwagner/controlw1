@@ -12625,6 +12625,10 @@ object Form2: TForm2
           Caption = 'Controle de Garantias'
           OnClick = ControledeGarantias1Click
         end
+        object AdicionarFotoProduto1: TMenuItem
+          Caption = 'Adicionar Foto Produto'
+          OnClick = AdicionarFotoProduto1Click
+        end
       end
       object ParmetrosGerais1: TMenuItem
         Caption = 'Par'#226'metros Gerais'

@@ -427,6 +427,7 @@ type
     DuplicadorporCNPJCPF1: TMenuItem;
     MercadoriasVencidasPorPeriodo1: TMenuItem;
     PorVendedorCliente1: TMenuItem;
+    AdicionarFotoProduto1: TMenuItem;
     procedure LimparBloqueios1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure CadastrarUsurio1Click(Sender: TObject);
@@ -741,6 +742,7 @@ type
     procedure DuplicadorporCNPJCPF1Click(Sender: TObject);
     procedure MercadoriasVencidasPorPeriodo1Click(Sender: TObject);
     procedure PorVendedorCliente1Click(Sender: TObject);
+    procedure AdicionarFotoProduto1Click(Sender: TObject);
   private
     b, cont: integer;
     ini: Smallint;
@@ -783,7 +785,7 @@ uses CadUsuario, StrUtils, Math, dialog, cadfrabricante, cadfornecedor,
   cadReducaoZ, untMovto, acerto1, Unit56, envicupom, Unit59, cadCestNCM,
   PROMOC, cadNotasFiscais, U_Principal, ConsultaCPF, Unit67, Unit68, param1,
   Unit71, uConsultaCNPJ, Unit74, Unit77, Unit78, dadosnfe, cadmecanico, Unit83,
-  qrcodePIX, Unit88, Unit89, Unit91, garantias;
+  qrcodePIX, Unit88, Unit89, Unit91, garantias, Unit94, Unit95;
 
 {$R *.dfm}
 
@@ -12709,8 +12711,7 @@ begin
         dm.IBQuery1.Close;
         dm.IBQuery1.SQL.Clear;
         dm.IBQuery1.SQL.Add('insert into config_tema(papel1) values(:papel)');
-        dm.IBQuery1.ParamByName('papel')
-          .LoadFromFile(OpenPictureDialog1.FileName, ftBlob);
+        dm.IBQuery1.ParamByName('papel').LoadFromFile(OpenPictureDialog1.FileName, ftBlob);
         dm.IBQuery1.ExecSQL;
         try
           dm.IBQuery1.Transaction.Commit;
@@ -25083,7 +25084,16 @@ procedure TForm2.RelatriodePendnciasNFCe1Click(Sender: TObject);
     ShowMessage('Exceção Adicionada Com Sucesso!');
   end;
 
-  procedure TForm2.AdicionarXMLs1Click(Sender: TObject);
+  procedure TForm2.AdicionarFotoProduto1Click(Sender: TObject);
+begin
+  form95 := TForm95.Create(self);
+  form95.Caption := 'F2-Carregar Imagem/Delete-Exclui F5-Buscar Produto';
+  form95.Panel1.Caption := 'F5-Buscar Produto';
+  form95.ShowModal;
+  form95.Free;
+end;
+
+procedure TForm2.AdicionarXMLs1Click(Sender: TObject);
   var
     pasta, chave, tmp: String;
     arq, xml: TStringList;

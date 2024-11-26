@@ -479,6 +479,14 @@
             <Form>Form93</Form>
             <FormType>dfm</FormType>
         </DCCReference>
+        <DCCReference Include="Unit94.pas">
+            <Form>Form94</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
+        <DCCReference Include="Unit95.pas">
+            <Form>Form95</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
         <BuildConfiguration Include="Debug">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

@@ -129,7 +129,9 @@ uses
   Unit90 in 'Unit90.pas' {Form90},
   Unit91 in 'Unit91.pas' {Form91},
   Unit92 in 'Unit92.pas' {Form92},
-  garantias in 'garantias.pas' {Form93};
+  garantias in 'garantias.pas' {Form93},
+  Unit94 in 'Unit94.pas' {Form94},
+  Unit95 in 'Unit95.pas' {Form95};
 
 {$R *.res}
 
@@ -159,6 +161,8 @@ begin
   Application.CreateForm(Tcalculadora1, calculadora1);
   Application.CreateForm(TForm90, Form90);
   Application.CreateForm(TForm91, Form91);
+  //Application.CreateForm(TForm95, Form95);
+  // Application.CreateForm(TForm94, Form94);
   //Application.CreateForm(TForm93, Form93);
   //Application.CreateForm(TForm92, Form92);
   //Application.CreateForm(TForm89, Form89);

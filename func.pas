@@ -12825,6 +12825,18 @@ begin
       if execSqlMostraErro(dm.IBQuery1) = false then exit;
     end;
 
+    if NOT verSeExisteTabela('PRODUTO_IMAGEM') then
+    begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.text := 'CREATE TABLE PRODUTO_IMAGEM (COD  INTEGER NOT NULL,IMG  BLOB SUB_TYPE 0 SEGMENT SIZE 8192)';
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.text := 'ALTER TABLE PRODUTO_IMAGEM ADD CONSTRAINT PK_PRODUTO_IMAGEM PRIMARY KEY (COD)';
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+    end;
+
     if not VerificaCampoTabela('usu_venda', 'venda') then begin
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Clear;
@@ -24785,7 +24797,9 @@ begin
           funcoes.Mensagem(Application.Title, '', 15, '',False, 0, clBlack, true);
         end;
 
-        
+
+        //se for servidor e a funcao retornar X é pq nao teve comunicação há
+        //mais de 60 dias, entao bloqueia
         if ParamCount = 0 then begin
           if gravaultimaDataComunicacaoComSite(bomdia) = 'X' then begin
              Application.Terminate;
