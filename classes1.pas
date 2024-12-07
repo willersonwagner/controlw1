@@ -3,7 +3,7 @@ unit classes1;
 
 interface
 
-uses controls, Contnrs, dbGrids, Math;
+uses controls, Contnrs, dbGrids, Math, System.Classes;
 
 function OrdenaPorNomeTitensProduto(Item1, Item2: pointer): Integer;
 function OrdenaPorNomeTitensporQuant(Item1, Item2: pointer): Integer;
@@ -57,6 +57,7 @@ type
     cod      : integer;
     codbar   : string[30];
     refori   : String[30];
+    BS       : TMemoryStream;
   end;
 
   TacumProd  = class
@@ -228,6 +229,7 @@ type
   Item_venda = class
     codbar : String[15];
     cfop : String;
+    cfopDiferente : String;
     obs  : String;
     CST_PIS : String;
     cod : integer;
@@ -314,7 +316,7 @@ type
 
 implementation
 
-uses Classes, SysUtils;
+uses  SysUtils;
 
 {Classe TProdutos}
 {function Tprodutos.getItemText(const index : integer) : string;

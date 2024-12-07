@@ -513,7 +513,12 @@ begin
       form95.venda := true;
       form95.Caption := 'Visualização de Imagem';
       form95.cod := DBGrid1.DataSource.DataSet.FieldByName('cod').AsString;
-      form95.Panel1.Caption := DBGrid1.DataSource.DataSet.FieldByName('cod').AsString + '-' + DBGrid1.DataSource.DataSet.FieldByName('descricao').AsString;
+      if funcoes.buscaParamGeral(5, 'N') = 'S' then begin
+        form95.Panel1.Caption := DBGrid1.DataSource.DataSet.FieldByName('codbar').AsString + '-' + DBGrid1.DataSource.DataSet.FieldByName('descricao').AsString;
+      end
+      else begin
+        form95.Panel1.Caption := DBGrid1.DataSource.DataSet.FieldByName('cod').AsString + '-' + DBGrid1.DataSource.DataSet.FieldByName('descricao').AsString;
+      end;
       form95.mostraFoto;
       form95.ShowModal;
       form95.Free;

@@ -16,7 +16,7 @@ uses
   TLHelp32, PsAPI, ACBrCargaBal, pcnConversaoNFe,
   pcnConversao, System.Zip, ACBrMail
   , IdMultipartFormData, cadClicompleto, IBX.IBServices, mmsystem, ACBrUtil, RLReport,
-  FireDAC.Stan.Intf, calculadora, ACBrETQClass;
+  FireDAC.Stan.Intf, calculadora, ACBrETQClass, Vcl.Imaging.jpeg;
 
 const
   OffsetMemoryStream: Int64 = 0;
@@ -178,6 +178,7 @@ type
     procedure atualizaMSGsObsVenda();
     function imprimeOBS_Servico(tipo : String = 'M') : integer;
     function ReferenciaChavesObrigatoriasNFe(var info1 : string) : string;
+    function recebeProduto_imagem(var arq: tstringList;var codigos: String): boolean;
     { Private declarations }
   public
     arqPIX : TStringList;
@@ -196,6 +197,7 @@ type
     enviandoCupom, enviandoBackup: boolean;
     fonteRelatorioForm19: integer;
     NegritoRelatorioForm19, saiComEnter: boolean;
+    qtdProdImagem : integer;
     function gravaultimaDataComunicacaoComSite(var retorno : String) : String;
     function VerificaQTDpcs : String;
     procedure fecharTransacoesClose;
@@ -359,6 +361,7 @@ type
     function recebePromoc1(var arq: tstringList; var codigos: String): boolean;
     function exportaFornecedores(var arq: TextFile): boolean;
     function exportaPromoc1(var arq: TextFile): boolean;
+    function exportaProduto_Imagens(var arq: TextFile): boolean;
     function buscaXMl(const path: String; novo: boolean = true): boolean;
     function BuscaBoletos(): boolean;
     function exportaTabela(tabela, CAMPOS: String; var arq: TextFile;
@@ -4955,14 +4958,8 @@ procedure Tfuncoes.copiaXMLEntrada(const xml, chave: String);
 var
   acc: integer;
 begin
-  if not DirectoryExists(caminhoEXE_com_barra_no_final + 'NFE') then
-  begin
-    forceDirectories(caminhoEXE_com_barra_no_final + 'NFE');
-  end;
-  if not DirectoryExists(caminhoEXE_com_barra_no_final + 'NFE\ENT') then
-  begin
-    forceDirectories(caminhoEXE_com_barra_no_final + 'NFE\ENT');
-  end;
+  criaPasta(caminhoEXE_com_barra_no_final + 'NFE');
+  criaPasta(caminhoEXE_com_barra_no_final + 'NFE\ENT');
 
   CopyFile(PChar(xml), PChar(caminhoEXE_com_barra_no_final + 'NFE\ENT\' + chave
     + '-nfe.xml'), true);
@@ -5340,7 +5337,7 @@ begin
   erro := '';
 
   chave    := NfeVenda.entraXMLeRetornaChave(t2);
-  if not DirectoryExists(caminhoEXE_com_barra_no_final+ 'NFE\ENT\') then CreateDir(caminhoEXE_com_barra_no_final+ 'NFE\ENT\');
+  criaPasta(caminhoEXE_com_barra_no_final+ 'NFE\ENT\');
 
   xml.SaveToFile(caminhoEXE_com_barra_no_final+ 'NFE\ENT\' + chave + '-nfe.xml');
 
@@ -5970,11 +5967,11 @@ begin
     dm.IBselect.SQL.Add
       ('select cod, nome, p_venda, P_VENDA1 from produto where cod = :cod');
     dm.IBselect.ParamByName('cod').AsString := arq.Values['0'];
-    dm.IBselect.Open;    }
+    dm.IBselect.Open;
 
     if arq.Values['0'] = '52428' then begin
       ShowMessage(arq.Values['0'] + #13 + CurrToStr(p_venda_atual) + #13 + arq.Values['5'] + #13 + codbarAtual + #13 + trim(arq.Values['1']));
-    end;
+    end;                 }
 
 
     if p_venda_atual <> -1 then begin
@@ -6398,6 +6395,11 @@ begin
     dm.IBselect.Next;
   end;
 
+  p_venda_atual    := -1000;
+  depositoLocal    := -1000;
+  codbarAtual      := '';
+  camposLocalTeste := '';
+
  tot := arquivo.count - 1;
   i := 1;
   funcoes.informacao(0, tot, 'Aguarde, Sincronizando Estoque...', true,
@@ -6406,6 +6408,7 @@ begin
   a := 0;
   for RecNo := i to tot do
   begin
+  
     atualiza := false;
 
     funcoes.informacao(RecNo, tot, 'Aguarde, Sincronizando Estoque...', False,
@@ -6413,7 +6416,7 @@ begin
 
     arq.Clear;
     linha := arquivo[RecNo];
-
+   
     if Contido('|FORNECEDOR|', linha) THEN
       break;
 
@@ -6426,6 +6429,7 @@ begin
     p_venda_atual := -1;
 
     for a := a to listaProdLocal.Count -1 do begin
+      try
       if listaProdLocal.Names[a] = codproduto then begin
         camposLocal := listaProdLocal.ValueFromIndex[a];
         LE_CAMPOS(listaTempLocal, camposLocal, '|', False);
@@ -6436,6 +6440,9 @@ begin
         camposLocalTeste := trim(listaTempLocal.Values['3']);
 
         break;
+      end;
+      except
+
       end;
       //else ShowMessage(listaProdLocal.Names[a] + #13 +codproduto);
     end;
@@ -6452,10 +6459,14 @@ begin
    //ShowMessage(listaProdLocal.Names[a] + '=' +codproduto +#13+ CurrToStr(p_venda_atual) + '=' + arq.Values['5']  + #13 +
    //CurrToStr(depositoLocal) + '=' + arq.Values['30']);
 
-   if listaProdLocal.Names[a] <> codproduto then begin
-      atualiza      := true;
-      p_venda_atual := -1;
-    end;
+   try
+     if listaProdLocal.Names[a] <> codproduto then begin
+        atualiza      := true;
+        p_venda_atual := -1;
+     end;
+   except
+
+   end;
 
     cods := cods + codproduto+ '-';
 
@@ -6662,12 +6673,52 @@ begin
     funcoes.informacao(RecNo, tot, 'Aguarde, Sinc. Promoções...', False,
       False, 5);
 
+     if Contido('|PRODUTO_IMAGEM|', linha) then
+      begin
+        break;
+      end;
+
     linha := arquivo[RecNo];
 
     if trim(linha) <> '' then
     begin
       LE_CAMPOS(arq, linha, '|', False);
       recebePromoc1(arq, promoc1);
+    end;
+  end;
+
+
+  if Contido('|PRODUTO_IMAGEM|', linha) then
+  begin
+    RecNo := RecNo + 1;
+  end;
+
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select cod_seq from produto_imagem';
+  dm.IBselect.Open;
+
+  sim := '-';
+  while not dm.IBselect.Eof do begin
+    sim := sim + dm.IBselect.FieldByName('cod_seq').AsString + '-';
+    dm.IBselect.Next;
+  end;
+
+  for RecNo := RecNo to arquivo.count - 1 do
+  begin
+    funcoes.informacao(RecNo, tot, 'Aguarde, Sinc. Imagens...', False,
+      False, 5);
+
+     {if Contido('|PRODUTO_IMAGEM|', linha) then
+      begin
+        break;
+      end;}
+
+    linha := arquivo[RecNo];
+
+    if trim(linha) <> '' then
+    begin
+      LE_CAMPOS(arq, linha, '|', False);
+      recebeProduto_imagem(arq, sim);
     end;
   end;
 
@@ -6936,6 +6987,8 @@ begin
     exportaFornecedores(F);
 
   exportaPromoc1(F);
+
+  exportaProduto_Imagens(F);
 
   // exportaTabela('produto', 'cod, grupo, codbar, unid, nome, p_compra, p_venda, aliquota, classif, is_pis, cod_ispis', F, dm.IBselect);
   // exportaTabela('fornecedor', 'cod,nome, endereco, cep, fone, fax, cidade,estado,contato, obs, bairro, cnpj, ies, cod_mun, suframa, tipo', F, dm.IBselect);
@@ -8205,7 +8258,7 @@ begin
     tmpi := '';
     tmpi := funcoes.addRegSite('', query, abrirDialogo);
 
-    //ShowMessage(tmpi);
+   // ShowMessage(tmpi);
 
     if tmpi = '' then
       exit;
@@ -12835,6 +12888,7 @@ begin
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.text := 'ALTER TABLE PRODUTO_IMAGEM ADD CONSTRAINT PK_PRODUTO_IMAGEM PRIMARY KEY (COD)';
       if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
     end;
 
     if not VerificaCampoTabela('usu_venda', 'venda') then begin
@@ -12894,6 +12948,31 @@ begin
       if execSqlMostraErro(dm.IBQuery1) = false then exit;
       dm.IBQuery1.Transaction.Commit;
     end;
+
+    if verSeExisteConstraint('PK_PRODUTO_IMAGEM') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('ALTER TABLE produto_imagem DROP CONSTRAINT PK_PRODUTO_IMAGEM');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('ALTER TABLE PRODUTO_IMAGEM ADD COD_SEQ INTEGER');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := 'create sequence produto_imagem';
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Text := 'update produto_imagem set cod_seq = gen_id(produto_imagem, 1)';
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
 
     atualizaAtivoCliente;
 
@@ -22831,6 +22910,88 @@ begin
   end;
 end;
 
+function Tfuncoes.recebeProduto_imagem(var arq: tstringList;var codigos: String): boolean;
+begin
+  Result := false;
+  if ((StrToCurrDef(arq.Values['0'], 0) <= 0) or (StrToCurrDef(arq.Values['1'],0) <= 0)) then exit;
+  if Contido('|PRODUTO_IMAGEM|', arq.text) then
+    exit;
+
+  if contido('-'+ arq.Values['1'] + '-', codigos) then exit;
+
+  if FileExists(caminhoEXE_com_barra_no_final + 'Backup\arqSinc\'+ arq.Values['1'] + '.jpg') = false then begin
+    ShowMessage('Imagem do produto ' + arq.Values['0'] + 'Não Encontrado!');
+    exit;
+  end;
+
+  dm.IBQuery1.Close;
+  dm.IBQuery1.SQL.text :=
+    ('update or insert into PRODUTO_IMAGEM(COD, COD_SEQ, IMG) ' +
+    ' values(:cod,:cod_seq, :img) matching(cod_seq)');
+  dm.IBQuery1.ParamByName('cod').AsString     := StrNum(arq.Values['0']);
+  dm.IBQuery1.ParamByName('cod_seq').AsString := StrNum(arq.Values['1']);
+
+  dm.IBQuery1.ParamByName('img').LoadFromFile(caminhoEXE_com_barra_no_final + 'Backup\arqSinc\'+ arq.Values['1'] + '.jpg', ftBlob);
+  try
+    dm.IBQuery1.ExecSQL;
+    dm.IBQuery1.Transaction.Commit;
+  except
+    on e: exception do
+    begin
+      ShowMessage('ERRO(22921): ' + arq.text + #13 + e.Message);
+    end;
+  end;
+
+  Result := true;
+end;
+
+
+function Tfuncoes.exportaProduto_Imagens(var arq: TextFile): boolean;
+var
+  linha, pasta: String;
+  tot: integer;
+  arqJPG : TJPEGImage;
+  bs : TMemoryStream;
+begin
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Clear;
+  dm.IBselect.SQL.Add
+    ('select cod, img, cod_seq from PRODUTO_IMAGEM');
+  dm.IBselect.Open;
+  dm.IBselect.FetchAll;
+  tot := dm.IBselect.RecordCount;
+
+  criaPasta(caminhoEXE_com_barra_no_final + 'img\temp');
+  pasta := caminhoEXE_com_barra_no_final + 'img\temp';
+
+  arqJPG := TJPEGImage.Create;
+  bs     := TMemoryStream.Create;
+  linha := '|TABELAX|PRODUTO_IMAGEM|';
+  Writeln(arq, linha);
+
+  criaPasta(caminhoEXE_com_barra_no_final + 'img\temp');
+
+  try
+    funcoes.informacao(0, tot, 'Exportando Promoções...', true, False, 5);
+
+    qtdProdImagem := 0;
+    while not dm.IBselect.Eof do
+    begin
+      funcoes.informacao(dm.IBselect.RecNo, tot, 'Exportando Promoções...',
+        False, False, 5);
+
+      linha := '|' + dm.IBselect.FieldByName('cod').AsString + '|'+dm.IBselect.FieldByName('cod_seq').AsString+'|';
+      TBlobField(dm.IBselect.FieldByName('img')).SaveToFile(caminhoEXE_com_barra_no_final + 'img\temp\'+ dm.IBselect.FieldByName('cod_seq').AsString+ '.jpg');
+      qtdProdImagem := qtdProdImagem + 1;
+      Writeln(arq, linha);
+      dm.IBselect.Next;
+    end;
+    funcoes.informacao(0, tot, 'Gerando Sincronização...', False, true, 5);
+  except
+    funcoes.informacao(0, tot, 'Gerando Sincronização...', False, true, 5);
+  end;
+end;
+
 function Tfuncoes.exportaPromoc1(var arq: TextFile): boolean;
 var
   linha: String;
@@ -22843,6 +23004,7 @@ begin
   dm.IBselect.Open;
   dm.IBselect.FetchAll;
   tot := dm.IBselect.RecordCount;
+
 
   linha := '|TABELAX|PROMOC1|';
   Writeln(arq, linha);
@@ -28234,7 +28396,9 @@ begin
     Zipper.Open(ZipName, zmWrite);
     for i := 0 to Files.count - 1 do
     begin
-      if FileExists(Files[i]) then
+     // if RightStr(Files[i], 1) = '\' then Zipper.
+
+      //if FileExists(Files[i]) then
         Zipper.Add(Files[i]);
     end;
     Zipper.Close;
@@ -31483,11 +31647,32 @@ end;
 procedure Tfuncoes.sincronizacaoDeEstoqueOnline;
 var
   pasta : String;
+  arquivosZIP, listaJPG : TStringList;
+  i : integer;
 begin
   pasta := caminhoEXE_com_barra_no_final + 'Backup\'+strnum(form22.Pgerais.Values['cnpj'])+'.DAT';
   if funcoes.SincronizarExtoque1(pasta) then
   begin
     funcoes.mensagemEnviandoNFCE('Aguarde, Enviando...', true, false);
+
+
+    arquivosZIP := TStringList.Create;
+    arquivosZIP.Add(caminhoEXE_com_barra_no_final + 'Backup\'+strnum(form22.Pgerais.Values['cnpj'])+'.DAT');
+
+    listaJPG := listaArquivos(caminhoEXE_com_barra_no_final + 'img\temp\*.jpg');
+    for i := 0 to listaJPG.Count -1 do begin
+      arquivosZIP.Add(caminhoEXE_com_barra_no_final + 'img\temp\' + listaJPG[i]);
+    end;
+
+
+    pasta := caminhoEXE_com_barra_no_final + 'Backup\'+strnum(form22.Pgerais.Values['cnpj'])+'.DAT.zip';
+    //arquivosZIP.Add(caminhoEXE_com_barra_no_final + 'img\temp\*.jpg');
+    Zip(arquivosZIP, pasta);
+    arquivosZIP.Free;
+    listaJPG.Free;
+
+
+   // exit;
     SendPostDataSinc(Form72.IdHTTP1, pasta, 'E', '0');
     funcoes.mensagemEnviandoNFCE('Aguarde, Enviando...', false, true);
   end;
@@ -31573,6 +31758,13 @@ procedure Tfuncoes.exportaNotaOnline(pasta, nota : String);
       exit;
     end;
 
+
+    arq.Clear;
+    arq.Add(caminho);
+
+    caminho := ChangeFileExt(caminho, '.DAT.zip');
+    Zip(arq, caminho);
+
     funcoes.mensagemEnviandoNFCE('Aguarde, Enviando...', true, false);
     SendPostDataSinc(Form72.IdHTTP1, caminho, 'N', '0');
     funcoes.mensagemEnviandoNFCE('Aguarde, Enviando...', false, true);
@@ -31588,7 +31780,7 @@ end;
 
 procedure Tfuncoes.DownloadSincronizacaoDeEstoqueOnline;
 var
-  th, msg, cnpj, arquivo: String;
+  th, msg, cnpj, arquivo, pastaDestino: String;
   fileDownload: TFileStream;
 begin
   msg := 'Buscando Sincronizações, Aguarde...';
@@ -31637,10 +31829,18 @@ begin
 
       IdHTTP1.Disconnect;
 
+      pastaDestino := caminhoEXE_com_barra_no_final + '\backup\arqSinc\';
 
       if FileExists(arquivo) then begin
         try
-          UnZip(arquivo, ExtractFileDir(arquivo));
+          criaPasta(pastaDestino);
+          UnZip(arquivo, pastaDestino);
+
+          if FileExists(caminhoEXE_com_barra_no_final+'backup' +'\'+cnpj+'.DAT') then begin
+            excluiAqruivo(caminhoEXE_com_barra_no_final+'backup' +'\'+cnpj+'.DAT');
+          end;
+
+          CopyFile(pchar(pastaDestino+ cnpj+'.DAT'), pchar(caminhoEXE_com_barra_no_final+'backup' +'\'+cnpj+'.DAT'), true);
         except
           funcoes.mensagemEnviandoNFCE('Buscando Sincronização...', false, true);
         end;
@@ -31652,7 +31852,6 @@ begin
       if funcoes.receberSincronizacaoExtoque2(ExtractFileDir(arquivo) +'\'+cnpj+'.DAT') then begin
         ShowMessage('Sincronizado com sucesso.');
       end;
-
     except
       on e: exception do
       begin

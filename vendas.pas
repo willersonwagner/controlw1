@@ -467,7 +467,8 @@ begin
   end;
 
   Result := Result + '/F6-Busca por CodBar';
-  Result := Result + '/F7-Ficha Prod';
+
+  if ((length(form22.Pgerais.Values['acessousu']) <= StrToIntDef(funcoes.buscaParamGeral(141, '2'), 2)) or (funcoes.LerConfig(form22.Pgerais.Values['configu'], 22) = 'S')) then Result := Result + '/F7-Ficha Prod';
   Result := Result + '/F8-Alternar Entre Tabelas';
 
   if funcoes.buscaParamGeral(13, '') = 'S' then
@@ -7548,9 +7549,11 @@ begin
 
     if Key = 118 then
     begin
+      if length(form22.Pgerais.Values['acessousu']) <= 2 then begin
 
       te := DBGrid1.DataSource.DataSet.FieldByName('cod').AsString;
       funcoes.fichaDoProduto(Sender, te, false);
+      end;
     end;
 
     if Key = 117 then begin // f6
@@ -7723,8 +7726,10 @@ begin
   end
   else if Key = 118 then // F8
   begin
-    te := DBGrid1.DataSource.DataSet.FieldByName('cod').AsString;
-    funcoes.fichaDoProduto(Sender, te, false);
+    if ((length(form22.Pgerais.Values['acessousu']) <= StrToIntDef(funcoes.buscaParamGeral(141, '2'), 2)) or (funcoes.LerConfig(form22.Pgerais.Values['configu'], 22) = 'S')) then begin
+      te := DBGrid1.DataSource.DataSet.FieldByName('cod').AsString;
+      funcoes.fichaDoProduto(Sender, te, false);
+    end;
   end
   { else if key = 117 then // Tecla F6
     begin
@@ -8216,7 +8221,13 @@ begin
       form95.venda := true;
       form95.Caption := 'Visualização de Imagem';
       form95.cod := DBGrid1.DataSource.DataSet.FieldByName('cod').AsString;
-      form95.Panel1.Caption := DBGrid1.DataSource.DataSet.FieldByName('cod').AsString + '-' + DBGrid1.DataSource.DataSet.FieldByName('descricao').AsString;
+
+      if funcoes.buscaParamGeral(5, 'N') = 'S' then begin
+        form95.Panel1.Caption := DBGrid1.DataSource.DataSet.FieldByName('codbar').AsString + '-' + DBGrid1.DataSource.DataSet.FieldByName('descricao').AsString;
+      end
+      else begin
+        form95.Panel1.Caption := DBGrid1.DataSource.DataSet.FieldByName('cod').AsString + '-' + DBGrid1.DataSource.DataSet.FieldByName('descricao').AsString;
+      end;
       form95.mostraFoto;
       form95.ShowModal;
       form95.Free;

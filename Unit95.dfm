@@ -12,6 +12,7 @@ object Form95: TForm95
   Font.Style = []
   OldCreateOrder = False
   Position = poScreenCenter
+  WindowState = wsMaximized
   OnCreate = FormCreate
   OnKeyDown = FormKeyDown
   OnKeyPress = FormKeyPress
@@ -23,10 +24,19 @@ object Form95: TForm95
     Width = 783
     Height = 400
     Align = alClient
-    Stretch = True
+    Center = True
+    Proportional = True
+    OnClick = Image1Click
     ExplicitTop = 21
     ExplicitWidth = 733
     ExplicitHeight = 420
+  end
+  object Image2: TImage
+    Left = 568
+    Top = 112
+    Width = 105
+    Height = 105
+    Visible = False
   end
   object Panel1: TPanel
     Left = 0
@@ -42,7 +52,6 @@ object Form95: TForm95
     Font.Style = [fsBold]
     ParentFont = False
     TabOrder = 0
-    ExplicitWidth = 733
   end
   object OpenPictureDialog1: TOpenPictureDialog
     Filter = 
@@ -55,5 +64,9 @@ object Form95: TForm95
       'wmf)|*.wmf'
     Left = 48
     Top = 152
+  end
+  object ImageList1: TImageList
+    Left = 320
+    Top = 192
   end
 end

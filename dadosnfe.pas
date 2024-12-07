@@ -106,7 +106,7 @@ type
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   private
     generator, key1 : String;
-    nfeRefLista : tstringList;
+    nfeRefLista, cfopAlterados : tstringList;
     procedure teclaEsc();
     procedure geraListaProdutos;
     function buscaFinalidadeMaiorQue1 : String;
@@ -193,6 +193,7 @@ begin
     NfeVenda.cstIcmCfop  := dm.IBQuery2.FieldByName('icms').AsString;
     NfeVenda.cstpisCfop  := dm.IBQuery2.FieldByName('pis').AsString;
     NfeVenda.natOp       := natOP1;
+    NfeVenda.cfopAlterados := cfopAlterados;
 
     NfeVenda.cupom  := cupom;
     NfeVenda.DEST   := Cliente.Text;
@@ -268,6 +269,7 @@ begin
   if cfop.Text = '7501' then begin
     buscaFinalidadeMaiorQue1;
   end;
+
   //funcao de emissao de nfe
   emitenfe;
 end;
@@ -477,6 +479,7 @@ begin
   notas     := TStringList.Create;
   frete     := TStringList.Create;
   detExport := TStringList.Create;
+  cfopAlterados := TStringList.Create;
 
   TAG_DI := '';
 end;
@@ -693,6 +696,7 @@ begin
   dsproduto.FieldDefs.Add('cod', ftInteger);
   dsproduto.FieldDefs.Add('nome', ftString, 60);
   dsproduto.FieldDefs.Add('ncm', ftString, 15);
+  dsproduto.FieldDefs.Add('CFOP', ftString, 5);
   if funcoes.buscaParamGeral(10, '3') = '3' then nomeCampoCST := 'CST'
   else nomeCampoCST := 'CSOSN';
 
@@ -718,12 +722,12 @@ begin
   TCurrencyField(dsproduto.FieldByName('TOTAL')).DisplayFormat := '#,###,###0.00';
   TCurrencyField(dsproduto.FieldByName('BASEICMS')).DisplayFormat := '#,###,###0.00';
 
-  dsproduto.FieldByName('cod').DisplayLabel  := 'Código';
-  dsproduto.FieldByName('nome').DisplayLabel := 'Descrição';
-  dsproduto.FieldByName('QUANT').DisplayLabel := 'Quantidade';
-  dsproduto.FieldByName('PRECO').DisplayLabel := 'Preço';
+  dsproduto.FieldByName('cod').DisplayLabel      := 'Código';
+  dsproduto.FieldByName('nome').DisplayLabel     := 'Descrição';
+  dsproduto.FieldByName('QUANT').DisplayLabel    := 'Quantidade';
+  dsproduto.FieldByName('PRECO').DisplayLabel    := 'Preço';
   dsproduto.FieldByName('DESCONTO').DisplayLabel := 'Desconto';
-  dsproduto.FieldByName('TOTAL').DisplayLabel := 'Total';
+  dsproduto.FieldByName('TOTAL').DisplayLabel    := 'Total';
   dsproduto.FieldByName('BASEICMS').DisplayLabel := 'Base ICMS';
   dsproduto.FieldByName('ALIQICMS').DisplayLabel := 'Aliq. ICMS';
 
@@ -733,14 +737,15 @@ begin
     dsproduto.fieldbyname('cod').AsInteger := item.cod;
     dsproduto.fieldbyname('nome').AsString := item.nome;
     dsproduto.fieldbyname('ncm').AsString  := item.Ncm;
-    dsproduto.fieldbyname(nomeCampoCST).AsString := funcoes.aliquotaToCST(item.CodAliq, funcoes.buscaParamGeral(10, '3'));
-    dsproduto.fieldbyname('UNID').AsString  := item.unid;
-    dsproduto.fieldbyname('QUANT').AsCurrency  := item.quant;
-    dsproduto.fieldbyname('PRECO').AsCurrency  := item.p_venda;
+    dsproduto.fieldbyname(nomeCampoCST).AsString  := funcoes.aliquotaToCST(item.CodAliq, funcoes.buscaParamGeral(10, '3'));
+    dsproduto.fieldbyname('UNID').AsString        := item.unid;
+    dsproduto.fieldbyname('cfop').AsString        := cfopAlterados.Values[IntToStr(item.cod)];
+    dsproduto.fieldbyname('QUANT').AsCurrency     := item.quant;
+    dsproduto.fieldbyname('PRECO').AsCurrency     := item.p_venda;
     dsproduto.fieldbyname('DESCONTO').AsCurrency  := item.Desconto;
-    dsproduto.fieldbyname('TOTAL').AsCurrency  := item.total;
+    dsproduto.fieldbyname('TOTAL').AsCurrency     := item.total;
     dsproduto.fieldbyname('BASEICMS').AsCurrency  := item.base_icm;
-    dsproduto.fieldbyname('ALIQICMS').AsInteger  := item.CodAliq;
+    dsproduto.fieldbyname('ALIQICMS').AsInteger   := item.CodAliq;
   end;
 
   form33 := TForm33.Create(self);
@@ -748,7 +753,17 @@ begin
   form33.captionficha := 'NfeProd';
   form33.DataSource1.DataSet := dsproduto;
   Form33.DBGrid1.DataSource  := form33.DataSource1;
+
   form33.ShowModal;
+
+  dsproduto.First;
+  while not dsproduto.Eof do begin
+    if dsproduto.FieldByName('cfop').AsString <> '' then cfopAlterados.Values[dsproduto.FieldByName('cod').AsString] := dsproduto.FieldByName('cfop').AsString;
+    dsproduto.Next;
+  end;
+
+
+  // ShowMessage(cfopAlterados.Text);
   form33.Free;
 end;
 

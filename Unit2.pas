@@ -4566,6 +4566,7 @@ begin
   form40.tipo.Add('138=normal');
   form40.tipo.Add('139=generico');
   form40.tipo.Add('140=generico');
+  form40.tipo.Add('141=generico');
 
   form40.troca := TStringList.Create;
   form40.troca.Add('0=S');
@@ -4712,6 +4713,7 @@ begin
   form40.troca.Add('138=');
   form40.troca.Add('139=S');
   form40.troca.Add('140=S');
+  form40.troca.Add('141=S');
   
   form40.teclas := TStringList.Create;
   form40.teclas.Add('0=FT');
@@ -4857,6 +4859,7 @@ begin
   form40.teclas.Add('138=1234567890ABCDEFGHIJLMNOPKXYZWQRSTUVXZ|' + #46);
   form40.teclas.Add('139=SN');
   form40.teclas.Add('140=1234567890' + #8);
+  form40.teclas.Add('141=1234567890' + #8);
 
   form40.ListBox1.Clear;
   form40.ListBox1.Items.Add
@@ -5090,6 +5093,7 @@ begin
   form40.ListBox1.Items.Add('138=Quais os CNPJ/CPF que podem ter acesso as NFes No Portal da Sefaz ?(separador | entre CNPJ/CPFs)');
   form40.ListBox1.Items.Add('139=Bloquear a Exibicao avista aprazo na Tela de Vendas(S/N)');
   form40.ListBox1.Items.Add('140=Limitar QTD de telas no sistema ?');
+  form40.ListBox1.Items.Add('141=Qual o Nivel de acesso pra ter acesso a ficha de produto na venda(padrao 2) ?');
 
 
 
@@ -10495,6 +10499,7 @@ begin
     form36.teclas.Add('SN'); // 19
     form36.teclas.Add('SN'); // 20
     form36.teclas.Add('SN'); // 21
+    form36.teclas.Add('SN'); // 22
 
     form36.tipo.Add('numero');
     form36.tipo.Add('generico');
@@ -10518,6 +10523,7 @@ begin
     form36.tipo.Add('generico'); // 19
     form36.tipo.Add('generico'); // 20
     form36.tipo.Add('generico'); // 21
+    form36.tipo.Add('generico'); // 22
 
     form36.troca.Add('');
     form36.troca.Add('S');
@@ -10541,6 +10547,7 @@ begin
     form36.troca.Add('S');
     form36.troca.Add('S'); // 20
     form36.troca.Add('S'); // 21
+    form36.troca.Add('S'); // 22
 
     form36.ListBox1.Items.Add
       ('0-Qual o Desconto Máximo Permitido (de 0 a 99%)?');
@@ -10577,6 +10584,7 @@ begin
     form36.ListBox1.Items.Add('19-Gerenciamento de Entregador ?');
     form36.ListBox1.Items.Add('20-Permitir Exclusao de Cliente ?');
     form36.ListBox1.Items.Add('21-Permitir Exclusao de Entradas ?');
+    form36.ListBox1.Items.Add('22-Permitir Ficha de Produto F7 na Venda ?');
 
     form36.configu := dm.ibselect.FieldByName('configu').AsString;
     dm.ibselect.Close;
@@ -10864,7 +10872,7 @@ procedure TForm2.PorNota1Click(Sender: TObject);
 var
   ini, fim, his, h1, imprimirtotaldia, notapul, grupo, imp_ent, h2, h3, data,
     tipoRegCaixa: string;
-  sepUsu, codigoUsu, h4, h5, usuario, tmp: String;
+  sepUsu, codigoUsu, h4, h5, h6, usuario, tmp: String;
   totais, caixa: TStringList;
   totalgeral, pendentes, ent, sai, caiEnt, caiSAI, TotalGeralFormas,
     totEntradaCaixaNaVenda, TOTCANCELADAS: currency;
@@ -10911,6 +10919,17 @@ begin
       '', application.Title, 'Qual o Código do Usuário ?', form22.codusario);
     if codigoUsu = '*' then
       exit;
+  end;
+
+  if contido('CAMALEAO', form22.Pgerais.Values['empresa']) then begin
+    h6 := funcoes.dialogo('generico', 0, 'SN', 20, false, 'S', application.Title, 'Deseja Usar filtro apresentar somente vendas com AUTORIZAÇÃO ? ?', 'N');
+    if h6 = '*' then exit;
+
+    if h6 = 'N' then h6 := '';
+    if h6 = 'S' then h6 := ' and (usulib <> '''')';
+
+
+
   end;
 
   if codigoUsu <> '' then
@@ -11038,7 +11057,7 @@ begin
   dm.ibselect.SQL.Clear;
   dm.ibselect.SQL.Add
     ('select os,usulib,nota, vendedor, entrada, codhis, total, cancelado, ok, data, cliente, prazo, usuario from VENDA where '
-    + ' ((data >= :v1) and (data<=:v2)) ' + h1 + h3 + h4 + ' order by nota');
+    + ' ((data >= :v1) and (data<=:v2)) ' + h1 + h3 + h4 + h6 +' order by nota');
   dm.ibselect.ParamByName('v1').AsDateTime := StrToDate(ini);
   dm.ibselect.ParamByName('v2').AsDateTime := StrToDate(fim);
   dm.ibselect.Open;

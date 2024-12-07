@@ -167,7 +167,7 @@ type
     , infAdic, codNFe, nfeTemp, codPaisDest
     , DEST_NFE, _ORIGEM, FIN_NFE1, NFE_REF, TAG_DOCREF, situacao : string;
     ICMSSN : currency;
-    notas, frete, temp, detExport : TStringList;
+    notas, frete, temp, detExport, cfopAlterados : TStringList;
     espera : boolean;
     tipo_frete, cupom : integer;
     TotalFrete, VLR_DESP : currency;
@@ -3377,6 +3377,15 @@ begin
         totDesc       := 0;
       end;
 
+      //busca o cfop informado na tela de emissao de nfe F2 campo cfop
+      try
+        if cfopAlterados.Values[IntToStr(item.cod)] <> '' then cfop1 := cfopAlterados.Values[IntToStr(item.cod)];
+      finally
+
+      end;
+
+
+
       //ShowMessage(detExport.Text + #13 + #13 + IntToStr(i));
 
       Result := Result + '<det nItem=' + LITERAL(TRIM(IntToStr(qtd))) + '><prod>' +
@@ -3888,6 +3897,7 @@ begin
     begin
       nota := notas.Strings[i];
 
+
       lerVenda(nota);
 
       dm.IBQuery2.Close;
@@ -3998,6 +4008,7 @@ begin
                  item.total   := abs(arrendondaNFe(query1.fieldbyname('total').AsCurrency, 2));
                  totalNota    := totalNota + abs(item.total);
 
+                 //item.cfop
                  item.vOutro             := 0;
                  item.PercICMS           := 0;
                  item.VlrICMS            := 0;
@@ -4732,6 +4743,7 @@ end;
 
 procedure TNfeVenda.FormCreate(Sender: TObject);
 begin
+  cfopAlterados := TStringList.Create;
 
   if FileExists(caminhoEXE_com_barra_no_final + 'NCM_UNID.txt') then begin
     arqNCM_UNID := TStringList.Create;

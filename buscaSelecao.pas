@@ -58,6 +58,24 @@ var
   val, total, ent : currency;
   query : TFDQuery;
 begin
+  if captionficha = 'NfeProd' then begin
+    if key = #27 then close;
+    
+
+    if key = #13 then begin
+      if DBGrid1.SelectedField.DisplayLabel='CFOP' then begin
+        doc := funcoes.dialogo('normal',0,'',2,true,'',Application.Title,'Qual o CFOP a ser informado na NFe?', '');
+        if doc = '*' then exit;
+
+        DBGrid1.DataSource.DataSet.Edit;
+        DBGrid1.DataSource.DataSet.FieldByName('cfop').AsString := doc;
+        DBGrid1.DataSource.DataSet.Post;
+      end;
+    end;
+    exit;
+  end;
+
+
   if campobusca = 'ncmclassif' then begin
     if key = #13 then begin
       doc := funcoes.dialogo('normal',0,'',2,true,'',Application.Title,'Qual o Novo NCM ?', '');

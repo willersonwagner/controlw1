@@ -9157,7 +9157,7 @@ begin
         trim(query1.fieldbyname('telres').AsString) + ' ' +
         trim(query1.fieldbyname('telcom').AsString));
       try
-        http.Post('http://controlw.blog.br/si2/upload_sinc.php',
+        http.Post('http://controlw.blog.br/si2/upload_sinc1.php',
           Params, Stream);
       except
         on e: Exception do
