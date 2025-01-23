@@ -11993,6 +11993,10 @@ object Form2: TForm2
           Caption = 'NFCe Por Cliente'
           OnClick = NFCePorCliente1Click
         end
+        object NFeNFCeProduto1: TMenuItem
+          Caption = 'NFe Produto'
+          OnClick = NFeNFCeProduto1Click
+        end
         object ProdutosVencidos1: TMenuItem
           Caption = 'Mercadorias Vencidas'
           OnClick = ProdutosVencidos1Click

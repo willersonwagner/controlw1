@@ -2763,11 +2763,14 @@ FUNCTION TNfeVenda.NODO_TRANSP(var FRETE1 : TStringList) : string;
 var
   CPF_CNPJ, veiculo, VOL, iesTransp, transporta : string;
 begin
+  if FRETE1.Values['17'] = '' then FRETE1.Values['17'] := '0';
+  if FRETE1.Values['16'] = '' then FRETE1.Values['16'] := '0';
+
   VOL := '<vol>' + NODOXML('qVol', FRETE1.Values['13']) +
   NODOXML('esp', FRETE1.Values['14']) + NODOXML('marca', FRETE1.Values['15']) +
   NODOXML('nVol', FRETE1.Values['18']) +
-  NODOXML('pesoB', FORMAT_NUM(StrToCurrDef(FRETE1.Values['17'], 0))) +
-  NODOXML('pesoL', FORMAT_NUM(StrToCurrDef(FRETE1.Values['16'], 0))) + '</vol>';
+  NODOXML('pesoB', FORMAT_NUM(StrToFloatDef(FRETE1.Values['17'], 0), 4)) +
+  NODOXML('pesoL', Format_num(StrToFloatDef(FRETE1.Values['16'], 0), 4)) + '</vol>';
 
   IF tipo_frete = 9 then begin
     Result := '<transp><modFrete>9</modFrete>'+vol+'</transp>';

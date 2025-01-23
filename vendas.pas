@@ -6747,6 +6747,24 @@ begin
       form22.Pgerais.Values['configu'] := configUsuario;
 
 
+      if separaPecas <> true then begin
+    if ((form22.Pgerais.Values['codvendedor'] = '0') or
+      (VerificaAcesso_Se_Nao_tiver_Nenhum_bloqueio_true_senao_false) or
+      (funcoes.LerConfig(form22.Pgerais.Values['configu'], 12) = 'S') ) then
+    begin
+      JsEdit2.Text := form22.Pgerais.Values['codvendedor'];
+      JsEdit2.Enabled := true;
+      JsEdit2.SetFocus;
+    end
+    else
+    begin
+      JsEdit2.Text := form22.Pgerais.Values['codvendedor'];
+      JsEdit2.Enabled := false;
+      JsEdit1.SetFocus;
+    end;
+      end;
+
+
 
       if Modo_Venda then
       begin

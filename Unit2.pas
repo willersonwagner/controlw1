@@ -428,6 +428,7 @@ type
     MercadoriasVencidasPorPeriodo1: TMenuItem;
     PorVendedorCliente1: TMenuItem;
     AdicionarFotoProduto1: TMenuItem;
+    NFeNFCeProduto1: TMenuItem;
     procedure LimparBloqueios1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure CadastrarUsurio1Click(Sender: TObject);
@@ -743,6 +744,7 @@ type
     procedure MercadoriasVencidasPorPeriodo1Click(Sender: TObject);
     procedure PorVendedorCliente1Click(Sender: TObject);
     procedure AdicionarFotoProduto1Click(Sender: TObject);
+    procedure NFeNFCeProduto1Click(Sender: TObject);
   private
     b, cont: integer;
     ini: Smallint;
@@ -5046,8 +5048,7 @@ begin
   form40.ListBox1.Items.Add
     ('108=Usar Leitura de Etiqueta de Pesagem no ControlW ?');
   form40.ListBox1.Items.Add('109=Usar Venda de Mercadorias em M3 (S/N) ?');
-  form40.ListBox1.Items.Add
-    ('110=Quais as Unidades de Medida que Podem Ser Fracionadas ?');
+  form40.ListBox1.Items.Add('110=Quais as Unidades de Medida que Podem Ser Fracionadas ?');
   form40.ListBox1.Items.Add
     ('111=Usar Quantas Casas Decimais no Preço de Venda ?');
   form40.ListBox1.Items.Add('112=Imprimir Volumes no Ticket ?');
@@ -6217,7 +6218,7 @@ end;
 
 procedure TForm2.PorCliente2Click(Sender: TObject);
 var
-  cliente, acc, juros, pergJuros: string;
+  cliente, acc, juros, pergJuros, ordem, h1: string;
   juros1: currency;
 begin
   cliente := funcoes.dialogo('generico', 0, '1234567890,.' + #8, 50, false, '',
@@ -6251,6 +6252,11 @@ begin
       pergJuros := 'S';
     end;
   end;
+
+  ordem := funcoes.dialogo('generico', 0, '12' + #8, 50, false, 'S',
+    application.Title, 'Qual a ordem ? (1-Venci. 2-Data Venda)', '1');
+  if ordem = '*' then
+    exit;
 
   dm.IBQuery2.Close;
   dm.IBQuery2.SQL.Clear;
@@ -6342,11 +6348,17 @@ begin
     + '(documento=' + strnum(cliente) + ') and (pago=0)';
     dm.ibselect.Open; }
 
+  h1 := '';
+
+  if ordem = '1' then h1 := ' order by c.vencimento '
+  else if ordem = '2' then h1 := ' order by c.datamov';
+
+
   dm.ibselect.Close;
   dm.ibselect.SQL.Text :=
     'select c.datamov,c.codgru, c.vencimento, c.documento, c.historico, c.previsao, c.valor, c.cod, c.valor as saldo, substring(n.chave from 26 for 9)'
     + ' as nfe, c.nota  from contasreceber c left join nfe n on (substring(n.chave from 37 for 7) = lpad(c.nota,7, ''0'') ) where'
-    + '(c.documento=' + strnum(cliente) + ') and (c.pago=0)';
+    + '(c.documento=' + strnum(cliente) + ') and (c.pago=0) ' + h1;
   dm.ibselect.Open;
 
   funcoes.Ibquery_to_clienteDataSet(dm.ibselect, Form34.ClientDataSet1);
@@ -22888,9 +22900,282 @@ procedure TForm2.ValidarAssinaturaDigital1Click(Sender: TObject);
     funcoes.criaSerieBD(true);
   end;
 
-  procedure TForm2.NFePorCliente1Click(Sender: TObject);
-  var
-    dini, dfim, pstaNfe, tmp, sit, cancel: string;
+procedure TForm2.NFeNFCeProduto1Click(Sender: TObject);
+var
+    dini, dfim, pstaNfe, tmp, sit, cancel, prod: string;
+    dini1, dfim1: TDate;
+    arq, lista: TStringList;
+    i1, f1, qtdnotas, i: integer;
+    totVNF, totSai, totEnt, totCANC: currency;
+    ok : boolean;
+  begin
+    pstaNfe := caminhoEXE_com_barra_no_final + 'NFE\EMIT\';
+    if not DirectoryExists(pstaNfe) then
+    begin
+      ForceDirectories(pstaNfe);
+     { MessageDlg('Este Terminal não tem informações das Notas Emitidas',
+        mtError, [mbOK], 1);
+      exit;}
+    end;
+
+    { grupo := funcoes.dialogo('generico',0,'1234567890'+#8,50,false,'',Application.Title,'Qual o Cliente','');
+      if grupo = '*' then exit; }
+
+    dini := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,
+      'Qual a Data Inicial?', '');
+    if dini = '*' then
+      exit;
+
+    dfim := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,
+      'Qual a Data Final?', '');
+    if dfim = '*' then
+      exit;
+
+    pstaNfe := funcoes.dialogo('normal', 0, '', 2, true, '', application.Title,
+      'Qual a Pasta de NFe?', pstaNfe);
+    if pstaNfe = '*' then
+      exit;
+
+    cancel := funcoes.dialogo('generico', 50, 'SC', 50, true, 'S',
+      application.Title,
+      'Imprimir Todas (S-Todas, C-Somente Canceladas)?', 'S');
+    if cancel = '*' then
+      exit;
+
+    Prod := funcoes.dialogo('generico', 100, '1234567890' + #8, 100, false, '', application.Title, 'Qual o código do Produto que deseja filtrar as notas?', '');
+    if Prod = '*' then exit;
+
+    dini1 := StrToDateTime(dini);
+    dfim1 := StrToDateTime(dfim);
+
+    form19.RichEdit1.Clear;
+    addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 78) + CRLF);
+    addRelatorioForm19(funcoes.CompletaOuRepete
+      (funcoes.centraliza(form22.Pgerais.Values['empresa'], ' ', 78), '', ' ',
+      78) + CRLF);
+    addRelatorioForm19(funcoes.CompletaOuRepete
+      (funcoes.centraliza('RELATORIO DE NFE EMITIDAS POR CLIENTE DE ' + dini +
+      ' A ' + dfim, ' ', 78), '', ' ', 78) + CRLF);
+    addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 78) + CRLF);
+    // addRelatorioForm19('  NOTA   DATA   CLIENTE                                       CHAVE                      SITUACAO' + CRLF);
+    addRelatorioForm19
+      ('  NOTA   DATA   CLIENTE                                 SITUACAO         TOTAL'
+      + CRLF);
+    addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 78) + CRLF);
+
+    arq := TStringList.Create;
+    totSai := 0;
+    totEnt := 0;
+    totCANC := 0;
+
+    dm.ibselect.Close;
+    dm.ibselect.SQL.Text :=
+      'select * from nfe where data >= :ini and data <= :fim  and ((tipo <> ''3'') or (tipo is null))  ORDER BY NOTA';
+    dm.ibselect.ParamByName('ini').AsDate := dini1;
+    dm.ibselect.ParamByName('fim').AsDate := dfim1;
+    dm.ibselect.Open;
+
+    while not dm.ibselect.Eof do
+    begin
+      IF FileExists(pstaNfe + dm.ibselect.FieldByName('chave').AsString + '-nfe.xml') then begin
+        dm.ACBrNFe.NotasFiscais.Clear;
+        dm.ACBrNFe.NotasFiscais.LoadFromFile(pstaNfe + dm.ibselect.FieldByName('chave').AsString + '-nfe.xml');
+
+        ok := false;
+        for I := 0 to dm.ACBrNFe.NotasFiscais[0].NFe.Det.Count -1 do begin
+          if StrToInt(dm.ACBrNFe.NotasFiscais[0].NFe.Det[i].Prod.cProd) = StrToInt(prod) then begin
+            ok := true;
+            dm.ACBrNFe.NotasFiscais.Clear;
+            break;
+          end;
+        end;
+
+
+      if ok then begin
+
+        arq.LoadFromFile(pstaNfe + dm.ibselect.FieldByName('chave').AsString +
+          '-nfe.xml');
+        sit := Le_Nodo('cStat', arq.GetText);
+
+        if dm.ibselect.FieldByName('estado').AsString = 'C' then
+          sit := '135';
+
+        if ((sit = '100') or (sit = '150')) then
+        begin
+          sit := 'AUTORIZADA';
+          totVNF := totVNF + valXML(Le_Nodo('vNF', arq.GetText));
+          if Le_Nodo('tpNF', arq.GetText) = '1' then
+            totSai := totSai + StrToCurrDef
+              (StringReplace(Le_Nodo('vNF', arq.GetText), '.', ',',
+              [rfReplaceAll, rfIgnoreCase]), 0)
+          else
+            totEnt := totEnt + StrToCurrDef
+              (StringReplace(Le_Nodo('vNF', arq.GetText), '.', ',',
+              [rfReplaceAll, rfIgnoreCase]), 0);
+        end
+        else if sit = '101' then
+          sit := 'CANCELADA'
+        else if sit = '135' then
+        begin
+          sit := 'CANCELADA';
+          totCANC := totCANC + valXML(Le_Nodo('vNF', arq.GetText));
+        end
+        else
+          sit := 'NAO AUTOR.';
+
+        if dm.ibselect.FieldByName('estado').AsString = 'C' then
+          sit := 'CANCELADA';
+
+        tmp := LeftStr(Le_Nodo('dhEmi', arq.GetText), 10);
+        tmp := funcoes.dataInglesToBrasil(tmp);
+
+        if cancel = 'S' then
+        begin
+          addRelatorioForm19(funcoes.CompletaOuRepete('',
+            Le_Nodo('nNF', arq.GetText), '0', 6) + ' ' +
+            FormatDateTime('dd/mm/yy', StrToDateDef(tmp, now)) + ' ' +
+            funcoes.CompletaOuRepete(LeftStr(Le_Nodo('xNome', Le_Nodo('dest',
+            arq.GetText)), 36), '', ' ', 36) + '   ' + CompletaOuRepete(sit, '',
+            ' ', 10) + ' ' + CompletaOuRepete('', FormatCurr('0.00',
+            valXML(Le_Nodo('vNF', arq.GetText))), ' ', 12) + CRLF);
+          qtdnotas := qtdnotas + 1;
+        end
+        else
+        begin
+          if sit = 'CANCELADA' then
+          begin
+            addRelatorioForm19(funcoes.CompletaOuRepete('',
+              Le_Nodo('nNF', arq.GetText), '0', 6) + ' ' +
+              FormatDateTime('dd/mm/yy', StrToDateDef(tmp, now)) + ' ' +
+              funcoes.CompletaOuRepete(LeftStr(Le_Nodo('xNome', Le_Nodo('dest',
+              arq.GetText)), 36), '', ' ', 36) + '   ' + CompletaOuRepete(sit,
+              '', ' ', 10) + ' ' + CompletaOuRepete('', FormatCurr('0.00',
+              valXML(Le_Nodo('vNF', arq.GetText))), ' ', 12) + CRLF);
+            totCANC := totCANC + valXML(Le_Nodo('vNF', arq.GetText));
+            qtdnotas := qtdnotas + 1;
+          end;
+        end; //if cancel = 'S' then
+      end;//if ok then begin
+      end //IF FileExists(pstaNfe + dm.ibselect.FieldByName('chave').AsString + '-nfe.xml') then begin
+      else begin
+        if not dm.ibselect.FieldByName('xml').IsNull then begin
+
+             dm.ACBrNFe.NotasFiscais.Clear;
+             dm.ACBrNFe.NotasFiscais.LoadFromString(dm.ibselect.FieldByName('xml').AsString);
+             //dm.ACBrNFe.NotasFiscais[0].GravarXML(pstaNfe + dm.ibselect.FieldByName('chave').AsString + '-nfe.xml');
+             ok := false;
+             for I := 0 to dm.ACBrNFe.NotasFiscais[0].NFe.Det.Count -1 do begin
+               if StrToInt(dm.ACBrNFe.NotasFiscais[0].NFe.Det[i].Prod.cProd) = StrToInt(prod) then begin
+                 ok := true;
+                 dm.ACBrNFe.NotasFiscais.Clear;
+                 break;
+               end;
+             end;
+
+
+        if ok then begin
+          arq.Text := dm.ibselect.FieldByName('xml').AsString;
+          sit := Le_Nodo('cStat', arq.GetText);
+
+          if dm.ibselect.FieldByName('estado').AsString = 'C' then
+            sit := '135';
+
+          if ((sit = '100') or (sit = '150')) then
+          begin
+            sit := 'AUTORIZADA';
+
+            if Le_Nodo('tpNF', arq.GetText) = '1' then
+              totSai := totSai + StrToCurrDef
+                (StringReplace(Le_Nodo('vNF', arq.GetText), '.', ',',
+                [rfReplaceAll, rfIgnoreCase]), 0)
+            else
+              totEnt := totEnt + StrToCurrDef
+                (StringReplace(Le_Nodo('vNF', arq.GetText), '.', ',',
+                [rfReplaceAll, rfIgnoreCase]), 0);
+
+            totVNF := totVNF + valXML(Le_Nodo('vNF', arq.GetText));
+          end
+          else if sit = '101' then
+          begin
+            sit := 'CANCELADA';
+            totCANC := totCANC + valXML(Le_Nodo('vNF', arq.GetText));
+          end
+          else if sit = '135' then
+          begin
+            sit := 'CANCELADA';
+            totCANC := totCANC + valXML(Le_Nodo('vNF', arq.GetText));
+          end
+          else
+            sit := 'NAO AUTOR.';
+
+          tmp := LeftStr(Le_Nodo('dhEmi', arq.GetText), 10);
+          tmp := funcoes.dataInglesToBrasil(tmp);
+
+          if cancel = 'S' then
+          begin
+            addRelatorioForm19(funcoes.CompletaOuRepete('',
+              Le_Nodo('nNF', arq.GetText), '0', 6) + ' ' +
+              FormatDateTime('dd/mm/yy', StrToDateDef(tmp, now)) + ' ' +
+              funcoes.CompletaOuRepete(LeftStr(Le_Nodo('xNome', Le_Nodo('dest',
+              arq.GetText)), 36), '', ' ', 36) + '   ' + CompletaOuRepete(sit,
+              '', ' ', 10) + ' ' + CompletaOuRepete('', FormatCurr('0.00',
+              valXML(Le_Nodo('vNF', arq.GetText))), ' ', 12) + CRLF);
+            qtdnotas := qtdnotas + 1;
+          end
+          else
+          begin
+            if sit = 'CANCELADA' then
+            begin
+              addRelatorioForm19(funcoes.CompletaOuRepete('',
+                Le_Nodo('nNF', arq.GetText), '0', 6) + ' ' +
+                FormatDateTime('dd/mm/yy', StrToDateDef(tmp, now)) + ' ' +
+                funcoes.CompletaOuRepete(LeftStr(Le_Nodo('xNome',
+                Le_Nodo('dest', arq.GetText)), 36), '', ' ', 36) + '   ' +
+                CompletaOuRepete(sit, '', ' ', 10) + ' ' + CompletaOuRepete('',
+                FormatCurr('0.00', valXML(Le_Nodo('vNF', arq.GetText))), ' ',
+                12) + CRLF);
+              totCANC := totCANC + valXML(Le_Nodo('vNF', arq.GetText));
+              qtdnotas := qtdnotas + 1;
+            end;
+          end;//if cancel = 'S' then
+        end;//if ok then begin
+        end//if not dm.ibselect.FieldByName('xml').IsNull then begin
+        else
+        begin
+          addRelatorioForm19(funcoes.CompletaOuRepete('', '0', '0', 6) + ' ' +
+            FormatDateTime('dd/mm/yy', dm.ibselect.FieldByName('data')
+            .AsDateTime) + ' ' + funcoes.CompletaOuRepete('XML NAO ENCONTRADO1',
+            '', ' ', 36) + '   ' + CompletaOuRepete('', '', ' ', 10) + ' ' +
+            CompletaOuRepete('', FormatCurr('0.00', 0), ' ', 12) + CRLF);
+        end;
+      end;
+
+
+      dm.ibselect.Next;
+    end;
+
+    addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 78) + CRLF);
+    addRelatorioForm19(funcoes.CompletaOuRepete('ENTRADAS   ==>',
+      FormatCurr('#,###,###0.00', totEnt), '.', 78) + CRLF);
+    addRelatorioForm19(funcoes.CompletaOuRepete('SAIDAS     ==>',
+      FormatCurr('#,###,###0.00', totSai), '.', 78) + CRLF);
+    addRelatorioForm19(funcoes.CompletaOuRepete('T O T A L  ==>',
+      FormatCurr('#,###,###0.00', totVNF), '.', 78) + CRLF);
+    addRelatorioForm19(funcoes.CompletaOuRepete('CANCELADAS ==>',
+      FormatCurr('#,###,###0.00', totCANC), '.', 78) + CRLF);
+    addRelatorioForm19(funcoes.CompletaOuRepete('QUANTIDADES DE NOTAS => ' +
+      IntToStr(qtdnotas), '', ' ', 78) + CRLF);
+    addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 78) + CRLF);
+
+    lista.Free;
+    arq.Free;
+    form19.showmodal;
+
+end;
+
+procedure TForm2.NFePorCliente1Click(Sender: TObject);
+var
+    dini, dfim, pstaNfe, tmp, sit, cancel, prod: string;
     dini1, dfim1: TDate;
     arq, lista: TStringList;
     i1, f1, qtdnotas: integer;

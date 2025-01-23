@@ -273,6 +273,7 @@ begin
       end;
       //nfevenda.temp.Add(codtransp.Text);
       dm.IBQuery1.Close;
+
       close;
 end;
 
