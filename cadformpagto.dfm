@@ -90,9 +90,9 @@ object Form15: TForm15
     object Label9: TLabel
       Left = 168
       Top = 128
-      Width = 53
+      Width = 36
       Height = 13
-      Caption = 'Imp. Fiscal:'
+      Caption = 'Faturar:'
     end
     object cod: JsEditInteiro
       Left = 8

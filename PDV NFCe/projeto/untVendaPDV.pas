@@ -95,13 +95,13 @@ type
     dav, EnterHabilitado : boolean;
     recebido, recebido1, troco, entrada, utiLeituraBalanca : currency;
     nota_venda, codhis, receb, obs, crc, corte, codTemp, balArredonda : String;
-    formasP, formaPagtoImpressora : TStringList;
+    formasP : TStringList;
     dadosEmpresa : TStringList;
     inicio : smallint;
     TotTributos : currency;
     indice, vendedor, NomeVendedorTemp, tipoArredondaVenda, codECF : string;
     formasPagamento : TClientDataSet;
-    cupomAberto, vendendoECF, cupomAberto1, vendeuf2 : boolean;
+    cupomAberto, vendendoECF, cupomAberto1, vendeuf2, pagamentoMistoOK : boolean;
     arq : TStringList;
     usarOFFLINE : boolean;
     codCliente, valCert, qtdCupom : String;
@@ -150,9 +150,11 @@ type
     procedure identificaCliente(var codcli : String);
     procedure escreveTotal;
     function checaPIX : Boolean;
+    procedure buscaFormasMistaPreencheFormasNoFromVendas;
     { Private declarations }
   public
     acessoUsuVenda, configu, usaDLL, CodVendedorTemp, condicao : string;
+    formaPagtoImpressora : TStringList;
     balOnline, abreLocalizaPesagem, tabelaPROMOC_EXISTE : boolean;
     tot_ge, desconto, descontoItens, tot1 : currency;
     procedure adicionaRegistroPagamentoBanco(tipo :string; valor : currency; nota : integer; obs : String);
@@ -175,7 +177,8 @@ implementation
 
 uses untDtmMain,  StrUtils, login1,
   MenuFiscal, consultaProduto, Math, dmecf, configImp, dialog, mens,
-  cadCli, importapedido, untConfiguracoesNFCe, untmain, qrcodePIX, Unit15;
+  cadCli, importapedido, untConfiguracoesNFCe, untmain, qrcodePIX, Unit15,
+  pagamento;
 
 {$R *.dfm}
 procedure TForm3.setaCoresPDV();
@@ -695,6 +698,26 @@ begin
       IBClientDataSet1.Next;
     end;
 
+  if pagamentoMistoOK then begin
+
+    form82.ClientDataSet1.First;
+    while not form82.ClientDataSet1.Eof do begin
+      dtmMain.IBQuery1.Close;
+      dtmMain.IBQuery1.SQL.Text := 'insert into PAGAMENTOVENDA(cod, nota, data, formapagto, valor) ' +
+      'values(gen_id(PAGAMENTOVENDA, 1), :nota, :data, :formpagto, :valor)';
+      dtmMain.IBQuery1.ParamByName('nota').AsInteger := StrToInt(nota_venda);
+      dtmMain.IBQuery1.ParamByName('data').AsDate    := now;
+      dtmMain.IBQuery1.ParamByName('formpagto').AsInteger := form82.ClientDataSet1.FieldByName('cod').AsInteger;
+      dtmMain.IBQuery1.ParamByName('valor').AsCurrency    := form82.ClientDataSet1.FieldByName('valor').AsCurrency;
+      dtmMain.IBQuery1.ExecSQL;
+      //dtmMain.IBQuery1.Transaction.Commit;
+
+
+      form82.ClientDataSet1.Next;
+    end;
+  end;
+
+
   if dtmMain.IBQuery1.Transaction.Active then dtmMain.IBQuery1.Transaction.Commit;
   Result := true;
   {Except
@@ -857,7 +880,18 @@ begin
   {aki leu as formas de pagamento e preencheu o clientdataset com as formas
   de pagamento e totais}
 
-  lerFormasParaGravarAVendaPreencheEntrada;
+
+  pagamentoMistoOK := false;
+  if codhis = '99' then begin
+    buscaFormasMistaPreencheFormasNoFromVendas;
+
+    if pagamentoMistoOK = false then begin
+      exit;
+    end;
+  end
+  else begin
+    lerFormasParaGravarAVendaPreencheEntrada;
+  end;
 
   if formasPagamento.IsEmpty then exit;
 
@@ -1615,6 +1649,9 @@ procedure TForm3.FormCreate(Sender: TObject);
 begin
   inicio := 1;
   tot_ge := 0;
+
+  versaoExecutavel := 'PDV';
+
 //  ECF := dtmMain.ACBrECF1;
 
   tecladoOK := true;
@@ -3172,10 +3209,14 @@ begin
     formasPagamento.Next;
   end;
 
+  if Result = false then exit;
+  
+
   if form15.VerificarConfiguracaoPIXCD = false then begin
     exit;
   end;
 
+  
   Result := true;
 
   {
@@ -3211,6 +3252,35 @@ begin
   CloseFile(F);
 end;
 
+procedure TForm3.buscaFormasMistaPreencheFormasNoFromVendas;
+var
+  totTemp : currency;
+begin
+  form82.totalVenda := tot_ge;
+  form82.ShowModal;
+
+  formasPagamento.EmptyDataSet;
+  form82.ClientDataSet1.First;
+  totTemp  := 0;
+  while not form82.ClientDataSet1.Eof do begin
+    formasPagamento.Append;
+    formasPagamento.FieldByName('cod').AsString     := form82.ClientDataSet1.FieldByName('cod').AsString;
+    formasPagamento.FieldByName('indImp').AsString  := formaPagtoImpressora.Values[formasPagamento.FieldByName('cod').AsString];
+    formasPagamento.FieldByName('total').AsCurrency := form82.ClientDataSet1.FieldByName('valor').AsCurrency;
+    formasPagamento.Post;
+
+    totTemp := totTemp + form82.ClientDataSet1.FieldByName('valor').AsCurrency;
+
+    form82.ClientDataSet1.Next;
+  end;
+
+  if totTemp = tot_ge then begin
+   pagamentoMistoOK := true;
+  end
+  else begin
+    ShowMessage('Pagamentos Não Conferem com Total da Venda!');
+  end;
+end;
 
 end.
 

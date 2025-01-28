@@ -4,7 +4,7 @@ interface
 
 uses controls, windows, forms, Types , messages,  classes1, classes,StdCtrls,Dialogs, db,
 SysUtils, ExtCtrls, JsEditInteiro1, JsEditNumero1, ComCtrls, dialog, graphics, acbrECF,acbrbal, dbgrids, jsedit1, acbrutil,
-gifAguarde, IdTCPConnection, IdTCPClient, FireDAC.Comp.Client;
+gifAguarde, IdTCPConnection, IdTCPClient, FireDAC.Comp.Client, formas;
 
 procedure mensagemEnviandoNFCE(const msg : String; abrir, fechar : boolean);
 procedure MeuKeyPress1(Sender: TObject; var Key: Char);
@@ -537,6 +537,11 @@ end;
 
 function LerFormPato(index:integer; label1 : string; escSair : boolean) : string;
 begin
+  form5.ListBox1.ItemIndex := 0;
+  form5.ShowModal;
+
+  Result := copy(form5.valor, 1, pos('-', form5.valor) -1);
+  Result := trim(Result);
 end;
 
 FUNCTION DIGEAN(vx_cod : string) : string;

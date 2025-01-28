@@ -429,6 +429,7 @@ type
     PorVendedorCliente1: TMenuItem;
     AdicionarFotoProduto1: TMenuItem;
     NFeNFCeProduto1: TMenuItem;
+    RelatoriodeOramentos1: TMenuItem;
     procedure LimparBloqueios1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure CadastrarUsurio1Click(Sender: TObject);
@@ -745,6 +746,7 @@ type
     procedure PorVendedorCliente1Click(Sender: TObject);
     procedure AdicionarFotoProduto1Click(Sender: TObject);
     procedure NFeNFCeProduto1Click(Sender: TObject);
+    procedure RelatoriodeOramentos1Click(Sender: TObject);
   private
     b, cont: integer;
     ini: Smallint;
@@ -762,6 +764,7 @@ type
     grupo, fornec, fabric: string;
     nota, separarUsuario: string;
     dataset: TClientDataSet;
+    formaPagtosAprazo : TStringList;
     procedure atualizaLabel(cont1: integer);
     procedure relClienteNota(cliente: String = '');
     procedure ativaModoSistemaEconomico;
@@ -4569,6 +4572,7 @@ begin
   form40.tipo.Add('139=generico');
   form40.tipo.Add('140=generico');
   form40.tipo.Add('141=generico');
+  form40.tipo.Add('142=generico');
 
   form40.troca := TStringList.Create;
   form40.troca.Add('0=S');
@@ -4716,6 +4720,7 @@ begin
   form40.troca.Add('139=S');
   form40.troca.Add('140=S');
   form40.troca.Add('141=S');
+  form40.troca.Add('142=S');
   
   form40.teclas := TStringList.Create;
   form40.teclas.Add('0=FT');
@@ -4862,6 +4867,7 @@ begin
   form40.teclas.Add('139=SN');
   form40.teclas.Add('140=1234567890' + #8);
   form40.teclas.Add('141=1234567890' + #8);
+  form40.teclas.Add('142=SN');
 
   form40.ListBox1.Clear;
   form40.ListBox1.Items.Add
@@ -5095,6 +5101,7 @@ begin
   form40.ListBox1.Items.Add('139=Bloquear a Exibicao avista aprazo na Tela de Vendas(S/N)');
   form40.ListBox1.Items.Add('140=Limitar QTD de telas no sistema ?');
   form40.ListBox1.Items.Add('141=Qual o Nivel de acesso pra ter acesso a ficha de produto na venda(padrao 2) ?');
+  form40.ListBox1.Items.Add('142=Usar 2 linhas para DESCRICAO de produtos no tipo de pedido TICKET ?');
 
 
 
@@ -6332,8 +6339,7 @@ begin
   Form34.cont := 2;
   Form34.juros := StrToCurr(funcoes.ConverteNumerico(juros));
 
-  if Form34.juros < 0 then
-  begin
+  if Form34.juros < 0 then begin
     MessageDlg('Valor de Juros nao pode ser Negativo, Acesso Negado!',
       mtInformation, [mbOK], 1);
     exit;
@@ -11306,7 +11312,7 @@ begin
         else
         begin
           // se for a prazo entao so dimunui do aprazo o valor avista
-          if dm.ibselect.FieldByName('codhis').AsInteger = 2 then
+          if ((dm.ibselect.FieldByName('codhis').AsInteger = 2) or (formaPagtosAprazo.Values[dm.ibselect.FieldByName('codhis').AsString] = 'P')) then
           begin
             totais.Values[dm.ibselect.FieldByName('codhis').AsString] :=
               CurrToStr(StrToCurrDef(totais.Values
@@ -11639,7 +11645,7 @@ begin
         StrToCurr(totais.Values[totais.Names[b]]);
     end;
 
-    if totais.Names[b] <> '2' then
+    if ((totais.Names[b] <> '2') and (formaPagtosAprazo.Values[totais.Names[b]] <> 'P')) then
       totalgeral := totalgeral + StrToCurr(totais.Values[totais.Names[b]]);
     if totais.Names[b] = 'out' then
     begin
@@ -11920,6 +11926,8 @@ begin
         'where cod=' + cliente), '', ' ', 80) + #13 + #10))));
       form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((#13 + #10))));
     end;
+
+
     totalgeral := totalgeral + dm.ibselect.FieldByName('total').AsCurrency;
     form19.RichEdit1.Perform(EM_REPLACESEL, 1,
       Longint(PChar((funcoes.CompletaOuRepete('',
@@ -19433,6 +19441,16 @@ procedure TForm2.ClientesemAtraso1Click(Sender: TObject);
     cont := 1;
 
     ClientDataSet1.CreateDataSet;
+    formaPagtosAprazo := TStringList.Create;
+
+    dm.IBselect.close;
+    dm.IBselect.SQL.Text := 'select cod, imp_fiscal from FORMPAGTO';
+    dm.IBselect.Open;
+
+    while not dm.IBselect.Eof do begin
+      formaPagtosAprazo.Add(dm.IBselect.FieldByName('cod').AsString + '=' + dm.IBselect.FieldByName('imp_fiscal').AsString);
+      dm.IBselect.Next;
+    end;
   end;
 
   procedure TForm2.Geral2Click(Sender: TObject);
@@ -25205,8 +25223,7 @@ var
     if emi = '*' then
       exit;
 
-    tudo := funcoes.dialogo('generico', 50, 'SN', 50, true, 'S',
-      application.Title, 'Gerar Tudo ?', 'N');
+    tudo := funcoes.dialogo('generico', 50, 'SN', 50, true, 'S', application.Title, 'Gerar Tudo ?', 'N');
     if tudo = '*' then
       exit;
 
@@ -25375,6 +25392,104 @@ begin
   end;
 
   form19.ShowModal;
+end;
+
+procedure TForm2.RelatoriodeOramentos1Click(Sender: TObject);
+ var
+    ini, fim, somenteClientesInformados, vend, h1, h2, h3: String;
+    totalgeral: currency;
+    b: integer;
+  begin
+    ini := funcoes.dialogo('data', 0, '', 50, true, '', application.Title,
+      'Qual a Data Inicial?', '');
+    if ini = '*' then
+      exit;
+
+    fim := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,
+      'Qual a Data Final?', '');
+    if fim = '*' then
+      exit;
+
+    somenteClientesInformados := funcoes.dialogo('generico', 50, 'SN', 50, true, 'S', application.Title, 'Filtrar Somente Clientes Indentificados ?', 'N');
+    if somenteClientesInformados = '*' then exit;
+
+    h1 := ''; h2 := ''; h3 := '';
+    if somenteClientesInformados = 'S' then h1 := ' and (o.cliente > 0) ';
+
+
+    cliente := funcoes.dialogo('generico', 0, '1234567890,.' + #8, 50, false,
+      '', application.Title, 'Qual o Cód do Cliente?', '');
+    if cliente = '*' then
+      exit;
+
+    if cliente <> '' then h2 := ' and (o.cliente = '+strnum(cliente)+')';
+
+    vend := funcoes.dialogo('generico', 0, '1234567890,.' + #8, 50, false,
+      '', application.Title, 'Qual o Cód do Vendedor?', '');
+    if vend = '*' then
+      exit;
+
+    if vend <> '' then h3 := ' and (o.vendedor = '+strnum(vend)+')';
+
+
+    form19.RichEdit1.Clear;
+    form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+      Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10))));
+    form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+      Longint(PChar((funcoes.CompletaOuRepete(funcoes.LerValorPGerais('empresa',
+      form22.Pgerais), 'DATA: ' + FormatDateTime('dd/mm/yy', now) + '|', ' ',
+      80) + #13 + #10))));
+    addRelatorioForm19(funcoes.CompletaOuRepete('ORCAMENTOS DE ' + FormatDateTime('dd/mm/yy', StrToDate(ini)) + ' A ' + FormatDateTime('dd/mm/yy', StrToDate(fim)), 'HORA: ' + FormatDateTime('tt', now) + '|', ' ', 80) + #13 + #10);
+    form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+      Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10))));
+    addRelatorioForm19('    NOTA DATA         TOTAL    DESCTO   PAG CLIENTE' + #13+ #10);
+    //addRelatorioForm19('DADOS DO CLIENTE' + #13+ #10);
+    form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+      Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10))));
+    // form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((#13+#10))));
+
+    dm.ibselect.Close;
+    dm.ibselect.SQL.Text :=
+      ('select o.nota, o.data, o.total, o.vendedor, o.cliente, o.desconto, o.codhis, c.nome, c.telres, c.telcom from orcamento o' +
+      ' left join cliente c on (c.cod = o.cliente) where ((o.data >= :v1) and (o.data <= :v2)) ' + h1 + h2 + h3);
+    dm.ibselect.ParamByName('v1').AsDateTime := StrToDate(ini);
+    dm.ibselect.ParamByName('v2').AsDateTime := StrToDate(fim);
+    dm.ibselect.Open;
+
+    totalgeral := 0;
+    TOTDESC    := 0;
+
+    b := 0;
+    while not dm.ibselect.Eof do
+    begin
+      totalgeral := totalgeral + dm.ibselect.FieldByName('total').AsCurrency;
+      TOTDESC    := TOTDESC    + dm.ibselect.FieldByName('desconto').AsCurrency;
+
+      addRelatorioForm19(funcoes.CompletaOuRepete('',dm.ibselect.FieldByName('nota').AsString, ' ', 8) + ' ' +
+      funcoes.CompletaOuRepete(FormatDateTime('dd/mm/yy',dm.ibselect.FieldByName('data').AsDateTime), '', ' ', 8) + ' ' +
+      funcoes.CompletaOuRepete('', FormatCurr('0.00', dm.ibselect.FieldByName('total').AsCurrency), ' ', 9) + ' ' +
+      funcoes.CompletaOuRepete('', FormatCurr('0.00', dm.ibselect.FieldByName('desconto').AsCurrency), ' ', 9) + ' ' +
+      funcoes.CompletaOuRepete('', dm.ibselect.FieldByName('codhis').AsString, '0', 3)+ ' ');
+
+      if length(dm.ibselect.FieldByName('nome').AsString + ' ' + alltrim(dm.ibselect.FieldByName('telres').AsString)+' '+ alltrim(dm.ibselect.FieldByName('telcom').AsString) ) > 38 then begin
+        addRelatorioForm19(funcoes.QuebraLinhas('','',dm.ibselect.FieldByName('cliente').AsString+'-'+ dm.ibselect.FieldByName('nome').AsString + ' ' + alltrim(dm.ibselect.FieldByName('telres').AsString)+' '+ alltrim(dm.ibselect.FieldByName('telcom').AsString), 38));
+      end
+      else addRelatorioForm19(dm.ibselect.FieldByName('cliente').AsString+'-'+dm.ibselect.FieldByName('nome').AsString + ' ' + alltrim(dm.ibselect.FieldByName('telres').AsString)+' '+ alltrim(dm.ibselect.FieldByName('telcom').AsString) + CRLF);
+
+      b := b + 1;
+
+      //funcoes.CompletaOuRepete(LeftStr(dm.ibselect.FieldByName('nome').AsString, 30) , '', ' ', 30) +' '+ alltrim(dm.ibselect.FieldByName('telres').AsString)+' '+ alltrim(dm.ibselect.FieldByName('telcom').AsString) + #13 + #10);
+      dm.ibselect.Next;
+    end;
+
+    dm.ibselect.Close;
+    addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10);
+    addRelatorioForm19(funcoes.CompletaOuRepete('TOTAL GERAL =>   ' +FormatCurr('#,###,###0.00', totalgeral), '', ' ', 80) + #13 + #10);
+    addRelatorioForm19(funcoes.CompletaOuRepete('DESCONTOS   =>   ' +FormatCurr('#,###,###0.00', TOTDESC), '', ' ', 80) + #13 + #10);
+    addRelatorioForm19(funcoes.CompletaOuRepete('QTD REGISTRO=>   ' +IntToStr(b), '', ' ', 80) + #13 + #10);
+    addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10);
+    form19.showmodal;
+
 end;
 
 procedure TForm2.RelatriodePendnciasNFCe1Click(Sender: TObject);

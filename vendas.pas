@@ -129,7 +129,7 @@ type
     entrada, avista, aprazo, troco, recebido, totVolumes, totVenda: currency;
     testa, EXPORTADO, tamanhoFonteTotal, tamFontDesc, CasasDecimaisQuantidade: Smallint;
     pedido, configUsuarioConfirmarPreco, NomeOrcamento, formaAlterada: string;
-    bdSmall: boolean;
+    bdSmall, vendaAPrazo: boolean;
     configUsuario, clienteNome, ultimaNota, ordemCompra, ENDE_ENTREGA, adicionarEntrega,
     tipoTrocaDescontoUsuario, ultOrcamentoRecuperado : String;
     semCliente: boolean;
@@ -4439,10 +4439,14 @@ begin
         if imprRefxx = '' then
           imprRefxx := '-->';
 
-        addRelatorioForm19
-          (funcoes.CompletaOuRepete(copy(codigo1 + '-' +
-          ClientDataSet1.FieldByName('descricao').AsString, 1, 40), '', ' ',
-          40) + CRLF);
+        if funcoes.buscaParamGeral(142, 'N') = 'N' then begin
+          addRelatorioForm19(funcoes.CompletaOuRepete(copy(codigo1 + '-' + ClientDataSet1.FieldByName('descricao').AsString, 1, 40), '', ' ',40) + CRLF);
+        end
+        else begin
+          addRelatorioForm19(funcoes.QuebraLinhas('','', codigo1 + '-' + ClientDataSet1.FieldByName('descricao').AsString, 40)) ;
+        end;
+
+
         addRelatorioForm19(funcoes.CompletaOuRepete(LeftStr(imprRefxx, 16), '',
           ' ', 16) + funcoes.CompletaOuRepete('', FormatCurr('0.00',
           ClientDataSet1.FieldByName('quant').AsCurrency), ' ', 7) +
@@ -4452,12 +4456,20 @@ begin
         dm.IBselect.Close;
       end
       else begin
-        form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+        codigo1 := ClientDataSet1.FieldByName('codigo').AsString;
+        if funcoes.buscaParamGeral(142, 'N') = 'N' then begin
+          addRelatorioForm19(funcoes.CompletaOuRepete(codigo1 + '-' + copy(ClientDataSet1.FieldByName('descricao').AsString, 1,37 - length(codigo1)), '', ' ',40) + #13 + #10);
+        end
+        else begin
+          addRelatorioForm19(funcoes.QuebraLinhas('','', codigo1 + '-' + ClientDataSet1.FieldByName('descricao').AsString, 40)) ;
+        end;
+
+       { form19.RichEdit1.Perform(EM_REPLACESEL, 1,
           Longint(PChar((funcoes.CompletaOuRepete(ClientDataSet1.FieldByName
           ('codigo').AsString + '-' + copy(ClientDataSet1.FieldByName
           ('descricao').AsString, 1,
           37 - length(ClientDataSet1.FieldByName('codigo').AsString)), '', ' ',
-          40) + #13 + #10))));
+          40) + #13 + #10))));  }
 
         //addRelatorioForm19(funcoes.CompletaOuRepete('=>QTD:', FormatCurr('0.00',
         //addRelatorioForm19(funcoes.CompletaOuRepete('>'+LeftStr(ClientDataSet1unid.AsString, 4)+' ', FormatCurr('0.00',ClientDataSet1.FieldByName('quant').AsCurrency), ' ',
@@ -4686,7 +4698,7 @@ begin
     if Assigned(Parcelamento) then
     begin
       if (funcoes.buscaParamGeral(20, '') = 'S') and (Modo_Venda) then begin
-        if codhis = '2' then funcoes.ImprimeParcelamentoOrca(Parcelamento, '', '');
+        if ((codhis = '2') or (vendaAPrazo)) then funcoes.ImprimeParcelamentoOrca(Parcelamento, '', '');
         //funcoes.ImprimeParcelamento('', '', FormatCurr('#,###,###0.00', StrToCurrDef(Parcelamento.Values['entrada'], 0)), novocod);
       end;
     end;
@@ -4973,9 +4985,14 @@ begin
       dinheiro := trim(dm.IBselect.FieldByName('dinheiro').AsString);
       aprazoFormaDiferenteDe2 := trim(dm.IBselect.FieldByName('imp_fiscal').AsString);
     end;
+  end
+  else begin
+    aprazoFormaDiferenteDe2 := form2.formaPagtosAprazo.Values[codhis];
   end;
 
-  if aprazoFormaDiferenteDe2 = 'P' then codhis := '2';
+  if ((codhis = '2') or (aprazoFormaDiferenteDe2 = 'P')) then vendaAPrazo := true;
+  
+  //if aprazoFormaDiferenteDe2 = 'P' then codhis := '2';
 
   if (StrToIntDef(codhis, 0) = 1) then
   begin
@@ -4988,7 +5005,7 @@ begin
 
 
 
-  if (StrToIntDef(codhis, 0) = 2) and (StrToIntDef(JsEdit1.Text, 0) = 0) then
+  if (vendaAPrazo) and (StrToIntDef(JsEdit1.Text, 0) = 0) then
   begin
     total_A_Limitar := ver_limites(JsEdit3.Text, total1);
     if total_A_Limitar = 0 then
@@ -6091,7 +6108,7 @@ begin
   dm.IBQuery1.ExecSQL;
   dm.IBQuery1.Transaction.Commit;
 
-  if codhis = '2' then
+  if ((codhis = '2') or (vendaAPrazo)) then
   begin
     buscaNomeCliente;
     insereEntrada(LeftStr(novocod + '-' + clienteNome, 30) + ' 1 /1', StrToCurrDef(Parcelamento.Values['entrada'],0));
@@ -6599,7 +6616,7 @@ begin
 
       fimVenda := 1;
 
-      if ((codhis = '2') and (Parcelamento.Count = 0)) then
+      if (((codhis = '2') or (vendaAPrazo)) and (Parcelamento.Count = 0)) then
       begin
         Parcelamento := funcoes.Parcelamento(total1, '*', JsEdit1.Text);
         entrada := StrToCurrDef(Parcelamento.Values['entrada'], 0);
@@ -6709,7 +6726,7 @@ begin
         end;
 
         COD_SERVICO  := '0';
-        if codhis = '2' then
+        if ((codhis = '2')or (vendaAPrazo)) then
         begin
           tmp3 := funcoes.buscaParamGeral(69, 'N');
           if contido(tmp3, 'DP') then
@@ -6925,6 +6942,7 @@ end;
 
 procedure TForm20.FormCreate(Sender: TObject);
 begin
+  vendaAPrazo := false;
   aprazoFormaDiferenteDe2 := '';
   ultOrcamentoRecuperado  := '';
   fimVenda := 0;

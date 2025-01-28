@@ -12045,6 +12045,10 @@ object Form2: TForm2
           Caption = 'Transfer'#234'ncias de Estoque'
           OnClick = ransferencias1Click
         end
+        object RelatoriodeOramentos1: TMenuItem
+          Caption = 'Relatorio de Or'#231'amentos'
+          OnClick = RelatoriodeOramentos1Click
+        end
       end
       object Faturamento1: TMenuItem
         Caption = 'Faturamento *'

@@ -6,7 +6,7 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Data.DB,
   Datasnap.DBClient, Vcl.Grids, Vcl.DBGrids, Vcl.ExtCtrls, Vcl.Buttons,
-  JsBotao1, JsEdit1, JsEditNumero1, func, ShellApi;
+  JsBotao1, JsEdit1, JsEditNumero1, func, ShellApi, formas;
 
 type
   TForm82 = class(TForm)
@@ -31,6 +31,8 @@ type
     Label7: TLabel;
     Label8: TLabel;
     p_restante: TLabel;
+    Label9: TLabel;
+    troco: TLabel;
     procedure Edit1KeyPress(Sender: TObject; var Key: Char);
     procedure JsEditNumero1KeyPress(Sender: TObject; var Key: Char);
     procedure JsBotao1Click(Sender: TObject);
@@ -39,6 +41,7 @@ type
       Shift: TShiftState);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormKeyPress(Sender: TObject; var Key: Char);
+    procedure ClientDataSet1AfterDelete(DataSet: TDataSet);
   private
 
     function buscaForma(cod : String) : boolean;
@@ -82,7 +85,10 @@ begin
 
   if key = #13 then begin
     if tedit(sender).Text = '' then begin
-      tedit(sender).Text := func.LerFormPato(0, 'Forma de Pagamento', true );
+        tedit(sender).Text := LerFormPato(0, 'Formas de Pagamento', true);
+
+
+      //func.LerFormPato(0, 'Forma de Pagamento', true );
       if tedit(sender).Text = '*' then tedit(sender).Text := '';
     end;
 
@@ -161,20 +167,21 @@ begin
   ClientDataSet1.CreateDataSet;
   ClientDataSet1.LogChanges := false;
 
-  dtmMain.IBQuery1.Close;
+{  dtmMain.IBQuery1.Close;
   dtmMain.IBQuery1.SQL.Text := 'select total from venda where nota = :nota';
   dtmMain.IBQuery1.ParamByName('nota').AsInteger := nota;
   dtmMain.IBQuery1.Open;
 
-  if dtmMain.IBQuery1.IsEmpty = false then totalVenda := dtmMain.IBQuery1.FieldByName('total').AsCurrency;
+  if dtmMain.IBQuery1.IsEmpty = false then totalVenda := dtmMain.IBQuery1.FieldByName('total').AsCurrency;}
 
   p_venda.Caption := formataCurrency(totalVenda);
   p_restante.Caption := formataCurrency(totalVenda);
   finalizou := 'N';
 
+  
   //essa rotina busca os pagamentos que ja foram preenchidos anteriormente
   // e insere no cds
-  buscaPagamentos;
+  //buscaPagamentos;
 
   p_venda.Font.Color := HexToTColor('4169E1');
   p_pago.Font.Color  := HexToTColor('8B0000');
@@ -215,10 +222,15 @@ end;
 procedure TForm82.adicionaFormaDePagamento();
 begin
   if (somaTotal + JsEditNumero1.getValor) > totalVenda then begin
-    MessageDlg('Valor Recebido Maior que o valor da Venda', mtError, [mbok], 1);
+    troco.Caption := formataCurrency(somaTotal + JsEditNumero1.getValor - totalVenda);
+    JsEditNumero1.setValor(JsEditNumero1.getValor - StrToCurr(troco.Caption));
+    {MessageDlg('Valor Recebido Maior que o valor da Venda', mtError, [mbok], 1);
     JsEditNumero1.SetFocus;
-    exit;
+    exit;}
   end;
+
+  if JsEditNumero1.getValor <= 0 then exit;
+
 
   if edit1.Text = '' then begin
     edit1.SetFocus;
@@ -315,5 +327,10 @@ begin
   end;
 
  end;
+
+procedure TForm82.ClientDataSet1AfterDelete(DataSet: TDataSet);
+begin
+  troco.Caption := '0,00';
+end;
 
 end.

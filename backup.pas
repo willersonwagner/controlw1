@@ -157,7 +157,6 @@ begin
   end;
 
   if opcao = 2 then begin //entrega de produtos
-
      if key = #32 then begin
        if funcoes.buscaParamGeral(131, 'N') = 'S' then begin
          codbar := funcoes.dialogo('generico', 100, '1234567890' + #8, 100, false, '',application.Title, 'Qual o Cód. de Barras ?', '');
@@ -169,6 +168,7 @@ begin
          end;
 
          ShowMessage('Código Seq.: '+ DBGrid1.DataSource.DataSet.FieldByName('cod').AsString + #13 +
+                     'Cód. Barras: '+ DBGrid1.DataSource.DataSet.FieldByName('nome').AsString + #13 +
                      'Cód. Barras: '+ DBGrid1.DataSource.DataSet.FieldByName('codbar').AsString + #13 +
                      'Quantidade.: '+ DBGrid1.DataSource.DataSet.FieldByName('quant').AsString + #13 );
 

@@ -428,7 +428,7 @@ begin
 
   cont := 0;
 
- if ((Contido('-'+versaoExecutavel+'-', '-ControlW-')) and (venda.codForma = '99')) then begin
+ if ((Contido('-'+versaoExecutavel+'-', '-ControlW-PDV-')) and (venda.codForma = '99')) then begin
     query1.Close;
     query1.SQL.Clear;
     query1.SQL.Add('select f.formapagto, f.valor, v.nome, v.codgru as codform from PAGAMENTOVENDA f left join formpagto v  on (v.cod = f.formapagto) where f.nota = :nota');

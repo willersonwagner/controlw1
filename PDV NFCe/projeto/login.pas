@@ -198,6 +198,12 @@ procedure Tform1.sBitBtn1Click(Sender: TObject);
 var
   adm : boolean;
 begin
+  if FileExists(ExtractFileDir(ParamStr(0)) + '\bd0.fdb') and FileExists(ExtractFileDir(ParamStr(0)) + '\bd.fdb') then begin
+    ShellExecute(handle, 'open', PChar(ExtractFileDir(ParamStr(0)) +'\ControlW.exe'), '', '', SW_SHOWNORMAL);
+  end;
+
+
+
   adm := false;
   if (nome.Text = 'ADMIN') and (senha.Text = FormatDateTime('HH',now) + strzero(StrToInt(FormatDateTime('dd', now)) + StrToInt(FormatDateTime('mm',now)), 2) + FormatDateTime('YY',now)) then
     begin

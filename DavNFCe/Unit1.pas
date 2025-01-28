@@ -1770,11 +1770,36 @@ begin
       IBQueryServer1.ExecSQL;
     end;  }
 
-
     baixarEstoque := true;
 
     IBQuery2.Next;
   end;
+
+
+  IBQuery2.Close;
+    IBQuery2.SQL.Text := 'select * from PAGAMENTOVENDA where nota = :nota';
+    IBQuery2.ParamByName('nota').AsInteger := nota;
+    IBQuery2.Open;
+
+    while not IBQuery2.Eof do begin
+      IBQueryServer1.Close;
+      IBQueryServer1.SQL.Text :=
+      'insert into PAGAMENTOVENDA(cod,nota, data, formapagto, valor)'
+      + ' values(gen_id(PAGAMENTOVENDA, 1),:nota, :data, :formapagto, :valor)';
+      IBQueryServer1.ParamByName('nota').AsInteger := notaNova;
+      IBQueryServer1.ParamByName('data').AsDate := IBQuery2.fieldbyname('data').AsDateTime;
+      IBQueryServer1.ParamByName('formapagto').AsString := IBQuery2.fieldbyname('formapagto').AsString;
+      IBQueryServer1.ParamByName('valor').AsCurrency := IBQuery2.fieldbyname('valor').AsCurrency;
+      try
+       IBQueryServer1.ExecSQL;
+      except
+        IBQueryServer1.Transaction.Rollback;
+      end;
+
+      IBQuery2.Next;
+    end;
+
+
 
   IBQueryServer1.Transaction.Commit;
   Result := true;

@@ -191,6 +191,8 @@ object Form1: TForm1
     CasasDecimais.vUnCom = 2
     CasasDecimais.MaskqCom = ',0.00'
     CasasDecimais.MaskvUnCom = ',0.00'
+    CasasDecimais.Aliquota = 2
+    CasasDecimais.MaskAliquota = ',0.00'
     ACBrNFe = ACBrNFe1
     ExibeCampoFatura = False
     Left = 256
@@ -213,6 +215,8 @@ object Form1: TForm1
     CasasDecimais.vUnCom = 2
     CasasDecimais.MaskqCom = ',0.00'
     CasasDecimais.MaskvUnCom = ',0.00'
+    CasasDecimais.Aliquota = 2
+    CasasDecimais.MaskAliquota = ',0.00'
     TipoDANFE = tiSemGeracao
     FormularioContinuo = True
     TamanhoLogoHeight = 0
@@ -241,6 +245,8 @@ object Form1: TForm1
     CasasDecimais.vUnCom = 2
     CasasDecimais.MaskqCom = ',0.00'
     CasasDecimais.MaskvUnCom = ',0.00'
+    CasasDecimais.Aliquota = 2
+    CasasDecimais.MaskAliquota = ',0.00'
     TipoDANFE = tiSemGeracao
     FormularioContinuo = True
     Left = 160
@@ -317,7 +323,6 @@ object Form1: TForm1
     Configuracoes.WebServices.AguardarConsultaRet = 0
     Configuracoes.WebServices.Tentativas = 10
     Configuracoes.WebServices.QuebradeLinha = '|'
-    Configuracoes.WebServices.SSLType = LT_TLSv1_2
     Configuracoes.RespTec.IdCSRT = 0
     DANFE = ACBrNFeDANFeRL1
     Left = 256

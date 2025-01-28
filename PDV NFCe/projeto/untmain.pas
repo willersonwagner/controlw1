@@ -833,7 +833,7 @@ var
   datarel: TDate;
   CONT: Char;
   lista, forma: TStringList;
-  i: integer;
+  i, a: integer;
 begin
   dtmMain.IBQuery1.Close;
   dtmMain.IBQuery1.SQL.Text := 'SELECT COD,NOME FROM USUARIO WHERE COD = :COD';
@@ -886,7 +886,7 @@ begin
     if FileExists(ExtractFileDir(ParamStr(0)) + '\NEMIT.dat') then begin
       dtmMain.IBQuery1.Close;
       dtmMain.IBQuery1.SQL.Text :=
-      'select (v.codhis) as forma, v.entrada, f.nome, v.total as valor, v.desconto as desconto  from venda v left join formpagto f on (v.codhis = f.cod) where (v.cancelado = 0)  and '
+      'select v.nota,(v.codhis) as forma, v.entrada, f.nome, v.total as valor, v.desconto as desconto  from venda v left join formpagto f on (v.codhis = f.cod) where (v.cancelado = 0)  and '
       + h1 + ' ((v.data >= :data) and (v.data <= :fim))';
       dtmMain.IBQuery1.ParamByName('data').AsDate := StrToDate(data);
       dtmMain.IBQuery1.ParamByName('fim').AsDate := StrToDate(fim);
@@ -895,7 +895,7 @@ begin
     else begin
       dtmMain.IBQuery1.Close;
       dtmMain.IBQuery1.SQL.Text :=
-      'select (v.codhis) as forma, v.entrada, f.nome, v.total as valor, v.desconto as desconto  from venda v left join formpagto f on (v.codhis = f.cod) where (v.cancelado = 0) and (entrega = ''E'') and (substring(v.crc from 8 for 9) = :crc) and '
+      'select v.nota,(v.codhis) as forma, v.entrada, f.nome, v.total as valor, v.desconto as desconto  from venda v left join formpagto f on (v.codhis = f.cod) where (v.cancelado = 0) and (entrega = ''E'') and (substring(v.crc from 8 for 9) = :crc) and '
       + h1 + ' ((v.data >= :data) and (v.data <= :fim))';
       dtmMain.IBQuery1.ParamByName('crc').AsString := strzero(getSerieNFCe, 2);
       dtmMain.IBQuery1.ParamByName('data').AsDate := StrToDate(data);
@@ -903,24 +903,43 @@ begin
       dtmMain.IBQuery1.Open;
     end;
 
-    while not dtmMain.IBQuery1.Eof do
-    begin
-      totvenda := dtmMain.IBQuery1.fieldbyname('valor').AsCurrency;
-      total := total + totvenda;
-      desconto := desconto + dtmMain.IBQuery1.fieldbyname('desconto')
-        .AsCurrency;
-      formpagto := dtmMain.IBQuery1.fieldbyname('forma').AsString;
+    while not dtmMain.IBQuery1.Eof do begin
+      a := 0;
+      if dtmMain.IBQuery1.fieldbyname('forma').AsString = '99' then begin
+        dtmMain.IBQuery2.Close;
+        dtmMain.IBQuery2.SQL.Text := 'select nota, formapagto as forma, valor from PAGAMENTOVENDA where nota = :nota';
+        dtmMain.IBQuery2.ParamByName('nota').AsString := dtmMain.IBQuery1.fieldbyname('nota').AsString;
+        dtmMain.IBQuery2.Open;
 
-      if dtmMain.IBQuery1.fieldbyname('entrada').AsCurrency > 0 then
-      begin
-        forma.Values['1'] := CurrToStr(StrToCurrDef(forma.Values['1'], 0) +
-          dtmMain.IBQuery1.fieldbyname('entrada').AsCurrency);
-        totvenda := totvenda - dtmMain.IBQuery1.fieldbyname('entrada')
-          .AsCurrency;
+        while not dtmMain.IBQuery2.Eof do begin
+          totvenda := dtmMain.IBQuery2.fieldbyname('valor').AsCurrency;
+          total := total + totvenda;
+
+          desconto := desconto + dtmMain.IBQuery1.fieldbyname('desconto').AsCurrency;
+          formpagto := dtmMain.IBQuery2.fieldbyname('forma').AsString;
+
+           forma.Values[formpagto] := CurrToStr(StrToCurrDef(forma.Values[formpagto],0) + totvenda);
+
+           a := 1;
+          //mfd.RichEdit1.Lines.Add(CompletaOuRepete(dtmMain.IBQuery2.FieldByName('nota').AsString, '', '-', 10));
+          dtmMain.IBQuery2.Next;
+        end;
       end;
 
-      forma.Values[formpagto] := CurrToStr(StrToCurrDef(forma.Values[formpagto],
-        0) + totvenda);
+      if a = 0 then begin
+        totvenda := dtmMain.IBQuery1.fieldbyname('valor').AsCurrency;
+        total := total + totvenda;
+        desconto := desconto + dtmMain.IBQuery1.fieldbyname('desconto').AsCurrency;
+        formpagto := dtmMain.IBQuery1.fieldbyname('forma').AsString;
+
+        if dtmMain.IBQuery1.fieldbyname('entrada').AsCurrency > 0 then begin
+          forma.Values['1'] := CurrToStr(StrToCurrDef(forma.Values['1'], 0) + dtmMain.IBQuery1.fieldbyname('entrada').AsCurrency);
+          totvenda := totvenda - dtmMain.IBQuery1.fieldbyname('entrada').AsCurrency;
+        end;
+
+        forma.Values[formpagto] := CurrToStr(StrToCurrDef(forma.Values[formpagto],0) + totvenda);
+      end;
+
       dtmMain.IBQuery1.Next;
     end;
   end
@@ -967,7 +986,7 @@ begin
 
      dtmMain.IBQuery1.Close;
     dtmMain.IBQuery1.SQL.Text :=
-      'select (v.codhis) as forma, v.entrada, f.nome, v.total as valor, v.desconto as desconto  from venda v left join formpagto f on (v.codhis = f.cod) where (v.cancelado = 0) and (entrega = ''E'') and (substring(v.crc from 8 for 9) = :crc) and '
+      'select v.nota, (v.codhis) as forma, v.entrada, f.nome, v.total as valor, v.desconto as desconto  from venda v left join formpagto f on (v.codhis = f.cod) where (v.cancelado = 0) and (entrega = ''E'') and (substring(v.crc from 8 for 9) = :crc) and '
       + h1 + ' ((v.data >= :data) and (v.data <= :fim))';
     dtmMain.IBQuery1.ParamByName('crc').AsString := strzero(getSerieNFCe, 2);
     dtmMain.IBQuery1.ParamByName('data').AsDate := StrToDate(data);
@@ -977,6 +996,31 @@ begin
 
     while not dtmMain.IBQuery1.Eof do
     begin
+      a := 0;
+      if dtmMain.IBQuery1.fieldbyname('forma').AsString = '99' then begin
+        dtmMain.IBQuery2.Close;
+        dtmMain.IBQuery2.SQL.Text := 'select nota, formapagto as forma, valor from PAGAMENTOVENDA where nota = :nota';
+        dtmMain.IBQuery2.ParamByName('nota').AsString := dtmMain.IBQuery1.fieldbyname('nota').AsString;
+        dtmMain.IBQuery2.Open;
+
+        while not dtmMain.IBQuery2.Eof do begin
+          totvenda := dtmMain.IBQuery2.fieldbyname('valor').AsCurrency;
+          total := total + totvenda;
+
+          desconto := desconto + dtmMain.IBQuery1.fieldbyname('desconto').AsCurrency;
+          formpagto := dtmMain.IBQuery2.fieldbyname('forma').AsString;
+
+           forma.Values[formpagto] := CurrToStr(StrToCurrDef(forma.Values[formpagto],0) + totvenda);
+
+           a := 1;
+          //mfd.RichEdit1.Lines.Add(CompletaOuRepete(dtmMain.IBQuery2.FieldByName('nota').AsString, '', '-', 10));
+          dtmMain.IBQuery2.Next;
+        end;
+      end;
+
+      if a = 0 then begin
+
+
       totvenda := dtmMain.IBQuery1.fieldbyname('valor').AsCurrency;
       total := total + totvenda;
       desconto := desconto + dtmMain.IBQuery1.fieldbyname('desconto')
@@ -993,6 +1037,7 @@ begin
 
       forma.Values[formpagto] := CurrToStr(StrToCurrDef(forma.Values[formpagto],
         0) + totvenda);
+      end;
       dtmMain.IBQuery1.Next;
     end;
   end

@@ -14,6 +14,8 @@ object funcoes: Tfuncoes
   Font.Style = []
   OldCreateOrder = False
   OnCreate = FormCreate
+  ExplicitWidth = 320
+  ExplicitHeight = 240
   PixelsPerInch = 96
   TextHeight = 13
   object WebBrowser1: TWebBrowser

@@ -20,7 +20,7 @@ uses
   ACBrGAV, ACBrPIXPSPInter, ACBrPIXPSPBradesco, ACBrPIXPSPGerenciaNet,
   ACBrPIXPSPPagSeguro, ACBrPIXPSPShipay, ACBrPIXPSPSantander,
   ACBrPIXPSPBancoDoBrasil, ACBrPIXCD, ACBrPIXPSPItau, ACBrPIXPSPPixPDV,
-  ACBrPIXPSPCielo, acbrpixutil, ACBrOpenSSLUtils;
+  ACBrPIXPSPCielo, acbrpixutil, ACBrOpenSSLUtils, ACBrPIXPSPMercadoPago;
 
 type
   TdtmMain = class(TDataModule)
@@ -66,6 +66,7 @@ type
     ACBrPSPInter1: TACBrPSPInter;
     ACBrPSPCielo1: TACBrPSPCielo;
     ACBrOpenSSLUtils1: TACBrOpenSSLUtils;
+    ACBrPSPMercadoPago1: TACBrPSPMercadoPago;
     procedure DataModuleCreate(Sender: TObject);
     procedure ACBrPSPPixPDV1QuandoReceberRespostaHttp(const AURL,
       AMethod: string; RespHeaders: TStrings; var AResultCode: Integer;

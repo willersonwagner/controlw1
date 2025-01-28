@@ -7,7 +7,7 @@ object dtmMain: TdtmMain
     Left = 17
     Top = 3
     Bitmap = {
-      494C01019500A0005C0010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C01019500A000600010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000006002000001002000000000000060
       0200000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -5476,11 +5476,16 @@ object dtmMain: TdtmMain
   end
   object ACBrPSPCielo1: TACBrPSPCielo
     Scopes = [scCobWrite, scCobRead, scPixWrite, scPixRead]
-    Left = 280
+    Left = 296
     Top = 368
   end
   object ACBrOpenSSLUtils1: TACBrOpenSSLUtils
     Left = 80
     Top = 301
+  end
+  object ACBrPSPMercadoPago1: TACBrPSPMercadoPago
+    Scopes = [scCobWrite, scCobRead, scPixWrite, scPixRead]
+    Left = 344
+    Top = 368
   end
 end

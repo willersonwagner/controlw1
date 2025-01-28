@@ -534,6 +534,7 @@ begin
 
   ultimoErro := '';
 
+  
   with dtmMain.ACBrPixCD1.PSP.epCob.CobSolicitada do
   begin
     Clear;

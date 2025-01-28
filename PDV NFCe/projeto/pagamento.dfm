@@ -2,7 +2,7 @@ object Form82: TForm82
   Left = 0
   Top = 0
   Caption = 'Forma de Pagamento'
-  ClientHeight = 272
+  ClientHeight = 313
   ClientWidth = 510
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -96,9 +96,35 @@ object Form82: TForm82
     Font.Style = [fsBold]
     ParentFont = False
   end
+  object Label9: TLabel
+    Left = 376
+    Top = 176
+    Width = 52
+    Height = 19
+    Caption = 'Troco:'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -16
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentFont = False
+  end
+  object troco: TLabel
+    Left = 376
+    Top = 192
+    Width = 63
+    Height = 35
+    Caption = '0,00'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clGreen
+    Font.Height = -29
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentFont = False
+  end
   object Panel3: TPanel
     Left = 0
-    Top = 192
+    Top = 233
     Width = 510
     Height = 80
     ParentCustomHint = False
@@ -291,7 +317,7 @@ object Form82: TForm82
     Left = 0
     Top = 0
     Width = 361
-    Height = 192
+    Height = 233
     Align = alLeft
     DataSource = DataSource1
     Options = [dgTitles, dgIndicator, dgColumnResize, dgColLines, dgRowLines, dgTabs, dgCancelOnExit, dgTitleClick, dgTitleHotTrack]
@@ -306,6 +332,7 @@ object Form82: TForm82
   object ClientDataSet1: TClientDataSet
     Aggregates = <>
     Params = <>
+    AfterDelete = ClientDataSet1AfterDelete
     Left = 88
     Top = 128
     object ClientDataSet1cod: TIntegerField

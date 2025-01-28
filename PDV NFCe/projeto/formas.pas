@@ -14,9 +14,10 @@ type
     procedure ListBox1KeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
   private
-    valor : String;
+
     { Private declarations }
   public
+    valor : String;
     { Public declarations }
   end;
 
@@ -85,6 +86,11 @@ begin
       valor := ListBox1.Items.Strings[ListBox1.itemindex];
       close;
     end;
+
+  if key = #27 then begin
+    valor := '';
+    close;
+  end;
 end;
 
 procedure TForm5.ListBox1KeyDown(Sender: TObject; var Key: Word;
