@@ -607,6 +607,7 @@ type
     function ExisteParcelamento(nota: string): boolean;
     function QuebraLinhas(ini, fim, entrada: string; qtdQuebra: integer): string;
     function QuebraLinhas1(ini, fim, entrada: string; qtdQuebra: integer): string;
+    function QuebraLinhas2(ini, fim, entrada: string; qtdQuebra: integer): string;
     procedure Traca_Nome_Rota;
     procedure GeraCarne(nota, tipo: String);
     procedure Ibquery_to_clienteDataSet(var ibquer: TFDQuery;
@@ -13774,6 +13775,31 @@ begin
   end;
 end;
 
+
+function Tfuncoes.QuebraLinhas2(ini, fim, entrada: string;
+  qtdQuebra: integer): string;
+var
+  posi, i, a, fim1, c: integer;
+  nome, temp: string;
+begin
+  temp := '';
+  c := 0;
+  i := 0;
+  entrada := ini + Trim(entrada);
+  c := qtdQuebra;
+  while i < Length(entrada) do begin
+    i := i + 1;
+
+    if ((i >= c) and (i < Length(entrada))) then begin
+     Insert(CRLF + ini, entrada, i);
+      c := c + qtdQuebra;
+    end;
+  end;
+
+  Result := entrada + CRLF;
+end;
+
+
 function Tfuncoes.QuebraLinhas1(ini, fim, entrada: string;
   qtdQuebra: integer): string;
 var
@@ -17533,9 +17559,17 @@ begin
         if tmp = '' then
           tmp := '-->';
 
-        addRelatorioForm19
-          (funcoes.CompletaOuRepete(copy(codigo1 + '-' + dm.IBQuery2.FieldByName
-          ('nome').AsString, 1, 40), '', ' ', 40) + CRLF);
+//        addRelatorioForm19(funcoes.CompletaOuRepete(copy(codigo1 + '-' + dm.IBQuery2.FieldByName('nome').AsString, 1, 40), '', ' ', 40) + CRLF);
+
+        if funcoes.buscaParamGeral(142, 'N') = 'N' then begin
+          addRelatorioForm19(funcoes.CompletaOuRepete(copy(codigo1 + '-' + dm.IBQuery2.FieldByName('nome').AsString, 1, 40), '', ' ',40) + CRLF);
+        end
+        else begin
+          addRelatorioForm19(funcoes.QuebraLinhas2('>','', codigo1 + '-' + dm.IBQuery2.FieldByName('nome').AsString, 40)) ;
+        end;
+
+
+
         addRelatorioForm19(funcoes.CompletaOuRepete(LeftStr(trim(tmp), 16), '',
           ' ', 16) + funcoes.CompletaOuRepete('', FormatCurr('0.00',
           dm.IBQuery2.FieldByName('quant').AsCurrency), ' ', 7) +
@@ -17546,11 +17580,19 @@ begin
       end
       else
       begin
-        form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-          Longint(PChar((funcoes.CompletaOuRepete(dm.IBQuery2.FieldByName('cod')
-          .AsString + '-' + copy(dm.IBQuery2.FieldByName('nome').AsString, 1,
+        codigo1 := dm.IBQuery2.FieldByName('cod').AsString;
+        if funcoes.buscaParamGeral(142, 'N') = 'N' then begin
+          addRelatorioForm19(funcoes.CompletaOuRepete(codigo1 + '-' + copy(dm.IBQuery2.FieldByName('nome').AsString, 1,37 - length(codigo1)), '', ' ',40) + #13 + #10);
+        end
+        else begin
+          addRelatorioForm19(funcoes.QuebraLinhas2('>','', codigo1 + '-' + dm.IBQuery2.FieldByName('nome').AsString, 40)) ;
+        end;
+
+
+       { form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+          Longint(PChar((funcoes.CompletaOuRepete(dm.IBQuery2.FieldByName('cod').AsString + '-' + copy(dm.IBQuery2.FieldByName('nome').AsString, 1,
           37 - length(dm.IBQuery2.FieldByName('cod').AsString)), '', ' ',
-          40) + #13 + #10))));
+          40) + #13 + #10))));        }
 
         //addRelatorioForm19(funcoes.CompletaOuRepete('=>QTD:', FormatCurr('0.00',
         //addRelatorioForm19(funcoes.CompletaOuRepete('>'+LeftStr(dm.IBQuery2.FieldByName('unid').AsString, 4)+' ', FormatCurr('0.00',

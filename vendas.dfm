@@ -146,34 +146,6 @@ object Form20: TForm20
       ParentFont = False
       Visible = False
     end
-    object ToolBar1: TPanel
-      Left = 1
-      Top = 560
-      Width = 798
-      Height = 29
-      Align = alBottom
-      BorderWidth = 1
-      TabOrder = 0
-      object StaticText2: TStaticText
-        Left = 2
-        Top = 8
-        Width = 794
-        Height = 19
-        Align = alBottom
-        AutoSize = False
-        Caption = 
-          'F8-Alternar Entre Tabelas/F9 - Limpar Items da Venda/F2 - Modo V' +
-          'enda/Or'#231'amento/F6 - Busca C'#243'digo de Barras/F3 - Recuperar Or'#231'ame' +
-          'nto'
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -13
-        Font.Name = 'MS Sans Serif'
-        Font.Style = [fsBold]
-        ParentFont = False
-        TabOrder = 0
-      end
-    end
     object JsEditData1: JsEditData
       Left = 216
       Top = 41
@@ -183,7 +155,7 @@ object Form20: TForm20
       Enabled = False
       EditMask = '!99/99/0000;1;_'
       MaxLength = 10
-      TabOrder = 1
+      TabOrder = 0
       Text = '  /  /    '
       ValidaCampo = False
       CompletaData = False
@@ -195,7 +167,7 @@ object Form20: TForm20
       Width = 49
       Height = 21
       CharCase = ecUpperCase
-      TabOrder = 2
+      TabOrder = 1
       OnKeyPress = JsEdit2KeyPress
       FormularioComp = 'Form20'
       ColorOnEnter = clSkyBlue
@@ -208,7 +180,7 @@ object Form20: TForm20
       Width = 65
       Height = 21
       CharCase = ecUpperCase
-      TabOrder = 3
+      TabOrder = 2
       Text = '0'
       OnEnter = JsEdit1Enter
       OnKeyDown = JsEdit1KeyDown
@@ -225,7 +197,7 @@ object Form20: TForm20
       Width = 65
       Height = 21
       CharCase = ecUpperCase
-      TabOrder = 4
+      TabOrder = 3
       OnEnter = JsEdit3Enter
       OnExit = JsEdit3Exit
       OnKeyPress = JsEdit3KeyPress
@@ -249,7 +221,7 @@ object Form20: TForm20
       Font.Style = [fsBold]
       Options = [dgTitles, dgIndicator, dgColumnResize, dgColLines, dgRowLines, dgTabs, dgConfirmDelete, dgCancelOnExit]
       ParentFont = False
-      TabOrder = 5
+      TabOrder = 4
       TitleFont.Charset = DEFAULT_CHARSET
       TitleFont.Color = clWindowText
       TitleFont.Height = -11
@@ -273,7 +245,7 @@ object Form20: TForm20
       Options = [dgTitles, dgIndicator, dgColLines, dgRowLines, dgTabs, dgConfirmDelete, dgCancelOnExit]
       ParentBiDiMode = False
       ReadOnly = True
-      TabOrder = 6
+      TabOrder = 5
       TitleFont.Charset = DEFAULT_CHARSET
       TitleFont.Color = clWindowText
       TitleFont.Height = -11
@@ -294,7 +266,7 @@ object Form20: TForm20
       Height = 21
       CharCase = ecUpperCase
       Enabled = False
-      TabOrder = 7
+      TabOrder = 6
       OnKeyPress = JsEdit2KeyPress
       FormularioComp = 'Form20'
       ColorOnEnter = clSkyBlue
@@ -311,7 +283,7 @@ object Form20: TForm20
       BevelOuter = bvNone
       Ctl3D = False
       ParentCtl3D = False
-      TabOrder = 8
+      TabOrder = 7
       object LabelVenda: TLabel
         Left = 1
         Top = 1
@@ -345,7 +317,7 @@ object Form20: TForm20
       Font.Style = [fsBold]
       ParentCtl3D = False
       ParentFont = False
-      TabOrder = 9
+      TabOrder = 8
       object total: TLabel
         Left = 0
         Top = 0
@@ -382,7 +354,7 @@ object Form20: TForm20
       Font.Style = [fsBold]
       ParentCtl3D = False
       ParentFont = False
-      TabOrder = 10
+      TabOrder = 9
     end
     object PanelValores: TPanel
       Left = 520
@@ -401,7 +373,7 @@ object Form20: TForm20
       Font.Style = [fsBold]
       ParentCtl3D = False
       ParentFont = False
-      TabOrder = 11
+      TabOrder = 10
       Visible = False
       object labelValores: TLabel
         Left = 1
@@ -412,6 +384,24 @@ object Form20: TForm20
         ExplicitWidth = 4
         ExplicitHeight = 17
       end
+    end
+    object StaticText2: TPanel
+      Left = 1
+      Top = 560
+      Width = 798
+      Height = 29
+      Align = alBottom
+      Caption = 
+        'F8-Alternar Entre Tabelas/F9 - Limpar Items da Venda/F2 - Modo V' +
+        'enda/Or'#231'amento/F6 - Busca C'#243'digo de Barras/F3 - Recuperar Or'#231'ame' +
+        'nto'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Comic Sans MS'
+      Font.Style = [fsBold]
+      ParentFont = False
+      TabOrder = 11
     end
   end
   object DataSource2: TDataSource
@@ -445,8 +435,9 @@ object Form20: TForm20
       FieldName = 'grupo'
     end
     object ClientDataSet1DESCRICAO: TStringField
+      DisplayWidth = 40
       FieldName = 'DESCRICAO'
-      Size = 40
+      Size = 80
     end
     object ClientDataSet1QUANT: TCurrencyField
       FieldName = 'QUANT'

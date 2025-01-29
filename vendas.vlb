@@ -68,9 +68,6 @@ Coordinates=318,683,109,278
 [DataSource2]
 Coordinates=318,298,92,366
 
-[ToolBar1]
-Coordinates=229,584,67,58
-
 [dm.queryCupons]
 Coordinates=451,652,112,58
 
@@ -152,9 +149,6 @@ Coordinates=306,584,49,58
 [Label1]
 Coordinates=10,652,53,58
 
-[StaticText2]
-Coordinates=636,652,79,36
-
 [Form17.IBQuery1]
 Coordinates=1110,10,116,58
 
@@ -189,7 +183,7 @@ Coordinates=73,584,83,58
 Coordinates=769,628,150,36
 
 []
-Coordinates=35,55,91,36
+Coordinates=229,584,67,58
 
 [ClientDataSet1unid]
 Coordinates=0,0,126,36

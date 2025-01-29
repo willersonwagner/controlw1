@@ -37,8 +37,6 @@ type
   TForm20 = class(TForm)
     Panel1: TPanel;
     DataSource2: TDataSource;
-    ToolBar1: TPanel;
-    StaticText2: TStaticText;
     Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
@@ -84,6 +82,7 @@ type
     ClientDataSet1seqServ: TIntegerField;
     ClientDataSet1unid: TStringField;
     Timer2: TTimer;
+    StaticText2: TPanel;
     procedure DBGrid1KeyPress(Sender: TObject; var Key: Char);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormShow(Sender: TObject);
@@ -960,8 +959,8 @@ end;
 
 procedure TForm20.alinhaComponentes();
 begin
-  DBGrid2.Height := (ToolBar1.Top) - (Label5.Top + Label5.Height);
-  DBGrid2.Top := ToolBar1.Top - DBGrid2.Height;
+  DBGrid2.Height := (StaticText2.Top) - (Label5.Top + Label5.Height);
+  DBGrid2.Top := StaticText2.Top - DBGrid2.Height;
 
   panelTotal.Left := self.Width - panelTotal.Width - 50;
   panelTotal.Top := (DBGrid2.Top + DBGrid2.Height) - panelTotal.Height;
@@ -982,8 +981,10 @@ begin
   tamanhoFonteTotal := total.Font.Size;
   tamFontDesc := 22;
 
-  if screen.Width = 1024 then
+  if screen.Width= 1024 then
   begin
+    StaticText2.Font.Style := [];
+    StaticText2.Font.Size  := 9;
     tamFontDesc := 14;
     DBGrid2.Font.Size := 7;
     DBGrid2.Font.Style := [];
@@ -997,6 +998,8 @@ begin
 
   if screen.Width = 800 then
   begin
+    StaticText2.Font.Style := [];
+    StaticText2.Font.Size  := 7;
     panelTotal.Width := self.Width - DBGrid2.Width + DBGrid2.Left;
     Panel4.Width := panelTotal.Width;
     PanelValores.Width := panelTotal.Width;
@@ -4439,11 +4442,12 @@ begin
         if imprRefxx = '' then
           imprRefxx := '-->';
 
+
         if funcoes.buscaParamGeral(142, 'N') = 'N' then begin
           addRelatorioForm19(funcoes.CompletaOuRepete(copy(codigo1 + '-' + ClientDataSet1.FieldByName('descricao').AsString, 1, 40), '', ' ',40) + CRLF);
         end
         else begin
-          addRelatorioForm19(funcoes.QuebraLinhas('','', codigo1 + '-' + ClientDataSet1.FieldByName('descricao').AsString, 40)) ;
+          addRelatorioForm19(funcoes.QuebraLinhas2('>','', codigo1 + '-' + ClientDataSet1.FieldByName('descricao').AsString, 40)) ;
         end;
 
 
@@ -4461,7 +4465,7 @@ begin
           addRelatorioForm19(funcoes.CompletaOuRepete(codigo1 + '-' + copy(ClientDataSet1.FieldByName('descricao').AsString, 1,37 - length(codigo1)), '', ' ',40) + #13 + #10);
         end
         else begin
-          addRelatorioForm19(funcoes.QuebraLinhas('','', codigo1 + '-' + ClientDataSet1.FieldByName('descricao').AsString, 40)) ;
+          addRelatorioForm19(funcoes.QuebraLinhas2('>','', codigo1 + '-' + ClientDataSet1.FieldByName('descricao').AsString, 40)) ;
         end;
 
        { form19.RichEdit1.Perform(EM_REPLACESEL, 1,
@@ -7309,14 +7313,26 @@ begin
     l3.Font.Style := [fsBold];
     // l3.Font.Size := 12;
 
-    l1.Top := DBGrid2.Top + DBGrid2.Height + 18;
+    l1.Top := StaticText2.Top + l1.Height - 32;
     l1.Left := 30;
 
-    l2.Top := DBGrid2.Top + DBGrid2.Height + 18;
+    l2.Top := l1.Top;
     l2.Left := l1.Left + l1.Width + 100;
 
-    l3.Top := DBGrid2.Top + DBGrid2.Height + 18;
-    l3.Left := l2.Left + l2.Width + 200;
+    l3.Top := l1.Top;
+    if screen.Width= 1024 then begin
+      l3.Left := l2.Left + l2.Width + 150;
+    end
+    else l3.Left := l2.Left + l2.Width + 150;
+
+    if screen.Width= 800 then begin
+      l2.Left := l1.Left + l1.Width + 50;
+      l3.Left := l2.Left + l2.Width + 80;
+    end;
+
+    DBGrid2.Height := DBGrid2.Height - 20;
+
+    //StaticText2.Top := l3.Top + l3.Height +20;
 
     // funcoes.CtrlResize(tform(self));
     JsEditInteiro1.Text :=
