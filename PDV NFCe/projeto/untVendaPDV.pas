@@ -1796,7 +1796,7 @@ begin
 
   if (Key = 117) then //F6
     begin
-      if Length(acessoUsuVenda) > 0 then
+      if Length(acessoUsuVenda) > 1 then
         begin
           MessageDlg('Usuário bloqueado para Cancelamento de Venda', mtError, [mbOK], 1);
           exit;

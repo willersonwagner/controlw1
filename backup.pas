@@ -15,6 +15,7 @@ type
     ClientDataSet1: TClientDataSet;
     DataSource1: TDataSource;
     Timer1: TTimer;
+    TimerBuscaProdutos: TTimer;
     procedure DBGrid1KeyPress(Sender: TObject; var Key: Char);
     procedure DBGrid1KeyUp(Sender: TObject; var Key: Word;
       Shift: TShiftState);
@@ -29,6 +30,7 @@ type
     procedure FormKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure Timer1Timer(Sender: TObject);
     procedure FormKeyPress(Sender: TObject; var Key: Char);
+    procedure TimerBuscaProdutosTimer(Sender: TObject);
   private
     function buscaVenda : String;
     function buscaEnrtada : String;
@@ -331,9 +333,17 @@ begin
   end;
 
   if opcao = 1 then begin
-    if (key = 38) or (key = 40) then buscaVenda;
+    if (key = 38) or (key = 40) then begin
+     TimerBuscaProdutos.Enabled := false;
+     TimerBuscaProdutos.Enabled := true;
+    end;
     if key = 116 then begin
       abreDataSet(true);
+    end;
+
+    if key = 113 then begin
+      form2.relatorioVendasPorNota(true);
+      TimerBuscaProdutos.Enabled := true;
     end;
   end;
 
@@ -631,6 +641,12 @@ procedure TForm44.Timer1Timer(Sender: TObject);
 begin
   procura := '';
   Timer1.Enabled := false;
+end;
+
+procedure TForm44.TimerBuscaProdutosTimer(Sender: TObject);
+begin
+  TimerBuscaProdutos.Enabled := false;
+  buscaVenda;
 end;
 
 procedure TForm44.entregaProduto;

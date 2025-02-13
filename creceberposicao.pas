@@ -258,7 +258,7 @@ begin
       addRelatorioForm19('CIDADE: ' + dm.IBQuery2.fieldbyname('cid').AsString + ' ESTADO: ' + dm.IBQuery2.fieldbyname('est').AsString + CRLF);
       addRelatorioForm19('CPF/CNPJ: ' + dm.IBQuery2.fieldbyname('cnpj').AsString  + CRLF);
       form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete('','','-',78)+#13+#10))));
-      addRelatorioForm19('VENCIMEN HISTORICO                              VALOR     SALDO NFE'  + CRLF);
+      addRelatorioForm19('VENCIMEN HISTORICO                                 VALOR        SALDO NFE'  + CRLF);
       form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete('','','-',78)+#13+#10))));
 
       dm.IBQuery2.Close;
@@ -279,7 +279,7 @@ begin
             form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete('','','-',78)+#13+#10))));
             a := form19.RichEdit1.Lines.Count + 56;
           end;
-          form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete(FormatDateTime('dd/mm/yy',DBGrid1.DataSource.DataSet.FieldByName('vencimento').AsDateTime),'',' ',9)+funcoes.CompletaOuRepete(DBGrid1.DataSource.DataSet.FieldByName('historico').AsString,'',' ',35)+funcoes.CompletaOuRepete(' ',FormatCurr('0.00',DBGrid1.DataSource.DataSet.FieldByName('valor').AsCurrency),' ',9)+' '+funcoes.CompletaOuRepete(' ',FormatCurr('0.00',DBGrid1.DataSource.DataSet.FieldByName('saldo').AsCurrency),' ',9) + ' ' + DBGrid1.DataSource.DataSet.FieldByName('nfe').AsString)+#13+#10)));
+          form19.RichEdit1.Perform(EM_REPLACESEL, 1, Longint(PChar((funcoes.CompletaOuRepete(FormatDateTime('dd/mm/yy',DBGrid1.DataSource.DataSet.FieldByName('vencimento').AsDateTime),'',' ',9)+funcoes.CompletaOuRepete(DBGrid1.DataSource.DataSet.FieldByName('historico').AsString,'',' ',35)+funcoes.CompletaOuRepete(' ',FormatCurr('0.00',DBGrid1.DataSource.DataSet.FieldByName('valor').AsCurrency),' ',12)+' '+funcoes.CompletaOuRepete(' ',FormatCurr('0.00',DBGrid1.DataSource.DataSet.FieldByName('saldo').AsCurrency),' ',12) + ' ' + DBGrid1.DataSource.DataSet.FieldByName('nfe').AsString)+#13+#10)));
           DBGrid1.DataSource.DataSet.Next;
        end;
        DBGrid1.DataSource.DataSet.First;

@@ -8662,15 +8662,22 @@ begin
   dm.IBQuery1.ParamByName('pago').AsCurrency := vlrEnt;
   dm.IBQuery1.ExecSQL;
 
+//  ShowMessage(Parcelamento.Text);
+  //ate aqui parcelamento esta preenchido
+
   dm.IBQuery1.Close;
   dm.IBQuery1.SQL.Clear;
   dm.IBQuery1.SQL.Add
     ('insert into caixa(FORNEC,CODENTRADASAIDA,formpagto,documento, codgru,codmov,codhis,data,datamov,historico,entrada, usuario, tipo)'
     + ' values(' + novocod + ',:CODENTRADASAIDA,:codhis,:documento,1,' +
     funcoes.novocod('movcaixa') +
-    ',1,:dati,:dati,:hist,:ent, :usuario, ''E'') ');
+    ',:codhis,:dati,:dati,:hist,:ent, :usuario, ''E'') ');
   dm.IBQuery1.ParamByName('CODENTRADASAIDA').AsString := strnum(codigo);
-  dm.IBQuery1.ParamByName('codhis').AsString := strnum(codhis);
+  //dm.IBQuery1.ParamByName('codhis').AsString := strnum(codhis);
+
+  dm.IBQuery1.ParamByName('codhis').AsString := strnum(Parcelamento.Values['formpagto']);
+  if strnum(dm.IBQuery1.ParamByName('codhis').AsString) = '0' then dm.IBQuery1.ParamByName('codhis').AsString := '1';
+
   dm.IBQuery1.ParamByName('documento').AsString := strnum(JsEdit2.Text);
   dm.IBQuery1.ParamByName('dati').AsDateTime := DateOf(form22.datamov) + TimeOf(NOW);
   dm.IBQuery1.ParamByName('hist').AsString := historico;

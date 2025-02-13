@@ -167,6 +167,7 @@ type
     cdsEquiva: TClientDataSet;
     buscaTimer: String;
     listaProdutos: Tprodutos;
+    function RecursiveDelete(FullPath: String): Boolean;
     procedure alteraDataHoraLocal(var data1 : TDateTime);
     procedure corrigeUnidades();
     procedure SOMA_EST(const cod: integer; const qtd, DEP: currency;
@@ -179,6 +180,7 @@ type
     function imprimeOBS_Servico(tipo : String = 'M') : integer;
     function ReferenciaChavesObrigatoriasNFe(var info1 : string) : string;
     function recebeProduto_imagem(var arq: tstringList;var codigos: String): boolean;
+    procedure marcaImagensExportado;
     { Private declarations }
   public
     arqPIX : TStringList;
@@ -3266,19 +3268,17 @@ begin
 
 
     if Contido('DESBLOQUEADO', th) then begin
-
       funcoes.limpaBloqueado(query1);
+    end;
 
-
-
-      if arq.Values['3'] = '1' then begin
-        MessageDlg('O Sistema Precisa ser Atualizado! Deseja Atualizar Agora ?', mtInformation, [mbOK], 1);
-        if true then begin
-           WinExec(pansichar(ansistring(caminhoEXE_com_barra_no_final + 'atualiza.exe')),SW_SHOWNORMAL);
-           Application.Terminate;
-        end;
+    if arq.Values['3'] = '1' then begin
+      MessageDlg('O Sistema Precisa ser Atualizado! Deseja Atualizar Agora ?', mtInformation, [mbOK], 1);
+      if true then begin
+        WinExec(pansichar(ansistring(caminhoEXE_com_barra_no_final + 'atualiza.exe')),SW_SHOWNORMAL);
+        Application.Terminate;
       end;
     end;
+
   except
     on e: exception do
     begin
@@ -6691,7 +6691,7 @@ begin
 
   if Contido('|PRODUTO_IMAGEM|', linha) then
   begin
-    RecNo := RecNo + 1;
+    //RecNo := RecNo + 1;
   end;
 
   dm.IBselect.Close;
@@ -6703,6 +6703,8 @@ begin
     sim := sim + dm.IBselect.FieldByName('cod_seq').AsString + '-';
     dm.IBselect.Next;
   end;
+
+  //ShowMessage(sim + #13 + IntToStr(RecNo) + #13 + IntToStr(arquivo.Count -1));
 
   for RecNo := RecNo to arquivo.count - 1 do
   begin
@@ -6716,9 +6718,12 @@ begin
 
     linha := arquivo[RecNo];
 
+    //ShowMessage(arquivo[RecNo]);
+
     if trim(linha) <> '' then
     begin
       LE_CAMPOS(arq, linha, '|', False);
+   //   ShowMessage(arq.Text);
       recebeProduto_imagem(arq, sim);
     end;
   end;
@@ -12908,6 +12913,14 @@ begin
       dm.IBQuery1.Transaction.Commit;
     end;
 
+    if not VerificaCampoTabela('EXPORTADO', 'PRODUTO_IMAGEM') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('ALTER TABLE PRODUTO_IMAGEM ADD EXPORTADO VARCHAR(1)');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
     if not VerificaCampoTabela('ult_acesso', 'pc') then begin
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Clear;
@@ -14468,6 +14481,11 @@ begin
     end;
 
     arr.Add('conf_ter=' + temp.Values['0']);
+
+    if temp.Values['cnpj'] = '' then begin
+      temp.Values['cnpj'] := strnum(arr.Values['cnpj']);
+      temp.SaveToFile(caminhoEXE_com_barra_no_final + buscaNomeConfigDat);
+    end;
   end;
 
     if arr.Values['nota'] = '' then arr.Values['nota'] := 'T';
@@ -18198,6 +18216,7 @@ function Tfuncoes.Parcelamento(total: currency; Cliente: string; prazo: string)
   : tstringList;
 begin
   form38 := tform38.Create(self);
+  form38.formpagtoEntrada := '1';
   form38.total := total;
   if strnum(prazo) = '0' then prazo := '30';
   if prazo = '30' then form38.vencto.text :=  FormatDateTime('dd/mm/yyyy', IncMonth(form22.dataMov))
@@ -22956,8 +22975,7 @@ function Tfuncoes.recebeProduto_imagem(var arq: tstringList;var codigos: String)
 begin
   Result := false;
   if ((StrToCurrDef(arq.Values['0'], 0) <= 0) or (StrToCurrDef(arq.Values['1'],0) <= 0)) then exit;
-  if Contido('|PRODUTO_IMAGEM|', arq.text) then
-    exit;
+  if Contido('|PRODUTO_IMAGEM|', arq.text) then exit;
 
   if contido('-'+ arq.Values['1'] + '-', codigos) then exit;
 
@@ -22968,8 +22986,8 @@ begin
 
   dm.IBQuery1.Close;
   dm.IBQuery1.SQL.text :=
-    ('update or insert into PRODUTO_IMAGEM(COD, COD_SEQ, IMG) ' +
-    ' values(:cod,:cod_seq, :img) matching(cod_seq)');
+    ('update or insert into PRODUTO_IMAGEM(COD, COD_SEQ, IMG, EXPORTADO) ' +
+    ' values(:cod,:cod_seq, :img, ''1'') matching(cod_seq)');
   dm.IBQuery1.ParamByName('cod').AsString     := StrNum(arq.Values['0']);
   dm.IBQuery1.ParamByName('cod_seq').AsString := StrNum(arq.Values['1']);
 
@@ -22996,13 +23014,12 @@ var
   bs : TMemoryStream;
 begin
   dm.IBselect.Close;
-  dm.IBselect.SQL.Clear;
-  dm.IBselect.SQL.Add
-    ('select cod, img, cod_seq from PRODUTO_IMAGEM');
+  dm.IBselect.SQL.Text := 'select cod, img, cod_seq from PRODUTO_IMAGEM where (EXPORTADO is null)';
   dm.IBselect.Open;
   dm.IBselect.FetchAll;
   tot := dm.IBselect.RecordCount;
 
+  RecursiveDelete(caminhoEXE_com_barra_no_final + 'img\temp\');
   criaPasta(caminhoEXE_com_barra_no_final + 'img\temp');
   pasta := caminhoEXE_com_barra_no_final + 'img\temp';
 
@@ -23012,6 +23029,8 @@ begin
   Writeln(arq, linha);
 
   criaPasta(caminhoEXE_com_barra_no_final + 'img\temp');
+
+
 
   try
     funcoes.informacao(0, tot, 'Exportando Promoções...', true, False, 5);
@@ -24987,6 +25006,7 @@ begin
 
         try
           acertouData := acertaDataSite(ultDataMov1, BomDia, strnum(form22.Pgerais.Values['cnpj']));
+
           {if Contido('|BLOQUEADO|', bomdia) then begin
            cont := 5;
            try
@@ -25004,14 +25024,27 @@ begin
 
         //se for servidor e a funcao retornar X é pq nao teve comunicação há
         //mais de 60 dias, entao bloqueia
-        if ParamCount = 0 then begin
+      //  if ParamCount = 0 then begin
           if gravaultimaDataComunicacaoComSite(bomdia) = 'X' then begin
              Application.Terminate;
              exit;
           end;
-        end;
+        //end;
 
         funcoes.processaRetornoDataBloqueioPIX(bomdia);
+
+        //tipBloqueio 2 bloqueia total
+        if form22.tipoBloqueio = '2' then begin
+          adicionaRegistrosBloqueio;
+        end;
+
+        //o site buscou campo atualiza e veio igual a 1 entao atualiza e marca como 0
+        //o proprio site retorna 1 e atualiza pra 0
+        if form22.atualizaExec = '1' then begin
+          MessageDlg('O Sistema Precisa ser Atualizado, aguarde o Processo...', mtInformation, [mbOK], 1);
+          WinExec(pansichar(ansistring(caminhoEXE_com_barra_no_final + 'atualiza.exe')),SW_SHOWNORMAL);
+          Application.Terminate;
+        end;
 
         if ((acertouData) and (ultDataMov1 > StrToDate('01/01/2022'))) then begin
           Result := true;
@@ -31717,6 +31750,9 @@ begin
    // exit;
     SendPostDataSinc(Form72.IdHTTP1, pasta, 'E', '0');
     funcoes.mensagemEnviandoNFCE('Aguarde, Enviando...', false, true);
+
+    //marca as imagens pra nao exportar mais
+    marcaImagensExportado;
   end;
 
   ShowMessage('Sincronização Enviada!');
@@ -32132,13 +32168,20 @@ arqi := TStringList.Create;
       dm.IBQuery1.Transaction.Commit;
     dm.IBQuery1.Transaction.StartTransaction;
 
+    cods := '';
     // Aqui vai verificar se o produto está cadastrado, se nao existir então cadastra
     form33.ClientDataSet1.First;
     while not form33.ClientDataSet1.Eof do begin
+
+   //   if Contido(form33.ClientDataSet1.FieldByName('codigo').AsString + form33.ClientDataSet1.FieldByName('quant').AsString) then
+
+
       dm.ibselect.Close;
       dm.ibselect.SQL.Text := ('select cod from produto where cod = :cod');
       dm.ibselect.ParamByName('cod').AsString := form33.ClientDataSet1.FieldByName('codigo').AsString;
       dm.ibselect.Open;
+
+      //cod
 
       if dm.ibselect.IsEmpty then
       begin
@@ -32167,12 +32210,12 @@ arqi := TStringList.Create;
             ShowMessage('erro31755: ' + e.Message);
             exit;
           end;
-        end;
+        end;//try
 
-      end;
+      end; //if dm.ibselect.IsEmpty then
 
       form33.ClientDataSet1.Next;
-    end;
+    end;  //while not form33.ClientDataSet1.Eof do begin
 
     try
       dm.IBQuery1.Transaction.Commit;
@@ -33486,6 +33529,8 @@ begin
   form22.beneNome  := arq.Values['8'];
   form22.beneCNPJ  := arq.Values['9'];
   form22.beneFone  := arq.Values['10'];
+  form22.tipoBloqueio  := arq.Values['11'];
+  form22.atualizaExec  := arq.Values['12'];
 
   if form22.beneNome = '' then form22.beneCNPJ := form22.Pgerais.Values['cnpj'];
 
@@ -34045,7 +34090,7 @@ end;
 function Tfuncoes.gravaultimaDataComunicacaoComSite(var retorno : String) : String;
 var
   arq : TStringList;
-  data : TDateTime;
+  data, dataAtualBD : TDateTime;
   ok : string;
 begin
   ok := '';
@@ -34057,25 +34102,24 @@ begin
   if StrToIntDef(ContaChar(retorno, '|'), 0) < 6 then ok := 'X';
 
   //se for terminal de rede sai
-  if ParamCount > 0 then exit;
+  //if ParamCount > 0 then exit;
 
+
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select data_ult_sinc from registro';
+  try
+    dm.IBselect.Open;
+  except
+    on e:exception do begin
+      ShowMessage('campo data_ult_sinc nao encontrado!');
+      exit;
+    end;
+  end;
 
   //vai entrar aqui caso nao tenha vindo o retorno valido da internet
   if ok = 'X' then begin
-    dm.IBselect.Close;
-    dm.IBselect.SQL.Text := 'select data_ult_sinc from registro';
-    try
-     dm.IBselect.Open;
-    except
-      on e:exception do begin
-        ShowMessage('campo data_ult_sinc nao encontrado!');
-        exit;
-      end;
-
-    end;
-
     data := dm.IBselect.FieldByName('data_ult_sinc').AsDateTime;
-    if (DaysBetween(now, data) > 60) then begin
+    if (DaysBetween(now, data) > 30) then begin
       MessageDlg('A Comunicação com a Internet nao foi Estabelecida. Favor, Ajuste a conexão para que sistema volte a operar!', mtInformation, [mbOK], 0);
       Result := 'X';
     end;
@@ -34083,14 +34127,23 @@ begin
     exit;
   end;
 
+  dataAtualBD := dm.IBselect.FieldByName('data_ult_sinc').AsDateTime;
 
   //se esta aqui é pq veio um retorno valido do webservice
   arq := TStringList.Create;
   LE_CAMPOS(arq, retorno, '|', false);
 
+  //arq.SaveToFile('texto1.txt');
   Data := EncodeDate(StrToInt(arq.Values['2']), StrToInt(arq.Values['1']),
       StrToInt(arq.Values['0'])) + EncodeTime(StrToInt(arq.Values['3']),
       StrToInt(arq.Values['4']), StrToInt(arq.Values['5']), 0);
+
+  //se a data atual da internet é igual a data que ja foi preenchida entao sai da rotina
+  if formataDataDDMMYY(data) = formataDataDDMMYY(dataAtualBD) then begin
+    dm.IBselect.Close;
+    exit;
+  end;
+
 
   if (data > StrToDate('01/11/2024')) then begin
     dm.IBQuery1.Close;
@@ -34108,6 +34161,42 @@ begin
     end;
 
   end;
+end;
+
+procedure Tfuncoes.marcaImagensExportado;
+begin
+  dm.IBQuery1.Close;
+  dm.IBQuery1.SQL.Text := 'update PRODUTO_IMAGEM set EXPORTADO = ''1''';
+  dm.IBQuery1.ExecSQL;
+  dm.IBQuery1.Transaction.Commit;
+end;
+
+function Tfuncoes.RecursiveDelete(FullPath: String): Boolean;
+Var
+  sr : TSearchRec;
+  iRetorno : Integer;
+begin
+  Result := False;
+  FullPath := IncludeTrailingPathDelimiter(FullPath);
+  if not(DirectoryExists(FullPath)) then
+    Exit;
+
+  iRetorno := FindFirst(FullPath + '*.*', faAnyFile, sr);
+  while iRetorno = 0 do
+  begin
+    if (sr.Name <> '.') and (sr.Name <> '..') then
+      if sr.Attr = faDirectory then
+        RecursiveDelete(FullPath + sr.Name)
+      else
+      begin
+        if GetFileAttributes(PWideChar(FullPath + sr.Name)) > 0 then
+          SetFileAttributes(PWideChar(FullPath + sr.Name), 0);
+        DeleteFile(PWideChar(FullPath + sr.Name));
+      end;
+      iRetorno := FindNext(sr);
+  end;
+  FindClose(sr);
+  Result := RemoveDir(FullPath)
 end;
 
 end.

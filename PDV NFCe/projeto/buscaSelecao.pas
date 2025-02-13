@@ -149,7 +149,7 @@ begin
 
       if key = 46 then
         begin
-          if Length(acessoUsu) > 0 then
+          if Length(acessoUsu) > 1 then
             begin
               MessageDlg('Usuário bloqueado para Cancelamento de Produtos', mtError, [mbOK], 1);
               exit;

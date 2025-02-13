@@ -63,6 +63,7 @@ type
     { Public declarations }
   end;
 
+procedure marcaAtualizadoSite(cnpj : String);
 function ApagaNCM_Na_Tabela_invalido(NCM: String): boolean;
 function retornaIndiceProdutoErroNoNCM(erro11 : String) : integer;
 function conectaBD2(var bd: TFDConnection; silencioso: boolean = false): boolean;
@@ -659,6 +660,8 @@ begin
   DANFE.tipoDanfe           := tiNFCe;
   ACBrNFe.DANFE             := DANFE;
   DANFE.ImprimeNomeFantasia := true;
+  danfe.MostraPreview       := previewNFCe1;
+
 
   try
     if DANFE.MostraPreview then
@@ -688,6 +691,7 @@ end;
 procedure imprimirNfceESCPOS();
 begin
   try
+    DANFEEscPos.MostraPreview   := previewNFCe1;
     DANFEEscPos.ImprimeNomeFantasia := true;
     ACBrNFe.DANFE                   := DANFEEscPos;
     DANFEEscPos.FormularioContinuo  := true;
@@ -9500,6 +9504,23 @@ var
 begin
   i := pos('[', erro11) + 7;
   Result := StrToIntDef(copy(erro11, i, length(erro11) - i ), 0);
+end;
+
+procedure marcaAtualizadoSite(cnpj : String);
+var
+  th, site : String;
+begin
+  query1.Close;
+  query1.SQL.Text := 'select cnpj from registro';
+  query1.Open;
+
+  cnpj := query1.FieldByName('cnpj').AsString;
+  site := 'http://controlw.blog.br/si2/atualiza.php?cnpj=' + cnpj;
+
+  Form72.IdHTTP1.Request.UserAgent := 'Mozilla/5.0 (Windows NT 5.1; rv:2.0b8) Gecko/20100101 Firefox/4.0b8';
+  Form72.IdHTTP1.HTTPOptions := [hoForceEncodeParams];
+  th := Form72.IdHTTP1.Get(site);
+  Form72.IdHTTP1.Disconnect;
 end;
 
 

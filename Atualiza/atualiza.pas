@@ -65,6 +65,7 @@ type
     function GetDesktopPath: string;
     function TerminarProcesso(sFile: String): boolean;
     procedure copiaControlwexeSeTiverMaisArquivosComMesmoNomeLak(var arq : TStringList);
+    function buscaNomeConfigDat(): string;
     { Private declarations }
   public
     { Public declarations }
@@ -79,6 +80,27 @@ implementation
 uses Math, funcoesdav;
 
 {$R *.dfm}
+
+function TForm1.buscaNomeConfigDat(): string;
+var
+  caminhoEXE_com_barra_no_final : String;
+begiN
+  caminhoEXE_com_barra_no_final := ExtractFileDir(ParamStr(0)) + '\';
+
+  Result := UpperCase(ExtractFileName(ParamStr(0)));
+  Result := copy(Result, 1, length(Result) - 4);
+  if Result <> 'CONTROLW' then
+  begin
+    Result := 'CONFIG-' + Result + '.DAT';
+    if not FileExists(caminhoEXE_com_barra_no_final + Result) then
+    begin
+      CopyFile(PChar(caminhoEXE_com_barra_no_final + 'CONFIG.DAT'),
+        PChar(caminhoEXE_com_barra_no_final + Result), true);
+    end;
+  end
+  else
+    Result := 'CONFIG.DAT';
+end;
 
 procedure TForm1.fimDownload;
 begin

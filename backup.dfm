@@ -83,4 +83,10 @@ object Form44: TForm44
     Left = 464
     Top = 24
   end
+  object TimerBuscaProdutos: TTimer
+    Enabled = False
+    OnTimer = TimerBuscaProdutosTimer
+    Left = 456
+    Top = 80
+  end
 end

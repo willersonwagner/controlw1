@@ -3,8 +3,8 @@ object Form38: TForm38
   Top = 328
   BorderIcons = []
   BorderStyle = bsDialog
-  Caption = 'Parcelamento'
-  ClientHeight = 196
+  Caption = 'Parcelamento F2-Forma de Pagamento Entrada'
+  ClientHeight = 188
   ClientWidth = 286
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -12,10 +12,12 @@ object Form38: TForm38
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Font.Style = []
+  KeyPreview = True
   OldCreateOrder = False
   Position = poScreenCenter
   OnClose = FormClose
   OnCreate = FormCreate
+  OnKeyUp = FormKeyUp
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel

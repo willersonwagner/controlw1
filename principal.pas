@@ -66,7 +66,7 @@ type
     Pgerais, nomesServico, fonteDAT : TStringList;
     datamov: tdatetime;
     superUsu : integer;
-    UnidInteiro, qrcodePIX,beneNome, beneCNPJ, beneFone, emailEnviar : String;
+    UnidInteiro, qrcodePIX,beneNome, beneCNPJ, beneFone, emailEnviar, tipoBloqueio, atualizaExec : String;
     COD_PC : STRING;
     procedure TrimAppMemorySize;
     procedure EventoErro(Sender: TObject; E: Exception);
@@ -267,6 +267,8 @@ if key=#27 then
          Pgerais := funcoes.GerarPgeraisList(codusario); // gera os parametros gerais referente ao usuario
        except
        end;
+
+
 
        
        if funcoes.LerConfig(form22.Pgerais.Values['configu'], 18) = 'S' then begin

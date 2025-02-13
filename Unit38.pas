@@ -35,11 +35,13 @@ type
       Shift: TShiftState);
     procedure valorpEnter(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure FormKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
   private
     { Private declarations }
   public
     total,resto : currency;
     tipo : integer;
+    formpagtoEntrada : String;
     function calculaPrestacao : currency;
     { Public declarations }
   end;
@@ -111,6 +113,8 @@ begin
       //if StrToCurr(funcoes.ConverteNumerico(valorp.Text)) > calculaPrestacao then funcoes.ReParcelamento.Add('valorp='+funcoes.ConverteNumerico(CurrToStr(calculaPrestacao)))
         //else funcoes.ReParcelamento.Add('valorp='+funcoes.ConverteNumerico(valorp.Text));
       funcoes.ReParcelamento.Add('total='+CurrToStr(total));
+      funcoes.ReParcelamento.Add('formpagto='+formpagtoEntrada);
+
       key := #0;
       close;
     end;
@@ -181,6 +185,15 @@ end;
 procedure TForm38.FormCreate(Sender: TObject);
 begin
   funcoes.AjustaForm(self);
+  formpagtoEntrada := '1';
+end;
+
+procedure TForm38.FormKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  if key = 113 then begin
+    formpagtoEntrada := funcoes.LerFormPato(0,'Forma de Pagamento', true, '');
+    if StrNum(formpagtoEntrada) = '0' then formpagtoEntrada := '1';
+  end;
 end;
 
 end.
