@@ -367,7 +367,7 @@ if key=#27 then
                  begin
                    Randomize;
                    valorDeChecagem := funcoes.GeraAleatorio(8);
-                   if MessageDlg('O sistema está bloqueado, Deseja Inserir o código de Dessbloqueio ?' + #13 +
+                   if MessageDlg('O sistema está bloqueado, Deseja Inserir o código de Desbloqueio ?' + #13 +
                    'Código de Verificação: ' + valorDeChecagem, mtConfirmation, [mbYes, mbNo], 1) = idyes then
                      begin
                        if funcoes.dialogo('normal',0,'',0,true,'',Application.Title,'Qual o Cód de desbloqueio ? Cod: ' + valorDeChecagem,'') =  IntToStr(trunc(StrToCurr(valorDeChecagem) / 87)) then

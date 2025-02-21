@@ -329,11 +329,11 @@ object Form79: TForm79
     object Label4: TLabel
       Left = 11
       Top = 15
-      Width = 200
+      Width = 208
       Height = 80
       Caption = 
-        '0-Nacional'#13#10'1-Estrangeira'#13#10'2-Estrageira Ad. Merc. Interno'#13#10'3-Nac' +
-        'ional, mercadoria ou bem'#13#10'Importa'#231#227'o superior a 40% '
+        '0-Nacional'#13#10'1-Estrangeira'#13#10'2-Estrangeira Ad. Merc. Interno'#13#10'3-Na' +
+        'cional, mercadoria ou bem'#13#10'Importa'#231#227'o superior a 40% '
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -13

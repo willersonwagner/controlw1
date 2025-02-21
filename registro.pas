@@ -33,8 +33,8 @@ type
     Label6: TLabel;
     Label15: TLabel;
     Label16: TLabel;
-    tex: TBitBtn;
     Label17: TLabel;
+    Label18: TLabel;
     cod: JsEditInteiro;
     nome: JsEdit;
     titular: JsEdit;
@@ -42,6 +42,7 @@ type
     cnpj: JsEditCNPJ;
     ies: JsEdit;
     cpf: JsEditCPF;
+    tipo: JsEditInteiro;
     telres: JsEdit;
     telcom: JsEdit;
     ende: JsEdit;
@@ -52,7 +53,8 @@ type
     obs: JsEdit;
     JsEdit1: JsEdit;
     email: JsEdit;
-    Label18: TLabel;
+    tex: TBitBtn;
+    Label19: TLabel;
     procedure texClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -78,6 +80,7 @@ type
     procedure endeKeyPress(Sender: TObject; var Key: Char);
     procedure bairroKeyPress(Sender: TObject; var Key: Char);
     procedure emailKeyPress(Sender: TObject; var Key: Char);
+    procedure tipoKeyPress(Sender: TObject; var Key: Char);
   private
     cod_mun : string;
     ativadoOk,demo1 : boolean;
@@ -93,7 +96,7 @@ var
 
 implementation
 
-uses Unit1, DB, Unit2, func, cadcliente, principal, nfe;
+uses Unit1, DB, Unit2, func, cadcliente, principal, nfe, caixaLista;
 
 {$R *.dfm}
 
@@ -161,8 +164,10 @@ begin
       empresa.Text := trim(empresa.Text);
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Clear;
-      dm.IBQuery1.SQL.Add('update registro set cpf = :cpf, empresa = :emp,registro=:reg,nome=:nome,cnpj=:cnpj,ies=:ies,ende=:ende,cep=:cep,telres=:telres,telcom=:telcom, cid = :cid,est=:est,obs=:obs,titular=:titular,crip=:crip,cod_mun=:mun, suframa = :suframa, email = :email');
+      dm.IBQuery1.SQL.Add('update registro set tipo = :tipo,cpf = :cpf, empresa = :emp,registro=:reg,nome=:nome,cnpj=:cnpj,ies=:ies,ende=:ende,cep=:cep,telres=:telres,telcom=:telcom, cid = :cid,est=:est,'+
+      'obs=:obs,titular=:titular,crip=:crip,cod_mun=:mun, suframa = :suframa, email = :email');
       //dm.IBQuery1.ParamByName('cod').AsString := funcoes.Criptografar(cod.Text);
+      dm.IBQuery1.ParamByName('tipo').AsString    :=  tipo.Text;
       dm.IBQuery1.ParamByName('cpf').AsString    :=  cpf.Text;
       dm.IBQuery1.ParamByName('emp').AsString := REMOVE_ACENTO(empresa.Text);
 
@@ -222,8 +227,9 @@ begin
    begin
     dm.IBQuery1.Close;
     dm.IBQuery1.SQL.Clear;
-    dm.IBQuery1.SQL.Add('update registro set cpf = :cpf, nome = :nome,cnpj = :cnpj,ies=:ies,ende=:ende,bairro = :bairro,cep=:cep,telres=:telres,telcom=:telcom,cid=:cid,est=:est,obs=:obs,titular=:titular,cod_mun=:mun, suframa = :suframa, email = :email');
+    dm.IBQuery1.SQL.Add('update registro set tipo = :tipo,cpf = :cpf, nome = :nome,cnpj = :cnpj,ies=:ies,ende=:ende,bairro = :bairro,cep=:cep,telres=:telres,telcom=:telcom,cid=:cid,est=:est,obs=:obs,titular=:titular,cod_mun=:mun, suframa = :suframa, email = :email');
     //dm.IBQuery1.ParamByName('cod').AsString := funcoes.Criptografar(cod.Text);
+    dm.IBQuery1.ParamByName('tipo').AsString    :=  tipo.Text;
     dm.IBQuery1.ParamByName('cpf').AsString    :=  cpf.Text;
     dm.IBQuery1.ParamByName('nome').AsString    := nome.Text;
     dm.IBQuery1.ParamByName('cnpj').AsString    := cnpj.Text;
@@ -295,9 +301,13 @@ begin
       JsEdit1.Text := dm.IBQuery2.fieldbyname('cod_mun').AsString;
       suframa.Text := dm.IBQuery2.fieldbyname('suframa').AsString;
       CPF.Text := dm.IBQuery2.fieldbyname('CPF').AsString;
+      tipo.Text := dm.IBQuery2.fieldbyname('tipo').AsString;
+      email.Text := dm.IBQuery2.FieldByName('email').AsString ;
     end
   else //if (Ativado) and (not demo) then
     begin
+      email.Text := dm.IBQuery2.FieldByName('email').AsString ;
+      tipo.Text := dm.IBQuery2.fieldbyname('tipo').AsString;
       cod.Text := funcoes.DesCriptografar(dm.IBQuery2.fieldbyname('versao').AsString);
       nome.Text := dm.IBQuery2.fieldbyname('nome').AsString;
       cnpj.Text := dm.IBQuery2.fieldbyname('cnpj').AsString;
@@ -495,6 +505,29 @@ begin
       key := #0;
       exit;
     end;
+end;
+
+procedure TForm35.tipoKeyPress(Sender: TObject; var Key: Char);
+begin
+if (key=#13) and ((tedit(sender).Text='0') or (tedit(sender).Text='')) then
+ begin
+   form39 := tform39.Create(self);
+   form39.ListBox1.Items.Add('1 - PESSOA FÍSICA');
+   form39.ListBox1.Items.Add('2 - PESSOA JURÍDICA');
+   form39.ListBox1.Items.Add('3 - GOVERNO MUNICIPAL');
+   form39.ListBox1.Items.Add('4 - GOVERNO ESTADUAL');
+   form39.ListBox1.Items.Add('5 - GOVERNO FEDERAL');
+   form39.ListBox1.Items.Add('6 - PRODUTOR RURAL');
+   form39.ListBox1.Items.Add('7 - ESTRANGEIRO');
+   tedit(sender).Text := funcoes.lista(Sender, false);
+   if tedit(sender).Text = '*' then
+     begin
+       tedit(sender).Text := '0';
+       key := #0;
+     end;
+  //tedit(sender).Text := funcoes.localizar('Tipo de Cliente','tipocli','cod,nome','cod','cod','nome','cod',false,false,false,'',300,sender);
+ end;
+
 end;
 
 procedure TForm35.titularKeyPress(Sender: TObject; var Key: Char);

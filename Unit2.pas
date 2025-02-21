@@ -13163,9 +13163,15 @@ procedure TForm2.NotaFiscalEletrnica1Click(Sender: TObject);
 var
   th: String;
 begin
+  if demo then begin
+    ShowMessage('Versao de Demonstração e não tem acesso a essa rotina!');
+    exit;
+  end;
+
   try
     funcoes.mensagem(application.Title, 'Aguarde Conectando com o servidor...',
       12, 'Courier New', false, 0, clRed);
+
     th := funcoes.verificaPermissaoPagamento;
     if th = '4' then
     begin
@@ -13175,7 +13181,10 @@ begin
     end;
     funcoes.mensagem(application.Title, '', 15, '', false, 0, clBlack, true);
   except
-    funcoes.mensagem(application.Title, '', 15, '', false, 0, clBlack, true);
+    on e:exception do begin
+      funcoes.mensagem(application.Title, '', 15, '', false, 0, clBlack, true);
+      ShowMessage(e.message);
+    end;
   end;
 
   form79 := tform79.Create(self);
@@ -25798,8 +25807,8 @@ end;
 
   funcoes.verificaLancamentosDuplicadosCaixa(ini, fim);
 
-  if imprimirtotaldia = 'S' then
-  begin
+ // if imprimirtotaldia = 'S' then
+ // begin
     if form22.Pgerais.Values['nota'] = 'T' then
     begin
       tam := 60;
@@ -25823,15 +25832,20 @@ end;
           60) + CRLF);
       addRelatorioForm19(funcoes.centraliza('EMISSAO: ' +
         FormatDateTime('DD/MM/YY', now) + ' ' + data, ' ', 60) + #13 + #10);
-      form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-        Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 60) + #13
-        + #10))));
-      form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-        Longint(PChar(('DATA      NOTA VEND PAG   TOTAL      RECEBIDO' + #13
-        + #10))));
-      form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-        Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 60) + #13
-        + #10))));
+
+
+      if imprimirtotaldia = 'S' then begin
+        form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+          Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 60) + #13
+          + #10))));
+
+        form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+          Longint(PChar(('DATA      NOTA VEND PAG   TOTAL      RECEBIDO' + #13
+          + #10))));
+        form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+          Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 60) + #13
+          + #10))));
+      end;
     end
     else
     begin
@@ -25850,18 +25864,23 @@ end;
         'HORA: ' + FormatDateTime('tt', now) + '|', ' ', 80) + #13 + #10))));
       if h4 <> '' then
         addRelatorioForm19('USUARIO: ' + usuario + CRLF);
-      form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-        Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 80) + #13
-        + #10))));
-      form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-        Longint(PChar
-        (('DATA      NOTA  VEND PAG    TOTAL               PRAZO      CLIENTE               '
-        + #13 + #10))));
-      form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-        Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 80) + #13
-        + #10))));
+
+      if imprimirtotaldia = 'S' then begin
+        form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+          Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 80) + #13
+          + #10))));
+
+
+        form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+          Longint(PChar
+          (('DATA      NOTA  VEND PAG    TOTAL               PRAZO      CLIENTE               '
+          + #13 + #10))));
+        form19.RichEdit1.Perform(EM_REPLACESEL, 1,
+          Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 80) + #13
+          + #10))));
+      end;
     end;
-  end;
+  //end;
 
   if his <> '' then
     h1 := ' and (codhis=' + his + ')';
@@ -26099,6 +26118,8 @@ end;
               [dm.IBQuery1.FieldByName('formapagto').AsString], 0) +
               dm.IBQuery1.FieldByName('valor').AsCurrency);
 
+
+            if imprimirtotaldia = 'S' then begin
             addRelatorioForm19
               ('>>> ' + strzero(dm.IBQuery1.FieldByName('formapagto').AsString,
               2) + '-' + CompletaOuRepete
@@ -26106,6 +26127,7 @@ end;
               21) + CompletaOuRepete('',
               formataCurrency(dm.IBQuery1.FieldByName('valor').AsCurrency), ' ',
               12) + CRLF);
+            end;
 
             dm.IBQuery1.Next;
           end;
@@ -26517,12 +26539,14 @@ end;
     Longint(PChar(('TOTAL GERAL: ' + funcoes.CompletaOuRepete('',
     FormatCurr('#,###,###0.00', totalgeral), ' ', 15) + funcoes.CompletaOuRepete
     (' (SEM VENDAS A PRAZO)', '', ' ', 32) + #13 + #10))));
+
+
   if imprimirtotaldia = 'S' then
     form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-      Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 60) + #13 + #10))))
+      Longint(PChar((funcoes.CompletaOuRepete('', '', '-', tam) + #13 + #10))))
   else
     form19.RichEdit1.Perform(EM_REPLACESEL, 1,
-      Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 80) + #13 + #10))));
+      Longint(PChar((funcoes.CompletaOuRepete('', '', '-', tam) + #13 + #10))));
 
   relShowmessage := 'TOTAL GERAL: ' + funcoes.CompletaOuRepete('',
     FormatCurr('#,###,###0.00', totalgeral), ' ', 15) + funcoes.CompletaOuRepete

@@ -97,11 +97,11 @@ type
     TOTICM, TOT_BASEICM, TOT_ICM_ST, TOT_vBCST, TOT_vICMSDeson, TOT_PIS, TOT_COFINS,BASE_ICM, VLR_ICM, totalNota, totalNota_achado, totImp,
     totalNotaORIGI, totDesc, totAcres, totDesc1, TRIB_ALIQ_PIS, TRIB_ALIQ_COFINS, TOTvICMSUFDest, TOTvICMSUFRemet : currency;
     dadosEmitente,dadosDest : TStringList;
-    valida : boolean;
+    valida, nfeProdutorRural : boolean;
     COFINS_ST, PIS_ST, PIS_NT, vST : currency;
     aliquotasGrupoDeICMS : TItensPISCOFINS;
 
-    function geraCodNumerico(nota12 : String ) : String;
+    function geraCodNumerico( nota12, nnf : String ) : String;
     function getSerieNFe : string;
     function getNNF() : String;
     function verificaProtNFe(arquivoXML : String ) : boolean;
@@ -133,7 +133,7 @@ type
     function NODO_PAG(MAT : TList) : String;
     FUNCTION NODO_INFNFE(CHAVENF : string) : string;
     FUNCTION NODO_IDE(UF, NUM_NF, FIN_NFE,  COD_CFOP, EXT_CFOP, DAT, FORMPAG, COD_MUNIC, DV_NF : string ) : string;
-    FUNCTION NODO_EMIT(CNPJ, RAZAO, FANTASIA, ENDE, BAIRRO, COD_MUN, NOM_MUN, UF, CEP, FONE, IE, CRT : string) : string;
+    FUNCTION NODO_EMIT(CNPJ, CPF, RAZAO, FANTASIA, ENDE, BAIRRO, COD_MUN, NOM_MUN, UF, CEP, FONE, IE, CRT : string) : string;
     FUNCTION SUB_NODO_END(ENDE : String) : string;
     FUNCTION NODO_DEST(TIPO, CPF, CNPJ, NOME, ENDE, BAIRRO, COD_MUN, NOM_MUN, UF, CEP, FONE, IE, CODMUN_EMI : String) : string;
     function NODO_AUTHXML : String;
@@ -341,7 +341,16 @@ begin
   dm.IBQuery1.ParamByName('DD').AsString := IfThen(rede, Edit1.text, ''); // pasta do acbr
   dm.IBQuery1.ParamByName('DNFC').AsString := IfThen(rede, Edit2.text, ''); // pasta NFE do controlw
   dm.IBQuery1.ParamByName('SIT').AsInteger := IfThen(rede, 1, 0); // tipo de uso da Nfe
-  dm.IBQuery1.ExecSQL;
+
+  try
+    dm.IBQuery1.ExecSQL;
+  except
+  on e:exception do begin
+    ShowMessage('erro349: '+e.Message);
+  end;
+
+
+  end;
 
   dm.IBQuery1.Transaction.Commit;
 
@@ -880,6 +889,9 @@ begin
     dm.IBQuery3.ExecSQL;
     dm.IBQuery3.Transaction.Commit;
   except
+    on e:exception do begin
+      ShowMessage('erro893: ' + e.Message);
+    end;
   end;
 
 end;
@@ -919,7 +931,9 @@ begin
     dm.IBQuery3.ExecSQL;
     dm.IBQuery3.Transaction.Commit;
   except
-
+    on e:exception do begin
+      ShowMessage('erro935: ' + e.Message);
+    end;
   end;
 end;
 
@@ -1695,8 +1709,13 @@ begin
     IF(TOT_COFINS <> 0) then  OBS := OBS + ' COFINS a recolher: ' + FormatCurr('#,###,###0.00',TOT_COFINS) + ';';
   end;
 
+  if nfeProdutorRural then OBS := INFO;
+
   OBS := removeCarateresEspeciais(obs);
   Result := '';
+
+
+  
   Result := '<infAdic><infCpl>' + OBS + '</infCpl></infAdic>' + _EXPORTA;
 end;
 
@@ -3451,7 +3470,6 @@ begin
    codNFe := Incrementa_Generator(generator, 0);
    if codNFe = '0' then codNFe := '1';
 
-
   dadosEmitente.Values['cod_mun'] := dm.IBselect.fieldbyname('cod_mun').AsString;
   dadosEmitente.Values['ies']     := funcoes.StrNum(dm.IBselect.fieldbyname('ies').AsString);
   dadosEmitente.Values['razao']   := dm.IBselect.fieldbyname('nome').AsString;
@@ -3464,6 +3482,7 @@ begin
   dadosEmitente.Values['telres']  := funcoes.StrNum(dm.IBselect.fieldbyname('telres').AsString);
   dadosEmitente.Values['cid']     := dm.IBselect.fieldbyname('cid').AsString;
   dadosEmitente.Values['nf']      := codNFe;
+  dadosEmitente.Values['cpf']      := funcoes.StrNum(dm.IBselect.fieldbyname('cpf').AsString);
   nfeTemp := codNFe;
 
   dm.IBselect.Close;
@@ -3660,14 +3679,21 @@ BEGIN
     ELSE RESULT := 0;
 END;
 
-FUNCTION TNfeVenda.NODO_EMIT(CNPJ, RAZAO, FANTASIA, ENDE, BAIRRO, COD_MUN, NOM_MUN, UF, CEP, FONE, IE, CRT : string) : string;
+FUNCTION TNfeVenda.NODO_EMIT(CNPJ, CPF, RAZAO, FANTASIA, ENDE, BAIRRO, COD_MUN, NOM_MUN, UF, CEP, FONE, IE, CRT : string) : string;
 begin
   INVALIDO := 0;
-  OK := VALIDACNPJ(CNPJ);
+
+  if nfeProdutorRural then begin
+    OK := FUNCOES.testacpf(cpf);
+    IF(NOT OK) then ERRO_dados := 'CPF do Emitente Inválido: ' + cpf + #13;
+  end
+  else begin
+    OK := VALIDACNPJ(CNPJ);
+    IF(NOT OK) then ERRO_dados := 'CNPJ do Emitente Inválido: ' + CNPJ + #13;
+  end;
 
   IF(NOT OK) then
     begin
-      ERRO_dados := 'CNPJ do Emitente Inválido ' + #13;
       INVALIDO := invalido + 1;
     end;
 
@@ -3712,7 +3738,7 @@ begin
       exit;
     end;
 
-  Result := '<emit><CNPJ>' + CNPJ + '</CNPJ><xNome>' + CampoString(RAZAO) + '</xNome>' +
+  Result := '<emit>'+IfThen(nfeProdutorRural,'<CPF>' + CPF + '</CPF>','<CNPJ>' + CNPJ + '</CNPJ>')+'<xNome>' + CampoString(RAZAO) + '</xNome>' +
   '<xFant>' + CampoString(FANTASIA) + '</xFant><enderEmit>' +
   SUB_NODO_END(ENDE) + '<xBairro>' + removeCarateresEspeciais(BAIRRO) + '</xBairro><cMun>' +
   COD_MUN + '</cMun><xMun>' + removeCarateresEspeciais(NOM_MUN) + '</xMun><UF>' + UF + '</UF>' +
@@ -3766,7 +3792,7 @@ begin
   Result := '<infNFe versao="'+versaoNFe+'" Id="NFe' + trim(CHAVENF) +'">';
 
   Result := Result + NODO_IDE('14',dadosEmitente.Values['nf'], FIN_NFE1,natOp,'0', FormataData(form22.datamov), IND_PAG,'1400100', DigiVerifi);
-  Result := Result + NODO_EMIT(dadosEmitente.Values['cnpj'],dadosEmitente.Values['razao'],dadosEmitente.Values['empresa'],dadosEmitente.Values['ende'],dadosEmitente.Values['bairro'],dadosEmitente.Values['cod_mun'],dadosEmitente.Values['cid'],dadosEmitente.Values['est'],funcoes.StrNum(dadosEmitente.Values['cep']),dadosEmitente.Values['telres'],dadosEmitente.Values['ies'],funcoes.buscaParamGeral(10, ''));
+  Result := Result + NODO_EMIT(dadosEmitente.Values['cnpj'], dadosEmitente.Values['cpf'],dadosEmitente.Values['razao'],dadosEmitente.Values['empresa'],dadosEmitente.Values['ende'],dadosEmitente.Values['bairro'],dadosEmitente.Values['cod_mun'],dadosEmitente.Values['cid'],dadosEmitente.Values['est'],funcoes.StrNum(dadosEmitente.Values['cep']),dadosEmitente.Values['telres'],dadosEmitente.Values['ies'],funcoes.buscaParamGeral(10, ''));
   Result := Result + NODO_DEST(dadosDest.Values['tipo'],dadosDest.Values['cnpj'],dadosDest.Values['cnpj'],dadosDest.Values['nome'],dadosDest.Values['ende'],dadosDest.Values['bairro'],dadosDest.Values['cod_mun'],dadosDest.Values['cid'],dadosDest.Values['est'],dadosDest.Values['cep'], dadosDest.Values['telres'], dadosDest.Values['ies'], dadosEmitente.Values['cod_mun']);
   Result := Result + NODO_AUTHXML;
  Result := Result + NODO_ITENS(lista_itens,cod_OP,'','','', _ORIGEM);
@@ -4386,6 +4412,9 @@ var
   Nome_Arquivo, arq, test, ce, ci : string;
   ini, i, csta, dias : integer;
 begin
+  nfeProdutorRural := false;
+  if form22.Pgerais.Values['tipoemp'] = '6' then nfeProdutorRural := true;
+
   try
     if verificarValidadeCertificado(false) = false then exit;
   except
@@ -4611,6 +4640,7 @@ begin
       ACBrNFe.NotasFiscais[0].GravarXML(ExtractFileName(arq),ExtractFileDir(arq) + '\');
 
       reStartGenerator(generator, ACBrNFe.NotasFiscais[0].NFe.Ide.nNF + 1);
+
       insereRegistroDaNotaNaTabelaNFE(IntToStr(ACBrNFe.NotasFiscais[0].NFe.Ide.nNF), chaveNF, ci, ACBrNFe.NotasFiscais[0].NFe.Ide.dEmi, arq);
       //ok1
       AtualizaCfop(cod_op);
@@ -4643,12 +4673,15 @@ var seq : string;
 i : integer;
 total, dv : currency;
 begin
-    codNumerico := geraCodNumerico(nota);
+    codNumerico := geraCodNumerico(nota, dadosEmitente.Values['nf']);
 
     Result := '';
     result := IntToStr(14);//cod uf tamanho 02
     Result := Result + FormatDateTime('yymm',form22.datamov); //ano e mes de emissao tamanho 04
-    Result := Result + dadosEmitente.Values['cnpj']; //cnpj do emitente tamanho 14
+    if nfeProdutorRural then begin
+      Result := Result + '000'+dadosEmitente.Values['cpf']; //cnpj do emitente tamanho 14
+    end
+    else Result := Result + dadosEmitente.Values['cnpj']; //cnpj do emitente tamanho 14
     Result := Result + '55'; // modelo da nf 02
     //Result := Result + '001';//serie 03
     Result := Result + strzero(getSerieNFe, 3);//serie 03
@@ -5462,11 +5495,11 @@ begin
 
 end;
 
-function TNfeVenda.geraCodNumerico(nota12 : String ) : String;
+function TNfeVenda.geraCodNumerico(nota12, nnf : String ) : String;
 begin
   Result := funcoes.CompletaOuRepete('',nota,'0',8);
 
-  if Contido(','+Result+',', codigoNumericoInvalido) then Result := funcoes.CompletaOuRepete('','1','0',8);
+  if ((Contido(','+Result+',', codigoNumericoInvalido))or(nnf = nota12)) then Result := funcoes.CompletaOuRepete('1',nota12,'0',8);
 end;
 
 FUNCTION TNfeVenda.NODO_DI(var item1 : Item_venda; cfop : String; cont : integer) : String;

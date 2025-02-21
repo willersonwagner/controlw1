@@ -212,15 +212,12 @@ object Form35: TForm35
       Height = 13
       Caption = 'email:'
     end
-    object tex: TBitBtn
-      Left = 327
-      Top = 336
-      Width = 57
-      Height = 49
-      Caption = 'Registrar'
-      TabOrder = 0
-      OnClick = texClick
-      OnKeyPress = texKeyPress
+    object Label19: TLabel
+      Left = 170
+      Top = 152
+      Width = 27
+      Height = 13
+      Caption = ' Tipo:'
     end
     object cod: JsEditInteiro
       Left = 16
@@ -228,7 +225,7 @@ object Form35: TForm35
       Width = 57
       Height = 21
       CharCase = ecUpperCase
-      TabOrder = 1
+      TabOrder = 0
       OnKeyPress = codKeyPress
       FormularioComp = 'Form35'
       Indice = 0
@@ -241,7 +238,7 @@ object Form35: TForm35
       Height = 21
       CharCase = ecUpperCase
       MaxLength = 100
-      TabOrder = 2
+      TabOrder = 1
       OnKeyPress = nomeKeyPress
       FormularioComp = 'Form16'
       ColorOnEnter = clSkyBlue
@@ -255,7 +252,7 @@ object Form35: TForm35
       Height = 21
       CharCase = ecUpperCase
       MaxLength = 40
-      TabOrder = 3
+      TabOrder = 2
       OnKeyPress = titularKeyPress
       FormularioComp = 'Form16'
       ColorOnEnter = clSkyBlue
@@ -269,7 +266,7 @@ object Form35: TForm35
       Height = 21
       CharCase = ecUpperCase
       MaxLength = 40
-      TabOrder = 4
+      TabOrder = 3
       OnKeyPress = titularKeyPress
       FormularioComp = 'Form16'
       ColorOnEnter = clSkyBlue
@@ -283,7 +280,7 @@ object Form35: TForm35
       Height = 21
       EditMask = '!99.999.999/9999-99;1;_'
       MaxLength = 18
-      TabOrder = 5
+      TabOrder = 4
       Text = '  .   .   /    -  '
       OnKeyDown = cnpjKeyDown
       OnKeyPress = cnpjKeyPress
@@ -296,7 +293,7 @@ object Form35: TForm35
       Height = 21
       CharCase = ecUpperCase
       MaxLength = 12
-      TabOrder = 6
+      TabOrder = 5
       OnKeyPress = iesKeyPress
       FormularioComp = 'Form16'
       ColorOnEnter = clSkyBlue
@@ -310,8 +307,29 @@ object Form35: TForm35
       Height = 21
       EditMask = '!999.999.999-99;1;_'
       MaxLength = 14
-      TabOrder = 7
+      TabOrder = 6
       Text = '   .   .   -  '
+    end
+    object tipo: JsEditInteiro
+      Left = 170
+      Top = 164
+      Width = 121
+      Height = 24
+      CharCase = ecUpperCase
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'MS Sans Serif'
+      Font.Style = [fsBold]
+      MaxLength = 40
+      ParentFont = False
+      TabOrder = 7
+      Text = '0'
+      OnKeyPress = tipoKeyPress
+      FormularioComp = 'Form16'
+      ColorOnEnter = clSkyBlue
+      Indice = 0
+      TipoDeDado = teNumero
     end
     object telres: JsEdit
       Left = 18
@@ -453,12 +471,22 @@ object Form35: TForm35
       Indice = 2
       TipoDeDado = teNumero
     end
+    object tex: TBitBtn
+      Left = 272
+      Top = 355
+      Width = 81
+      Height = 38
+      Caption = 'Registrar'
+      TabOrder = 18
+      OnClick = texClick
+      OnKeyPress = texKeyPress
+    end
   end
   object ImageList1: TImageList
     Left = 352
     Top = 255
     Bitmap = {
-      494C010102003000480010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C0101020030004C0010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       000000000000000000000000000000000000CCCCCC00C8C8C800C4C4C400BABA
       BA00B4B4B400A7A7A700A2A2A2009E9E9E00A2A2A200B0B0B000B6B6B600C2C2

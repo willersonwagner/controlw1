@@ -777,7 +777,7 @@ procedure completaStringList(var mat: tstringList; qtd: integer);
 
 const
   diasParaBloquear: integer = 14;
-  site: String = 'http://controlw.zz.vc';
+  site: String = 'http://controlw.blog.br';
   site1: String = 'http://controlw.blog.br';
   site2: String = 'http://controlw.blog.br';
 
@@ -3235,11 +3235,11 @@ begin
   th := trocaChar(buscaNomeSite + '/si2/add.php?' + th, ' ', '_');
   th := trim(th);
 
-  //ShowMessage(th);
+ // ShowMessage(th);
 
    arq := TStringList.Create;
-   {arq.Text := th;
-   arq.SaveToFile(ExtractFileDir(ParamStr(0)) + '\tex.txt');  }
+   arq.Text := th;
+   arq.SaveToFile(ExtractFileDir(ParamStr(0)) + '\tex.txt');
 
   dm.IBselect.Close;
   try
@@ -3694,6 +3694,8 @@ var
   REG, num, ini, fim: integer;
 begin
   Result := False;
+
+  pedido := RightStr(pedido, 7);
 
   PEDIDO := funcoes.CompletaOuRepete('', PEDIDO, '0', 7);
   // NUM_PED := IF(RIGHT(PEDIDO, 1) = "S", LEFT(PEDIDO, 6) + "1", RIGHT(PEDIDO, 6) + "0")//PEDIDO := IF(RIGHT(PEDIDO, 1) = "S", PEDIDO, RIGHT(PEDIDO, 6) + " ")
@@ -6131,14 +6133,12 @@ begin
   end;
   end;
 
-
   for I := 0 to listaProdLocal.Count-1 do begin
 
-    if Contido('-'+listaTempLocal.Names[i]+ '-', cods) = false then begin
-      exclui := exclui + listaTempLocal.Names[i]+'-' ;
+    if Contido('-'+listaProdLocal.Names[i]+ '-', cods) = false then begin
+      exclui := exclui + listaProdLocal.Names[i]+'-' ;
     end;
   end;
-
 
   for RecNo := RecNo to arquivo.count - 1 do
   begin
@@ -8260,7 +8260,7 @@ begin
 
   if demo then exit;
 
-  try
+ // try
     tmpi := '';
     tmpi := funcoes.addRegSite('', query, abrirDialogo);
 
@@ -8303,7 +8303,7 @@ begin
     end;
 
 
-  except
+  {except
    on e:exception do begin
      try
        pergunta1.close;
@@ -8313,7 +8313,7 @@ begin
      Result := 'ERRO: ' + e.Message;
      exit;
    end;
-  end;
+  end;     }
 
   query.Free;
 end;
@@ -12929,6 +12929,20 @@ begin
       dm.IBQuery1.Transaction.Commit;
     end;
 
+    if not VerificaCampoTabela('TIPO', 'registro') then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('ALTER TABLE registro ADD TIPO VARCHAR(1) DEFAULT '''' ');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('update registro set tipo = '''' ');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
     if not VerificaCampoTabela('email', 'registro') then begin
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Clear;
@@ -14420,10 +14434,14 @@ begin
 
   dm.IBselect.Close;
   dm.IBselect.SQL.Clear;
-  dm.IBselect.SQL.Add('select nome,empresa, versao, cnpj, substring(cod_mun from 1 for 2) as codest from registro');
+  dm.IBselect.SQL.Add('select tipo,nome,empresa, versao, cnpj, substring(cod_mun from 1 for 2) as codest, cpf from registro');
   dm.IBselect.Open;
-  arr.Add('cnpj=' + trim(UpperCase(dm.IBselect.FieldByName('cnpj')
-    .AsString)));
+
+  arr.Add('tipoemp=' + trim(UpperCase(dm.IBselect.FieldByName('tipo').AsString)));
+  arr.Add('cnpj=' + trim(UpperCase(dm.IBselect.FieldByName('cnpj').AsString)));
+
+  if Length(StrNum(arr.Values['cnpj'])) < 7  then arr.Values['cnpj'] := dm.IBselect.FieldByName('cpf').AsString;
+
   arr.Add('codest=' + trim(UpperCase(dm.IBselect.FieldByName('codest')
     .AsString)));
   arr.Add('empresa=' + REMOVE_ACENTO(trim(UpperCase(dm.IBselect.FieldByName('empresa').AsString))));
@@ -20962,7 +20980,7 @@ function Tfuncoes.buscaNomeSite(): String;
 var
   num: String;
 begin
-  num := buscaConfigNaPastaDoControlW('Site_Num', '1');
+  num := buscaConfigNaPastaDoControlW('Site_Num', '2');
   if StrToInt(StrNum(num)) > 3 then
   begin
     num := '1';
@@ -31875,6 +31893,7 @@ begin
   funcoes.mensagemEnviandoNFCE('Buscando Sincronização...', true, false);
 
     th := buscaNomeSite + '/si2/vesinc.php?cnpj=' + cnpj;
+    // ShowMessage(th);
     dm.IBselect.Close;
     try
       IdHTTP1.Request.UserAgent :=
@@ -31933,6 +31952,8 @@ begin
     except
       on e: exception do
       begin
+        ShowMessage(e.Message);
+        funcoes.mensagemEnviandoNFCE('Buscando Sincronização...', false, true);
         if Contido('Host not found', e.Message) then
         begin
           th := buscaConfigNaPastaDoControlW('Site_Num', '1');
