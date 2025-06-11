@@ -12,8 +12,7 @@ uses
     classes1, StrUtils, acbrbal, funcoesdav,func,
   ACBrIBPTax, pcnConversaoNFe,
   ACBrDFeSSL, ACBrPosPrinter, ACBrDANFCeFortesFr, ACBrNFeDANFeRL,
-  ACBrNFeDANFeRLClass, SyncObjs,  ACBrMail, IdThreadComponent,
-  pcnNFe, Math, DB, ACBrNFeNotasFiscais, pcnEventoNFe, pcnEnvEventoNFe,
+  ACBrNFeDANFeRLClass, SyncObjs,  ACBrMail, IdThreadComponent, Math, DB, ACBrNFeNotasFiscais,
   ACBrNFeWebServices, IdBaseComponent, BMDThread, IdComponent, IdTCPConnection,
   IdTCPClient, IdHTTP, IdMultipartFormData, ibdatabase, FireDAC.Comp.Client,
   ACBrBase, ACBrDFeReport, ACBrDFeDANFeReport, ACBrNFeDANFEFR, IdAntiFreezeBase,
@@ -602,8 +601,6 @@ begin
 
   ACBrNFe.DANFE := DANFE_Rave;
   expLogo := false;
-
-  // ACBrNFe.DANFE := DANFE;
 
   if impLogo = false then
   begin
@@ -2952,7 +2949,6 @@ begin
       DANFE_Rave.MargemEsquerda := StrToFloat(Ini.ReadString('SERVER','MargemEsquerdaNFe', CurrToStr(DANFE_Rave.MargemEsquerda)));
       DANFE_Rave.Sistema := 'Controlw Sistemas';
       DANFE_Rave.ExibeCampoFatura := true;
-      DANFE_Rave.logo := DANFELogomarca;
 
 
       DANFE_Rave.CasasDecimais.qCom  := ini.ReadInteger('SERVER','casasDecimais', 2);
@@ -2965,15 +2961,30 @@ begin
 
       if FileExists(DANFELogomarca) then
       begin
+        //ShowMessage(DANFELogomarca);
+        DANFE_Rave.Logo := DANFELogomarca;
+        DANFE_Rave.ImprimeNomeFantasia := false;
         DANFE_Rave.ExpandeLogoMarca := ini.ReadBool('SERVER','expandirLogo', false);
         expLogoMarca := ini.ReadBool('SERVER', 'expandirLogo', false);
-        DANFE_Rave.TamanhoLogoHeight := ini.ReadInteger('SERVER', 'FonteOutCampos', 10);
-        DANFE_Rave.fonte.TamanhoFonteEndereco :=
-          ini.ReadInteger('SERVER', 'fonteEnde', 0);
-        DANFE_Rave.TamanhoLogoHeight := ini.ReadInteger('SERVER','logoheigth', 1);
-        DANFE_Rave.TamanhoLogoWidth := ini.ReadInteger('SERVER',
-          'LOGOWIDTH', 1);
+        DANFE_Rave.TamanhoLogoHeight          := ini.ReadInteger('SERVER', 'FonteOutCampos', 10);
+        DANFE_Rave.fonte.TamanhoFonteEndereco := ini.ReadInteger('SERVER', 'fonteEnde', 0);
+        DANFE_Rave.TamanhoLogoHeight          := 0;
+        DANFE_Rave.TamanhoLogoWidth           := 0;
+        DANFE_Rave.LogoemCima := false;
+
+        //DANFE_Rave.ExpandeLogoMarcaConfig.Altura := ini.ReadInteger('SERVER', 'logoheigth', 0);
+       { if DANFE_Rave.ExpandeLogoMarca then begin
+          DANFE_Rave.ExpandeLogoMarcaConfig.Altura  := ini.ReadInteger('SERVER',  'logoheigth', 0);
+          DANFE_Rave.ExpandeLogoMarcaConfig.Largura := ini.ReadInteger('SERVER', 'LOGOWIDTH', 1);
+
+          DANFE_Rave.ExpandeLogoMarcaConfig.Dimensionar := true;
+        end;}
       end;
+
+     { DANFE_Rave.ExpandeLogoMarcaConfig.Esticar := true;
+      DANFE_Rave.ExpandeLogoMarcaConfig.Dimensionar := true;
+      DANFE_Rave.ExpandeLogoMarcaConfig.Topo := 0;}
+
 
       DANFE_Rave.fonte.TamanhoFonteRazaoSocial := ini.ReadInteger('SERVER', 'fonteRazao', 8);
     end;
@@ -3912,7 +3923,7 @@ begin
   if FileExists(buscaPastaNFCe(CHAVENF) + CHAVENF + '-nfe.xml') = false then
   begin
     Result := false;
-    richED.Lines.Add('NFCe Não Encontrada: ' + buscaPastaNFCe(CHAVENF) + CHAVENF
+    richED.Lines.Add('NFCe1 Não Encontrada: ' + buscaPastaNFCe(CHAVENF) + CHAVENF
       + '-nfe.xml');
     exit;
   end
@@ -4161,6 +4172,9 @@ begin
             try
               query1.Transaction.Commit;
             except
+              on e:exception do begin
+                richED.Lines.Add('erro4165: ' + e.Message);
+              end;
 
             end;
 
@@ -6507,6 +6521,14 @@ begin
       CFOP1 := '5405';
     end;
 
+      if (item.CodAliq = 10) then begin
+        if funcoes.buscaParamGeral(86, 'S') = 'S' then begin
+          if (cfop1 = '5102') then cfop1 := '5405';
+          if (cfop1 = '6102') then cfop1 := '6404';
+        end;
+      end;
+
+
     if length(barras) <> 13 then
       barras := '';
     if ((usaNFe4ouMaior) and (LeftStr(barras, 3) <> '789')) then
@@ -6800,6 +6822,14 @@ begin
       '<pCOFINS>0.00</pCOFINS><vCOFINS>0.00</vCOFINS></COFINSAliq></COFINS>';
     exit;
   end;
+
+  if (item1.Pis = 'T') then begin
+      PIS_NT := PIS_NT + TOT;
+      Result := '<PIS>' + '<PISNT><CST>49</CST></PISNT></PIS>' +
+      '<COFINS>' + '<COFINSNT><CST>49</CST></COFINSNT></COFINS>';
+      exit;
+    end;
+
 
   { PIS_ALIQ := '<PISAliq><CST>02</CST><vBC>' + FORMAT_NUM(TOT) + '</vBC><pPIS>0.00</pPIS>' +
     '<vPIS>0.00</vPIS></PISAliq>';
@@ -9165,7 +9195,7 @@ begin
           Params, Stream);
       except
         on e: Exception do
-          // ShowMessage('Error encountered during POST: ' + E.Message);
+           ShowMessage('Error encountered during POST: ' + E.Message);
       end;
       if trim(Stream.DataString) = 'SUCESSO' then
         Result := true;

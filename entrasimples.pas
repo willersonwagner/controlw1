@@ -105,12 +105,14 @@ type
       Y: Integer);
     procedure serie1KeyPress(Sender: TObject; var Key: Char);
     procedure dataKeyPress(Sender: TObject; var Key: Char);
+    procedure codigoClick(Sender: TObject);
+    procedure fornecKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
 
   private
     cont:integer;
     arr:TStringList;
     valores : array[1..13] of currency ;
-    codigoProd, notaTemp, fornecTemp, criadoPorXML, destino, dataChegadaEmissaoTemp : String;
+    codigoProd, notaTemp, serieTemp, fornecTemp, criadoPorXML, destino, dataChegadaEmissaoTemp : String;
     usarCODBAR, usarValidade, dataok : boolean;
     procedure formatcamposEntrada();
     procedure buscaFornecedores(cod1 : String);
@@ -1165,6 +1167,7 @@ end;
 
 procedure TForm17.fornecKeyPress(Sender: TObject; var Key: Char);
 begin
+
   if key = #27 then begin
     teclaEsc;
     exit;
@@ -1217,6 +1220,15 @@ begin
          end;
      end;
 }
+end;
+
+procedure TForm17.fornecKeyUp(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if (ord(key) = 38) then begin
+    codigo.Enabled := true;
+    codigo.SetFocus;
+  end; 
 end;
 
 procedure TForm17.totalExit(Sender: TObject);
@@ -1368,19 +1380,21 @@ begin
   if serie = '' then serieaql := ' and ((serie is null) or (trim(serie) = ''''))'
   else serieaql := ' and (serie = '+QuotedStr(serie)+')';
 
-
   if not checaDataChegada then begin
      exit;
   end;
 
    if (codbar.Text = '') and (strnum(notaTemp + fornecTemp) <> '0') then
      begin
+       if serieTemp = '' then serieaql := ' and ((serie is null) or (trim(serie) = ''''))'
+       else serieaql := ' and (serie = '+QuotedStr(serieTemp)+')';
+
        if trim(codigo.Text) = '' then exit;
        if trim(fornec.Text) = '' then exit;
        if trim(notaTemp)    = '' then exit;
        if trim(fornecTemp)  = '' then exit;
-       if (dataChegadaEmissaoTemp = (data.Text + chegada.Text)) then exit;
-       
+
+       if trim(serieTemp)   = '' then exit;       
 
        if messageDlg('Deseja ALTERAR os dados da nota ? ' + #13 +
        'Nota Antiga: '+ notaTemp + #13 +
@@ -1390,9 +1404,10 @@ begin
          begin
            dm.IBQuery1.Close;
            dm.IBQuery1.SQL.Clear;
-           dm.IBQuery1.SQL.Add('update entrada set nota = :nota, fornec = :fornec, data = :data, chegada = :chegada where ((nota = :nota1) and (fornec = :fornec1) '+serieaql+' ) ');
+           dm.IBQuery1.SQL.Add('update entrada set nota = :nota, fornec = :fornec, serie = :serie, data = :data, chegada = :chegada where ((nota = :nota1) and (fornec = :fornec1) '+serieaql+' ) ');
            dm.IBQuery1.ParamByName('nota').AsString      := codigo.Text;
            dm.IBQuery1.ParamByName('fornec').AsString    := fornec.Text;
+           dm.IBQuery1.ParamByName('serie').AsString     := serie1.Text;
            dm.IBQuery1.ParamByName('data').AsDateTime    := StrToDate(data.Text);
            dm.IBQuery1.ParamByName('chegada').AsDateTime := StrToDate(chegada.Text);
            dm.IBQuery1.ParamByName('nota1').AsString     := notaTemp;
@@ -1401,9 +1416,10 @@ begin
 
            dm.IBQuery1.Close;
            dm.IBQuery1.SQL.Clear;
-           dm.IBQuery1.SQL.Add('update item_entrada set nota = :nota, fornec = :fornec where ((nota = :nota1) and (fornec = :fornec1) '+serieaql+') ');
+           dm.IBQuery1.SQL.Add('update item_entrada set nota = :nota, fornec = :fornec, serie = :serie where ((nota = :nota1) and (fornec = :fornec1) '+serieaql+') ');
            dm.IBQuery1.ParamByName('nota').AsString      := codigo.Text;
            dm.IBQuery1.ParamByName('fornec').AsString    := fornec.Text;
+           dm.IBQuery1.ParamByName('serie').AsString     := serie1.Text;
            dm.IBQuery1.ParamByName('nota1').AsString     := notaTemp;
            dm.IBQuery1.ParamByName('fornec1').AsString   := fornecTemp;
            dm.IBQuery1.ExecSQL;
@@ -1413,6 +1429,7 @@ begin
            codigo.Enabled := true;
            notaTemp   := '';
            fornecTemp := '';
+           serieTemp  := '';
            fornec.Text    := '';
            codigo.Text    := '';
            codigo.SetFocus;
@@ -1538,6 +1555,12 @@ begin
      form9.Free;
      JsBotao1.SetFocus;
     end;
+end;
+
+procedure TForm17.codigoClick(Sender: TObject);
+begin
+  codigo.Enabled := True;
+  codigo.SetFocus;
 end;
 
 procedure TForm17.codigoKeyDown(Sender: TObject; var Key: Word;
@@ -1759,6 +1782,7 @@ begin
     try
          notaTemp   := codigo.Text;
          fornecTemp := fornec.Text;
+         serieTemp  := serie1.Text;
          abreDataSet;
 
          buscaDadosNota_e_preencheCampos(codigo.Text);

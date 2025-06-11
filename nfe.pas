@@ -59,7 +59,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ComCtrls, SHDocVw,  FileCtrl, DateUtils, IniFiles, OleCtrls,  ExtCtrls, Buttons,
   IdBaseComponent, IdComponent, IdTCPServer, funcoesdav, Classes1, pcnConversao,pcnConversaonfe, untnfceForm, jsedit1,
-  IdCustomTCPServer,spedFiscal, ACBrMail;
+  IdCustomTCPServer,spedFiscal, ACBrMail, DB, Datasnap.DBClient;
 
 type
   TNfeVenda = class(TForm)
@@ -77,6 +77,7 @@ type
     Button1: TButton;
     Button2: TButton;
     Button3: TButton;
+    ClientDataSet1: TClientDataSet;
     procedure te(Sender: TObject; var Key: Char);
     procedure FormCreate(Sender: TObject);
     procedure RadioButton2Enter(Sender: TObject);
@@ -162,6 +163,7 @@ type
     //function Format_num(valor : currency) : string;
     { Private declarations }
   public
+    cdsproduto : TClientDataSet;
     dest,nota,cod_OP,natOp,cUF_Emit,chaveNF
     , DigiVerifi,tipo, cstIcmCfop,cstpisCfop
     , infAdic, codNFe, nfeTemp, codPaisDest
@@ -230,9 +232,8 @@ var
 
 implementation
 
-uses func, principal, Unit1, DB, Math, relatorio, dialog, imprime1,
-  StrUtils, pcnEnvEventoNFe, ACBrNFeWebServices, pcnEventoNFe,
-  pcnRetEnvEventoNFe, pcnNFe, pcnProcNFe, Unit2, cadproduto, gifAguarde, Unit48,
+uses func, principal, Unit1, Math, relatorio, dialog, imprime1,
+  StrUtils, ACBrNFeWebServices, pcnProcNFe, Unit2, cadproduto, gifAguarde, Unit48,
   buscaSelecao;
 
 {$R *.dfm}
@@ -2860,6 +2861,13 @@ begin
     exit;
   end;
 
+  if (item1.Pis = 'T') then begin
+    PIS_NT := PIS_NT + TOT;
+    Result := '<PIS>' + '<PISNT><CST>49</CST></PISNT></PIS>' +
+    '<COFINS>' + '<COFINSNT><CST>49</CST></COFINSNT></COFINS>';
+    exit;
+  end;
+
  { if ChecaIsencaoPis_Cst_49_Devoluções(cfop) then begin
     PIS_NT := PIS_NT + TOT;
     Result := '<PIS>' + '<PISNT><CST>49</CST></PISNT></PIS>' +
@@ -3039,6 +3047,16 @@ begin
       if (((mat.Reducao <> 0) or (FIN_NFE1 = '4')) and (indIEDest <> '9')) then begin
 
         BASE_ICM := tot;
+
+        //aqui busca a base informada em f2 na tela de emissao de nfe
+        //na tebaela de produtos tem a possibilidade de alterar a base de calculo
+        // e o cfop
+        if cdsProduto.Locate('index', item.itemIndex, []) then begin
+          if ((cdsProduto.FieldByName('cod').AsInteger = item.cod) and (cdsProduto.FieldByName('BASEICMS').AsString <> cdsProduto.FieldByName('BASEICMS1').AsString)) then begin
+            BASE_ICM := cdsProduto.FieldByName('BASEICMS').AsCurrency;
+          end;
+        end;
+
         if item.PercICMS = 0 then begin
           BASE_ICM := 0;
           VLR_ICM  := 0;
@@ -3115,7 +3133,7 @@ begin
           exit;
         end;
 
-      if ((mat.Reducao <> 0) or (FIN_NFE1 = '4')) then
+      if (mat.Reducao <> 0) then
         begin
           Result := '<ICMS><ICMSSN900><orig>' + _ORIGE + '</orig><CSOSN>900</CSOSN><modBC>3</modBC>' +
           '<vBC>' + FORMAT_NUM(arrendondaNFe(tot, 2)) + '</vBC>' +
@@ -3636,10 +3654,10 @@ begin
       idEstrangeiro := StrNum(tmp);
       IE := '';
 
-      if (tipo = '7') and (DEST_NFE <> '2') then begin
+      {if (tipo = '7') and (DEST_NFE <> '2') then begin
         UF      := dadosEmitente.Values['est'];
         COD_MUN := dadosEmitente.Values['cod_mun'];
-      end;
+      end;}
 
       if ((codPaisDest <> '1058') or (tipo = '7')) then begin
         dm.IBselect.Close;
@@ -3797,7 +3815,6 @@ begin
   Result := Result + NODO_AUTHXML;
  Result := Result + NODO_ITENS(lista_itens,cod_OP,'','','', _ORIGEM);
 
-
   Result := Result + NODO_TOTAL(totalNota,TOT_BASEICM,TOTICM,TOT_PIS,TOT_COFINS,0,totDesc);
   Result := Result + NODO_TRANSP(frete);
   Result := Result + NODO_PAG(parcelamento);
@@ -3889,7 +3906,7 @@ end;
 procedure TNfeVenda.CriaLista_De_itens_Venda(var lista : Tlist);
 var
    desc,temp, tot, TOT1, temp1, p_venda : double;
-   i, fim, tem : integer;
+   i, fim, tem, acc : integer;
    aliq : string[3];
    CB : Boolean;
    item : Item_venda;
@@ -3902,6 +3919,7 @@ begin
   TOT1 := 0;
   totalNotaORIGI := 0;
   lista := TList.Create;
+
 
   try
     fim := notas.Count - 1 ;
@@ -3922,6 +3940,7 @@ begin
     end;
   end;
 
+  acc := 0;
   for i := 0 to fim do
     begin
       nota := notas.Strings[i];
@@ -3970,6 +3989,20 @@ begin
          if not query2.IsEmpty then
            begin
              p_venda := (IfThen(tipo = 'T', query2.fieldbyname('p_compra').AsFloat, query1.fieldbyname('p_venda').AsFloat));
+             if tipo = 'T' then begin
+               if p_venda = 0 then begin
+                { MessageDlg('Erro 3994: Produto:' +#13 + 'Cód: ' + query2.fieldbyname('cod').AsString + #13 +
+                 'Nome: ' + query2.fieldbyname('nome').AsString + #13 +
+                 'Preço Compra: ' + CurrToStr(p_venda) + #13 + #13 + 'O preço de compra nao pode ser igual a 0', mtError, [mbOK], 1);}
+                 raise Exception.Create('Erro 3994: Produto:' +#13 + 'Cód: ' + query2.fieldbyname('cod').AsString + #13 +
+                 'Nome: ' + query2.fieldbyname('nome').AsString + #13 +
+                 'Preço Compra: ' + CurrToStr(p_venda) + #13 + #13 + 'O preço de compra nao pode ser igual a 0');
+                 exit;
+               end;
+
+             end;
+
+
              p_venda := abs(p_venda);
 
              tem := ProcuraItemNaLista1(lista, query1.fieldbyname('cod').AsInteger, p_venda);
@@ -3986,6 +4019,8 @@ begin
              else
                begin
                  item := Item_venda.Create ;
+                 acc := acc + 1;
+                 item.itemIndex := inttostr(acc);
                  CB := false;
 
                  try
@@ -5006,6 +5041,7 @@ begin
     end;
   end;
 
+ 
   if erro_dados = 'ERRO' then exit;
 
   IF ((DEST_NFE = '2') AND (LeftStr(cod_OP, 1) = '7')) then

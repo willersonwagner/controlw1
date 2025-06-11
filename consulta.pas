@@ -59,7 +59,7 @@ uses
    Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, Mask, JsEditData1, StdCtrls, JsEdit1, ExtCtrls, Buttons, dbGrids,
   Grids, DB, DBClient, Provider, 
-   ComCtrls, ToolWin, classes1, untnfceForm;
+   ComCtrls, ToolWin, classes1, untnfceForm, FireDAC.Comp.Client;
 type
   TForm24 = class(TForm)
     DBGrid1: TDBGrid;
@@ -325,10 +325,9 @@ begin
           codUlt  := retorno;
           close;
         end;
-    if DBGrid1.SelectedField.DisplayLabel = 'LOCALIZACAO' then begin
-      
-    end;
 
+    if DBGrid1.SelectedField.DisplayLabel = 'LOCALIZACAO' then begin
+    end;
   end;
 
   if key = #27 then
@@ -409,8 +408,8 @@ begin
 
      busca := funcoes.busca(dm.IBQuery2, busca,'NOME', 'cod' , 'descricao');
      if busca = '' then exit;
-     funcoes.ordernaDataSetVenda('descricao', busca, sqlVenda, DBGrid1);
-     //DBGrid1.DataSource.DataSet.Locate('cod',busca,[loPartialKey]);
+     TFDQuery(DBGrid1.DataSource.DataSet).IndexFieldNames := 'DESCRICAO';
+     DBGrid1.DataSource.DataSet.Locate('cod',busca,[]);
    end;
 
    If (key = #32) and (DBGrid1.SelectedField.DisplayLabel='REFORI') then
@@ -671,21 +670,26 @@ end;
 procedure TForm24.abreDataSetOrdenando();
 var
   cod, campo : String;
+  i : integer;
 begin
   if dm.produto.Active then begin
     cod   := dm.produto.FieldByName('cod').AsString;
     campo := DBGrid1.SelectedField.DisplayName;
   end;
 
-  dm.produto.Close;
+  i := DBGrid1.SelectedIndex;
+
+  {dm.produto.Close;
   dm.produto.SQL.Text := sqlVenda + ' ORDER BY ' + campo;
   dm.produto.Open;
 
   dm.produto.Locate('cod', cod, []);
   funcoes.OrdenaCamposVenda(funcoes.buscaParamGeral(1, ''));
-  funcoes.FormataCampos(dm.produto,2,'ESTOQUE',3);
+  funcoes.FormataCampos(dm.produto,2,'ESTOQUE',3);}
 
-  DBGrid1.SelectedIndex := funcoes.buscaFieldDBgrid1(campo, DBGrid1);
+  dm.produto.IndexFieldNames := DBGrid1.SelectedField.DisplayName;
+  dBGrid1.SelectedIndex := i;
+  //DBGrid1.SelectedIndex := funcoes.buscaFieldDBgrid1(campo, DBGrid1);
 end;
 
 procedure TForm24.abreDataSetOrdenandoPorDataEntrada();

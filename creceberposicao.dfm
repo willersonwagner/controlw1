@@ -1,7 +1,7 @@
 object Form34: TForm34
   Left = 314
   Top = 172
-  Caption = 'Contas Receber - Baixa'
+  Caption = 'Contas Receber - Baixa  F1- Ajuda'
   ClientHeight = 354
   ClientWidth = 612
   Color = clBtnFace
@@ -30,7 +30,7 @@ object Form34: TForm34
     Font.Height = -11
     Font.Name = 'Courier New'
     Font.Style = []
-    Options = [dgTitles, dgIndicator, dgColumnResize, dgColLines, dgRowLines, dgTabs, dgConfirmDelete, dgCancelOnExit]
+    Options = [dgTitles, dgIndicator, dgColumnResize, dgColLines, dgRowLines, dgTabs, dgConfirmDelete, dgCancelOnExit, dgMultiSelect]
     ParentBiDiMode = False
     ParentFont = False
     TabOrder = 0

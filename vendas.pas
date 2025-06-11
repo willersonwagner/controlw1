@@ -6,8 +6,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, Mask, JsEditData1, StdCtrls, JsEdit1, ExtCtrls, Buttons, Grids,
   DBGrids, DB,   ComCtrls, JsEditNumero1,
-  JsEditInteiro1,
-  DBClient, funcoesdav, provider, classes1, untnfceForm, ACBrUtil, FireDAC.Comp.Client;
+  JsEditInteiro1, DBClient, funcoesdav, provider, classes1, untnfceForm, ACBrUtil, FireDAC.Comp.Client;
 
 type
   Ptr_Item = ^Item_venda;
@@ -187,6 +186,7 @@ type
     function geraCaptionTeclasDeAtalho(): String;
     procedure BuscaCodBar_F6_AutoPecas1;
     function validaVendedor() : boolean;
+    procedure habilitaCamposFimVenda;
     { Private declarations }
   public
 
@@ -1053,17 +1053,13 @@ var
 begin
   campo1 := DBGrid1.SelectedField.DisplayName;
   cod := DBGrid1.DataSource.DataSet.FieldByName('cod').AsString;
-  ordem := 'order by ' + DBGrid1.SelectedField.DisplayName;
-  DBGrid1.DataSource.DataSet.Close;
-  temp1 := copy(TFDQuery(DBGrid1.DataSource.DataSet).SQL.GetText, 1,
-    pos('order', TFDQuery(DBGrid1.DataSource.DataSet).SQL.GetText) - 1);
-  TFDQuery(DBGrid1.DataSource.DataSet).SQL.Clear;
-  TFDQuery(DBGrid1.DataSource.DataSet).SQL.Add(temp1 + ordem);
-  DBGrid1.DataSource.DataSet.Open;
-  DBGrid1.DataSource.DataSet.Locate('cod', cod, []);
+
+  //TFDQuery(DBGrid1.DataSource.DataSet).IndexFieldNames := campo1;
+  dm.produto.IndexFieldNames := campo1;
+
+  {DBGrid1.DataSource.DataSet.Locate('cod', cod, []);
   funcoes.FormataCampos(TFDQuery(DBGrid1.DataSource.DataSet), 2, '', 2);
-  funcoes.OrdenaCamposVenda(funcoes.buscaParamGeral(1, ''));
-  DBGrid1.SelectedIndex := funcoes.buscaFieldDBgrid1(campo1, DBGrid1);
+  funcoes.OrdenaCamposVenda(funcoes.buscaParamGeral(1, ''));}
 end;
 
 function TForm20.AdicionaListaSmall: boolean;
@@ -1446,6 +1442,23 @@ begin
   end
   else begin
     ultOrcamentoRecuperado := ultOrcamentoRecuperado + '-'+numOrcamento+ '-';
+  end;
+
+
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Clear;
+  dm.IBselect.SQL.Add
+    ('select codhis from orcamento where nota = ' + numOrcamento);
+  try
+    dm.IBselect.Open;
+  except
+    ShowMessage('Ocorreu um Erro 1457 Inesperado. Por Favor Tente Novamente.');
+    exit;
+  end;
+
+  if funcoes.buscaParamGeral(105, 'N') = 'S' then begin
+    codhis := dm.IBselect.FieldByName('codhis').AsString;
+    formaAlterada := codhis;
   end;
 
 
@@ -6050,6 +6063,7 @@ begin
   end;
 
   JsEdit1.Text := '0';
+    //JsEdit1.Text := funcoes.buscaParamGeral(146, '0');
   desco.Caption := '';
 
   configUsuarioConfirmarPreco := trim(funcoes.LerConfig(form22.Pgerais.Values['configu'], 2));
@@ -6781,6 +6795,8 @@ begin
     begin
       JsEdit2.Text := form22.Pgerais.Values['codvendedor'];
       JsEdit2.Enabled := false;
+
+      JsEdit1.Enabled := true;
       JsEdit1.SetFocus;
     end;
       end;
@@ -7193,6 +7209,7 @@ begin
     begin
       JsEdit2.Text := form22.Pgerais.Values['codvendedor'];
       JsEdit2.Enabled := false;
+      JsEdit1.Enabled := true;
       JsEdit1.SetFocus;
     end;
 
@@ -7369,6 +7386,7 @@ begin
     else begin
       JsEdit1.Text := '0';
       JsEdit3.Text := '';
+      JsEdit1.Enabled := true;
       JsEdit1.SetFocus;
     end;
 
@@ -7758,8 +7776,10 @@ begin
   end
   else if Key = 123 then // F12
   begin
-    ordenaDatasetPorCampoBdgrid('cod', DBGrid1.DataSource.DataSet.FieldByName
+    Sleep(1);
+    ordenaDatasetPorCampoBdgrid(DBGrid1.SelectedField.DisplayName, DBGrid1.DataSource.DataSet.FieldByName
       ('cod').AsString);
+    exit;
   end
   else if Key = 116 then // F5
   begin
@@ -8160,6 +8180,7 @@ end;
 procedure TForm20.JsEdit1Enter(Sender: TObject);
 begin
   validaVendedor;
+  if JsEdit1.Text = '0' then JsEdit1.Text := funcoes.buscaParamGeral(146, '0');
 end;
 
 procedure TForm20.JsEdit1KeyDown(Sender: TObject; var Key: Word;
@@ -8322,6 +8343,7 @@ begin
       end;
 
       ordenaDatasetPorCampoBdgrid('cod', DBGrid1.DataSource.DataSet.FieldByName('cod').AsString);
+      exit;
       { testa := testa + 1;
         dm.produto.Close;
         dm.produto.SQL.Clear;
@@ -9834,6 +9856,11 @@ begin
     Result := true;
     exit;
   end;
+
+end;
+
+procedure TForm20.habilitaCamposFimVenda;
+begin
 
 end;
 

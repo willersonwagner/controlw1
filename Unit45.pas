@@ -371,12 +371,12 @@ end;
 
 procedure TdadosAdicSped.JsBotao2Click(Sender: TObject);
 begin
-  if StrNum(chavenfe.Text) = '0' then
+ { if StrNum(chavenfe.Text) = '0' then
     begin
       ShowMessage('Preencha Corretamente a Chave!');
       chavenfe.SetFocus;
       exit;
-    end;
+    end;   }
 
   excluiDadosAdic(chavenfe.Text);
   limpaCampos;
@@ -410,8 +410,10 @@ end;
 procedure TdadosAdicSped.excluiDadosAdic(chave : String);
 begin
   dm.IBQuery1.Close;
-  dm.IBQuery1.SQL.Text := 'delete from SPEDDADOSADIC where chavenfe = :chave';
-  dm.IBQuery1.ParamByName('chave').AsString := StrNum(chave);
+  dm.IBQuery1.SQL.Text := 'delete from SPEDDADOSADIC where nota = :nota and fornec = :fornec and serie = :serie';
+  dm.IBQuery1.ParamByName('nota').AsString   := StrNum(nota.Text);
+  dm.IBQuery1.ParamByName('fornec').AsString := StrNum(fornec.Text);
+  dm.IBQuery1.ParamByName('serie').AsString  := StrNum(serie.Text);
   dm.IBQuery1.ExecSQL;
   dm.IBQuery1.Transaction.Commit;
 end;

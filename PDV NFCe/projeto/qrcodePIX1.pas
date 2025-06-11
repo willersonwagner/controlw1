@@ -1,4 +1,4 @@
-unit qrcodePIX;
+unit qrcodePIX1;
 
 interface
 
@@ -8,7 +8,7 @@ uses
   Vcl.StdCtrls, Vcl.ExtCtrls, ACBrImage, TlHelp32, Vcl.Imaging.jpeg, ShellApi, func;
 
 type
-  TForm84 = class(TForm)
+  Tqrcode = class(TForm)
     image1: TImage;
     Label1: TLabel;
     Label2: TLabel;
@@ -47,7 +47,7 @@ type
   end;
 
 var
-  Form84: TForm84;
+  qrcode: Tqrcode;
 
 implementation
 
@@ -56,14 +56,14 @@ implementation
 uses untVendaPDV, Unit15;
 
 
-procedure TForm84.Button1Click(Sender: TObject);
+procedure Tqrcode.Button1Click(Sender: TObject);
 var
   ret : String;
 begin
   
 end;
 
-procedure TForm84.Button2Click(Sender: TObject);
+procedure Tqrcode.Button2Click(Sender: TObject);
 var
   OffScreen : TJPEGImage;
   bmp : TBitmap;
@@ -79,13 +79,13 @@ begin
   //Image1.Picture.Bitmap.Canvas.TextOut(50, 50, 'teste de sistema');
 end;
 
-procedure TForm84.FormClose(Sender: TObject; var Action: TCloseAction);
+procedure Tqrcode.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   Timer1.Enabled := false;
   Timer2.Enabled := false;
 end;
 
-procedure TForm84.FormCreate(Sender: TObject);
+procedure Tqrcode.FormCreate(Sender: TObject);
 begin
   txid1 := '';
   arqPIX := tstringlist.create;
@@ -94,7 +94,7 @@ begin
   cont2 := 0;
 end;
 
-procedure TForm84.FormKeyDown(Sender: TObject; var Key: Word;
+procedure Tqrcode.FormKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
   if (ssCtrl in Shift) and (UpCase(Chr(Key)) = 'P') then begin
@@ -103,13 +103,13 @@ begin
   end;
 end;
 
-procedure TForm84.FormKeyPress(Sender: TObject; var Key: Char);
+procedure Tqrcode.FormKeyPress(Sender: TObject; var Key: Char);
 begin
   if key = #27 then close;
   
 end;
 
-procedure TForm84.FormShow(Sender: TObject);
+procedure Tqrcode.FormShow(Sender: TObject);
 begin
   //Timer3.Enabled := true
 
@@ -122,7 +122,7 @@ begin
   PintarQRCode(qrcodePIX, Image1.Picture.Bitmap, qrAuto);
 end;
 
-procedure TForm84.Timer1Timer(Sender: TObject);
+procedure Tqrcode.Timer1Timer(Sender: TObject);
 var
   ret : String;
 begin
@@ -138,7 +138,7 @@ begin
   Timer1.Enabled:=true;
 end;
 
-procedure TForm84.Timer2Timer(Sender: TObject);
+procedure Tqrcode.Timer2Timer(Sender: TObject);
 begin
   if Label3.Caption = 'Recebimento Concluido com Sucesso!' then begin
     form3.adicionaRegistroPagamentoBanco('1', valor_venda, 0, txid1);
@@ -173,7 +173,7 @@ begin
   end;
 end;
 
-procedure TForm84.Timer3Timer(Sender: TObject);
+procedure Tqrcode.Timer3Timer(Sender: TObject);
 var
   bmp : TBitmap;
   kodoquad: TRect;
@@ -239,11 +239,21 @@ begin
 
 end;
 
-function TForm84.PIXConsulta(txid : String) : string;
+function Tqrcode.PIXConsulta(txid : String) : string;
 var
   cont : integer;
 begin
-  Result := '';
+
+if dtmMain.ACBrPixCD1.PSP.epCob.ConsultarCobrancaImediata(form22.txtId, 0) then begin
+    AdicionarLinhaLog(#13+#13+'Cobrança'+#13+#13+FormatarJSON(dtmMain.ACBrPixCD1.PSP.epCob.CobCompleta.AsJSON));
+  end
+  else AdicionarLinhaLog('Nenhum Resultado!');
+
+  if dtmMain.ACBrPixCD1.PSP.epCob.CobCompleta.status = stcATIVA then estado := 'ATIVA'
+  else if dtmMain.ACBrPixCD1.PSP.epCob.CobCompleta.status = stcCONCLUIDA then estado := 'CONCLUIDA';
+
+
+ { Result := '';
   arqPIX.Clear;
   arqPIX.Add('comando=consultarPIX');
   arqPIX.Add('txid='+ txid);
@@ -266,10 +276,10 @@ begin
     end;
 
     sleep(1000);
-  end;
+  end;}
 end;
 
-function TForm84.PIXacessToken : string;
+function Tqrcode.PIXacessToken : string;
 var
   cont : integer;
 begin
@@ -299,7 +309,7 @@ begin
   end;
 end;
 
-procedure TForm84.PIXcriarCobranca(valor : currency;desc, chave : String; var arq : TStringList);
+procedure Tqrcode.PIXcriarCobranca(valor : currency;desc, chave : String; var arq : TStringList);
 var
   cont : integer;
 begin
@@ -343,7 +353,7 @@ begin
   end;
 end;
 
-function TForm84.recebePIX(valor : currency; descricao : String) : string;
+function Tqrcode.recebePIX(valor : currency; descricao : String) : string;
 var
   arq, passos : TStringList;
 begin
@@ -406,7 +416,7 @@ begin
   if pos('Recebimento Concluido', form84.Label3.Caption) > 0 then Result := 'OK';
 end;
 
-function TForm84.recebePIX1(valor : currency; descricao : String) : string;
+function Tqrcode.recebePIX1(valor : currency; descricao : String) : string;
 begin
   cont := 0;
 
@@ -485,7 +495,7 @@ begin
 end;
 
 
-function TForm84.ProcessExists(exeFileName: string): Boolean;
+function Tqrcode.ProcessExists(exeFileName: string): Boolean;
 var
   ContinueLoop: BOOL;
   FSnapshotHandle: THandle;

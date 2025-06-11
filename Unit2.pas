@@ -12,7 +12,7 @@ uses
   ComCtrls, jsedit1, treadproqy, Provider, classes1, untConfiguracoesNFCe,
   untnfceForm, funcoesdav, ACBrGIF, IdIPWatch,
   IdExplicitTLSClientServerBase, IdSMTPBase, IdAttachmentFile, Vcl.ImgList,
-  PngSpeedButton, Vcl.Imaging.jpeg, pcnConversaoNFe, FireDAC.Comp.Client;
+  PngSpeedButton, Vcl.Imaging.jpeg, pcnConversaoNFe, pcnconversao, FireDAC.Comp.Client;
 
 type
   Ptr_comissao = ^Comissao;
@@ -430,6 +430,8 @@ type
     AdicionarFotoProduto1: TMenuItem;
     NFeNFCeProduto1: TMenuItem;
     RelatoriodeOramentos1: TMenuItem;
+    ExcluirProdutosCadastradospeloInventario1: TMenuItem;
+    RelatoriodeCSTICMSNFENFCe1: TMenuItem;
     procedure LimparBloqueios1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure CadastrarUsurio1Click(Sender: TObject);
@@ -747,6 +749,8 @@ type
     procedure NFeNFCeProduto1Click(Sender: TObject);
     procedure RelatoriodeOramentos1Click(Sender: TObject);
     procedure PorNota1Click(Sender: TObject);
+    procedure ExcluirProdutosCadastradospeloInventario1Click(Sender: TObject);
+    procedure RelatoriodeCSTICMSNFENFCe1Click(Sender: TObject);
   private
     b, cont: integer;
     ini: Smallint;
@@ -1644,8 +1648,9 @@ end;
 
 procedure TForm2.AlfabticaGeral1Click(Sender: TObject);
 var
-  sim, prec, h1, h2, h3, h4, ordem, estoqueZero: string;
+  sim, prec, h1, h2, h3, h4, ordem, estoqueZero, nome: string;
   tam: integer;
+  arq : TStringList;
 begin
   form19.RichEdit1.Clear;
   b := 80;
@@ -1768,8 +1773,28 @@ begin
 
   funcoes.informacao(1, 2, 'AGUARDE... ', true, false, 2);
   b := 60;
+
+
+  arq := TStringList.Create;
+  arq.Add('COD;NOME;P_VENDA;UNID;QUANTIDADE;CODBARRAS');
+
   while not dm.ProdutoQY.Eof do
   begin
+    nome := dm.ProdutoQY.FieldByName('DESCRICAO').AsString;
+    nome := trocaChar(nome, ';', '');
+    nome := trim(trocaChar(nome, ',', ''));
+    if nome = '' then nome := 'PRODUTO SEM DESCRICAO';
+    
+
+
+    arq.Add(dm.ProdutoQY.FieldByName('cod').AsString+';' +
+    NOME+';' +
+    trocaChar(dm.ProdutoQY.FieldByName('preco').AsString, ';', '')+';' +
+    trocaChar(dm.ProdutoQY.FieldByName('un').AsString, ';', '')+';' +
+    trocaChar(dm.ProdutoQY.FieldByName('estoque').AsString, ';', '')+';' +
+    trocaChar(dm.ProdutoQY.FieldByName('codbar').AsString, ';', ''));
+
+
     if funcoes.PerguntasRel(dm.ProdutoQY, '12', true, '', '') then
     begin
       if form19.RichEdit1.Lines.Count = b then
@@ -1845,6 +1870,10 @@ begin
     form19.RichEdit1.SelStart := 1;
     dm.ProdutoQY.Close;
 
+
+    criaPasta(caminhoEXE_com_barra_no_final + 'REL\');
+    arq.SaveToFile(caminhoEXE_com_barra_no_final + 'REL\produtos.csv');
+    arq.Free;
     funcoes.CharSetRichEdit(form19.RichEdit1);
     form19.showmodal;
   end;
@@ -4151,8 +4180,39 @@ begin
 end;
 
 procedure TForm2.Button2Click(Sender: TObject);
+var
+  qrcode : String;
+  ok : boolean;
 begin
-  funcoes.RotinaImportarListaMWM;
+  dm.ACBrPixCD1.PSP := dm.ACBrPSPMercadoPago1;
+  dm.ACBrPSPMercadoPago1.ChavePIX := '4bbcfa59-429a-46e2-bdfc-09ff5c65b2a4';
+  dm.ACBrPSPMercadoPago1.AccessToken := 'APP_USR-935339472326069-041812-f76898860f6e386d158fb99deb8a5754-81540715';
+
+
+  dm.ACBrPixCD1.Recebedor.Nome   := 'WILLERSON WAGNER DOS SANTOS';
+  dm.ACBrPixCD1.Recebedor.Cidade := 'MANAUS';
+
+  dm.ACBrPixCD1.PSP.epCob.Clear;
+  dm.ACBrPixCD1.PSP.epCob.CobSolicitada.valor.original := 0.2;
+  dm.ACBrPixCD1.PSP.epCob.CobSolicitada.valor.modalidadeAlteracao := false;
+  dm.ACBrPixCD1.PSP.epCob.CobSolicitada.chave := dm.ACBrPSPMercadoPago1.ChavePIX;
+  dm.ACBrPixCD1.PSP.epCob.CobSolicitada.solicitacaoPagador := 'CONSUMIDOR';
+
+  dm.ACBrPixCD1.PSP.epCob.CobSolicitada.calendario.expiracao := 3600;
+  ok := dm.ACBrPixCD1.PSP.epCob.CriarCobrancaImediata;
+ 
+  form22.beneNome := 'WILLERSON WAGNER DOS SANTOS';
+  form22.beneCNPJ := '';
+  form22.qrcodePIX := qrcode;
+  form22.txtid     := dm.ACBrPixCD1.PSP.epCob.CobGerada.txId;
+
+ // ShowMessage(dm.ACBrPixCD1.PSP.epCob.CobGerada.AsJSON);
+
+  form84.cont := 3;
+  form84.ShowModal;
+
+
+
 end;
 
 procedure TForm2.RefOriginalGrupo1Click(Sender: TObject);
@@ -4569,6 +4629,10 @@ begin
   form40.tipo.Add('140=generico');
   form40.tipo.Add('141=generico');
   form40.tipo.Add('142=generico');
+  form40.tipo.Add('143=generico');
+  form40.tipo.Add('144=generico');
+  form40.tipo.Add('145=generico');
+  form40.tipo.Add('146=generico');
 
   form40.troca := TStringList.Create;
   form40.troca.Add('0=S');
@@ -4717,6 +4781,10 @@ begin
   form40.troca.Add('140=S');
   form40.troca.Add('141=S');
   form40.troca.Add('142=S');
+  form40.troca.Add('143=');
+  form40.troca.Add('144=S');
+  form40.troca.Add('145=S');
+  form40.troca.Add('146=');
 
   form40.teclas := TStringList.Create;
   form40.teclas.Add('0=FT');
@@ -4864,6 +4932,10 @@ begin
   form40.teclas.Add('140=1234567890' + #8);
   form40.teclas.Add('141=1234567890' + #8);
   form40.teclas.Add('142=SN');
+  form40.teclas.Add('143=1234567890' + #8);
+  form40.teclas.Add('144=SN');
+  form40.teclas.Add('145=1234567890ABCDEFGHIJLMNOPKXYZWQRSTUVXZ|' + #46);
+  form40.teclas.Add('146=1234567890' + #8);
 
   form40.ListBox1.Clear;
   form40.ListBox1.Items.Add
@@ -4950,7 +5022,7 @@ begin
   form40.ListBox1.Items.Add
     ('49=Usar Cód. de Barras na Impressão do Pedido LOCALIZA ?');
   form40.ListBox1.Items.Add('50=Usar Busca Cod. Barras na Entrada Simples ?');
-  form40.ListBox1.Items.Add('51=Usar Orçamentos Individuais por Vendedor ?');
+  form40.ListBox1.Items.Add('51=Usar Orçamentos Individual por Vendedor ?');
   form40.ListBox1.Items.Add('52=Qual o CFOP para Vendas do ECF ?');
   form40.ListBox1.Items.Add
     ('53=Usar Cadastro de Cliente Simplificado na Ident. NFCe ?');
@@ -5109,8 +5181,11 @@ begin
   form40.ListBox1.Items.Add('140=Limitar QTD de telas no sistema ?');
   form40.ListBox1.Items.Add
     ('141=Qual o Nivel de acesso pra ter acesso a ficha de produto na venda(padrao 2) ?');
-  form40.ListBox1.Items.Add
-    ('142=Usar 2 linhas para DESCRICAO de produtos no tipo de pedido TICKET ?');
+  form40.ListBox1.Items.Add('142=Usar 2 linhas para DESCRICAO de produtos no tipo de pedido TICKET ?');
+  form40.ListBox1.Items.Add('143=Qual o tamanho da fonte da descrição do produto na impressao B-A4 Grafica (padrao 8)?');
+  form40.ListBox1.Items.Add('144=Considerar previsao nas contas a receber para zerar o juros de uma conta ?');
+  form40.ListBox1.Items.Add('145=Qual a informação de PIS padrao no cadastro de produtos(IRMXDSNT) ?');
+  form40.ListBox1.Items.Add('146=Qual o PRAZO padrao na venda(padrao 0) ?');
 
   form40.ListBox1.Selected[0] := true;
   form40.showmodal;
@@ -6374,7 +6449,7 @@ begin
   dm.ibselect.SQL.Text :=
     'select c.datamov,c.codgru, c.vencimento, c.documento, c.historico, c.previsao, c.valor, c.cod, c.valor as saldo, substring(n.chave from 26 for 9)'
     + ' as nfe, c.nota  from contasreceber c left join nfe n on (substring(n.chave from 37 for 7) = lpad(c.nota,7, ''0'') ) where'
-    + '(c.documento=' + strnum(cliente) + ') and (c.pago=0) ' + h1;
+    + '(c.documento=' + strnum(cliente) + ') and (c.pago=-1) ' + h1;
   dm.ibselect.Open;
 
   funcoes.Ibquery_to_clienteDataSet(dm.ibselect, Form34.ClientDataSet1);
@@ -6385,7 +6460,14 @@ begin
 
   Form34.DataSource1.dataset := Form34.ClientDataSet1;
 
-  Form34.copiaContasReceber(dm.ibselect);
+  try
+    Form34.copiaContasReceber(dm.ibselect);
+  except
+    on e :exception do begin
+      ShowMessage('erro6419:' + e.Message);
+    end;
+
+  end;
 
   // form34.IBTable1.AddIndex('indice1', 'vencimento', [ixDescending]);
   try
@@ -7778,7 +7860,7 @@ end;
 
 procedure TForm2.LivrodeCaixa1Click(Sender: TObject);
 var
-  grupo, ini, fim, g1, saldo, caixa, resumo, ies, nome, cnpj, tab: string;
+  grupo, ini, fim, g1, saldo, caixa, resumo, ies, nome, cnpj, tab, somentesaidas, h1: string;
   totalgeral, entrada, saida, totalentrada, totalsaida, acc: currency;
   b, pag, i, mult, cont, MaxLine, cAltLn, cAltura: integer;
   data: TDateTime;
@@ -7812,8 +7894,16 @@ begin
     caixa := funcoes.dialogo('generico', 0, 'SN', 20, false, 'S',
       application.Title, 'Imprimir em Formato de Livro Caixa?', 'N');
   if not funcoes.contido('*', grupo + ini + fim + saldo) then
-    resumo := funcoes.dialogo('generico', 0, 'SN', 20, false, 'S',
-      application.Title, 'Imprimir Resumo por Histórico?', 'N');
+    resumo := funcoes.dialogo('generico', 0, 'SN', 20, false, 'S', application.Title, 'Imprimir Resumo por Histórico?', 'N');
+
+  somentesaidas := funcoes.dialogo('generico', 0, '123', 20, false, 'S', application.Title, 'Imprimir 1-saidas 2-entradas 3-tudo?', 'N');
+  if somentesaidas = '*' then exit;
+
+  h1 := '';
+  if somentesaidas = '1' then h1 := ' and (saida > 0)';
+  if somentesaidas = '2' then h1 := ' and (entrada > 0)';
+
+
   if not funcoes.contido('*', grupo + ini + fim + saldo + caixa + resumo) then
   begin
     if resumo = 'S' then
@@ -7846,7 +7936,7 @@ begin
       dm.IBQuery2.SQL.Add
         ('select (sum(entrada) - sum(saida)) as soma from caixa where ' + g1 +
         // ' (cast(data as date) < :d1) and (tipo <> ''E'')');
-        ' (cast(data as date) < :d1)');
+        ' (cast(data as date) < :d1) ');
       dm.IBQuery2.ParamByName('d1').AsDateTime := StrToDate(ini);
       dm.IBQuery2.Open;
 
@@ -7886,7 +7976,7 @@ begin
     dm.ibselect.SQL.Clear;
     dm.ibselect.SQL.Add('select * from caixa where ' + g1 +
       // ' ((cast(data as date) >= :v1) and (cast(data as date) <=:v2) ) and (tipo <> ''E'') order by codmov');
-      ' ((cast(data as date) >= :v1) and (cast(data as date) <=:v2) ) order by data');
+      ' ((cast(data as date) >= :v1) and (cast(data as date) <=:v2) '+h1+') order by data');
     dm.ibselect.ParamByName('v1').AsDateTime := StrToDate(ini);
     dm.ibselect.ParamByName('v2').AsDateTime := StrToDate(fim);
     dm.ibselect.Open;
@@ -10678,7 +10768,8 @@ begin
     form39.ListBox1.Items.Add('15=Imprimir Entrega em quantas Vias ?');
     form39.ListBox1.Items.Add
       ('16=Imprimir Pedido de Compra Gráfico Fortes Reports ?');
-    form39.ListBox1.Items.Add('16=Imprimir Saída de Estoque ?');
+    form39.ListBox1.Items.Add('17=Imprimir Saída de Estoque ?');
+    form39.ListBox1.Items.Add('18=Imprimir Orcamento em Quantas vias ?');
 
     form39.substitui := TStringList.Create;
     form39.substitui.Add('S'); // 0
@@ -10699,6 +10790,7 @@ begin
     form39.substitui.Add(''); // 15
     form39.substitui.Add('S'); // 16
     form39.substitui.Add('S'); // 17
+    form39.substitui.Add(''); // 18
 
     form39.teclas := TStringList.Create;
     form39.teclas.Add('TGMLADRFVXEB');
@@ -10719,6 +10811,7 @@ begin
     form39.teclas.Add('1234567890' + #8);
     form39.teclas.Add('SN'); // 16
     form39.teclas.Add('SN'); // 17
+    form39.teclas.Add('1234567890' + #8); // 18
     form39.showmodal;
   end
   else if funcoes.lista1 = '2' then
@@ -13483,6 +13576,8 @@ begin
           break;
       end;
 
+      //ShowMessage(pagtos.Text);
+
       entrada := 0;
       recebido := 0;
 
@@ -13545,6 +13640,8 @@ begin
           QuotedStr(conf) +
           ', codhis = :codhis, entrada = :entrada, usuario = :usu, usu_receb = :usu where nota = :nota');
       end;
+
+
 
       dm.IBQuery1.ParamByName('pc').AsString := strnum(form22.COD_PC);
       dm.IBQuery1.ParamByName('dth_receb').AsDateTime := DateOf(form22.datamov)
@@ -13642,7 +13739,7 @@ begin
       end;
     end;
 
-    try
+ //   try
       if funcoes.buscaParamGeral(132, 'N') = 'S' then
       begin
         form91.nota := nota;
@@ -13671,9 +13768,9 @@ begin
           form22.enviNFCe(nota, '', recebido);
         end;
       end;
-    except
+  {  except
       ShowMessage('Ocorreu um Erro. Tente Novamente');
-    end;
+    end;  }
   end;
 
 end;
@@ -15977,6 +16074,43 @@ begin
 
   ShowMessage('Nenhum Registro duplicado!');
 
+end;
+
+procedure TForm2.ExcluirProdutosCadastradospeloInventario1Click(
+  Sender: TObject);
+var
+  lista1 : TStringList;
+  ano : String;
+  sim, Mes1, Ano1 : integer;
+begin
+  lista1 := tstringList.Create;
+
+  Mes1 := StrToInt(FormatDateTime('MM', Now));
+  Ano1 := StrToInt(FormatDateTime('YYYY', now));
+
+  //if mes1 = 1 then ano1 := ano1 - 1;
+
+  lista1.Add(IntToStr(ano1));
+  for mes1 := 0 to 10 do begin
+    lista1.Add(IntToStr(ano1 -1));
+    ano1 := ano1 -1;
+  end;
+
+  ano := funcoes.showListBox('ControlW', 'Informe o Ano:', lista1,
+    FormatDateTime('yyyy', IncMonth(form22.dataMov, -1)));
+  if ano = '' then exit;
+
+
+  sim := MessageDlg('Deseja excluir os registros cadastrados pelo inventario ' + ano, mtConfirmation, [mbyes, mbno], 0);
+  if sim = idno then exit;
+
+  dm.IBQuery1.Close;
+  dm.IBQuery1.sql.Text := 'delete from produto where igual like ''%PRODUTO CADASTRADO PELO INV. '+ano+'%''';
+  dm.IBQuery1.ExecSQL;
+  sim := dm.IBQuery1.RowsAffected;
+  dm.IBQuery1.Transaction.Commit;
+
+  ShowMessage(inttostr(sim) +' Produtos Excluidos!');
 end;
 
 procedure TForm2.ExecutarComando1Click(Sender: TObject);
@@ -18680,6 +18814,7 @@ procedure TForm2.Geral3Click(Sender: TObject);
 var
   completo, concessao, ini, fim, ordem, localidade, rota, todos, cond: string;
   b, fi: integer;
+  arq: TStringList;
 begin
   b := 65;
   cond := '';
@@ -18736,8 +18871,20 @@ begin
   fi := dm.ibselect.RecordCount;
   funcoes.informacao(i, fi, 'Aguarde, Gerando Relatório...', true, false, 5);
 
+  arq := TStringList.Create;
+  arq.Add('cod;nome;tel;telres;telcom;ende;bairro;cid;est');
   while not dm.ibselect.Eof do
   begin
+    arq.Add(dm.ibselect.FieldByName('cod').AsString+';' +
+    trocaChar(dm.ibselect.FieldByName('nome').AsString, ';', '')+';' +
+    trocaChar(dm.ibselect.FieldByName('tel').AsString, ';', '')+';' +
+    trocaChar(dm.ibselect.FieldByName('telres').AsString, ';', '')+';' +
+    trocaChar(dm.ibselect.FieldByName('telcom').AsString, ';', '')+';' +
+    trocaChar(dm.ibselect.FieldByName('ende').AsString, ';', '')+';' +
+    trocaChar(dm.ibselect.FieldByName('bairro').AsString, ';', '')+';' +
+    trocaChar(dm.ibselect.FieldByName('cid').AsString, ';', '')+';' +
+    trocaChar(dm.ibselect.FieldByName('est').AsString, ';', ''));
+
     funcoes.informacao(dm.ibselect.RecNo, fi, 'Aguarde, Gerando Relatório...',
       false, false, 5);
     if form19.RichEdit1.Lines.Count + 4 >= b then
@@ -18829,6 +18976,10 @@ begin
   // addRelatorioForm19(funcoes.CompletaOuRepete('','','-',80)+#13+#10);
   funcoes.informacao(i, fi, 'Aguarde, Gerando Relatório...', false, true, 5);
   funcoes.CharSetRichEdit(form19.RichEdit1);
+
+  criaPasta(caminhoEXE_com_barra_no_final + 'REL\');
+  arq.SaveToFile(caminhoEXE_com_barra_no_final + 'REL\cliente.csv');
+  arq.Free;
   form19.showmodal;
 end;
 
@@ -22058,16 +22209,14 @@ end;
 
 procedure TForm2.NFeNFCeProduto1Click(Sender: TObject);
 var
-  dini, dfim, pstaNfe, tmp, sit, cancel, Prod, nome, data: string;
+  dini, dfim, pstaNfe, tmp, sit, cancel, Prod, nome, data, cnpj, xml, cnpjXML: string;
   dini1, dfim1: TDate;
   arq, lista: TStringList;
   i1, f1, qtdnotas, i: integer;
   totVNF, totSai, totEnt, totCANC, quant, vtot, totProd, pvenda: currency;
-  ok: boolean;
-  acc: TStringList;
+  ok, estrangeiro: boolean;
+  acc, accqtd : TStringList;
 begin
-
-  exit;
   pstaNfe := caminhoEXE_com_barra_no_final + 'NFE\EMIT\';
   if not DirectoryExists(pstaNfe) then
   begin
@@ -22077,8 +22226,8 @@ begin
       exit; }
   end;
 
-  { grupo := funcoes.dialogo('generico',0,'1234567890'+#8,50,false,'',Application.Title,'Qual o Cliente','');
-    if grupo = '*' then exit; }
+   grupo := funcoes.dialogo('generico',0,'1234567890'+#8,50,false,'',Application.Title,'Qual o Cliente','');
+    if grupo = '*' then exit;
 
   dini := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,
     'Qual a Data Inicial?', '');
@@ -22106,6 +22255,30 @@ begin
   if Prod = '*' then
     exit;
 
+
+  if grupo <> '' then begin
+    dm.ibselect.Close;
+    dm.ibselect.SQL.Text :=
+    'select cnpj, cod, tipo, ies  from cliente where cod = :cod';
+    dm.ibselect.ParamByName('cod').AsString := strnum(grupo);
+    dm.ibselect.Open;
+
+    if dm.ibselect.IsEmpty then begin
+      dm.ibselect.Close;
+      MessageDlg('Cliente ' + grupo + ' Não Encontrado', mtError, [mbOK], 1);
+      exit;
+    end;
+
+    cnpj := strnum(dm.ibselect.FieldByName('cnpj').AsString);
+
+    estrangeiro := false;
+    if dm.ibselect.FieldByName('tipo').AsString = '7' then begin
+      estrangeiro := true;
+      cnpj := strnum(dm.ibselect.FieldByName('ies').AsString);
+    end;
+  end;
+
+
   dini1 := StrToDateTime(dini);
   dfim1 := StrToDateTime(dfim);
 
@@ -22132,7 +22305,8 @@ begin
   totEnt := 0;
   totCANC := 0;
   totProd := 0;
-  acc := TStringList.Create;
+  acc    := TStringList.Create;
+  accqtd := TStringList.Create;
 
   dm.ibselect.Close;
   dm.ibselect.SQL.Text :=
@@ -22144,35 +22318,66 @@ begin
   while not dm.ibselect.Eof do
   begin
     data := formataDataDDMMYY(dm.ibselect.FieldByName('data').AsDateTime);
-    IF FileExists(pstaNfe + dm.ibselect.FieldByName('chave').AsString +
-      '-nfe.xml') then
+    IF FileExists(pstaNfe + dm.ibselect.FieldByName('chave').AsString +'-nfe.xml') = false then begin
+      dm.ACBrNFe.NotasFiscais.Clear;
+      if dm.ibselect.FieldByName('xml').IsNull = false then begin
+
+      dm.ACBrNFe.NotasFiscais.LoadFromString(dm.ibselect.FieldByName('xml').AsString);
+      dm.ACBrNFe.NotasFiscais[0].GravarXML(pstaNfe + dm.ibselect.FieldByName('chave').AsString + '-nfe.xml');
+      end;
+    end;
+
+    IF FileExists(pstaNfe + dm.ibselect.FieldByName('chave').AsString +'-nfe.xml') then
     begin
       dm.ACBrNFe.NotasFiscais.Clear;
       dm.ACBrNFe.NotasFiscais.LoadFromFile
         (pstaNfe + dm.ibselect.FieldByName('chave').AsString + '-nfe.xml');
 
-      ok := false;
-      for i := 0 to dm.ACBrNFe.NotasFiscais[0].nfe.Det.Count - 1 do
-      begin
-        if StrToInt(dm.ACBrNFe.NotasFiscais[0].nfe.Det[i].Prod.cProd)
-          = StrToInt(Prod) then
-        begin
-          ok := true;
-          quant := dm.ACBrNFe.NotasFiscais[0].nfe.Det[i].Prod.qCom;
-          // vtot   := dm.ACBrNFe.NotasFiscais[0].NFe.Det[i].Prod.vProd - dm.ACBrNFe.NotasFiscais[0].NFe.Det[i].Prod.vDesc;
-          vtot := dm.ACBrNFe.NotasFiscais[0].nfe.Det[i].Prod.vProd;
-          pvenda := dm.ACBrNFe.NotasFiscais[0].nfe.Det[i].Prod.vUnCom;
+      xml := dm.ACBrNFe.NotasFiscais[0].XML;
 
-          dm.ACBrNFe.NotasFiscais.Clear;
-          break;
+      ok := false;
+      if Prod = '' then ok := true
+      else begin
+        for i := 0 to dm.ACBrNFe.NotasFiscais[0].nfe.Det.Count - 1 do begin
+          if StrToInt(dm.ACBrNFe.NotasFiscais[0].nfe.Det[i].Prod.cProd) = StrToInt(Prod) then begin
+            ok := true;
+            quant := dm.ACBrNFe.NotasFiscais[0].nfe.Det[i].Prod.qCom;
+            vtot   := dm.ACBrNFe.NotasFiscais[0].NFe.Det[i].Prod.vProd - dm.ACBrNFe.NotasFiscais[0].NFe.Det[i].Prod.vDesc;
+            //vtot := dm.ACBrNFe.NotasFiscais[0].nfe.Det[i].Prod.vProd;
+            pvenda := dm.ACBrNFe.NotasFiscais[0].nfe.Det[i].Prod.vUnCom;
+
+            dm.ACBrNFe.NotasFiscais.Clear;
+            break;
+          end;
         end;
+      end;
+
+
+      if grupo <> '' then begin
+        fornec := Le_Nodo('dest', xml);
+        cnpjXML := IfThen(Le_Nodo('CNPJ', fornec) <> '',
+          Le_Nodo('CNPJ', fornec), Le_Nodo('CPF', fornec));
+
+
+        //ShowMessage('cnpjXML='+cnpjXML + #13 + 'cnpj=' + cnpj);
+        if estrangeiro then
+        begin
+          cnpjXML := Le_Nodo('idEstrangeiro', fornec);
+        end;
+
+        if trim(cnpjXML) <> trim(cnpj) then
+        begin
+          ok := false;
+        end;
+
       end;
 
       if ok then
       begin
-
-        arq.LoadFromFile(pstaNfe + dm.ibselect.FieldByName('chave').AsString +
-          '-nfe.xml');
+        arq.Text := xml;
+      
+       // arq.LoadFromFile(pstaNfe + dm.ibselect.FieldByName('chave').AsString +
+         // '-nfe.xml');
         sit := Le_Nodo('cStat', arq.GetText);
 
         if dm.ibselect.FieldByName('estado').AsString = 'C' then
@@ -22180,8 +22385,8 @@ begin
 
         if ((sit = '100') or (sit = '150')) then
         begin
-          acc.Values[data] :=
-            CurrToStr(StrToCurrDef(acc.Values[data], 0) + vtot);
+          acc.Values[data]    := CurrToStr(StrToCurrDef(acc.Values[data], 0) + vtot);
+          accqtd.Values[data] := CurrToStr(StrToCurrDef(accqtd.Values[data], 0) + quant);
           totProd := totProd + vtot;
 
           sit := 'AUTORIZADA';
@@ -22245,9 +22450,8 @@ begin
       begin
 
         dm.ACBrNFe.NotasFiscais.Clear;
-        dm.ACBrNFe.NotasFiscais.LoadFromString(dm.ibselect.FieldByName('xml')
-          .AsString);
-        // dm.ACBrNFe.NotasFiscais[0].GravarXML(pstaNfe + dm.ibselect.FieldByName('chave').AsString + '-nfe.xml');
+        dm.ACBrNFe.NotasFiscais.LoadFromString(dm.ibselect.FieldByName('xml').AsString);
+        //dm.ACBrNFe.NotasFiscais[0].GravarXML(pstaNfe + dm.ibselect.FieldByName('chave').AsString + '-nfe.xml');
         ok := false;
         for i := 0 to dm.ACBrNFe.NotasFiscais[0].nfe.Det.Count - 1 do
         begin
@@ -22256,8 +22460,8 @@ begin
           begin
             ok := true;
             quant := dm.ACBrNFe.NotasFiscais[0].nfe.Det[i].Prod.qCom;
-            // vtot   := dm.ACBrNFe.NotasFiscais[0].NFe.Det[i].Prod.vProd - dm.ACBrNFe.NotasFiscais[0].NFe.Det[i].Prod.vDesc;
-            vtot := dm.ACBrNFe.NotasFiscais[0].nfe.Det[i].Prod.vProd;
+             vtot   := dm.ACBrNFe.NotasFiscais[0].NFe.Det[i].Prod.vProd - dm.ACBrNFe.NotasFiscais[0].NFe.Det[i].Prod.vDesc;
+            //vtot := dm.ACBrNFe.NotasFiscais[0].nfe.Det[i].Prod.vProd;
             pvenda := dm.ACBrNFe.NotasFiscais[0].nfe.Det[i].Prod.vUnCom;
 
             dm.ACBrNFe.NotasFiscais[0].GravarXML
@@ -22278,8 +22482,8 @@ begin
 
           if ((sit = '100') or (sit = '150')) then
           begin
-            acc.Values[data] :=
-              CurrToStr(StrToCurrDef(acc.Values[data], 0) + vtot);
+            acc.Values[data]    := CurrToStr(StrToCurrDef(acc.Values[data], 0) + vtot);
+            accqtd.Values[data] := CurrToStr(StrToCurrDef(accqtd.Values[data], 0) + quant);
             totProd := totProd + vtot;
 
             sit := 'AUTORIZADA';
@@ -22374,18 +22578,20 @@ begin
   addRelatorioForm19(funcoes.CompletaOuRepete('QUANTIDADES DE NOTAS => ' +
     IntToStr(qtdnotas), '', ' ', 78) + CRLF);
   addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 78) + CRLF);
+  addRelatorioForm19('  DATA                 TOTAL          QUANT' + CRLF);
+  addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 43) + CRLF);
 
   totProd := 0;
+  totSai  := 0;
   for i := 0 to acc.Count - 1 do
   begin
-    addRelatorioForm19(acc.Names[i] + '.....' + CompletaOuRepete('',
-      acc.ValueFromIndex[i], ',', 15) + CRLF);
+    addRelatorioForm19(acc.Names[i] + '.....' + CompletaOuRepete('',formataCurrency(StrToCurrDef(acc.ValueFromIndex[i], 0)), '.', 15) + CompletaOuRepete('',formataCurrency(StrToCurrDef(accqtd.Values[acc.Names[i]], 0)), '.', 15) + CRLF);
     totProd := totProd + StrToCurrDef(acc.ValueFromIndex[i], 0);
-
+    totSai  := totSai + StrToCurrDef(accqtd.Values[acc.Names[i]], 0);
   end;
 
-  addRelatorioForm19(CompletaOuRepete('Total', formataCurrency(totProd), ',',
-    28) + CRLF);
+  addRelatorioForm19(funcoes.CompletaOuRepete('', '', '-', 43) + CRLF);
+  addRelatorioForm19(CompletaOuRepete('Total', formataCurrency(totProd), '.',28)+ CompletaOuRepete('',formataCurrency(totSai), '.', 15) + CRLF);
   lista.Free;
   arq.Free;
   form19.showmodal;
@@ -24586,6 +24792,156 @@ begin
   end;
 
   form19.showmodal;
+end;
+
+procedure TForm2.RelatoriodeCSTICMSNFENFCe1Click(Sender: TObject);
+var
+  arq, tmp, tmpNota, rel, cstAliquota: TStringList;
+  pasta, cst, cstatual, dataini, datafim, tipo, pstaNfe: String;
+  i,a,idx, fim, fim1: integer;
+  datafim1 : TDateTime;
+  nfe, nfce : boolean;
+  prod : TItensProduto;
+begin
+ { pasta := funcoes.BrowseForFolder('Informe a pasta e XMLs', '', true);
+  if pasta = '' then
+    exit;}
+
+
+  dataini := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,
+      'Qual a Data Inicial?', formataDataDDMMYY(form22.datamov));
+    if dataini = '*' then
+      exit;
+
+    DataFim := FormatDateTime('dd/mm/yy', EndOfTheMonth(StrToDateTime(dataIni)));
+
+    datafim := funcoes.dialogo('data', 0, '', 2, true, '', application.Title,
+      'Qual a Data Final?', datafim);
+    if datafim = '*' then
+      exit;
+
+  tipo := funcoes.dialogo('generico', 0, '12' + #8, 50, false, '',
+    application.Title, '1-NFe 2-NFCe', '1');
+  if tipo = '*' then exit;
+
+  nfe := false;
+  nfce := false;
+  if tipo = '1' then nfe := true
+  else nfce := true;
+
+
+  dm.IBselect.Close;
+  if nfe then begin
+    dm.IBselect.SQL.Text := 'select * from nfe where data >= :ini and data <= :fim'
+  end
+  else begin
+    dm.IBselect.SQL.Text := 'select * from nfce where data >= :ini and data <= :fim';
+  end;
+  dm.IBselect.ParamByName('ini').AsDate := StrToDate(dataini);
+  dm.IBselect.ParamByName('fim').AsDate := StrToDate(datafim);
+  dm.IBselect.Open;
+
+
+  //arq := funcoes.listaArquivos(pasta + '\*.xml');
+  tmp := TStringList.Create;
+  rel := TStringList.Create;
+  cstAliquota := TStringList.Create;
+  tmpNota     := TStringList.Create;
+  prod        := TItensProduto.Create;
+
+
+  cstAliquota.Add('1=102');
+  cstAliquota.Add('2=102');
+  cstAliquota.Add('10=600');
+  cstAliquota.Add('11=400');
+  cstAliquota.Add('12=300');
+
+  //fim := arq.Count-1;
+  rel.Clear;
+
+  pstaNfe := caminhoEXE_com_barra_no_final + 'NFE\EMIT\';
+  while not dm.IBselect.eof do begin
+    prod.Clear;
+    ACBrNFe.NotasFiscais.Clear;
+    if nfe then begin
+      try
+        ACBrNFe.NotasFiscais.LoadFromString(dm.IBselect.FieldByName('xml').AsString);
+        tipo := 'ok';
+      except
+        tipo := 'not';
+      end;
+    end
+    else begin
+      tipo := buscaPastaNFCe(dm.IBselect.FieldByName('chave').AsString) + dm.IBselect.FieldByName('chave').AsString + '-nfe.xml';
+      if FileExists(tipo) then begin
+        ACBrNFe.NotasFiscais.LoadFromFile(tipo);
+        tipo := 'ok';
+      end
+      else begin
+        tipo := 'not';
+      end;
+    end;
+
+
+    if tipo = 'not' then begin
+      rel.Add('>>> '+dm.IBselect.FieldByName('chave').AsString);
+      rel.Add('XML nao encontrado!');
+      rel.Add('');
+    end
+    else begin
+      fim1 := ACBrNFe.NotasFiscais[0].NFe.Det.Count -1;
+
+      rel.Add('>>> '+dm.IBselect.FieldByName('chave').AsString);
+      for a := 0 to fim1 do begin
+        cst := pcnconversao.CSOSNIcmsToStr(ACBrNFe.NotasFiscais[0].NFe.Det[a].Imposto.ICMS.CSOSN);
+        //tmp.Values[cst] := CurrToStr(StrToCurrDef(tmp.Values[cst], 0) + ACBrNFe.NotasFiscais[0].NFe.Det[a].Imposto.ICMS.vICMS);
+        tmp.Values[cst] := CurrToStr(StrToCurrDef(tmp.Values[cst], 0) + ACBrNFe.NotasFiscais[0].NFe.Det[a].Prod.vProd - ACBrNFe.NotasFiscais[0].NFe.Det[a].Prod.vDesc);
+
+        idx := prod.FindCodCodbar('0'+cst);
+        if idx = -1 then begin
+          idx := prod.Add(TregProd.Create);
+          prod[idx].cod    := 0;
+          prod[idx].codbar := cst;
+          prod[idx].total  := ACBrNFe.NotasFiscais[0].NFe.Det[a].Prod.vProd - ACBrNFe.NotasFiscais[0].NFe.Det[a].Prod.vDesc;
+        end
+        else begin
+          prod[idx].codbar := cst;
+          prod[idx].total  := prod[idx].total + ACBrNFe.NotasFiscais[0].NFe.Det[a].Prod.vProd - ACBrNFe.NotasFiscais[0].NFe.Det[a].Prod.vDesc;
+        end;
+
+      {  dm.IBselect1.close;
+        dm.IBselect1.SQL.Text := 'select aliquota from produto where cod = ' + ACBrNFe.NotasFiscais[0].NFe.Det[a].Prod.cProd;
+        dm.IBselect1.Open;
+
+        cstatual := cstAliquota.Values[dm.IBselect1.FieldByName('aliquota').AsString];
+
+        {rel.Add('>>> '+ACBrNFe.NotasFiscais[0].NFe.infNFe.ID);
+        rel.Add(CompletaOuRepete('', ACBrNFe.NotasFiscais[0].NFe.Det[a].Prod.cProd, ' ', 8) + ' ' +
+              CompletaOuRepete(LeftStr(ACBrNFe.NotasFiscais[0].NFe.Det[a].Prod.xProd, 35), '', ' ', 35) + ' '+
+              CompletaOuRepete(cst, '', ' ', 3) + ' ' + cstatual + ' ' +
+              IfThen(cst <> cstatual, ' X', '') );
+        rel.Add('');                              }
+      end;
+
+      for a := 0 to prod.Count-1 do begin
+        rel.Add(prod[a].codbar + ' ' + formataCurrency(prod[a].total));
+      end;
+    end;
+
+    rel.Add('');
+
+    dm.IBselect.Next;
+  end;
+
+  form19.RichEdit1.Clear;
+
+  form19.RichEdit1.Lines.Add(rel.Text);
+  form19.RichEdit1.Lines.Add('');
+  form19.RichEdit1.Lines.Add('');
+  form19.RichEdit1.Lines.Add('');
+  form19.RichEdit1.Lines.Add(tmp.Text);
+  form19.ShowModal;
+
 end;
 
 procedure TForm2.RelatoriodeOramentos1Click(Sender: TObject);

@@ -93,7 +93,7 @@ object Form1: TForm1
     DatabaseName = 'C:\ControlW\BD.FDB'
     Params.Strings = (
       'user_name=sysdba'
-      'password=masterkey')
+      'password=SYSTEMA1')
     LoginPrompt = False
     DefaultTransaction = IBTransaction1
     ServerType = 'IBServer'

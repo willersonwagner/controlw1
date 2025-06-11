@@ -286,7 +286,7 @@ end;
 
 procedure TForm89.pagamento;
 var
-  ini, fim, cod, ultcod, hist, pagto, mincod, cods : String;
+  ini, fim, cod, ultcod, hist, pagto, mincod, cods, codCaixa : String;
   valor : currency;
   id : integer;
 begin
@@ -356,9 +356,11 @@ begin
   //pagto := funcoes.LerFormPato(1, 'Forma de Pagamento', false);
   pagto := funcoes.LerFormPato(0, 'Forma de Pagamento', false);
 
+  codCaixa := Incrementa_Generator('movcaixa', 1);
+
   dm.IBQuery1.Close;
-  dm.IBQuery1.SQL.Text := 'insert into caixa(formpagto,codgru,codmov,vencimento, datamov,data,documento,codhis,historico,saida,usuario, tipo, fornec)'+
-      ' values (:pagto,1,gen_id(movcaixa, 1),:ini, :fim,:data,'+StrNum(cod)+',1,'+QuotedStr(hist)+',:pago,'+StrNum(form22.codusario)+', ''X'', 0)';
+  dm.IBQuery1.SQL.Text := 'update or insert into caixa(formpagto,codgru,codmov,vencimento, datamov,data,documento,codhis,historico,saida,usuario, tipo, fornec)'+
+      ' values (:pagto,1,'+codCaixa+',:ini, :fim,:data,'+StrNum(cod)+',1,'+QuotedStr(hist)+',:pago,'+StrNum(form22.codusario)+', ''X'', 0) matching (codmov)';
   dm.IBQuery1.ParamByName('pagto').AsInteger := StrToIntDef(pagto, 1);
   dm.IBQuery1.ParamByName('ini').AsDateTime := StrToDate(ini);
   dm.IBQuery1.ParamByName('fim').AsDateTime := StrToDate(fim);
@@ -369,6 +371,7 @@ begin
   except
     on e:exception do begin
       dm.IBQuery1.Transaction.Rollback;
+       gravaErrosNoArquivo('erro350: ' + e.Message, self.Name, '350','update entrega_novo set DATAHPAGTO = :data, USUARIOPAGTO');
       ShowMessage('erro350: ' + e.Message);
       exit;
     end;
@@ -385,6 +388,7 @@ begin
   except
     on e:exception do begin
       dm.IBQuery1.Transaction.Rollback;
+      gravaErrosNoArquivo('erro288: ' + e.Message, self.Name, '288','update entrega_novo set DATAHPAGTO = :data, USUARIOPAGTO');
       ShowMessage('erro288: ' + e.Message);
       exit;
     end;

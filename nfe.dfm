@@ -134,4 +134,10 @@ object NfeVenda: TNfeVenda
     Left = 368
     Top = 112
   end
+  object ClientDataSet1: TClientDataSet
+    Aggregates = <>
+    Params = <>
+    Left = 248
+    Top = 32
+  end
 end

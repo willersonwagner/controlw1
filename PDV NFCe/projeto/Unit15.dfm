@@ -27,17 +27,13 @@ object Form15: TForm15
     Top = 0
     Width = 751
     Height = 561
-    ActivePage = TabSheet1
+    ActivePage = tsPIX
     Align = alClient
     TabHeight = 25
     TabOrder = 1
     TabWidth = 200
     object tsPIX: TTabSheet
       Caption = 'PIX'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         743
         526)
@@ -464,10 +460,6 @@ object Form15: TForm15
     object tsPSP: TTabSheet
       Caption = 'PSPs'
       ImageIndex = 3
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object pgPSPs: TPageControl
         Left = 0
         Top = 0
@@ -479,10 +471,6 @@ object Form15: TForm15
         TabWidth = 100
         object tsShipay: TTabSheet
           Caption = 'Shipay'
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           DesignSize = (
             735
             461)
@@ -546,10 +534,6 @@ object Form15: TForm15
         end
         object tsBB: TTabSheet
           Caption = 'Banco do Brasil'
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           DesignSize = (
             735
             461)
@@ -693,10 +677,6 @@ object Form15: TForm15
                 Visible = False
                 object tsBBPFX: TTabSheet
                   Caption = 'PFX'
-                  ExplicitLeft = 0
-                  ExplicitTop = 0
-                  ExplicitWidth = 0
-                  ExplicitHeight = 0
                   object pnBBPFX: TPanel
                     Left = 0
                     Top = 0
@@ -792,10 +772,6 @@ object Form15: TForm15
                 end
                 object tsBBChaveECertificado: TTabSheet
                   Caption = 'Chave Privada/Certificado'
-                  ExplicitLeft = 0
-                  ExplicitTop = 0
-                  ExplicitWidth = 0
-                  ExplicitHeight = 0
                   object pnBBChaveECert: TPanel
                     Left = 0
                     Top = 0
@@ -918,10 +894,6 @@ object Form15: TForm15
         end
         object tsItau: TTabSheet
           Caption = 'Ita'#250
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           DesignSize = (
             735
             461)
@@ -935,10 +907,6 @@ object Form15: TForm15
             TabOrder = 0
             object tsItauChave: TTabSheet
               Caption = 'Chave e Client ID'
-              ExplicitLeft = 0
-              ExplicitTop = 0
-              ExplicitWidth = 0
-              ExplicitHeight = 0
               DesignSize = (
                 689
                 385)
@@ -1042,10 +1010,6 @@ object Form15: TForm15
             end
             object tsItauCertificado: TTabSheet
               Caption = 'Chave  e Certificado'
-              ExplicitLeft = 0
-              ExplicitTop = 0
-              ExplicitWidth = 0
-              ExplicitHeight = 0
               DesignSize = (
                 689
                 385)
@@ -1059,10 +1023,6 @@ object Form15: TForm15
                 TabOrder = 0
                 object tsItauChaveCertificadoArquivos: TTabSheet
                   Caption = 'Arquivos'
-                  ExplicitLeft = 0
-                  ExplicitTop = 0
-                  ExplicitWidth = 0
-                  ExplicitHeight = 0
                   DesignSize = (
                     643
                     320)
@@ -1201,10 +1161,6 @@ object Form15: TForm15
                 end
                 object tsItauGerarChaveCertificado: TTabSheet
                   Caption = 'Gerar Chave e Certificado'
-                  ExplicitLeft = 0
-                  ExplicitTop = 0
-                  ExplicitWidth = 0
-                  ExplicitHeight = 0
                   DesignSize = (
                     643
                     320)
@@ -1218,10 +1174,6 @@ object Form15: TForm15
                     TabOrder = 0
                     object tsItauCertPasso1: TTabSheet
                       Caption = 'Passo 1 - Definir Chave Privada'
-                      ExplicitLeft = 0
-                      ExplicitTop = 0
-                      ExplicitWidth = 0
-                      ExplicitHeight = 0
                       DesignSize = (
                         585
                         272)
@@ -1273,10 +1225,6 @@ object Form15: TForm15
                     end
                     object tsItauCertPasso3: TTabSheet
                       Caption = 'Passo 2 - Solicitar Certificado'
-                      ExplicitLeft = 0
-                      ExplicitTop = 0
-                      ExplicitWidth = 0
-                      ExplicitHeight = 0
                       object pItauEditCertificado: TPanel
                         Left = 0
                         Top = 0
@@ -1328,10 +1276,11 @@ object Form15: TForm15
                         object lTokenTemporario: TLabel
                           Left = 0
                           Top = 0
-                          Width = 86
+                          Width = 585
                           Height = 13
                           Align = alTop
                           Caption = 'Token Tempor'#225'rio'
+                          ExplicitWidth = 86
                         end
                         object mItauTokenTemporario: TMemo
                           Left = 0
@@ -1360,10 +1309,11 @@ object Form15: TForm15
                         object Label6: TLabel
                           Left = 0
                           Top = 0
-                          Width = 99
+                          Width = 585
                           Height = 13
                           Align = alTop
                           Caption = 'Certificado Recebido'
+                          ExplicitWidth = 99
                         end
                         object mItauCertificadoPEM: TMemo
                           Left = 0
@@ -1388,10 +1338,6 @@ object Form15: TForm15
                 end
                 object tsItauRenovarChaveCertificado: TTabSheet
                   Caption = 'Renovar Certificado'
-                  ExplicitLeft = 0
-                  ExplicitTop = 0
-                  ExplicitWidth = 0
-                  ExplicitHeight = 0
                   object pnItauRenovarCertificadoPEM: TPanel
                     Left = 16
                     Top = 56
@@ -1402,10 +1348,11 @@ object Form15: TForm15
                     object lbItauRenovarCertificadoPEM: TLabel
                       Left = 0
                       Top = 0
-                      Width = 127
+                      Width = 862
                       Height = 13
                       Align = alTop
                       Caption = 'Novo Certificado Recebido'
+                      ExplicitWidth = 127
                     end
                     object mmItauRenovarCertificadoPEM: TMemo
                       Left = 0
@@ -1472,10 +1419,6 @@ object Form15: TForm15
         end
         object tsSantander: TTabSheet
           Caption = 'Santander'
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object pgSantander: TPageControl
             Left = 48
             Top = 56
@@ -1485,10 +1428,6 @@ object Form15: TForm15
             TabOrder = 0
             object tsSantanderCredenciais: TTabSheet
               Caption = 'Credenciais'
-              ExplicitLeft = 0
-              ExplicitTop = 0
-              ExplicitWidth = 0
-              ExplicitHeight = 0
               object pConfPSPSantander: TPanel
                 Left = 0
                 Top = 0
@@ -1652,10 +1591,6 @@ object Form15: TForm15
             end
             object tsSantanderExtrairCertificado: TTabSheet
               Caption = 'Extrair Certificado'
-              ExplicitLeft = 0
-              ExplicitTop = 0
-              ExplicitWidth = 0
-              ExplicitHeight = 0
               object pnSantanderExtrairCertificado: TPanel
                 Left = 0
                 Top = 0
@@ -1770,10 +1705,6 @@ object Form15: TForm15
         end
         object tsSicredi: TTabSheet
           Caption = 'Sicredi'
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object pgSicredi: TPageControl
             Left = 48
             Top = 56
@@ -1783,10 +1714,6 @@ object Form15: TForm15
             TabOrder = 0
             object tsSicrediCredenciais: TTabSheet
               Caption = 'Credenciais'
-              ExplicitLeft = 0
-              ExplicitTop = 0
-              ExplicitWidth = 0
-              ExplicitHeight = 0
               object pnSicrediCredenciais: TPanel
                 Left = 0
                 Top = 0
@@ -1968,10 +1895,6 @@ object Form15: TForm15
             object tsSicrediGerarChaveCSR: TTabSheet
               Caption = 'Gerar Chave/CSR'
               ImageIndex = 1
-              ExplicitLeft = 0
-              ExplicitTop = 0
-              ExplicitWidth = 0
-              ExplicitHeight = 0
               object pnSicrediGerarChaveCSR: TPanel
                 Left = 0
                 Top = 0
@@ -2123,10 +2046,6 @@ object Form15: TForm15
         end
         object tsSicoob: TTabSheet
           Caption = 'Sicoob'
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object pgSicoob: TPageControl
             Left = 48
             Top = 56
@@ -2136,10 +2055,6 @@ object Form15: TForm15
             TabOrder = 0
             object tsSicoobCredenciais: TTabSheet
               Caption = 'Credenciais'
-              ExplicitLeft = 0
-              ExplicitTop = 0
-              ExplicitWidth = 0
-              ExplicitHeight = 0
               object pnSicoobCredenciais: TPanel
                 Left = 0
                 Top = 0
@@ -2334,10 +2249,6 @@ object Form15: TForm15
             object tsSicoobExtrairChaveCertificado: TTabSheet
               Caption = 'Extrair Chave/Certificado'
               ImageIndex = 1
-              ExplicitLeft = 0
-              ExplicitTop = 0
-              ExplicitWidth = 0
-              ExplicitHeight = 0
               object pnSicoobExtrairChaveCertificado: TPanel
                 Left = 0
                 Top = 0
@@ -2471,10 +2382,6 @@ object Form15: TForm15
         end
         object tsPagSeguro: TTabSheet
           Caption = 'PagSeguro'
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object pnPagSeguroCredenciais: TPanel
             Left = 48
             Top = 72
@@ -2656,10 +2563,6 @@ object Form15: TForm15
         object tsGerenciaNet: TTabSheet
           Caption = 'GerenciaNet'
           ImageIndex = 7
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           DesignSize = (
             735
             461)
@@ -2871,10 +2774,6 @@ object Form15: TForm15
         end
         object tsBradesco: TTabSheet
           Caption = 'Bradesco'
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           DesignSize = (
             735
             461)
@@ -3055,10 +2954,6 @@ object Form15: TForm15
         end
         object tsPIXPDV: TTabSheet
           Caption = 'PIXPDV'
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           DesignSize = (
             735
             461)
@@ -3122,10 +3017,6 @@ object Form15: TForm15
         end
         object tsInter: TTabSheet
           Caption = 'Inter'
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           DesignSize = (
             735
             461)
@@ -3313,10 +3204,6 @@ object Form15: TForm15
         end
         object tsAilos: TTabSheet
           Caption = 'Ailos'
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object pnAilos: TPanel
             Left = 48
             Top = 56
@@ -3544,10 +3431,6 @@ object Form15: TForm15
         end
         object tsMatera: TTabSheet
           Caption = 'Matera'
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object pnMatera: TPanel
             Left = 0
             Top = 0
@@ -3756,10 +3639,6 @@ object Form15: TForm15
         end
         object tsCielo: TTabSheet
           Caption = 'Cielo'
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           DesignSize = (
             735
             461)

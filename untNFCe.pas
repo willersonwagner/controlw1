@@ -239,7 +239,7 @@ uses IniFiles, comctrls, sysutils, controls, classes,
 
 implementation
 
-uses pcnNFe, Math, DB, ACBrNFeNotasFiscais, pcnEventoNFe, pcnEnvEventoNFe,
+uses  Math, DB, ACBrNFeNotasFiscais,
   ACBrNFeWebServices;
 
 

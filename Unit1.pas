@@ -17,7 +17,7 @@ uses
   ACBrTEFAPIComum, ACBrTEFAPI, ACBrTEFD, FireDAC.Stan.Param, FireDAC.DatS,
   FireDAC.DApt.Intf, FireDAC.DApt, FireDAC.Comp.ScriptCommands,
   FireDAC.Stan.Util, ACBrNFeDANFEFR, FireDAC.Comp.Script, FireDAC.Comp.DataSet,
-  ACBrPIXCD, ACBrPIXPSPPixPDV;
+  ACBrPIXCD, ACBrPIXPSPPixPDV, ACBrPIXPSPMercadoPago, ACBrPIXPSPItau;
 
 
 type
@@ -115,7 +115,7 @@ type
     ClientDataSet1: TClientDataSet;
     dsCDS: TDataSource;
     ACBrPSPPixPDV1: TACBrPSPPixPDV;
-    ACBrPixCD2: TACBrPixCD;
+    ACBrPSPMercadoPago1: TACBrPSPMercadoPago;
     procedure TabelaOrdemCalcFields(DataSet: TDataSet);
     procedure ACBrNFeGerarLog(const Mensagem: String);
     procedure DataModuleCreate(Sender: TObject);

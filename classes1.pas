@@ -227,6 +227,7 @@ type
     End;
 
   Item_venda = class
+    itemIndex : string;
     codbar : String[15];
     cfop : String;
     cfopDiferente : String;

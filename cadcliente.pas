@@ -731,8 +731,9 @@ begin
 
    if (usaSped) then begin
      if StrNum(tipo.Text) = '7' then begin //se for estrangeiro
-       if length(StrNum(ies.Text)) < 4 then begin
+       if length(StrNum(ies.Text)) < 5 then begin
          ShowMessage('Identidade de Estrangeiro Invalida!');
+         ies.SetFocus;
          exit;
        end;
 
@@ -742,11 +743,24 @@ begin
        exit;
      end;
 
-     if bairro.Text = '' then begin
-       ShowMessage('Bairro Inválido!');
-       bairro.SetFocus;
+     if cod_mun.Text = '' then begin
+       ShowMessage('Codigo do país Inválido!');
+       cid.SetFocus;
        exit;
      end;
+
+     if cod_mun.Text = '1058' then begin
+       ShowMessage('Cadastro de ESTRANGEIRO nao pode ter mercadoria destinada ao Brasil, mude para outro país ou altere o tipo para pessoa FÍSICA e cadastre o CPF do estrangeiro! O cadastro de estrangeiro serve somente para exportação!');
+       cid.SetFocus;
+       exit;
+     end;
+
+     if Length(cod_mun.Text) <> 4 then begin
+       ShowMessage('codigo do país invalido!');
+       cid.SetFocus;
+       exit;
+     end;
+
 
      Result := true;
      exit;

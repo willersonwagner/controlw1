@@ -2056,7 +2056,7 @@ object imprime: Timprime
         Transparent = False
       end
       object RLLabel31: TRLLabel
-        Left = 431
+        Left = 445
         Top = 3
         Width = 48
         Height = 16
@@ -2156,11 +2156,11 @@ object imprime: Timprime
         Text = ''
       end
       object RLDBText13: TRLDBText
-        AlignWithMargins = True
-        Left = 68
+        Left = 51
         Top = 3
-        Width = 35
+        Width = 388
         Height = 14
+        AutoSize = False
         DataField = 'nome'
         DataSource = DataSource1
         Font.Charset = ANSI_CHARSET
@@ -2194,13 +2194,15 @@ object imprime: Timprime
         Text = ''
       end
       object RLDBText16: TRLDBText
-        Left = 435
+        Left = 453
         Top = 3
-        Width = 40
+        Width = 28
         Height = 16
+        Alignment = taCenter
         DataField = 'unid'
         DataSource = DataSource1
         Text = ''
+        Transparent = False
       end
       object RLDBText17: TRLDBText
         Left = 694

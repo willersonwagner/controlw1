@@ -1,4 +1,4 @@
-object Form84: TForm84
+object qrcode: Tqrcode
   Left = 0
   Top = 0
   Caption = 'Informa'#231#245'es de Pagamento - Sistema ControlW'

@@ -114,4 +114,10 @@ object funcoes: Tfuncoes
     Left = 312
     Top = 160
   end
+  object ClientDataSet1: TClientDataSet
+    Aggregates = <>
+    Params = <>
+    Left = 232
+    Top = 104
+  end
 end

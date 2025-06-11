@@ -11236,8 +11236,8 @@ object Form2: TForm2
     UseSystemFont = False
   end
   object Button1: TButton
-    Left = 47
-    Top = 79
+    Left = 22
+    Top = 73
     Width = 75
     Height = 25
     Caption = 'Button1'
@@ -11296,8 +11296,8 @@ object Form2: TForm2
     OnClick = Button2Click
   end
   object Button3: TButton
-    Left = 424
-    Top = 24
+    Left = 22
+    Top = 11
     Width = 75
     Height = 25
     Caption = 'Button3'
@@ -11345,7 +11345,7 @@ object Form2: TForm2
         OnClick = NotaFiscalEletrnica1Click
       end
       object CupomEletrnicoCFe1: TMenuItem
-        Caption = 'Cupom Eletr'#244'nico NCFe'
+        Caption = 'Cupom Eletr'#244'nico NFCe'
         OnClick = CupomEletrnicoCFe1Click
       end
       object ransferencia1: TMenuItem
@@ -12365,6 +12365,14 @@ object Form2: TForm2
           object ExcluirEntradasduplicadas1: TMenuItem
             Caption = 'Excluir Entradas duplicadas'
             OnClick = ExcluirEntradasduplicadas1Click
+          end
+          object ExcluirProdutosCadastradospeloInventario1: TMenuItem
+            Caption = 'Excluir Produtos Cadastrados pelo Inventario'
+            OnClick = ExcluirProdutosCadastradospeloInventario1Click
+          end
+          object RelatoriodeCSTICMSNFENFCe1: TMenuItem
+            Caption = 'Relatorio de CST ICMS NFE/NFCe'
+            OnClick = RelatoriodeCSTICMSNFENFCe1Click
           end
         end
         object PagamentoporPIX1: TMenuItem

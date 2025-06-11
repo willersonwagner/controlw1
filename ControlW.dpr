@@ -131,7 +131,8 @@ uses
   Unit92 in 'Unit92.pas' {Form92},
   garantias in 'garantias.pas' {Form93},
   Unit94 in 'Unit94.pas' {Form94},
-  Unit95 in 'Unit95.pas' {Form95};
+  Unit95 in 'Unit95.pas' {Form95},
+  pixUnit in 'pixUnit.pas';
 
 {$R *.res}
 

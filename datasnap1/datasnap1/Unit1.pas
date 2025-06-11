@@ -201,13 +201,17 @@ function TForm1.conectar() : boolean;
 begin
   Result := false;
   try
+    Memo1.Lines.Add('Iniciando Serviços...');
     ServerContainerUnit1.ServerContainer1.DSServer1.Start;   //inicia o servidor DataSnap
+    Memo1.Lines.Add('Servidor Iniciado!');
     IBDatabase1.DatabaseName := edit1.Text;
     if edit1.Text <> '' then IBDatabase1.Connected  := true;
+    Memo1.Lines.Add('Banco de dados Conectado!');
     Result := IBDatabase1.Connected;
   except
     on e:exception do
       begin
+        Memo1.Lines.Add('Erro conectar() no BD: '+e.Message);
       end;
   end;
 end;

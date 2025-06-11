@@ -941,6 +941,8 @@ begin
   { if funcoes.buscaParamGeral(63, 'N') = 'S' then JsBotao2.Visible := false
     else JsBotao2.Visible := true; }
 
+
+
   if funcoes.buscaParamGeral(66, 'N') = 'S' then
   begin
     JsBotao2.Visible := false;
@@ -1231,8 +1233,7 @@ begin
   if (Key = 117) then
   begin
     cod.Text := funcoes.buscaCodbarRetornaCodigo('', true);
-    if StrNum(Trim(cod.Text)) = '0' then
-      exit;
+    if StrNum(Trim(cod.Text)) = '0' then exit;
     JsEdit.SelecionaDoBD(self.Name);
     p_vendaAtual := p_venda.getValor;
   end;
@@ -1371,6 +1372,7 @@ begin
     Close;
   if Key = #13 then
   begin
+
     p_vendaAtual := p_venda.getValor;
     valorRetorno := TEdit(Sender).Text;
     if RecuperarCadastro then
@@ -1395,7 +1397,7 @@ end;
 procedure TForm9.is_pisKeyPress(Sender: TObject; var Key: Char);
 begin
   Key := UpCase(Key);
-  if not funcoes.Contido(Key, 'IRM' + #13 + #27 + #8) then
+  if not funcoes.Contido(Key, 'IRMXDSNT' + #13 + #27 + #8) then
     Key := #0;
   if (Key = #13) and ((Trim(TEdit(Sender).Text) = '') or
     (TEdit(Sender).Text = '0')) then
@@ -1409,6 +1411,7 @@ begin
     form39.ListBox1.Items.Add('D - Aliq. Diferenciada    (02)');
     form39.ListBox1.Items.Add('S - Suspensão da Contrib. (09)');
     form39.ListBox1.Items.Add('N - Trib Subst. Tributaria(05)');
+    form39.ListBox1.Items.Add('T - Outras Opera  de Saída(49)');
     TEdit(Sender).Text := funcoes.lista(Sender, false);
   end;
   if TEdit(Sender).Text = '*' then
@@ -1891,6 +1894,8 @@ end;
 
 procedure TForm9.nomeEnter(Sender: TObject);
 begin
+  if cod.Text = '0' then is_pis.Text := funcoes.buscaParamGeral(145, '');
+
   if (StrToIntDef(cod.Text, 0) <> 0) then begin
     p_vendaAtual := p_venda.getValor;
   end;

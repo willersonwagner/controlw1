@@ -66,7 +66,7 @@ type
     Pgerais, nomesServico, fonteDAT : TStringList;
     datamov: tdatetime;
     superUsu : integer;
-    UnidInteiro, qrcodePIX,beneNome, beneCNPJ, beneFone, emailEnviar, tipoBloqueio, atualizaExec : String;
+    UnidInteiro, qrcodePIX,beneNome, beneCNPJ, beneFone, txtId, emailEnviar, tipoBloqueio, atualizaExec : String;
     COD_PC : STRING;
     procedure TrimAppMemorySize;
     procedure EventoErro(Sender: TObject; E: Exception);
@@ -253,7 +253,12 @@ if key=#27 then
 
        codusario      := dm.IBQuery1.fieldbyname('cod').AsString ;
        USUARIO1       := dm.IBQuery1.fieldbyname('cod').AsInteger ;
-       acs            := dm.IBQuery1.fieldbyname('acesso_usu').AsString;
+
+       try
+        acs            := dm.IBQuery1.fieldbyname('acesso_usu').AsString;
+       except
+
+       end;
 
        if superUsu = 1 then
          begin
@@ -332,8 +337,6 @@ if key=#27 then
        funcoes.Traca_Nome_Rota;
        reg := VerificaRegistro(1, bloq, tipoRegistro);
 
-
-
        if (not reg) then
          begin
            form35 := TForm35.Create(self);
@@ -368,6 +371,8 @@ if key=#27 then
                    Randomize;
                    valorDeChecagem := funcoes.GeraAleatorio(8);
                    if MessageDlg('O sistema está bloqueado, Deseja Inserir o código de Desbloqueio ?' + #13 +
+                   Pgerais.Values['cnpj']+ #13 +
+                   Pgerais.Values['empresa']+ #13 +
                    'Código de Verificação: ' + valorDeChecagem, mtConfirmation, [mbYes, mbNo], 1) = idyes then
                      begin
                        if funcoes.dialogo('normal',0,'',0,true,'',Application.Title,'Qual o Cód de desbloqueio ? Cod: ' + valorDeChecagem,'') =  IntToStr(trunc(StrToCurr(valorDeChecagem) / 87)) then
@@ -580,6 +585,8 @@ end;
 
 procedure Tform22.Button3Click(Sender: TObject);
 begin
+
+
   //beneNome := (consultarPIX(form84.txid));
   //ShowMessage(beneNome);
 end;

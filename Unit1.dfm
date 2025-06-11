@@ -1,7 +1,7 @@
 object dm: Tdm
   OldCreateOrder = False
   OnCreate = DataModuleCreate
-  Height = 447
+  Height = 443
   Width = 892
   object IBselect: TFDQuery
     AutoCalcFields = False
@@ -330,6 +330,8 @@ object dm: Tdm
   end
   object ACBrIBPTax1: TACBrIBPTax
     ProxyPort = '8080'
+    ContentsEncodingCompress = []
+    NivelLog = 0
     Left = 120
     Top = 384
   end
@@ -417,7 +419,12 @@ object dm: Tdm
     Top = 336
   end
   object ACBrConsultaCNPJ1: TACBrConsultaCNPJ
+    ProxyHost = ''
     ProxyPort = '8080'
+    ProxyUser = ''
+    ProxyPass = ''
+    ContentsEncodingCompress = []
+    NivelLog = 0
     PesquisarIBGE = False
     IniServicos = 
       'C:\Program Files (x86)\Embarcadero\Studio\14.0\bin\ACBrConsultaC' +
@@ -432,7 +439,8 @@ object dm: Tdm
   end
   object ACBrCEP1: TACBrCEP
     ProxyPort = '8080'
-    ParseText = True
+    ContentsEncodingCompress = []
+    NivelLog = 0
     WebService = wsViaCep
     PesquisarIBGE = True
     Left = 264
@@ -623,6 +631,8 @@ object dm: Tdm
   end
   object ACBrNCMs1: TACBrNCMs
     ProxyPort = '8080'
+    ContentsEncodingCompress = []
+    NivelLog = 0
     UrlConsulta = 'http://www4.receita.fazenda.gov.br/simulador/PesquisarNCM.jsp?'
     CacheArquivo = 'ACBrNCM.json'
     Left = 496
@@ -721,6 +731,11 @@ object dm: Tdm
     TEFDirecao.ArqSTS = 'C:\TEF_DIAL\resp\intpos.sts'
     TEFDirecao.ArqResp = 'C:\TEF_DIAL\resp\intpos.001'
     TEFDirecao.GPExeName = 'C:\DPOS8\Bin\GPDirecao.exe'
+    TEFElgin.ArqTemp = 'C:\Cliente\req\intpos.tmp'
+    TEFElgin.ArqReq = 'C:\Cliente\req\intpos.001'
+    TEFElgin.ArqSTS = 'C:\Cliente\resp\intpos.sts'
+    TEFElgin.ArqResp = 'C:\Cliente\resp\intpos.001'
+    TEFElgin.GPExeName = 'C:\ELGIN\TEFPassivo\E1_TEFPay_Passivo.exe'
     Left = 520
     Top = 312
   end
@@ -777,15 +792,13 @@ object dm: Tdm
     Top = 144
   end
   object ACBrPSPPixPDV1: TACBrPSPPixPDV
-    ACBrPixCD = ACBrPixCD2
     Scopes = [scCobWrite, scCobRead, scPixWrite, scPixRead]
-    Left = 632
-    Top = 304
+    Left = 808
+    Top = 8
   end
-  object ACBrPixCD2: TACBrPixCD
-    Recebedor.CodCategoriaComerciante = 0
-    PSP = ACBrPSPPixPDV1
-    Left = 632
-    Top = 360
+  object ACBrPSPMercadoPago1: TACBrPSPMercadoPago
+    Scopes = [scCobWrite, scCobRead, scPixWrite, scPixRead]
+    Left = 808
+    Top = 56
   end
 end

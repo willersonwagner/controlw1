@@ -71,6 +71,15 @@ begin
         DBGrid1.DataSource.DataSet.FieldByName('cfop').AsString := doc;
         DBGrid1.DataSource.DataSet.Post;
       end;
+
+      if DBGrid1.SelectedField.DisplayLabel='Base ICMS' then begin
+        doc := funcoes.dialogo('numero',0,'',2,true,'',Application.Title,'Qual a Base de Calculo do Produto?', formataCurrency(DBGrid1.DataSource.DataSet.FieldByName('BASEICMS').AsCurrency));
+        if doc = '*' then exit;
+
+        DBGrid1.DataSource.DataSet.Edit;
+        DBGrid1.DataSource.DataSet.FieldByName('BASEICMS').AsString := doc;
+        DBGrid1.DataSource.DataSet.Post;
+      end;
     end;
     exit;
   end;

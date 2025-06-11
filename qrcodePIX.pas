@@ -42,7 +42,7 @@ implementation
 
 {$R *.dfm}
 
-uses principal, func;
+uses principal, func, Unit1;
 
 procedure TForm84.Button1Click(Sender: TObject);
 var
@@ -50,8 +50,9 @@ var
 begin
   form22.Button3.Click;
   ret := form22.beneNome;
+  Label3.Caption := 'AGUARDANDO PAGAMENTO...';
 
-  ret := funcoes.PIXConsulta(txid);
+  ret := funcoes.PIXConsulta(form22.txtId);
   //ret := consultarPIX(txid);
   if ret = '' then Label3.Caption := 'AGUARDANDO PAGAMENTO...';
 
@@ -92,7 +93,6 @@ begin
     Timer2.Enabled := true;
   end;
 
-
   if form22.qrcodePIX = '' then funcoes.ajustaHoraPelaInternet(form22.datamov);
   PintarQRCode(form22.qrcodePIX, Image1.Picture.Bitmap, qrAuto);
 
@@ -115,7 +115,8 @@ var
 begin
   Timer1.Enabled := false;
 
-  ret := funcoes.PIXConsulta(txid);
+
+  ret := funcoes.PIXConsulta(form22.txtId);
   Label2.Caption := 'Estado: ' + ret;
 
   if trim(ret) = 'CONCLUIDA' then Label3.Caption := 'Recebimento Concluido com Sucesso!';

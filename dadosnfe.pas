@@ -107,6 +107,8 @@ type
   private
     generator, key1 : String;
     nfeRefLista, cfopAlterados : tstringList;
+    dsproduto : TClientDataSet;
+    exterior : boolean;
     procedure teclaEsc();
     procedure geraListaProdutos;
     function buscaFinalidadeMaiorQue1 : String;
@@ -148,6 +150,9 @@ procedure TForm79.emitenfe();
 var
   situacao : String;
 begin
+
+
+
   ButBaixar.Enabled := false;
   if cfop.Text = '' then begin
     acertaCFOP_Automatico;
@@ -194,6 +199,7 @@ begin
     NfeVenda.cstpisCfop  := dm.IBQuery2.FieldByName('pis').AsString;
     NfeVenda.natOp       := natOP1;
     NfeVenda.cfopAlterados := cfopAlterados;
+    NfeVenda.cdsproduto    := dsproduto;
 
     NfeVenda.cupom  := cupom;
     NfeVenda.DEST   := Cliente.Text;
@@ -262,6 +268,18 @@ end;
 
 procedure TForm79.ButBaixarClick(Sender: TObject);
 begin
+  if exterior then begin
+    if destMercadoria.Text = '1' then begin
+      destMercadoria.SetFocus;
+      ShowMessage('Cliente do tipo 7-Estrangeiro Deve ser preenchido o campo Destino da Mercadoria igual a 2-Exterior!' + #13 +
+      'Caso a mercadoria não tenha destino para o exterior, entao altere o cadastro do cliente para 1-Pessoa Fisica e preencha o CPF!');
+      exit;
+    end;
+
+  end;
+
+
+
   //essa funcao é executada caso o primeiro digito do cfop for igual a 3
   buscaDadosDeclaImportacao;
 
@@ -317,8 +335,6 @@ begin
 end;
 
 procedure TForm79.clienteKeyPress(Sender: TObject; var Key: Char);
-var
-  exterior : boolean;
 begin
   if key = #13 then begin
     if tedit(Sender).Text = '' then begin
@@ -480,6 +496,27 @@ begin
   frete     := TStringList.Create;
   detExport := TStringList.Create;
   cfopAlterados := TStringList.Create;
+
+  dsproduto := TClientDataSet.Create(self);
+
+  dsproduto.FieldDefs.Add('cod', ftInteger);
+  dsproduto.FieldDefs.Add('nome', ftString, 60);
+  dsproduto.FieldDefs.Add('ncm', ftString, 15);
+  dsproduto.FieldDefs.Add('CFOP', ftString, 5);
+  dsproduto.FieldDefs.Add('CST', ftString, 10);
+  dsproduto.FieldDefs.Add('UNID', ftString, 8);
+  dsproduto.FieldDefs.Add('QUANT', ftCurrency);
+  dsproduto.FieldDefs.Add('PRECO', ftCurrency);
+  dsproduto.FieldDefs.Add('DESCONTO', ftCurrency);
+  dsproduto.FieldDefs.Add('TOTAL', ftCurrency);
+  dsproduto.FieldDefs.Add('BASEICMS', ftCurrency);
+  dsproduto.FieldDefs.Add('BASEICMS1', ftCurrency);
+  dsproduto.FieldDefs.Add('ALIQICMS', ftString, 6);
+  dsproduto.FieldDefs.Add('index', ftString, 15);
+  dsproduto.CreateDataSet;
+
+  dsproduto.FieldByName('BASEICMS1').Visible := false;
+
 
   TAG_DI := '';
 end;
@@ -658,7 +695,6 @@ end;
 procedure TForm79.geraListaProdutos;
 var
   lista : tlist;
-  dsproduto : TClientDataSet;
   nomeCampoCST : String;
   ini, fim, i : integer;
   item : Item_venda;
@@ -692,23 +728,8 @@ begin
     end;
   end;
 
-  dsproduto := TClientDataSet.Create(self);
-  dsproduto.FieldDefs.Add('cod', ftInteger);
-  dsproduto.FieldDefs.Add('nome', ftString, 60);
-  dsproduto.FieldDefs.Add('ncm', ftString, 15);
-  dsproduto.FieldDefs.Add('CFOP', ftString, 5);
   if funcoes.buscaParamGeral(10, '3') = '3' then nomeCampoCST := 'CST'
   else nomeCampoCST := 'CSOSN';
-
-  dsproduto.FieldDefs.Add(nomeCampoCST, ftString, 10);
-  dsproduto.FieldDefs.Add('UNID', ftString, 8);
-  dsproduto.FieldDefs.Add('QUANT', ftCurrency);
-  dsproduto.FieldDefs.Add('PRECO', ftCurrency);
-  dsproduto.FieldDefs.Add('DESCONTO', ftCurrency);
-  dsproduto.FieldDefs.Add('TOTAL', ftCurrency);
-  dsproduto.FieldDefs.Add('BASEICMS', ftCurrency);
-  dsproduto.FieldDefs.Add('ALIQICMS', ftString, 6);
-  dsproduto.CreateDataSet;
 
   TCurrencyField(dsproduto.FieldByName('QUANT')).currency := false;
   TCurrencyField(dsproduto.FieldByName('PRECO')).currency := false;
@@ -722,6 +743,7 @@ begin
   TCurrencyField(dsproduto.FieldByName('TOTAL')).DisplayFormat := '#,###,###0.00';
   TCurrencyField(dsproduto.FieldByName('BASEICMS')).DisplayFormat := '#,###,###0.00';
 
+  dsproduto.FieldByName('cst').DisplayLabel      := nomeCampoCST;
   dsproduto.FieldByName('cod').DisplayLabel      := 'Código';
   dsproduto.FieldByName('nome').DisplayLabel     := 'Descrição';
   dsproduto.FieldByName('QUANT').DisplayLabel    := 'Quantidade';
@@ -731,13 +753,17 @@ begin
   dsproduto.FieldByName('BASEICMS').DisplayLabel := 'Base ICMS';
   dsproduto.FieldByName('ALIQICMS').DisplayLabel := 'Aliq. ICMS';
 
+
+  if dsproduto.RecordCount = 0 then begin
+
+
   for ini := 0 to lista.Count -1 do begin
     item := lista[ini];
     dsproduto.Append;
     dsproduto.fieldbyname('cod').AsInteger := item.cod;
     dsproduto.fieldbyname('nome').AsString := item.nome;
     dsproduto.fieldbyname('ncm').AsString  := item.Ncm;
-    dsproduto.fieldbyname(nomeCampoCST).AsString  := funcoes.aliquotaToCST(item.CodAliq, funcoes.buscaParamGeral(10, '3'));
+    dsproduto.fieldbyname('cst').AsString  := funcoes.aliquotaToCST(item.CodAliq, funcoes.buscaParamGeral(10, '3'));
     dsproduto.fieldbyname('UNID').AsString        := item.unid;
     dsproduto.fieldbyname('cfop').AsString        := cfopAlterados.Values[IntToStr(item.cod)];
     dsproduto.fieldbyname('QUANT').AsCurrency     := item.quant;
@@ -745,9 +771,12 @@ begin
     dsproduto.fieldbyname('DESCONTO').AsCurrency  := item.Desconto;
     dsproduto.fieldbyname('TOTAL').AsCurrency     := item.total;
     dsproduto.fieldbyname('BASEICMS').AsCurrency  := item.base_icm;
+    dsproduto.fieldbyname('BASEICMS1').AsCurrency  := item.base_icm;
     dsproduto.fieldbyname('ALIQICMS').AsInteger   := item.CodAliq;
+    dsproduto.fieldbyname('index').AsString       := item.itemIndex;
   end;
 
+  end;
   form33 := TForm33.Create(self);
   form33.Caption := 'Produtos NF-e  F2-Grupo de Exportação';
   form33.captionficha := 'NfeProd';

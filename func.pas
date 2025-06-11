@@ -16,7 +16,7 @@ uses
   TLHelp32, PsAPI, ACBrCargaBal, pcnConversaoNFe,
   pcnConversao, System.Zip, ACBrMail
   , IdMultipartFormData, cadClicompleto, IBX.IBServices, mmsystem, ACBrUtil, RLReport,
-  FireDAC.Stan.Intf, calculadora, ACBrETQClass, Vcl.Imaging.jpeg;
+  FireDAC.Stan.Intf, calculadora, ACBrETQClass, Vcl.Imaging.jpeg, acbrpixbase;
 
 const
   OffsetMemoryStream: Int64 = 0;
@@ -157,6 +157,7 @@ type
     IdHTTP1: TIdHTTP;
     IdSNTP1: TIdSNTP;
     FDTransaction1: TFDTransaction;
+    ClientDataSet1: TClientDataSet;
     procedure FormCreate(Sender: TObject);
     procedure WebBrowser1DocumentComplete(Sender: TObject;
       const pDisp: IDispatch; var URL: OleVariant);
@@ -1447,23 +1448,23 @@ begin
 
   cod1 := funcoes.dialogo('generico', 0, '123' + #8, 50, False, 'S',
     Application.Title,
-    'Qual o Critério de Seleção da Mercadoria (1-Loja 2-Deposito 3-Loja + Deposito)?',
-    '');
+    'Qual o Critério de Seleção da Mercadoria (1-Loja 2-Deposito 3-Loja + Deposito)?', '');
   if cod1 = '*' then
     exit;
 
   if cod1 = '' then
   begin
     cod1 := '*';
+    //alterado o sequencia de 312 para 123 conforme solicitado pelo camaleao autopeças
+    //12/03/2025
     form39 := tform39.Create(self);
-    form39.ListBox1.Items.Add('3- LOJA + DEPOSITO');
     form39.ListBox1.Items.Add('1- LOJA');
     form39.ListBox1.Items.Add('2- DEPOSITO');
+    form39.ListBox1.Items.Add('3- LOJA + DEPOSITO');
     form39.Position := poScreenCenter;
     cod1 := funcoes.lista(sende1, centroTipoLOJADEPOSITO);
     if cod1 = '*' then
       exit;
-
   end;
 
   cod1 := trim(cod1);
@@ -3403,7 +3404,7 @@ begin
   end;
 
   if orcamento then
-    fim := 1
+    fim := StrToIntDef(funcoes.LerConfig(form22.Pgerais.Values['conf_ter'], 18), 1)
   else
   begin
     if not Contido(form22.Pgerais.Values['nota'], 'TE') then
@@ -6708,8 +6709,7 @@ begin
 
   for RecNo := RecNo to arquivo.count - 1 do
   begin
-    funcoes.informacao(RecNo, tot, 'Aguarde, Sinc. Imagens...', False,
-      False, 5);
+    funcoes.informacao(RecNo, tot, 'Aguarde, Sinc. Imagens...', False, False, 5);
 
      {if Contido('|PRODUTO_IMAGEM|', linha) then
       begin
@@ -7596,11 +7596,16 @@ function Tfuncoes.recuperaChaveNFe(const nota: string; serie : string = '1'): st
 var
   arq: tstringList;
   fim, i: Smallint;
-  tmp: string;
+  tmp, tipo: string;
 begin
+  tipo := '';
+
+  if WebAmbiente = 2 then tipo := 'and (tipo = ''2'')'
+  else tipo := 'and tipo <> ''2''';
+
   dm.IBselect.Close;
   dm.IBselect.SQL.Clear;
-  dm.IBselect.SQL.Add('select chave from nfe where nota = :nota and (substring(chave from 23 for 3) = '+QuotedStr(strzero(serie, 3))+')');
+  dm.IBselect.SQL.Add('select chave from nfe where nota = :nota and (substring(chave from 23 for 3) = '+QuotedStr(strzero(serie, 3))+') ' + tipo);
   dm.IBselect.ParamByName('nota').AsString := nota;
   //dm.IBselect.ParamByName('serie').AsString := strzero(serie, 3);
 
@@ -9044,8 +9049,7 @@ begin
 
   for ini := 0 to dm.IBselect.FieldList.count - 1 do
   begin
-    if UpperCase(nomeCampo) = UpperCase(dm.IBselect.FieldList[ini].FieldName)
-    then
+    if (UpperCase(nomeCampo) = UpperCase(dm.IBselect.FieldList[ini].FieldName)) then
     begin
       Result := true;
       break;
@@ -12373,7 +12377,6 @@ begin
       dm.IBQuery1.SQL.Clear;
       dm.IBQuery1.SQL.Add
         ('ALTER TABLE PRODUTO ADD DATA_ENTRADA1 date');
-      dm.IBQuery1.ExecSQL;
       if execSqlMostraErro(dm.IBQuery1) = false then exit;
     end;
 
@@ -12518,6 +12521,14 @@ begin
        dm.IBQuery1.Transaction.Commit;
      end;
 
+      if VerSeExisteTRIGGERPeloNome('INSERE_CAIXA_CONTAS_RECEBER3') then begin
+       dm.IBQuery1.Close;
+       dm.IBQuery1.SQL.Clear;
+       dm.IBQuery1.SQL.Text := ('DROP TRIGGER INSERE_CAIXA_CONTAS_RECEBER3');
+       if execSqlMostraErro(dm.IBQuery1) = false then exit;
+       dm.IBQuery1.Transaction.Commit;
+     end;
+
     { if not VerSeExisteTRIGGERPeloNome('INSERE_CAIXA_CONTAS_RECEBER2') then begin
       dm.IBScript1.SQLScripts.Clear;
       dm.IBScript1.SQLScripts.Add.SQL.Text := ('CREATE TRIGGER INSERE_CAIXA_CONTAS_RECEBER2 FOR CONTASRECEBER ' +
@@ -12530,7 +12541,7 @@ begin
       ' END '+
       ' END;');
       dm.IBScript1.ExecuteAll;
-    end;  }
+    end;
 
     if not VerSeExisteTRIGGERPeloNome('INSERE_CAIXA_CONTAS_RECEBER3') then begin
       dm.IBScript1.SQLScripts.Clear;
@@ -12544,6 +12555,27 @@ begin
       ' END '+
       ' END;');
       dm.IBScript1.ExecuteAll;
+    end;  }
+
+    if not VerSeExisteTRIGGERPeloNome('INSERE_CAIXA_CONTAS_RECEBER4') then begin
+      dm.IBScript1.SQLScripts.Clear;
+      dm.IBScript1.SQLScripts.Add.SQL.Text := ('CREATE TRIGGER INSERE_CAIXA_CONTAS_RECEBER4 FOR CONTASRECEBER ' +
+      ' ACTIVE before UPDATE POSITION 0 AS declare variable valor numeric(10, 2); declare variable codmov integer; begin ' +
+      ' valor = 0; '+
+      ' if (new.ULT_USU_ALTERADO > 0) then begin ' +
+      ' new.valor = new.ultvalor - new.valor; '  +
+      ' valor = new.ultvalor - new.valor;  insert into caixa(formpagto,documento, codgru,codmov,codhis,data,datamov,historico,entrada,usuario, tipo, fornec, codentradasaida, vencimento ) ' +
+      ' values(new.codhis, new.documento ,1, gen_id(movcaixa, 1) ,2,cast(current_date as date) + cast(current_time as time),new.data,new.historico,:valor, new.ULT_USU_ALTERADO, ''R'', 1, new.cod, new.vencimento ); ' +
+      ' END '+
+      ' END;');
+      dm.IBScript1.ExecuteAll;
+      dm.IBScript1.Transaction.Commit;
+
+      {dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('update caixa C  set C.vencimento = (select o.vencimento from contasreceber o where o.cod = c.codentradasaida) where c.tipo = ''R'' and c.vencimento = ''01.01.1900''');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;}
     end;
 
 
@@ -12973,6 +13005,24 @@ begin
       dm.IBQuery1.SQL.Clear;
       dm.IBQuery1.SQL.Add
         ('alter table produto alter nome type VARCHAR(80)');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
+    if funcoes.retornaTamanhoDoCampoBD('aplic', 'PRODUTO_DELETED') = 40 then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add
+        ('alter table PRODUTO_DELETED alter aplic type VARCHAR(60)');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
+    if funcoes.retornaTamanhoDoCampoBD('nome', 'PRODUTO_DELETED') = 60 then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add
+        ('alter table PRODUTO_DELETED alter nome type VARCHAR(80)');
       if execSqlMostraErro(dm.IBQuery1) = false then exit;
       dm.IBQuery1.Transaction.Commit;
     end;
@@ -14435,9 +14485,17 @@ begin
   dm.IBselect.Close;
   dm.IBselect.SQL.Clear;
   dm.IBselect.SQL.Add('select tipo,nome,empresa, versao, cnpj, substring(cod_mun from 1 for 2) as codest, cpf from registro');
-  dm.IBselect.Open;
+  try
+    dm.IBselect.Open;
+    arr.Add('tipoemp=' + trim(UpperCase(dm.IBselect.FieldByName('tipo').AsString)));
+  except
+    dm.IBselect.Close;
+    dm.IBselect.SQL.Clear;
+    dm.IBselect.SQL.Add('select nome,empresa, versao, cnpj, substring(cod_mun from 1 for 2) as codest, cpf from registro');
+    dm.IBselect.Open;
+  end;
 
-  arr.Add('tipoemp=' + trim(UpperCase(dm.IBselect.FieldByName('tipo').AsString)));
+
   arr.Add('cnpj=' + trim(UpperCase(dm.IBselect.FieldByName('cnpj').AsString)));
 
   if Length(StrNum(arr.Values['cnpj'])) < 7  then arr.Values['cnpj'] := dm.IBselect.FieldByName('cpf').AsString;
@@ -20611,7 +20669,8 @@ end;
 
   if perg = '' then
   begin
-  nota := funcoes.dialogo('not',0,'1234567890'+#8+#32,50,true,'',Application.Title,'Qual a Nota de Venda?','');
+  nota := funcoes.dialogo('not',0,'1234567890'+#8+#32
+  ,50,true,'',Application.Title,'Qual a Nota de Venda?','');
   if nota = '*' then exit;
   end
   else nota := perg;
@@ -21015,12 +21074,15 @@ begin
 
   if ordem2 <> '' then
     orde := ordem2;
-  dm.produto.Close;
-  dm.produto.SQL.text := sqlVenda + ' order by ' + orde;
-  dm.produto.Open;
+ { dm.produto.Close;
+  if orde = 'codbar' then dm.produto.SQL.text := sqlVenda + ' order by ''0000''||' + orde
+  else dm.produto.SQL.text := sqlVenda + ' order by ' + orde;
+  dm.produto.Open;}
 
-  if ordenaCampos then
-    funcoes.OrdenaCamposVenda(funcoes.buscaParamGeral(1, ''));
+  TFDQuery(dbgrid99.DataSource.DataSet).IndexFieldNames := orde;
+
+  //if ordenaCampos then
+    //funcoes.OrdenaCamposVenda(funcoes.buscaParamGeral(1, ''));
 
   if valorLocate <> '' then
   begin
@@ -23051,12 +23113,12 @@ begin
 
 
   try
-    funcoes.informacao(0, tot, 'Exportando Promoções...', true, False, 5);
+    funcoes.informacao(0, tot, 'Exportando Imagens...', true, False, 5);
 
     qtdProdImagem := 0;
     while not dm.IBselect.Eof do
     begin
-      funcoes.informacao(dm.IBselect.RecNo, tot, 'Exportando Promoções...',
+      funcoes.informacao(dm.IBselect.RecNo, tot, 'Exportando Imagens...',
         False, False, 5);
 
       linha := '|' + dm.IBselect.FieldByName('cod').AsString + '|'+dm.IBselect.FieldByName('cod_seq').AsString+'|';
@@ -23823,6 +23885,23 @@ begin
   NfeVenda.DEST := Cliente;
   NfeVenda.frete := tstringList.Create;
   NfeVenda.frete.Values['0'] := '9';
+  NfeVenda.cdsproduto := TClientDataSet.Create(SELF);
+
+  NfeVenda.cdsproduto.FieldDefs.Add('cod', ftInteger);
+  NfeVenda.cdsproduto.FieldDefs.Add('nome', ftString, 60);
+  NfeVenda.cdsproduto.FieldDefs.Add('ncm', ftString, 15);
+  NfeVenda.cdsproduto.FieldDefs.Add('CFOP', ftString, 5);
+  NfeVenda.cdsproduto.FieldDefs.Add('CST', ftString, 10);
+  NfeVenda.cdsproduto.FieldDefs.Add('UNID', ftString, 8);
+  NfeVenda.cdsproduto.FieldDefs.Add('QUANT', ftCurrency);
+  NfeVenda.cdsproduto.FieldDefs.Add('PRECO', ftCurrency);
+  NfeVenda.cdsproduto.FieldDefs.Add('DESCONTO', ftCurrency);
+  NfeVenda.cdsproduto.FieldDefs.Add('TOTAL', ftCurrency);
+  NfeVenda.cdsproduto.FieldDefs.Add('BASEICMS', ftCurrency);
+  NfeVenda.cdsproduto.FieldDefs.Add('BASEICMS1', ftCurrency);
+  NfeVenda.cdsproduto.FieldDefs.Add('ALIQICMS', ftString, 6);
+  NfeVenda.cdsproduto.FieldDefs.Add('index', ftString, 15);
+  NfeVenda.cdsproduto.CreateDataSet;
 
   if simplificado = False then
   begin
@@ -32431,6 +32510,7 @@ begin
   end;
 
   printDialog := true;
+  imprime1.imprime.RLDBText13.Font.Size := StrToInt(buscaParamGeral(143, '8'));
 
   if FileExists(caminhoEXE_com_barra_no_final + 'configPed.dat') then begin
     arq := TStringList.Create;
@@ -32554,7 +32634,7 @@ begin
   if funcoes.buscaParamGeral(5, 'N') = 'S' then begin
     imprime.RLLabel30.Caption := 'Referência';
     imprime.RLLabel52.Left    := 105;
-    imprime.RLDBText13.Left   := 105;
+    imprime.RLDBText13.Left   := 90;
     imprime.RLLabel52.Realign;
     imprime.RLDBText13.Realign;
 
@@ -32651,7 +32731,7 @@ begin
   if funcoes.buscaParamGeral(5, 'N') = 'S' then begin
     imprime.RLLabel30.Caption := 'Ref.';
     imprime.RLLabel52.Left    := 105;
-    imprime.RLDBText13.Left   := 105;
+    imprime.RLDBText13.Left   := 90;
     imprime.RLLabel52.Realign;
     imprime.RLDBText13.Realign;
 
@@ -33348,6 +33428,21 @@ var
   cont : integer;
 begin
   Result := '';
+  if dm.ACBrPixCD1.PSP.epCob.ConsultarCobrancaImediata(txid, 0) then begin
+    //AdicionarLinhaLog(#13+#13+'Cobrança'+#13+#13+FormatarJSON(dtmMain.ACBrPixCD1.PSP.epCob.CobCompleta.AsJSON));
+  end;{
+  else AdicionarLinhaLog('Nenhum Resultado!');
+      }
+
+  if dm.ACBrPixCD1.PSP.epCob.CobCompleta.status = stcATIVA then Result := 'ATIVA'
+  else if dm.ACBrPixCD1.PSP.epCob.CobCompleta.status = stcCONCLUIDA then Result := 'CONCLUIDA';
+
+
+
+  //dm.ACBrPixCD1.PSP.epCob.ConsultarCobrancaImediata('');
+  //if dm.ACBrPixCD1.PSP.epCob.CobCompleta.status =
+
+  {Result := '';
   arqPIX.Clear;
   arqPIX.Add('comando=consultarPIX');
   arqPIX.Add('txid='+ txid);
@@ -33370,7 +33465,7 @@ begin
     end;
 
     sleep(1000);
-  end;
+  end;          }
 end;
 
 function Tfuncoes.PIXacessToken : string;

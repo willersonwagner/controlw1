@@ -56,6 +56,7 @@ type
       Shift: TShiftState);
   private
     procedure baixaConta();
+    procedure baixaSelecionadas();
     procedure imprimeNota(var lis : TItensAcumProd; valorb : currency);
     { Private declarations }
   public
@@ -65,8 +66,8 @@ type
    function geraSaldo : boolean;
    procedure geraRecibo();
    function verificaValorNegativo() : boolean;
-   procedure copiaContasReceber(var query11 : TFDQuery);
-   procedure baixaF10Antigo();
+   procedure copiaContasReceber(var query11 : TFDQuery; ordem1 : String = '');
+   procedure baixaF10Antigo(somenteSelecionadas : boolean = false);
    procedure baixaF10Novo();
     { Public declarations }
   end;
@@ -148,15 +149,18 @@ begin
  end;
 
 // self.Height := Screen.Height - trunc(screen.Height * 0.15);
-
+ self.BringToFront;
 end;
-if cont = 2 then
- begin
+
+if cont = 2 then begin
    //IBTable1.IndexName := 'CONTASRECEBER_IDX1';
    //geraSaldo();
    panel2.Visible := false;
    DBGrid1.DataSource.DataSet.First;
- end;
+   self.BringToFront;
+end;
+
+
 end;
 
 procedure TForm34.IBTable1CalcFields(DataSet: TDataSet);
@@ -240,9 +244,22 @@ var
 begin
   if cont = 2 then
    begin
+     if (ssCtrl in Shift) and (chr(Key) in ['O', 'o']) then begin
+       copiaContasReceber(dm.IBselect, 'HISTORICO');
+     end;
+
+     if (ssCtrl in Shift) and (chr(Key) in ['V', 'v']) then begin
+       copiaContasReceber(dm.IBselect, '');
+     end;
+
+
+     if (ssCtrl in Shift) and (Key = 13) then begin
+       baixaSelecionadas;
+     end;
+
+
     if key = 113 then
      begin
-
       dm.IBQuery2.Close;
       dm.IBQuery2.SQL.Clear;
       dm.IBQuery2.SQL.Add('select cod,nome,ende,bairro,cid,est,cnpj,ies from cliente where cod='+DBGrid1.DataSource.DataSet.FieldByName('documento').AsString);
@@ -309,12 +326,30 @@ begin
 
  if cont=2 then
   begin
+    if key = 112 then begin
+      form19.RichEdit1.Clear;
+      addRelatorioForm19('TELA DE BAIXA DE CONTAS A RECEBER AJUDA' +CRLF);
+      addRelatorioForm19('-----------------------------------' +CRLF);
+      addRelatorioForm19('CTRL + O    Ordena por Historico' +CRLF);
+      addRelatorioForm19('CTRL + V    Ordena por Vencimento' +CRLF);
+      addRelatorioForm19('ENTER       Baixar de Parcela' +CRLF);
+      addRelatorioForm19('F1          Ajuda' +CRLF);
+      addRelatorioForm19('F2          Relatorio de Contas a Receber' +CRLF);
+      addRelatorioForm19('F10         Baixar todas as contas' +CRLF);
+      addRelatorioForm19('-----------------------------------' +CRLF);
+      addRelatorioForm19('BAIXAR CONTAS SELECIONADAS' +CRLF);
+      addRelatorioForm19('selecione as contas com CTRL + Click do mouse' +CRLF);
+      addRelatorioForm19('na conta desejada ou SHIFT + seta para cima ou baixo ' +CRLF);
+      addRelatorioForm19('para efetuar a selecao. CTRL + ENTER faz a baixa das contas ' +CRLF);
+      form19.ShowModal;
+    end;
+
     if key = 116 then
       begin
-        {exit;
+        //exit;
         if VerificaAcesso_Se_Nao_tiver_Nenhum_bloqueio_true_senao_false = false then begin
           ShowMessage('Rotina Bloqueada!');
-        end;     }
+        end;
 
 
         data := '';
@@ -351,13 +386,15 @@ begin
   end;
 end;
 
-procedure TForm34.copiaContasReceber(var query11 : TFDQuery);
+procedure TForm34.copiaContasReceber(var query11 : TFDQuery; ordem1 : String = '');
 var
   saldo, valor : currency;
   datamaior : TDateTime;
   d : integer;
   nfes1 : String;
 begin
+  if ordem1= '' then ordem1 := 'vencimento';
+
   //ClientDataSet1.FieldByName('cod').Visible := false;
   ClientDataSet1.FieldByName('cod').Visible      := false;
   ClientDataSet1.FieldByName('previsao').Visible := false;
@@ -367,11 +404,11 @@ begin
   funcoes.FormataCampos(TFDQuery(ClientDataSet1), 2, '', 2);
   ClientDataSet1.EmptyDataSet;
 
-  try
+ // try
     ClientDataSet1.DisableControls;
   dm.IBselect.Close;
   dm.IBselect.SQL.Text := 'select datamov,codgru, vencimento, documento, historico, previsao, valor, cod, valor as saldo, nota  from contasreceber where ' +
-  '(documento='+strnum(client1)+') and (pago=0) order by vencimento';
+  '(documento='+strnum(client1)+') and (pago=0) order by ' + ordem1;
   dm.IBselect.Open;
 
   {dm.IBselect.Close;
@@ -393,12 +430,16 @@ begin
         datamaior := query11.FieldByName('datamov').AsDateTime;
 
       d := DaysBetween(datamaior, form22.datamov);
-
+      
       {if ((query11.FieldByName('cod').AsInteger = 48940) or (query11.FieldByName('cod').AsInteger = 48939)) then begin
         ShowMessage('cod='+query11.FieldByName('cod').AsString+#13+'dias=' + IntToStr(d) + #13 + IntToStr(trunc(form22.datamov - datamaior)));
       end;}
 
       d := trunc(form22.datamov - datamaior);
+
+      if funcoes.buscaParamGeral(144, 'N') = 'S' then begin
+        if query11.FieldByName('previsao').AsDateTime > datamaior then d := 0;
+      end;
 
 
       //if form22.datamov > datamaior then
@@ -441,10 +482,17 @@ begin
     end;
     query11.Next;
   end;
-  finally
-    ClientDataSet1.First;
-    ClientDataSet1.EnableControls;
-  end;
+
+
+  ClientDataSet1.First;
+  ClientDataSet1.EnableControls;
+
+ { EXCEPT
+  on e:exception do begin
+      ShowMessage('erro454: ' + e.Message);
+    end;
+  end;  }
+
 
 
   ClientDataSet1.FieldByName('nota').DisplayLabel := 'Num. Venda';
@@ -454,13 +502,22 @@ begin
 end;
 
 
-procedure TForm34.baixaF10Antigo();
+procedure TForm34.baixaF10Antigo(somenteSelecionadas : boolean = false);
 var
   valorBaixado, sim, fatura, codES : String;
   valorb, v1, totGeral : currency;
   i, a : integer;
   lista : TItensAcumProd;
 begin
+  {if somenteSelecionadas then begin
+    ShowMessage(IntToStr(dbgrid1.SelectedRows.Count));
+
+    If(dbgrid1.SelectedRows.Count = 0 )then begin
+      ShowMessage('Nenhuma Linha selecionada!');
+      exit;
+    end;
+  end;}
+
   //aqui verifica se existe algum valor negativo pq se existir na hora de baixar duplica
   //asentradas em caixa
   if verificaValorNegativo then
@@ -493,7 +550,7 @@ begin
 
   formapagto := funcoes.LerFormPato(0,'Contas Receber F8-Sair', true);
   if ((formapagto = '') or (formapagto = '*')) then exit;
-  
+
 
 
   sim := funcoes.dialogo('generico',0,'SN',0,false,'S',Application.Title,'Confirma Baixa de R$ '+valorBaixado+' ?','S') ;
@@ -508,6 +565,16 @@ begin
   form19.RichEdit1.Clear;
   lista := TItensAcumProd.Create;
   DBGrid1.DataSource.DataSet.First;
+
+
+ { for i:= 0 to Pred(DBGrid1.SelectedRows.Count) do
+    Begin
+       DBGrid1.Datasource.Dataset.Bookmark:= DBGrid1.SelectedRows[i]; //O comando SelectedRows irá indicar qual o registro atual no DataSet
+       ShowMessage(DBGrid1.Datasource.Dataset.FieldByName('historico').AsString);
+       // Você adiciona aqui o comando desejado para realizar com o registro do DataSet.
+    end;
+
+  exit;  }
 
   while ((not DBGrid1.DataSource.DataSet.Eof) or (valorb <= 0)) do begin
     if (valorb <= 0) then break;
@@ -604,6 +671,87 @@ begin
   imprimeNota(lista, v1);
   ClientDataSet1.EnableControls;
 end;
+
+procedure TForm34.baixaSelecionadas();
+var
+  valorBaixado, sim, fatura, codES : String;
+  valorb, v1, totGeral : currency;
+  i, a : integer;
+  lista : TItensAcumProd;
+begin
+    If(dbgrid1.SelectedRows.Count = 0 )then begin
+      ShowMessage('Nenhuma Linha selecionada!');
+      exit;
+    end;
+  
+  //aqui verifica se existe algum valor negativo pq se existir na hora de baixar duplica
+  //asentradas em caixa
+  if verificaValorNegativo then
+    begin
+      WWMessage('Foi detectado uma conta negativa, primeiro dê baixa desta conta utilizando ENTER para poder baixar utilizar esta função', mtWarning,[mbok], HexToTColor('FFD700'),true,false, HexToTColor('B22222'));
+      exit;
+    end;
+
+  try
+    DBGrid1.DataSource.DataSet.DisableControls;
+    DBGrid1.DataSource.DataSet.Last;
+    totGeral := DBGrid1.DataSource.DataSet.FieldByName('saldo').AsCurrency;
+  finally
+    DBGrid1.DataSource.DataSet.First;
+    DBGrid1.DataSource.DataSet.EnableControls;
+  end;
+
+  formapagto := funcoes.LerFormPato(0,'Contas Receber F8-Sair', true);
+  if ((formapagto = '') or (formapagto = '*')) then exit;
+
+
+
+  sim := funcoes.dialogo('generico',0,'SN',0,false,'S',Application.Title,'Confirma Baixa de '+ IntToStr(dbgrid1.SelectedRows.Count) +' Contas ?','S') ;
+  if sim = '*' then exit;
+
+
+  valorb := StrToCurr(funcoes.ConverteNumerico(valorBaixado));
+  //v1 := valorb;
+  i := DBGrid1.DataSource.DataSet.RecNo-1;
+  DBGrid1.DataSource.DataSet.DisableControls;
+  DBGrid1.DataSource.DataSet.First;
+  form19.RichEdit1.Clear;
+  lista := TItensAcumProd.Create;
+  DBGrid1.DataSource.DataSet.First;
+
+  for a:= 0 to Pred(DBGrid1.SelectedRows.Count) do begin
+    DBGrid1.Datasource.Dataset.Bookmark:= DBGrid1.SelectedRows[a]; //O comando SelectedRows irá indicar qual o registro atual no DataSet
+
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add('update contasreceber set ULTVALOR = :ULTVALOR, CODHIS = :CODHIS, valor=:valor,pago=:valor, ult_usu_alterado = :ult_usu_alterado, datamov = :data where cod='+DBGrid1.DataSource.DataSet.FieldByName('cod').AsString);
+      dm.IBQuery1.ParamByName('ULTVALOR').AsCurrency          := DBGrid1.DataSource.DataSet.FieldByName('valor').AsCurrency;
+      dm.IBQuery1.ParamByName('CODHIS').AsInteger             := StrToIntDef(formapagto, 1);
+      dm.IBQuery1.ParamByName('valor').AsCurrency             := DBGrid1.DataSource.DataSet.FieldByName('valor').AsCurrency;
+      dm.IBQuery1.ParamByName('ult_usu_alterado').AsInteger   := StrToInt(StrNum(form22.codusario));
+      dm.IBQuery1.ParamByName('data').AsDate                  := form22.datamov;
+      dm.IBQuery1.ExecSQL;
+
+      funcoes.gravaAlteracao('Baixa F10 de SEL CR val: ' + CurrToStr(DBGrid1.DataSource.DataSet.FieldByName('valor').AsCurrency) + ' cod: ' + DBGrid1.DataSource.DataSet.FieldByName('cod').AsString + ' pago: 0' , 'CRB');
+
+      v1 := v1 + DBGrid1.DataSource.DataSet.FieldByName('valor').AsCurrency;
+
+      i := lista.Add(TacumProd.Create);
+      lista[i].cod   := DBGrid1.DataSource.DataSet.FieldByName('documento').AsInteger;
+      lista[i].unid  := DBGrid1.DataSource.DataSet.FieldByName('historico').AsString;
+      lista[i].data  := DBGrid1.DataSource.DataSet.FieldByName('vencimento').AsDateTime;
+      lista[i].quant := DBGrid1.DataSource.DataSet.FieldByName('valor').AsCurrency;
+
+  end;
+
+  if dm.IBQuery1.Transaction.Active then dm.IBQuery1.Transaction.Commit;
+
+  copiaContasReceber(dm.IBselect);
+  imprimeNota(lista, v1);
+  ClientDataSet1.EnableControls;
+  DBGrid1.SelectedRows.Clear;
+end;
+
 
 
 procedure TForm34.baixaF10Novo();

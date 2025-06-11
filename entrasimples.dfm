@@ -221,6 +221,7 @@ object Form17: TForm17
       Font.Style = [fsBold]
       ParentFont = False
       TabOrder = 0
+      OnClick = codigoClick
       OnKeyDown = codigoKeyDown
       OnKeyPress = codigoKeyPress
       OnKeyUp = codigoKeyUp
@@ -244,6 +245,7 @@ object Form17: TForm17
       ParentFont = False
       TabOrder = 1
       OnKeyPress = fornecKeyPress
+      OnKeyUp = fornecKeyUp
       UsarCadastros = False
       FormularioComp = 'Form17'
       ColorOnEnter = clSkyBlue
