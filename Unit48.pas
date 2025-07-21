@@ -1024,6 +1024,8 @@ begin
     ClientDataSet1.FieldByName('codigo').AsString          := dm.IBselect.fieldbyname('cod').AsString;
     ClientDataSet1.FieldByName('DESCRICAO_ATUAL').AsString := dm.IBselect.fieldbyname('nome').AsString;
     ClientDataSet1.FieldByName('CODBAR_ATUAL').AsString    := dm.IBselect.fieldbyname('codbar').AsString;
+
+    //ShowMessage(dm.IBselect.fieldbyname('codbar').AsString + #13 + ClientDataSet1.FieldByName('CODBAR_ATUAL').AsString);
     ClientDataSet1.FieldByName('PRECO_ATUAL').AsCurrency   := dm.IBselect.fieldbyname('p_venda').AsCurrency;
     ClientDataSet1.FieldByName('UNID_ENTRADA').AsString    := dm.IBselect.fieldbyname('unid2').AsString;
     ClientDataSet1.FieldByName('UNID_VENDA').AsString      := dm.IBselect.fieldbyname('unid').AsString;

@@ -172,9 +172,9 @@ object Form83: TForm83
     object Label4: TLabel
       Left = 11
       Top = 162
-      Width = 217
+      Width = 89
       Height = 16
-      Caption = 'Cobrar Taxa(N-N'#227'o/D-10 Reais) ?'
+      Caption = 'Cobrar Taxa ?'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -13
@@ -221,16 +221,36 @@ object Form83: TForm83
       TabOrder = 3
       OnKeyPress = telefoneKeyPress
     end
-    object taxa: TEdit
-      Left = 11
-      Top = 180
+    object taxa1: TEdit
+      Left = 115
+      Top = 159
       Width = 30
       Height = 21
       CharCase = ecUpperCase
       MaxLength = 35
       TabOrder = 4
       Text = 'N'
+      Visible = False
+      OnKeyPress = taxa1KeyPress
+    end
+    object taxa: TComboBox
+      Left = 11
+      Top = 184
+      Width = 145
+      Height = 21
+      AutoComplete = False
+      Style = csDropDownList
+      ItemIndex = 0
+      TabOrder = 5
+      Text = '0,00'
       OnKeyPress = taxaKeyPress
+      Items.Strings = (
+        '0,00'
+        '10,00'
+        '15,00'
+        '20,00'
+        '25,00'
+        '30,00')
     end
   end
 end

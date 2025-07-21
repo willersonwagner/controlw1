@@ -137,7 +137,7 @@ type
     CSTPIS  : String;
     ICMSOSN : string;
     unid: string[8];
-    codbar: string[15];
+    codbar: string[25];
     data: TDateTime;
     nota: string;
     NCM: string;
@@ -910,6 +910,8 @@ begin
     end;
     // dm.ACBrNFe.NotasFiscais.Clear;
   end;
+
+
   funcoes.retornobusca := '';
   if novo then
   begin
@@ -5494,7 +5496,7 @@ begin
   if buscaParamGeral(5, 'N') = 'S' then
   begin
     // form48.ClientDataSet1.FieldDefs.Add('DESONERADO', ftCurrency);
-    form48.ClientDataSet1.FieldDefs.Add('CODBAR_ATUAL', ftString, 15);
+    form48.ClientDataSet1.FieldDefs.Add('CODBAR_ATUAL', ftString, 18);
     form48.ClientDataSet1.FieldDefs.Add('CODIGO', ftInteger);
     form48.ClientDataSet1.FieldDefs.Add('DESCRICAO_FORNECEDOR', ftString, 60);
     form48.ClientDataSet1.FieldDefs.Add('DESCRICAO_ATUAL', ftString, 60);
@@ -5512,8 +5514,8 @@ begin
     form48.ClientDataSet1.FieldDefs.Add('ALIQ', ftString, 8);
     form48.ClientDataSet1.FieldDefs.Add('PIS', ftString, 8);
     form48.ClientDataSet1.FieldDefs.Add('COD_ISPIS', ftString, 8);
-    form48.ClientDataSet1.FieldDefs.Add('CODBAR', ftString, 15);
-    form48.ClientDataSet1.FieldDefs.Add('REFORI', ftString, 15);
+    form48.ClientDataSet1.FieldDefs.Add('CODBAR', ftString, 18);
+    form48.ClientDataSet1.FieldDefs.Add('REFORI', ftString, 30);
     form48.ClientDataSet1.FieldDefs.Add('REF_NFE', ftString, 25);
     form48.ClientDataSet1.FieldDefs.Add('NCM', ftString, 20);
     form48.ClientDataSet1.FieldDefs.Add('mu', ftFloat);
@@ -5544,9 +5546,9 @@ begin
     form48.ClientDataSet1.FieldDefs.Add('ALIQ', ftString, 8);
     form48.ClientDataSet1.FieldDefs.Add('PIS', ftString, 8);
     form48.ClientDataSet1.FieldDefs.Add('COD_ISPIS', ftString, 8);
-    form48.ClientDataSet1.FieldDefs.Add('CODBAR', ftString, 15);
-    form48.ClientDataSet1.FieldDefs.Add('CODBAR_ATUAL', ftString, 15);
-    form48.ClientDataSet1.FieldDefs.Add('REFORI', ftString, 15);
+    form48.ClientDataSet1.FieldDefs.Add('CODBAR', ftString, 18);
+    form48.ClientDataSet1.FieldDefs.Add('CODBAR_ATUAL', ftString, 18);
+    form48.ClientDataSet1.FieldDefs.Add('REFORI', ftString, 30);
     form48.ClientDataSet1.FieldDefs.Add('REF_NFE', ftString, 20);
     form48.ClientDataSet1.FieldDefs.Add('NCM', ftString, 20);
     form48.ClientDataSet1.FieldDefs.Add('mu', ftFloat);
@@ -17662,15 +17664,24 @@ begin
           addRelatorioForm19(funcoes.QuebraLinhas2('>','', codigo1 + '-' + dm.IBQuery2.FieldByName('nome').AsString, 40)) ;
         end;
 
-
-
-        addRelatorioForm19(funcoes.CompletaOuRepete(LeftStr(trim(tmp), 16), '',
+        if Contido('CAMALEAO', form22.Pgerais.Values['empresa']) then begin
+          addRelatorioForm19(funcoes.CompletaOuRepete(LeftStr(trim(tmp), 17), '',
+          ' ', 17) + funcoes.CompletaOuRepete('', FormatCurr('0.00',
+          dm.IBQuery2.FieldByName('quant').AsCurrency), ' ', 6) +
+          funcoes.CompletaOuRepete('', FormatCurr('0.00',
+          dm.IBQuery2.FieldByName('p_venda').AsCurrency), ' ', 8) +
+          funcoes.CompletaOuRepete('', FormatCurr('0.00', tot_item), ' ',
+          9) + CRLF);
+        end
+        else begin
+          addRelatorioForm19(funcoes.CompletaOuRepete(LeftStr(trim(tmp), 16), '',
           ' ', 16) + funcoes.CompletaOuRepete('', FormatCurr('0.00',
           dm.IBQuery2.FieldByName('quant').AsCurrency), ' ', 7) +
           funcoes.CompletaOuRepete('', FormatCurr('0.00',
           dm.IBQuery2.FieldByName('p_venda').AsCurrency), ' ', 8) +
           funcoes.CompletaOuRepete('', FormatCurr('0.00', tot_item), ' ',
           9) + CRLF);
+        end;
       end
       else
       begin
@@ -21821,9 +21832,11 @@ begin
           if erro <> '' then begin
             ShowMessage('O Cadastro do Cliente contem Erros, verifique: ' + #13 + erro);
           end;
-        end
+        end //cliente ok result = true
         else begin
-          ShowMessage('erro1');
+          //entrou aqui entao validou os dados
+          exit;
+          //ShowMessage('erro1');
         end;
       end;
 
@@ -31473,7 +31486,7 @@ var
   h1 : String;
 begin
   Result := '';
-  h1 := '';
+  h1 := ' and ((tipo = '''') or (tipo is null))';
   if homolog = '2' then h1 := ' and (tipo = ''2'')';
 
   dm.IBselect.Close;

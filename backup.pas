@@ -395,7 +395,7 @@ begin
   end;
 
   if ((key = 121) and (opcao = 1)) then begin
-    if Contido('CAMALEAO', form22.Pgerais.Values['empresa']) then begin
+    if true then begin//if Contido('CAMALEAO', form22.Pgerais.Values['empresa']) then begin
       form89 := TForm89.Create(self);
       form89.dini := formataDataDDMMYY(form22.datamov);
       form89.dfim := formataDataDDMMYY(form22.datamov);

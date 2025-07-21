@@ -4463,13 +4463,22 @@ begin
           addRelatorioForm19(funcoes.QuebraLinhas2('>','', codigo1 + '-' + ClientDataSet1.FieldByName('descricao').AsString, 40)) ;
         end;
 
-
-        addRelatorioForm19(funcoes.CompletaOuRepete(LeftStr(imprRefxx, 16), '',
+        if Contido('CAMALEAO', form22.Pgerais.Values['empresa']) then begin
+          addRelatorioForm19(funcoes.CompletaOuRepete(LeftStr(imprRefxx, 17), '',
+          ' ', 17) + funcoes.CompletaOuRepete('', FormatCurr('0.00',
+          ClientDataSet1.FieldByName('quant').AsCurrency), ' ', 6) +
+          funcoes.CompletaOuRepete('', FormatCurr('0.00',
+          ClientDataSet1PRECO.AsCurrency), ' ', 8) + funcoes.CompletaOuRepete
+          ('', FormatCurr('0.00', total_item), ' ', 9) + CRLF);
+        end
+        else begin
+          addRelatorioForm19(funcoes.CompletaOuRepete(LeftStr(imprRefxx, 16), '',
           ' ', 16) + funcoes.CompletaOuRepete('', FormatCurr('0.00',
           ClientDataSet1.FieldByName('quant').AsCurrency), ' ', 7) +
           funcoes.CompletaOuRepete('', FormatCurr('0.00',
           ClientDataSet1PRECO.AsCurrency), ' ', 8) + funcoes.CompletaOuRepete
           ('', FormatCurr('0.00', total_item), ' ', 9) + CRLF);
+        end;
         dm.IBselect.Close;
       end
       else begin

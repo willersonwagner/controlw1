@@ -596,8 +596,11 @@ begin
   uf_fornec := dm.IBselect.FieldByName('estado').AsString;
   dm.IBselect.Close;
 
-  cfop.Text := '1102';
-  if uf_emit <> uf_fornec then cfop.Text := '2102';
+  //cfop.Text := '1102';
+  cfop.Text := funcoes.buscaParamGeral(147, '1102');
+  if uf_emit <> uf_fornec then begin
+    cfop.Text := funcoes.buscaParamGeral(148, '2102');
+  end;
 end;
 
 end.

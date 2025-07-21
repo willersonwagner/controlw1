@@ -141,6 +141,8 @@ object Form1: TForm1
   end
   object ACBrIBPTax1: TACBrIBPTax
     ProxyPort = '8080'
+    ContentsEncodingCompress = []
+    NivelLog = 0
     Left = 264
   end
   object IBQueryServer1: TFDQuery

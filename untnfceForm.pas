@@ -233,6 +233,7 @@ procedure GravarConfiguracao(certificadoCaminho, certificadoSenha,
 procedure CarregarConfiguracao();
 procedure setQueryNFCe(var lista: TList);
 procedure lerPathSalvar(var path: String);
+procedure validaNodo_pag();
 
 function procuraNCM_Na_Tabela(NCM: String): boolean;
 procedure GerarNFCe(nota, NumNFCe, TipoEmissao, TipoAmbiente, UFComerciante,
@@ -429,6 +430,7 @@ begin
   cont := 0;
 
  if ((Contido('-'+versaoExecutavel+'-', '-ControlW-PDV-')) and (venda.codForma = '99')) then begin
+
     query1.Close;
     query1.SQL.Clear;
     query1.SQL.Add('select f.formapagto, f.valor, v.nome, v.codgru as codform from PAGAMENTOVENDA f left join formpagto v  on (v.cod = f.formapagto) where f.nota = :nota');
@@ -464,7 +466,8 @@ begin
   
   end;
 
-  
+
+
   if (cont <= 0) then begin  
 
   try
@@ -2705,7 +2708,7 @@ var
   /// CDCFOP,
   TipoEmissao, ArquivoPDF, ArquivoNFE, SenhaCertificado: string;
 begin
-
+  //ACBrNFe.Configuracoes.
   // campoDescontoExiste := VerificaCampoTabela1('desconto', 'item_venda', query1);
 
   if FileExists(ExtractFileDir(ParamStr(0)) + '\ControlW.ini') then
@@ -2950,6 +2953,7 @@ begin
       DANFE_Rave.Sistema := 'Controlw Sistemas';
       DANFE_Rave.ExibeCampoFatura := true;
 
+      DANFE_Rave.Cancelada := false;
 
       DANFE_Rave.CasasDecimais.qCom  := ini.ReadInteger('SERVER','casasDecimais', 2);
       DANFE_Rave.AltLinhaComun       := ini.ReadInteger('SERVER','AltLinhaComun', DANFE_Rave.AltLinhaComun);
@@ -3443,6 +3447,7 @@ begin
 
     erroCriarNFCe := 'GravarTexto(buscaPastaNFCe(CHAVENF, false) + CHAVENF + -nfe.xml, xml)';
     GravarTexto(buscaPastaNFCe(CHAVENF, false) + CHAVENF + '-nfe.xml', xml);
+    //GravarTexto(buscaPastaNFCe(CHAVENF, false) + CHAVENF + '-1nfe.xml', xml);
 
     xml := '';
 
@@ -3459,6 +3464,10 @@ begin
     ACBrNFe.NotasFiscais.Clear;
     ACBrNFe.NotasFiscais.LoadFromFile(buscaPastaNFCe(CHAVENF, false) + CHAVENF +
       '-nfe.xml', false);
+
+    ACBrNFe.NotasFiscais[0].GravarXML(CHAVENF + '-nfe.xml',
+    buscaPastaNFCe(CHAVENF, false));
+
 
   except
     on e: Exception do
@@ -3515,6 +3524,7 @@ begin
 
     ACBrNFe.NotasFiscais[0].GravarXML(CHAVENF + '-nfe.xml', buscaPastaNFCe(CHAVENF, false));
 
+  
     if (ACBrNFe.Configuracoes.WebServices.Ambiente = taHomologacao) then begin
       try
         ACBrNFe.NotasFiscais[0].nfe.Det[0].Prod.xProd :=
@@ -3546,7 +3556,7 @@ begin
         ACBrNFe.NotasFiscais[0].NFe.Ide.xJust  := 'PROBLEMA DE CONEXAO COM INTERNET';
       end;
 
-
+      validaNodo_pag;
 
 
       // tenta enviar 2 vezes em intervalo de 10s de espera, caso venha retorno entao sai do while
@@ -4189,16 +4199,13 @@ begin
 
 
         if ((csta = 865) or (ACBrNFe.WebServices.Consulta.cStat = 865)) then begin
-          if ACBrNFe.NotasFiscais[0].NFe.pag.Count = 1 then begin
-            ACBrNFe.NotasFiscais[0].NFe.pag[0].vPag := ACBrNFe.NotasFiscais[0].NFe.Total.ICMSTot.vNF;
-            ACBrNFe.NotasFiscais[0].GravarXML(CHAVENF + '-nfe.xml', buscaPastaNFCe(CHAVENF, false));
-            richED.Lines.Add('NFe ' + CHAVENF + ' Foi Acertado o Total e Regravado no XML Valor antigo >' + CurrToStr(ACBrNFe.NotasFiscais[0].NFe.pag[0].vPag) + '  Novo>'+ CurrToStr(ACBrNFe.NotasFiscais[0].NFe.Total.ICMSTot.vNF));
-          end
-          else begin
-            richED.Lines.Add('Erro 3970: NFe ' + CHAVENF + ' Tem mais de uma forma de pagamento e nao foi acertado!');
-          end;
-        end;
+            lerVenda(IntToStr(ACBrNFe.NotasFiscais[0].NFe.Ide.cNF));
+            validaNodo_pag;
 
+            ACBrNFe.NotasFiscais[0].GravarXML(CHAVENF + '-nfe.xml', buscaPastaNFCe(CHAVENF, false));
+
+            richED.Lines.Add('Erro 3970: NFe ' + CHAVENF + ' Correção na estrutura de pagamento!');
+        end;
 
         if csta = 217 then
         begin
@@ -6516,16 +6523,11 @@ begin
 
     barras := item.codbar;
 
-    if item.codAliq = 10 then
-    begin
-      CFOP1 := '5405';
-    end;
-
       if (item.CodAliq = 10) then begin
-        if funcoes.buscaParamGeral(86, 'S') = 'S' then begin
+       // if funcoes.buscaParamGeral(86, 'S') = 'S' then begin
           if (cfop1 = '5102') then cfop1 := '5405';
           if (cfop1 = '6102') then cfop1 := '6404';
-        end;
+        //end;
       end;
 
 
@@ -7049,6 +7051,7 @@ end;
 
 FUNCTION NODO_PAG(): STRING;
 var
+  indPag : String;
   i: integer;
   tmp, total, troco1: currency;
 begin
@@ -7068,6 +7071,7 @@ begin
     end;   }
 
 
+
       for i := 0 to listaPagamentos.Count - 1 do begin
         IF TRIM(listaPagamentos[i].CST) = '' then listaPagamentos[i].CST := 'Pagamento Misto';
 
@@ -7078,10 +7082,17 @@ begin
         //se a soma das formas for menor que o total entao lança a diferença pra ultima forma de pagamento
         if ((listaPagamentos.Count > 1) and (tmp < total ) and ((listaPagamentos.Count -1) = i)) then listaPagamentos[i].total := listaPagamentos[i].total + abs(tmp - total);
 
+        indPag := '0';
+        if listaPagamentos[i].cod = '05' then indPag := '1';
+
         Result := Result + '<detPag>' + '<tpag>' + listaPagamentos[i].cod + '</tpag>' +
+        '<indPag>'+indPag+ '</indPag>'+
+
         IfThen(listaPagamentos[i].cod = '99', '<xPag>'+listaPagamentos[i].CST+'</xPag>', '') +
          '<vpag>' + Format_num(listaPagamentos[i].total) + '</vpag>'
         + '</detPag>';
+
+        //ShowMessage(Result);
       end;
 
     if tmp > total then
@@ -7394,6 +7405,7 @@ begin
     '-nfe.xml');
   ACBrNFe.NotasFiscais[0].GravarXML(CHAVENF + '-nfe.xml',
     buscaPastaNFCe(CHAVENF, false));
+
 
   { ACBrNFe.NotasFiscais.Clear;
     ACBrNFe.NotasFiscais.LoadFromFile(pastaControlW + '\NFCe\EMIT\' + chaveNF + '-nfe.xml'); }
@@ -8821,6 +8833,47 @@ begin
   GravarTexto(buscaPastaNFCe(CHAVENF) + CHAVENF + '-nfe.xml',
     ACBrNFe.NotasFiscais[0].GerarXML);
 end;
+
+procedure validaNodo_pag();
+var
+  ini, fim: integer;
+  pag: String;
+  total: currency;
+  teste: boolean;
+begin
+  ACBrNFe.NotasFiscais[0].nfe.pag.Clear;
+
+  fim := listaPagamentos.Count - 1;
+  for ini := 0 to fim do
+  begin
+    with ACBrNFe.NotasFiscais[0].nfe.pag.New do begin
+      if listaPagamentos[ini].cod = '' then begin
+        pag := 'x';
+        break;
+      end;
+
+      vPag := listaPagamentos[ini].total;
+      tPag := StrToFormaPagamento(teste, listaPagamentos[ini].cod);
+
+      if Contido('-'+ listaPagamentos[ini].cod+ '-', '-03-04-17-') then begin
+        tpIntegra := tiPagNaoIntegrado;
+      end;
+    end;
+
+  end;
+
+  if pag = 'x' then begin
+    ACBrNFe.NotasFiscais[0].nfe.pag.Clear;
+    with ACBrNFe.NotasFiscais[0].nfe.pag.New do begin
+      tPag := StrToFormaPagamento(teste, pag);
+      vPag := ACBrNFe.NotasFiscais[0].nfe.total.ICMSTot.vNF;
+    end;
+  end;
+
+  GravarTexto(buscaPastaNFCe(CHAVENF) + CHAVENF + '-nfe.xml',
+    ACBrNFe.NotasFiscais[0].GerarXML);
+end;
+
 
 procedure validaNCM_NaNFCe(chave1: String; indice : integer);
 var

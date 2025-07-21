@@ -55,6 +55,7 @@ type
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure Button3Click(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   private
     cont : integer;
 
@@ -545,6 +546,13 @@ begin
   //RLConsts.SetVersion(3,72,'B');
 end;
 
+procedure Tform22.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if key=vk_f4 then
+    abort;
+end;
+
 procedure Tform22.ApplicationEvents1Minimize(Sender: TObject);
 begin
   Application.Minimize;
@@ -559,7 +567,16 @@ procedure Tform22.Button2Click(Sender: TObject);
 var
   err1 : String;
   arq :TStringList;
+  op : TOpenDialog;
 begin
+  op := TOpenDialog.Create(self);
+  op.Execute;
+
+  dm.ACBrNFe.NotasFiscais.Clear;
+  dm.ACBrNFe.NotasFiscais.LoadFromFile(op.FileName);
+  //dm.ACBrNFe.NotasFiscais[0].NFe.pag[0].indPag :=
+  dm.ACBrNFe.NotasFiscais.GravarXML(op.FileName + '1');
+
 {  dm.IBselect.Close;
  dm.IBselect.SQL.Clear;
  dm.IBselect.SQL.Text :=

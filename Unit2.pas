@@ -4633,6 +4633,8 @@ begin
   form40.tipo.Add('144=generico');
   form40.tipo.Add('145=generico');
   form40.tipo.Add('146=generico');
+  form40.tipo.Add('147=generico');
+  form40.tipo.Add('148=generico');
 
   form40.troca := TStringList.Create;
   form40.troca.Add('0=S');
@@ -4785,6 +4787,8 @@ begin
   form40.troca.Add('144=S');
   form40.troca.Add('145=S');
   form40.troca.Add('146=');
+  form40.troca.Add('147=');
+  form40.troca.Add('148=');
 
   form40.teclas := TStringList.Create;
   form40.teclas.Add('0=FT');
@@ -4936,6 +4940,8 @@ begin
   form40.teclas.Add('144=SN');
   form40.teclas.Add('145=1234567890ABCDEFGHIJLMNOPKXYZWQRSTUVXZ|' + #46);
   form40.teclas.Add('146=1234567890' + #8);
+  form40.teclas.Add('147=1234567890' + #8);
+  form40.teclas.Add('148=1234567890' + #8);
 
   form40.ListBox1.Clear;
   form40.ListBox1.Items.Add
@@ -5175,7 +5181,7 @@ begin
   form40.ListBox1.Items.Add
     ('137=Usar Espaço para carimbo no pedido X-Media (S/N)?');
   form40.ListBox1.Items.Add
-    ('138=Quais os CNPJ/CPF que podem ter acesso as NFes No Portal da Sefaz ?(separador | entre CNPJ/CPFs)');
+    ('138=Quais os CNPJ/CPF que) podem ter acesso as NFes No Portal da Sefaz ?(separador | entre CNPJ/CPFs)');
   form40.ListBox1.Items.Add
     ('139=Bloquear a Exibicao avista aprazo na Tela de Vendas(S/N)');
   form40.ListBox1.Items.Add('140=Limitar QTD de telas no sistema ?');
@@ -5186,6 +5192,8 @@ begin
   form40.ListBox1.Items.Add('144=Considerar previsao nas contas a receber para zerar o juros de uma conta ?');
   form40.ListBox1.Items.Add('145=Qual a informação de PIS padrao no cadastro de produtos(IRMXDSNT) ?');
   form40.ListBox1.Items.Add('146=Qual o PRAZO padrao na venda(padrao 0) ?');
+  form40.ListBox1.Items.Add('147=Qual o CFOP padrao para entrada de mercadorias DENTRO do estado(padrao 1102) ?');
+  form40.ListBox1.Items.Add('148=Qual o CFOP padrao para entrada de mercadorias FORA do estado(padrao 2102) ?');
 
   form40.ListBox1.Selected[0] := true;
   form40.showmodal;

@@ -141,6 +141,8 @@ type
     FUNCTION NODO_ITENS(var lista : tlist; CFOP, POS, CSTICM_CFP, CSTPIS_CFP, _ORIGE : string) : string;
     Function LITERAL(ent : string) : string;
     FUNCTION NODO_ICMS(var MAT : Item_venda; CSTICM_CFOP, _ORIGE : string) : string;
+    FUNCTION NODO_IS(var MAT : Item_venda; CSTICM_CFOP, _ORIGE : string) : string;
+    FUNCTION NODO_IBSCBS(var MAT : Item_venda; CSTICM_CFOP, _ORIGE : string) : string;
     FUNCTION NODO_DI(var item1 : Item_venda; cfop : String; cont : integer) : String;
     FUNCTION FORMAT_QTD(VALOR : currency) : string;
     FUNCTION NODO_PISCOFINS(var item1 : Item_venda; CSTPIS_CFOP : string; cfop : String) : string;
@@ -3002,7 +3004,7 @@ begin
    //PRODUTO - SE JA RECOLHEU PIS/COFINS POR SUBSTITUICAO TRIBUTARIA
    IF item1.Pis = 'S' then begin
        PIS_NT := PIS_NT + tot;
-       Result := '<PIS>' + '<PISNT><CST>08</CST></PISNT></PIS>' + '<COFINS>' +
+       Result := '<PIS>' + '<PISNT><CST>09</CST></PISNT></PIS>' + '<COFINS>' +
       '<COFINSNT><CST>08</CST></COFINSNT></COFINS>';
       exit;
    end;
@@ -3339,6 +3341,16 @@ IF mat.Reducao <> 0 then begin
    '<vICMS>' + FORMAT_NUM(VLR_ICM) + '</vICMS></ICMS00></ICMS>';
 end;
 
+FUNCTION TNfeVenda.NODO_IS(var MAT : Item_venda; CSTICM_CFOP, _ORIGE : string) : string;
+begin
+  Result := '';
+end;
+
+FUNCTION TNfeVenda.NODO_IBSCBS(var MAT : Item_venda; CSTICM_CFOP, _ORIGE : string) : string;
+begin
+  Result := '';
+end;
+
 FUNCTION TNfeVenda.NODO_ITENS(var lista : tlist; CFOP, POS, CSTICM_CFP, CSTPIS_CFP, _ORIGE : string) : string;
 var
   barras, cfop1, infAdProd,uTrib, vTrib, qTrib, nICMS : string;
@@ -3441,7 +3453,10 @@ begin
       IfThen(item.Vlr_Frete > 0, '<vFrete>'+ Format_num(item.Vlr_Frete)+'</vFrete>', '') + iif(item.Desconto = 0,'','<vDesc>' + FORMAT_NUM(item.Desconto) + '</vDesc>') +
       IfThen(item.DespAcessorias  > 0 ,'<vOutro>' + FORMAT_NUM(item.DespAcessorias) + '</vOutro>', '')+'<indTot>1</indTot>'+NODO_DI(item, CFOP1, qtd)+
       nodo_detExport(detExport.Values[IntToStr(i)], item.quant)+'</prod><imposto>' + nICMS +
-      NODO_PISCOFINS(item, cstpisCfop, cfop1) + NODO_ICMS_UF_DEST(item)+ NODO_IPI(item, cfop1) + '</imposto>' +
+      NODO_PISCOFINS(item, cstpisCfop, cfop1) +
+      NODO_IS(item, cstpisCfop, cfop1) +
+      NODO_IBSCBS(item, cstpisCfop, cfop1) +
+       NODO_ICMS_UF_DEST(item)+ NODO_IPI(item, cfop1) + '</imposto>' +
       infAdProd +'</det>'; //NODO_PISCOFINS(MAT, CSTPIS_CFP)
 
       {Result := Result + '<det nItem=' + LITERAL(TRIM(IntToStr(qtd))) + '><prod>' +

@@ -273,11 +273,20 @@ begin
       end;
 
       if (Contido('Rejeicao', esta) or (Contido('656', esta))) then begin
+        if IBQuery2.Transaction.Active then IBQuery2.Transaction.Commit;
+
         IBQuery2.Close;
         IBQuery2.SQL.Text := 'update nfce set tentativa = tentativa + 1 where chave = :chave';
         IBQuery2.ParamByName('chave').AsString := QueryControlProd.fieldbyname('chave').AsString;
-        IBQuery2.ExecSQL;
-        IBQuery2.Transaction.Commit;
+
+        try
+          IBQuery2.ExecSQL;
+          IBQuery2.Transaction.Commit;
+        except on e : exception do begin
+
+        end;
+
+        end;
       end;
     end;
 

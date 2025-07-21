@@ -15,6 +15,7 @@ type
     procedure ListBox1KeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure FormCreate(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   private
     { Private declarations }
   public
@@ -34,6 +35,13 @@ uses Unit1, DB, vendas, func, StrUtils;
 
 {$R *.dfm}
 
+
+procedure TForm18.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+if key=vk_f4 then
+    abort;
+end;
 
 procedure TForm18.FormShow(Sender: TObject);
 var

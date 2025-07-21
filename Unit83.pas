@@ -20,7 +20,8 @@ type
     telefone: TEdit;
     Label3: TLabel;
     Label4: TLabel;
-    taxa: TEdit;
+    taxa1: TEdit;
+    taxa: TComboBox;
     procedure clienteKeyPress(Sender: TObject; var Key: Char);
     procedure telefoneKeyPress(Sender: TObject; var Key: Char);
     procedure enderecoKeyPress(Sender: TObject; var Key: Char);
@@ -29,6 +30,7 @@ type
     procedure FormShow(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure BitBtn1Click(Sender: TObject);
+    procedure taxa1KeyPress(Sender: TObject; var Key: Char);
     procedure taxaKeyPress(Sender: TObject; var Key: Char);
   private
     procedure teclaEsc(key : char);
@@ -70,7 +72,7 @@ begin
   proximo(key);
 end;
 
-procedure TForm83.taxaKeyPress(Sender: TObject; var Key: Char);
+procedure TForm83.taxa1KeyPress(Sender: TObject; var Key: Char);
 begin
   if key = #32 then begin
    if tedit(sender).Text = 'N' then  tedit(sender).Text := 'C'
@@ -82,12 +84,18 @@ begin
   teclaEsc(key);
   proximo(key);
 
-  if not(funcoes.Contido(UpCase(key), 'ND'))  then key := #0
+  if not(funcoes.Contido(UpCase(key), 'NDV'))  then key := #0
   else begin
     tedit(sender).Text := UpCase(key);
     key := #0;
   end;
 
+end;
+
+procedure TForm83.taxaKeyPress(Sender: TObject; var Key: Char);
+begin
+teclaEsc(key);
+  proximo(key);
 end;
 
 procedure TForm83.enderecoKeyPress(Sender: TObject; var Key: Char);
@@ -168,6 +176,7 @@ begin
     close;
     EXIT;
   end;
+
   codEntrega := Incrementa_Generator('ENTREGA', 1);
 
   dm.IBQuery1.Close;
@@ -175,9 +184,11 @@ begin
   '(:TAXA, :COD, :CLIENTE, :TELEFONE, :ENDERECO, :OBS )';
   //dm.IBQuery1.ParamByName('TAXA').AsCurrency   := StrToInt(codEntrega);
   dm.IBQuery1.ParamByName('TAXA').AsCurrency   := 0;
-  if TAXA.Text = 'C' then dm.IBQuery1.ParamByName('TAXA').AsCurrency   := 7;
+  dm.IBQuery1.ParamByName('TAXA').AsCurrency   := StrToCurr(taxa.Text);
+  {if TAXA.Text = 'C' then dm.IBQuery1.ParamByName('TAXA').AsCurrency   := 7;
   if TAXA.Text = 'D' then dm.IBQuery1.ParamByName('TAXA').AsCurrency   := 10;
-  if TAXA.Text = 'S' then dm.IBQuery1.ParamByName('TAXA').AsCurrency   := StrToCurr(funcoes.buscaParamGeral(124, '5'));
+  if TAXA.Text = 'V' then dm.IBQuery1.ParamByName('TAXA').AsCurrency   := 20;
+  if TAXA.Text = 'S' then dm.IBQuery1.ParamByName('TAXA').AsCurrency   := StrToCurr(funcoes.buscaParamGeral(124, '5'));}
 
   dm.IBQuery1.ParamByName('cod').AsInteger     := StrToInt(codEntrega);
   dm.IBQuery1.ParamByName('CLIENTE').AsString  := cliente.Text;
