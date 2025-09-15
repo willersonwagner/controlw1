@@ -15,7 +15,8 @@ uses
   FireDAC.Stan.Error, FireDAC.UI.Intf, FireDAC.Phys.Intf, FireDAC.Stan.Def,
   FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys, FireDAC.Stan.Param,
   FireDAC.DatS, FireDAC.DApt.Intf, FireDAC.DApt, FireDAC.Comp.DataSet,
-  FireDAC.Comp.Client, FireDAC.Phys.FB, FireDAC.VCLUI.Wait, FireDAC.Comp.UI;
+  FireDAC.Comp.Client, FireDAC.Phys.FB, FireDAC.VCLUI.Wait, FireDAC.Comp.UI,
+  ACBrMail, ACBrNFeDANFEFR;
 
 const
   WM_ICONTRAY = WM_USER + 1;
@@ -59,6 +60,7 @@ type
     BDControl: TFDConnection;
     BD_Servidor: TFDConnection;
     FDGUIxWaitCursor1: TFDGUIxWaitCursor;
+    ACBrMail1: TACBrMail;
     procedure FormCreate(Sender: TObject);
     procedure Timer2Timer(Sender: TObject);
     procedure FormClick(Sender: TObject);
@@ -227,7 +229,7 @@ begin
     envi := false;
 
     try
-      envi := EnviarCupomEletronico2(QueryControlProd.fieldbyname('nota')
+      envi := EnviarCupomEletronico3(QueryControlProd.fieldbyname('nota')
         .AsString, QueryControlProd.fieldbyname('chave').AsString, RichEdit1, esta, false,
         true, false);
 
@@ -313,6 +315,7 @@ begin
 
   arquivo := TStringList.Create;
   erro12002 := 0;
+
   try
     RichEdit1.Clear;
     sinal(1);
@@ -345,8 +348,9 @@ begin
 
     //BDControl.ConnectionName := bancoControl;
     BDControl.Params.Values['Database'] := bancoControl;
-  
+
     lista1 := TList.Create;
+
     lista1.Add(QueryControlVenda);
     lista1.Add(QueryControlDivs);
     lista1.Add(ACBrNFe1);
@@ -372,6 +376,7 @@ begin
   if FileExists(ExtractFileDir(ParamStr(0)) + '\davXXX.rca') then begin
     Timer3.Enabled := true;
   end;
+
 
 end;
 
@@ -664,14 +669,14 @@ begin
       end;
     end;
 
-    try
+  {  try
       copiaNFes;
     except
       on e: exception do
       begin
         RichEdit1.Lines.Add('Linha 428: ' + e.Message);
       end;
-    end;
+    end;}
   finally
     if ERRO_dados <> 'Application.Terminate;' then Timer1.Enabled := true;
   end;
@@ -2494,9 +2499,9 @@ var
 begin
   emitNFe := false;
 
-  if DirectoryExists(caminhoComBarraNoFinal + 'NFE\EMIT\') then
+  if DirectoryExists(ExtractFileDir(ParamStr(0)) + '\NFe\EMIT\') then
   begin
-    pastanfe := caminhoComBarraNoFinal + 'NFE\EMIT\';
+    pastanfe := ExtractFileDir(ParamStr(0)) + '\NFe\EMIT\';
     arq := listaArquivos(pastanfe + '*.xml');
 
     if arq.Count > 0 then

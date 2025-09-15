@@ -116,8 +116,8 @@ object Form1: TForm1
     Protocolo = protHTTP
     OnHookStatus = HookStatus
     OnHookMonitor = ACBrDownloadHookMonitor
-    Left = 104
-    Top = 88
+    Left = 144
+    Top = 64
   end
   object IdHTTP2: TIdHTTP
     OnWork = IdHTTP2Work

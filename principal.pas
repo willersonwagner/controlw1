@@ -431,7 +431,8 @@ if key=#27 then
                 //TrimAppMemorySize;
 
                 form2.Show;
-                if usuario <> 'ADMIN' then  funcoes.fazBackupMandaPorEmail;
+                //if usuario <> 'ADMIN' then  funcoes.fazBackupMandaPorEmail;
+                if usuario <> 'ADMIN' then  funcoes.EnviarBackupSite('');
               end
               else
                 begin
@@ -486,6 +487,8 @@ begin
   data1.Caption  := FormatDateTime('ddd,dd/mm/yy',now);
   hora.Caption   := FormatDateTime('hh:mm:ss',now);
   Timer1.Enabled := true;
+
+  PainelBV.Visible := funcoes.sistemaDeTeste;
 
 end;
 
@@ -568,7 +571,15 @@ var
   err1 : String;
   arq :TStringList;
   op : TOpenDialog;
+//  HTTP : TACBrHTTP;
 begin
+
+
+{HTTP := TACBrHTTP.Create(nil);
+  HTTP.TimeOut := 10000;
+  th := 'http://www.controlw.blog.br' ;
+  HTTP.HTTPGet(th);
+}exit;
   op := TOpenDialog.Create(self);
   op.Execute;
 
@@ -601,8 +612,16 @@ begin
 end;
 
 procedure Tform22.Button3Click(Sender: TObject);
+VAR
+  arq : TStringList;
+  op : TOpenDialog;
 begin
 
+  op := TOpenDialog.Create(self);
+  arq := TStringList.Create;
+  op.Execute;
+  arq.LoadFromFile(op.FileName);
+  ShowMessage(entraXMLeRetornaChave(arq.Text));
 
   //beneNome := (consultarPIX(form84.txid));
   //ShowMessage(beneNome);
@@ -751,7 +770,6 @@ begin
   if vend <> '' then obs := obs + ';' + 'VENDEDOR: ' + vend;
    obs := obs + ';' + 'OPERADOR: ' + usuario + ';';
 
-  try
     statu := '';
 
     funcoes.mensagemEnviandoNFCE('Aguarde, Enviando NFCe...', true, false);
@@ -761,11 +779,11 @@ begin
     Application.ProcessMessages;
     Application.ProcessMessages;
 
-    Result := EnviarCupomEletronicoTitular(nota, statu, xmot, tpemissao, envi, cliente, obs, '',nnf,TRUE, recebido, primeiroCupom);
+    Result := EnviarCupomEletronicoTitularNovo(nota, statu, xmot, tpemissao, envi, cliente, obs, '',nnf,TRUE, recebido, primeiroCupom);
 
     //se nao enviou entao gera em contingencia OFFline
     if statu = '999' then begin
-      EnviarCupomEletronicoTitular(nota, statu, xmot, tpemissao, false, cliente,
+      EnviarCupomEletronicoTitularNovo(nota, statu, xmot, tpemissao, false, cliente,
         obs, '', '', true, recebido, primeiroCupom);
     end;
 
@@ -774,13 +792,13 @@ begin
         funcoes.mensagemEnviandoNFCE('Aguarde, Enviando NFCe...', false, true);
         exit;
       end;
-  except
+  {except
     on e:exception do
       begin
         MessageDlg('ERRO: ' + e.Message, mtError, [mbok], 1);
         gravaERRO_LOG1('', 'ERRO: FORM22, metodo function Tform22.enviNFCe(const perg : String = ''; nnf : String = ''; recebido : currency = 0) : boolean;' + #13+ #13 +'e.Message=' +e.Message, '');
       end;
-  end;
+  end;    }
 
   funcoes.mensagemEnviandoNFCE('Aguarde, Enviando NFCe...', false, true);
 

@@ -223,7 +223,7 @@ object Form8: TForm8
       Width = 353
       Height = 21
       CharCase = ecUpperCase
-      MaxLength = 40
+      MaxLength = 80
       TabOrder = 6
       FormularioComp = 'Form8'
       ColorOnEnter = clSkyBlue
@@ -236,7 +236,7 @@ object Form8: TForm8
       Width = 257
       Height = 21
       CharCase = ecUpperCase
-      MaxLength = 25
+      MaxLength = 50
       TabOrder = 7
       FormularioComp = 'Form8'
       ColorOnEnter = clSkyBlue

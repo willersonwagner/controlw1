@@ -315,7 +315,7 @@ end;
 
 procedure TForm24.DBGrid1KeyPress(Sender: TObject; var Key: Char);
 var
-  teste, busca, metodo, campos :string;
+  teste, busca, metodo, campos, buscaCampo :string;
   cont:integer;
 begin
   if key = #13 then begin
@@ -401,9 +401,15 @@ begin
      else if funcoes.buscaParamGeral(61, 'N') = 'C' then campos := 'codbar,nome as descricao, quant, p_venda as preco, codbar,cod'
      else campos := 'cod,nome as descricao, quant, p_venda as preco, codbar';
 
-     if metodo = '2' then dm.IBQuery2.SQL.Add('select '+campos+' from produto where (nome like '+ QuotedStr('%'+busca+'%') +') ORDER BY NOME')
-       else if metodo = '1' then dm.IBQuery2.SQL.Add('select '+campos+' from produto where (nome like '+ QuotedStr(busca+'%') +') ORDER BY NOME');
-     //dm.IBQuery2.SQL.Add('select cod,nome as descricao, quant, p_venda as preco, codbar from produto where (nome like '+ QuotedStr('%'+busca+'%') +') ORDER BY NOME');
+    { if Contido('%', busca) then begin
+       buscaCampo := QuotedStr(busca);
+     end
+     }
+     if metodo = '2' then buscaCampo := QuotedStr('%'+busca+'%')
+     else if metodo = '1' then buscaCampo := QuotedStr(busca+'%');
+
+     dm.IBQuery2.SQL.Text := ('select '+campos+' from produto where (trim(nome) like '+ buscaCampo +') ORDER BY NOME');
+
      dm.IBQuery2.Open;
 
      busca := funcoes.busca(dm.IBQuery2, busca,'NOME', 'cod' , 'descricao');

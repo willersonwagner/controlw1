@@ -323,6 +323,10 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
     end
     object TabSheet3: TTabSheet
       Caption = 'Certificado'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object GroupBox3: TGroupBox
         Left = 0
         Top = 0
@@ -449,6 +453,10 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
     object TabSheet5: TTabSheet
       Caption = 'WebService'
       ImageIndex = 2
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object GroupBox7: TGroupBox
         Left = 0
         Top = 0
@@ -627,6 +635,10 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
     object TabSheet7: TTabSheet
       Caption = 'Email'
       ImageIndex = 4
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object GroupBox9: TGroupBox
         Left = 0
         Top = 0
@@ -740,6 +752,10 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
     object TabSheet1: TTabSheet
       Caption = 'Par'#226'metros'
       ImageIndex = 4
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object GroupBox1: TGroupBox
         Left = 0
         Top = 0
@@ -1254,6 +1270,10 @@ object frmConfiguracoesNFe: TfrmConfiguracoesNFe
     object TabSheet6: TTabSheet
       Caption = 'Conex'#227'o'
       ImageIndex = 6
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object Label11: TLabel
         Left = 8
         Top = 72

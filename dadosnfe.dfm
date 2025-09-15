@@ -572,6 +572,26 @@ object Form79: TForm79
       TabOrder = 1
     end
   end
+  object CheckBox3: TCheckBox
+    Left = 7
+    Top = 476
+    Width = 210
+    Height = 17
+    Caption = 'Informar data de entrada e saida'
+    Checked = True
+    State = cbChecked
+    TabOrder = 14
+    Visible = False
+  end
+  object CheckBox4: TCheckBox
+    Left = 7
+    Top = 492
+    Width = 210
+    Height = 17
+    Caption = 'Lan'#231'ar desconto do produto na NFe'
+    TabOrder = 15
+    Visible = False
+  end
   object ClientDataSet1: TClientDataSet
     Aggregates = <>
     Params = <>

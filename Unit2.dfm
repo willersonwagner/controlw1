@@ -11866,6 +11866,10 @@ object Form2: TForm2
           Caption = 'Por Vendedor/Cliente'
           OnClick = PorVendedorCliente1Click
         end
+        object VendedorNotaAtacado1: TMenuItem
+          Caption = 'Vendedor/Nota Atacado'
+          OnClick = VendedorNotaAtacado1Click
+        end
       end
       object ResumoMensal1: TMenuItem
         Caption = 'Resumo Mensal'
@@ -11900,6 +11904,10 @@ object Form2: TForm2
         object Servios2: TMenuItem
           Caption = 'Servi'#231'os'
           OnClick = Servios2Click
+        end
+        object GeralAtacado1: TMenuItem
+          Caption = 'Geral/Atacado'
+          OnClick = GeralAtacado1Click
         end
       end
       object Convnios1: TMenuItem
@@ -12644,6 +12652,10 @@ object Form2: TForm2
         object AdicionarFotoProduto1: TMenuItem
           Caption = 'Adicionar Foto Produto'
           OnClick = AdicionarFotoProduto1Click
+        end
+        object ProdutosComissaoDiferenciada1: TMenuItem
+          Caption = 'Produtos Comissao Diferenciada'
+          OnClick = ProdutosComissaoDiferenciada1Click
         end
       end
       object ParmetrosGerais1: TMenuItem

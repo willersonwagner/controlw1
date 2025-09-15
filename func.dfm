@@ -53,7 +53,7 @@ object funcoes: Tfuncoes
     Enabled = False
     Interval = 600000
     Left = 48
-    Top = 32
+    Top = 40
   end
   object IdFTP1: TIdFTP
     IPVersion = Id_IPv4
@@ -89,6 +89,9 @@ object funcoes: Tfuncoes
     Left = 48
   end
   object IdHTTP1: TIdHTTP
+    OnWork = IdHTTP1Work
+    OnWorkBegin = IdHTTP1WorkBegin
+    OnWorkEnd = IdHTTP1WorkEnd
     AllowCookies = False
     ProxyParams.BasicAuthentication = False
     ProxyParams.ProxyPort = 0
@@ -121,5 +124,13 @@ object funcoes: Tfuncoes
     Params = <>
     Left = 232
     Top = 104
+  end
+  object HTTPRIO1: THTTPRIO
+    HTTPWebNode.UseUTF8InHeader = True
+    HTTPWebNode.InvokeOptions = [soIgnoreInvalidCerts, soAutoCheckAccessPointViaUDDI]
+    HTTPWebNode.WebNodeOptions = []
+    Converter.Options = [soSendMultiRefObj, soTryAllSchema, soRootRefNodesToBody, soCacheMimeResponse, soUTF8EncodeXML]
+    Left = 392
+    Top = 128
   end
 end

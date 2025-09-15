@@ -874,6 +874,7 @@ class function JsEdit.SelecionaDoBD(formi:string; msg :boolean = true; condicao 
 var
   cod, ini, fim : integer;
 begin
+  Result := false;
   cod := JsEdit.GetValorInteiroDoPrimeiroCampo(formi);
   query.SQL.Clear;
   if primarykey.Values[formi] <> '' then
@@ -892,6 +893,8 @@ begin
 
   try
     query.Open;
+    query.FetchAll;
+    if not query.IsEmpty then Result := true;
   except
     on e:exception do
       begin

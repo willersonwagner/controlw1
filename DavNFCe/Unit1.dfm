@@ -355,4 +355,15 @@ object Form1: TForm1
     Left = 472
     Top = 320
   end
+  object ACBrMail1: TACBrMail
+    Host = '127.0.0.1'
+    Port = '25'
+    SetSSL = False
+    SetTLS = False
+    Attempts = 3
+    DefaultCharset = UTF_8
+    IDECharset = CP1252
+    Left = 312
+    Top = 64
+  end
 end

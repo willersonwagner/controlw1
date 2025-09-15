@@ -1474,7 +1474,7 @@ begin
 
           nome := ClientDataSet1.fieldbyname('DESCRICAO_ATUAL').AsString;
           if trim(nome) = '' then nome := ClientDataSet1.fieldbyname('DESCRICAO_FORNECEDOR').AsString;
-          nome := LeftStr(nome, 60);
+          nome := LeftStr(nome, 80);
 
 
           lista[i].codbarAtual := ClientDataSet1.fieldbyname('CODBAR_ATUAL').AsString;

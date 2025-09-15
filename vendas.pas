@@ -134,6 +134,7 @@ type
     produtosServico: TStringList;
     podeGravarParcelamentoTabela : integer;
     MinimoPromoc : currency;
+    procedure alertaBeep(codww : String);
     function condicaoAumentarDBGRID2TrueZOOMnasDUAS : boolean ;
     procedure formataCamposPreco;
     procedure impNovo(TIPO1 : SMALLINT = 1);
@@ -248,7 +249,7 @@ implementation
 uses Unit1, Math, localizar, entrasimples, func, formpagtoformulario,
   principal, subconsulta, Unit38, DateUtils, relatorio, imprime1,
   cadcliente, cadfornecedor, dm1, StrUtils, Unit2, Unit83, cadproduto, troco,
-  Unit95;
+  Unit95, Unit96;
 
 {$R *.dfm}
 
@@ -445,7 +446,7 @@ function TForm20.geraCaptionTeclasDeAtalho(): String;
 begin
   Result := '';
 
-  if funcoes.buscaParamGeral(5, '') = 'S' then
+  if ((funcoes.buscaParamGeral(5, '') = 'S') or (funcoes.buscaParamGeral(105, 'N') = 'S'))  then
     Result := Result + 'F1-Forma Pagamento'
   else
     Result := Result + 'F1-Calculadora';
@@ -460,7 +461,7 @@ begin
     Result := Result + '/F3-Recuperar Orçamento';
   end;
 
-  if funcoes.buscaParamGeral(5, '') = 'S' then
+  if ((funcoes.buscaParamGeral(5, '') = 'S') or (funcoes.buscaParamGeral(105, 'N') = 'S'))  then
   begin
     Result := Result + '/F4-Calculadora';
   end;
@@ -566,6 +567,7 @@ begin
     begin
       if not dm.produto.Locate('codbar', strnum(cod), []) then
       begin
+        alertaBeep(cod);
         ShowMessage('Código ' + cod + ' Não Encontrado!');
       end;
 
@@ -605,8 +607,10 @@ begin
     begin
       adicioinaItem_Venda(dm.produtotemp.FieldByName('cod').AsString, quant);
     end
-    else
+    else begin
+      alertaBeep(cod);
       ShowMessage('Produto não Encontrado');
+    end;
 
     dm.produtotemp.Close;
 
@@ -698,9 +702,7 @@ begin
   end;
 
 
-  campo := 'p_venda';
-  if atacado then
-    campo := 'p_venda1 as p_venda';
+  campo := 'p_venda, p_venda1';
 
   dm.IBselect.Close;
   dm.IBselect.SQL.Clear;
@@ -712,6 +714,12 @@ begin
   porcDesc := StrToCurrDef(funcoes.LerConfig(form22.Pgerais.Values
     ['configu'], 0), 0);
   p_venda := dm.IBselect.FieldByName('p_venda').AsCurrency;
+
+  if atacado then begin
+    if dm.IBselect.FieldByName('p_venda1').AsCurrency > 0 then p_venda := dm.IBselect.FieldByName('p_venda1').AsCurrency;
+  end;
+
+
   p_vendatemp := p_venda;
 
   if funcoes.buscaParamGeral(55, 'N') = 'S' then
@@ -1561,8 +1569,18 @@ begin
     tipo := tipoNota;
 
   txt := form22.Pgerais.Values['mens'];
+
+  if form22.Pgerais.Values['mensR'] <> '' then begin
+    txt := form22.Pgerais.Values['mensR'];
+  end;
+
+  txt := StringReplace(txt, '/n', #13, [rfReplaceAll]);
+
+
+
   if funcoes.buscaParamGeral(73, 'N') = 'S' then
     txt := '';
+
 
   if Modo_Venda then begin
     pedido := 'VENDA';
@@ -1573,7 +1591,6 @@ begin
     pedido := 'ORCAMENTO';
     txt := form22.Pgerais.Values['mensORC'];
   end;
-
 
 
   if Compra then
@@ -4663,7 +4680,10 @@ begin
       end
       else begin
         if txt <> '' then begin
-          addRelatorioForm19(funcoes.QuebraLinhas('', '', txt, 40));
+        if contido(#13, txt) then begin
+          addRelatorioForm19(txt + CRLF);
+        end
+        else addRelatorioForm19(funcoes.QuebraLinhas('', '', txt, 40));
           if length(txt) > 0 then
             form19.RichEdit1.Perform(EM_REPLACESEL, 1,
               Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 40) + #13
@@ -4925,7 +4945,7 @@ end;
 
 procedure TForm20.BuscaSelecao;
 var
-  busca, metodo, campos: string;
+  busca, metodo, campos, buscaCampo: string;
 begin
   busca := funcoes.dialogo('normal', 3, '', 60, true, '', 'ControlW',
     'Selecionar Por:', '');
@@ -4943,12 +4963,13 @@ begin
   else
     campos := 'cod,nome as descricao, quant, p_venda as preco, codbar';
 
-  if metodo = '2' then
-    dm.IBQuery2.SQL.Add('select ' + campos + ' from produto where (nome like ' +
-      QuotedStr('%' + busca + '%') + ') '+condicaoSQL+' ORDER BY NOME')
-  else if metodo = '1' then
-    dm.IBQuery2.SQL.Add('select ' + campos + ' from produto where (nome like ' +
-      QuotedStr(busca + '%') + ') '+condicaoSQL+' ORDER BY NOME');
+ { if Contido('%', busca) then begin
+       buscaCampo := QuotedStr(busca);
+     end }
+     if metodo = '2' then buscaCampo := QuotedStr('%'+busca+'%')
+     else if metodo = '1' then buscaCampo := QuotedStr(busca+'%');
+
+  dm.IBQuery2.SQL.Add('select ' + campos + ' from produto where (nome like ' + buscaCampo + ') '+condicaoSQL+' ORDER BY NOME');
   dm.IBQuery2.Open;
 
   busca := funcoes.busca(dm.IBQuery2, busca, '', 'cod', 'descricao');
@@ -5614,8 +5635,10 @@ begin
   begin
     form25.ShowModal;
   end
-  else
+  else begin
+    alertaBeep(busca);
     ShowMessage('Nenhum resultado encontrado');
+  end;
   dm.produtotemp.Close;
   dm.produtotemp.SQL.Clear;
   dm.produtotemp.SQL.Add
@@ -6385,6 +6408,8 @@ begin
   formataCamposPreco;
   ClientDataSet1.EnableControls;
 
+
+
   try
     if funcoes.buscaParamGeral(19, 'S') = 'S' then
       impNovo
@@ -6470,6 +6495,7 @@ begin
   if Key = #13 then
   begin
 
+
     if Compra then
     begin
       busca := funcoes.dialogo('numero', CasasDecimaisQuantidade, 'SN', CasasDecimaisQuantidade, false, 'S',
@@ -6496,7 +6522,6 @@ begin
         exit;
       end;
 
-
       sub := 0;
       // desconto := dm.produto.fieldbyname('preco').AsCurrency;
       if funcoes.buscaParamGeral(5, '') = 'S' then
@@ -6522,6 +6547,7 @@ begin
         (copy(dm.produto.FieldByName('descricao').AsString, 1, 7) = 'SERVICO'))
       then
       begin
+
         ativo := confirmaPrecoProduto(dm.produto.FieldByName('cod').AsString,
           busca, ativo, 0, (copy(dm.produto.FieldByName('descricao').AsString,
           1, 7) = 'SERVICO'));
@@ -7120,16 +7146,23 @@ begin
 
   if atacado then
   begin
+
     dm.produto.Close;
     dm.produto.SQL.Clear;
     dm.produto.SQL.Add
       ('select codbar,nome as Descricao,iif(p_venda1 <> 0,p_venda1,p_venda) as preco,'
       + campoEstoque + ',refori as ' + refori1 +
-      ',unid,cod,aplic as Aplicacao,localiza as Localizacao from produto ' +  ordem);
+      ',unid,cod,aplic as Aplicacao,deposito,localiza as Localizacao from produto ' +  ordem);
+
+
+
     sqlVenda :=
       'select codbar,nome as Descricao,iif(p_venda1 <> 0,p_venda1,p_venda) as preco,'
       + campoEstoque + ',refori as ' + refori1 +
-      ',unid,cod,aplic as Aplicacao,localiza as Localizacao from produto ';
+      ',unid,cod,aplic as Aplicacao,deposito,localiza as Localizacao from produto ';
+
+
+
     dm.produto.Open;
 
 
@@ -7164,8 +7197,7 @@ begin
     else
     begin
       dm.produto.SQL.Text :=
-        ('select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '
-        + refori1 +
+        ('select cod,nome as Descricao,p_venda as Preco,quant as estoque,refori as '    + refori1 +
         ',deposito,unid,codbar,aplic as Aplicacao,localiza as Localizacao,igual as Equivalente from produto where nome <> '''' '+ condicaoSQL +  ordem);
 
       sqlVenda :=
@@ -8427,8 +8459,7 @@ end;
 procedure TForm20.FormKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
-  if funcoes.buscaParamGeral(5, '') = 'S' then
-  begin
+  if ((funcoes.buscaParamGeral(5, '') = 'S') or (funcoes.buscaParamGeral(105, 'N') = 'S'))  then begin
     if Key = 112 then begin
       codhis := funcoes.LerFormPato(0, 'F8 - Volta à Compra', false);
       if codhis <> '*' then formaAlterada := codhis;
@@ -8437,14 +8468,9 @@ begin
       exit;
     end;
 
-    if (ssAlt in Shift) and (Key = 115) then begin
-
-    end
-    else begin
-      if Key = 115 then begin
-        funcoes.executaCalculadora;
-        exit;
-      end;
+    if Key = 115 then begin
+      funcoes.executaCalculadora;
+      exit;
     end;
   end;
 
@@ -8543,8 +8569,10 @@ begin
   begin
     form25.ShowModal;
   end
-  else
+  else begin
+    alertaBeep(busca);
     ShowMessage('Nenhum resultado encontrado');
+  end;
   dm.produtotemp.Close;
   dm.produtotemp.SQL.Clear;
   dm.produtotemp.SQL.Add
@@ -9230,11 +9258,18 @@ begin
   qtd := 0;
 
   dm.IBQuery1.Close;
-  dm.IBQuery1.SQL.Text := 'select p_venda from produto where cod = :cod';
+  dm.IBQuery1.SQL.Text := 'select p_venda, p_venda1 from produto where cod = :cod';
   dm.IBQuery1.ParamByName('cod').AsInteger := codigo;
   dm.IBQuery1.Open;
 
   p_venda := dm.IBQuery1.FieldByName('p_venda').AsCurrency;
+
+  if atacado then begin
+    if dm.IBQuery1.FieldByName('p_venda1').AsCurrency > 0 then begin
+      p_venda := dm.IBQuery1.FieldByName('p_venda1').AsCurrency;
+    end;
+
+  end;
 
   dm.IBQuery1.Close;
   dm.IBQuery1.SQL.Text :=
@@ -9510,7 +9545,6 @@ begin
     end;
   end;
 
-
   // if valor <> 0 then v2 := valor;
   if valor = 0 then
   begin
@@ -9669,7 +9703,7 @@ end;
 procedure TForm20.lancaDescontoPorFormaDePagamento(formapagamento: integer);
 var
   ini, fim : integer;
-
+  p_venda : currency;
 begin
   if funcoes.buscaParamGeral(105, 'N') <> 'S' then
     exit;
@@ -9707,14 +9741,22 @@ begin
   begin
     ClientDataSet1.RecNo := ini;
     dm.IBselect.Close;
-    dm.IBselect.SQL.Text := 'select p_venda from produto where cod = :cod';
+
+    //dm.IBselect.SQL.Text := 'select p_venda1 as p_venda from produto where cod = :cod'
+    dm.IBselect.SQL.Text := 'select p_venda, p_venda1 from produto where cod = :cod';
     dm.IBselect.ParamByName('cod').AsString := ClientDataSet1CODIGO.AsString;
     dm.IBselect.Open;
 
+    p_venda := dm.IBselect.FieldByName('p_venda').AsCurrency;
+    if atacado then begin
+      if dm.IBselect.FieldByName('p_venda1').AsCurrency <> 0 then p_venda := dm.IBselect.FieldByName('p_venda1').AsCurrency;
+    end;
+
+
     try
       ClientDataSet1.Edit;
-      ClientDataSet1PRECO.AsCurrency := ArredondaTrunca(dm.IBselect.FieldByName('p_venda').AsCurrency -
-        (dm.IBselect.FieldByName('p_venda').AsCurrency * (avista / 100)), 3);
+      ClientDataSet1PRECO.AsCurrency := ArredondaTrunca(p_venda -
+        (p_venda * (avista / 100)), 3);
       ClientDataSet1TOTAL.AsCurrency :=
         Arredonda(ClientDataSet1PRECO.AsCurrency *
         ClientDataSet1QUANT.AsCurrency, 2);
@@ -9871,6 +9913,26 @@ end;
 procedure TForm20.habilitaCamposFimVenda;
 begin
 
+end;
+
+
+procedure TForm20.alertaBeep(codww : String);
+begin
+  Beep;
+  form96 := tform96.Create(self);
+  form96.Label2.Caption := 'Cód: ' + codww;
+  form96.ShowModal;
+  form96.Free;
+
+ {  MessageBeep(MB_ICONINFORMATION);
+   sleep(500);
+   MessageBeep(MB_ICONINFORMATION);
+   sleep(500);
+   MessageBeep(MB_ICONINFORMATION);
+   sleep(500);
+   MessageBeep(MB_ICONINFORMATION);
+   sleep(500);
+   MessageBeep(MB_ICONINFORMATION);  }
 end;
 
 

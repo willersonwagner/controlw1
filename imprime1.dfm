@@ -2,7 +2,7 @@ object imprime: Timprime
   Left = 0
   Top = -55
   Caption = 'imprime'
-  ClientHeight = 741
+  ClientHeight = 701
   ClientWidth = 858
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -2084,7 +2084,7 @@ object imprime: Timprime
         Transparent = False
       end
       object RLLabel33: TRLLabel
-        Left = 691
+        Left = 697
         Top = 3
         Width = 48
         Height = 16
@@ -2098,7 +2098,7 @@ object imprime: Timprime
         Transparent = False
       end
       object RLLabel51: TRLLabel
-        Left = 499
+        Left = 510
         Top = 3
         Width = 56
         Height = 16
@@ -2113,8 +2113,8 @@ object imprime: Timprime
       end
       object RLLabel52: TRLLabel
         AlignWithMargins = True
-        Left = 68
-        Top = 3
+        Left = 49
+        Top = 4
         Width = 80
         Height = 16
         Caption = 'Descri'#231#227'o'
@@ -2150,6 +2150,7 @@ object imprime: Timprime
         Top = 3
         Width = 32
         Height = 16
+        Margins.Left = 2
         Alignment = taRightJustify
         DataField = 'cod'
         DataSource = DataSource1
@@ -2172,7 +2173,7 @@ object imprime: Timprime
         Text = ''
       end
       object RLDBText14: TRLDBText
-        Left = 510
+        Left = 518
         Top = 3
         Width = 48
         Height = 16
@@ -2205,7 +2206,7 @@ object imprime: Timprime
         Transparent = False
       end
       object RLDBText17: TRLDBText
-        Left = 694
+        Left = 697
         Top = 3
         Width = 48
         Height = 16

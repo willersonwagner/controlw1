@@ -292,10 +292,10 @@ end;
 
 procedure Tform1.Button1Click(Sender: TObject);
 begin
-  if qrcodePIX.Form84.ProcessExists('PIX.EXE') = false then begin
+{  if qrcodePIX.Form84.ProcessExists('PIX.EXE') = false then begin
     ShellExecute(handle, 'open', PChar(ExtractFileDir(ParamStr(0)) +'\PIX.exe'), '', '', SW_SHOWNORMAL);
   end;
-
+ }
   // qrcodePIX.Form84.Show; ///form82 := tform82.create(self);
 end;
 

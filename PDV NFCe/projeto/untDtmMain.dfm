@@ -7,7 +7,7 @@ object dtmMain: TdtmMain
     Left = 17
     Top = 3
     Bitmap = {
-      494C01019500A000600010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C01019500A000640010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000006002000001002000000000000060
       0200000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -5144,6 +5144,8 @@ object dtmMain: TdtmMain
   end
   object ACBrIBPTax1: TACBrIBPTax
     ProxyPort = '8080'
+    ContentsEncodingCompress = []
+    NivelLog = 0
     Left = 400
     Top = 240
   end
@@ -5427,6 +5429,7 @@ object dtmMain: TdtmMain
     ACBrPixCD = ACBrPixCD1
     Scopes = [scCobWrite, scCobRead, scPixWrite, scPixRead]
     QuandoReceberRespostaHttp = ACBrPSPPixPDV1QuandoReceberRespostaHttp
+    APIVersao = apiVersao1
     Left = 24
     Top = 304
   end

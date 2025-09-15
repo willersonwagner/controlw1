@@ -42,6 +42,7 @@ type
     procedure deletaTranferencia();
     procedure deletaContasReceber();
     procedure deletaOrcamento();
+    procedure excluiComissao();
     { Private declarations }
   public
   deletar:boolean;
@@ -63,10 +64,28 @@ var
   Form7: TForm7;
  implementation
 
-uses Unit1, func, cadfornecedor, cadvendedor, StrUtils, Unit2, infNutri;
+uses Unit1, func, cadfornecedor, cadvendedor, StrUtils, Unit2, infNutri,
+  relatorio;
 
 
 {$R *.dfm}
+
+procedure TForm7.excluiComissao();
+begin
+  if contido('Produtos com Comissao Diferenciada',self.Caption) = false then exit;
+
+  dm.IBQuery3.Close;
+  dm.IBQuery3.SQL.Text := 'update produto set comissao = 0 where cod = :cod';
+  dm.IBQuery3.ParamByName('cod').AsString := dm.IBQuery1.FieldByName('cod').AsString;
+  dm.IBQuery3.ExecSQL;
+  dm.IBQuery3.Transaction.Commit;
+
+  dm.IBQuery1.Close;
+  dm.IBQuery1.Open;
+
+end;
+
+
 procedure TForm7.deletaContasReceber();
 var
   ren : integer;
@@ -683,6 +702,7 @@ if deletar then
         deletaContasReceber();
         deletaContasPagar();
         deletaOrcamento;
+        excluiComissao;
       end;
    end;   
 end;
@@ -703,8 +723,40 @@ procedure TForm7.DBGrid1KeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 var
   cod : string;
+  dataset : TDataSet;
 begin
   if (Shift = [ssCtrl]) and (Key = 46) then Key := 0;
+
+  if Contido('where comissao > 0', condicao) then begin
+    if key = 113 then begin
+      form19.RichEdit1.Clear;
+      addRelatorioForm19(funcoes.CompletaOuRepete('','','-',78)+#13+#10);
+      addRelatorioForm19(funcoes.CompletaOuRepete(funcoes.CompletaOuRepete(funcoes.LerValorPGerais('empresa',form22.Pgerais),'',' ',35),FormatDateTime('dd/mm/yy',form22.datamov),' ',78)+#13+#10);
+      addRelatorioForm19(funcoes.CompletaOuRepete('Relatorio de Comissoes Diferenciadas','',' ',78)+#13+#10);
+      addRelatorioForm19(funcoes.CompletaOuRepete('','','-',78)+#13+#10);
+      addRelatorioForm19('CODIGO NOME                                  REF ORIGINAL             COMISSAO'+#13+#10);
+      addRelatorioForm19(funcoes.CompletaOuRepete('','','-',78)+#13+#10);
+
+      dataset := DBGrid1.DataSource.DataSet;
+      dataset.DisableControls;
+      dataset.First;
+
+      while not dataset.Eof do begin
+        addRelatorioForm19(CompletaOuRepete('', dataset.FieldByName('cod').AsString, ' ', 6) + ' ' +CompletaOuRepete(LeftStr(dataset.FieldByName('cod').AsString, 38), '', ' ', 38) + CompletaOuRepete(LeftStr(dataset.FieldByName('codbar').AsString, 23), '', ' ', 23) +
+        CompletaOuRepete('', formataCurrency(dataset.FieldByName('comissao').AsCurrency), ' ', 10) + CRLF);
+        dataset.Next;
+      end;
+
+
+      addRelatorioForm19(funcoes.CompletaOuRepete('','','-',78)+#13+#10);
+      dataset.First;
+      dataset.EnableControls;
+
+      form19.ShowModal;
+
+    end;
+  end;
+
 
 if (DBGrid1.DataSource.DataSet.RecNo = 1) and (key = 38) and (Edit1.Visible) then edit1.SetFocus;
 if (UpperCase(tabela) = 'PRODUTO') then

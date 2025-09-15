@@ -184,17 +184,24 @@ end;
 procedure Tdm.ACBrMail1MailException(const AMail: TACBrMail; const E: Exception;
   var ThrowIt: Boolean);
 begin
-  execucaoEmail := 3;
   erroMail      := e.Message;
 
   ThrowIt := False;
   Form70.Memo1.Lines.Add('*** Erro ao Enviar o email: ' + AMail.Subject);
   Form70.Memo1.Lines.Add(e.Message);
 
+  if Contido('hostinger_out_ratelimit', e.Message) then begin
+    funcoes.buscaConfigEmail(true);
+    execucaoEmail := 4;
+  end;
+
+
   if (Contido('UNABLE TO LOGIN', UpperCase(e.Message))) and (Contido('controlwsistemas@gmail.com', ACBrMail1.Username)) then begin
     funcoes.configuraMail(ACBrMail1, 1);
     ACBrMail1.Send(true);
   end;
+
+  execucaoEmail := 3;
 
   form70.Button1.Enabled := true;
   form70.Button1.SetFocus;

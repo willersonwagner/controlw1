@@ -1,4 +1,4 @@
-unit qrcodePIX1;
+unit qrcodePIX;
 
 interface
 
@@ -53,7 +53,7 @@ implementation
 
 {$R *.dfm}
 
-uses untVendaPDV, Unit15;
+uses untVendaPDV, Unit15, untDtmMain;
 
 
 procedure Tqrcode.Button1Click(Sender: TObject);
@@ -244,7 +244,7 @@ var
   cont : integer;
 begin
 
-if dtmMain.ACBrPixCD1.PSP.epCob.ConsultarCobrancaImediata(form22.txtId, 0) then begin
+{if dtmMain.ACBrPixCD1.PSP.epCob.ConsultarCobrancaImediata(form22.txtId, 0) then begin
     AdicionarLinhaLog(#13+#13+'Cobrança'+#13+#13+FormatarJSON(dtmMain.ACBrPixCD1.PSP.epCob.CobCompleta.AsJSON));
   end
   else AdicionarLinhaLog('Nenhum Resultado!');
@@ -253,7 +253,7 @@ if dtmMain.ACBrPixCD1.PSP.epCob.ConsultarCobrancaImediata(form22.txtId, 0) then 
   else if dtmMain.ACBrPixCD1.PSP.epCob.CobCompleta.status = stcCONCLUIDA then estado := 'CONCLUIDA';
 
 
- { Result := '';
+  Result := '';
   arqPIX.Clear;
   arqPIX.Add('comando=consultarPIX');
   arqPIX.Add('txid='+ txid);
@@ -334,7 +334,7 @@ begin
     if FileExists(caminhoEXE_com_barra_no_final + 'PIXrec.dat') then begin
       Timer3.Enabled := false;
 
-      form84.Label3.Caption := 'Aguardando Pagamento';
+      //form84.Label3.Caption := 'Aguardando Pagamento';
 
       arqPIX.LoadFromFile(caminhoEXE_com_barra_no_final + 'PIXrec.dat');
       arq.Text := arqPIX.Text;
@@ -376,7 +376,7 @@ begin
 
     PIXcriarCobranca(valor, descricao, 'a1f4102e-a446-4a57-bcce-6fa48899c1d1', arq);
     qrcodePIX := arq.Values['qrcode'];
-    form84.Label2.Caption := 'Estado: ...' ;
+    //form84.Label2.Caption := 'Estado: ...' ;
     txid1 := arq.Values['txid'];
 
     passos.Add('**' + IntToStr(cont) + '**');
@@ -409,11 +409,11 @@ begin
   mensagemEnviandoNFCE('Aguarde, Enviando NFCe...', false, true);
   passos.SaveToFile('passos.txt');
 
-  form84.Label3.Caption := 'Aguardando Pagamento';
+  {form84.Label3.Caption := 'Aguardando Pagamento';
   form84.cont := 3;
   Form84.ShowModal;
-  arq.Free;
-  if pos('Recebimento Concluido', form84.Label3.Caption) > 0 then Result := 'OK';
+  arq.Free;}
+  //if pos('Recebimento Concluido', form84.Label3.Caption) > 0 then Result := 'OK';
 end;
 
 function Tqrcode.recebePIX1(valor : currency; descricao : String) : string;
@@ -488,11 +488,11 @@ begin
 
   mensagemEnviandoNFCE('Aguarde, Enviando NFCe...', false, true);
 
-  form84.Label3.Caption := 'Aguardando Pagamento';
+  {form84.Label3.Caption := 'Aguardando Pagamento';
   form84.cont := 3;
   Form84.ShowModal;
   if pos('Recebimento Concluido', form84.Label3.Caption) > 0 then Result := 'OK';
-end;
+}end;
 
 
 function Tqrcode.ProcessExists(exeFileName: string): Boolean;

@@ -124,7 +124,7 @@ type
     temp        : String;
     codbarAtual : String;
     COD_ISPIS: String;
-    nome     : String[40];
+    nome     : String;
     codbar   : String[16];
     CST      : String[3];
     ncm      : String[10];

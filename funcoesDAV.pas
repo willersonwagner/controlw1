@@ -602,6 +602,13 @@ begin
    result := copy(semana, ((dayofweek(date)-1) * 3) + 1, 3) + ', ' + datetostr(date) + inttostr(dayofweek(date));
 end;
 
+function dataSemana : string;
+var semana : string;
+begin
+   semana:= 'DomSegTerQuaQuiSexSáb' ;
+   result := copy(semana, ((dayofweek(date)-1) * 3) + 1, 3) + ', ' + datetostr(date) + inttostr(dayofweek(date));
+end;
+
 //----------------------------------------------------------
 function wait(tempo : integer) : string;
 var inicw : integer;
@@ -1083,8 +1090,11 @@ begin
 
   for ini := 1 to length(texto) do
     begin
-      if texto[ini] in['0'..'9','a'..'z','A'..'Z', ' ', '.', ',', '-', '/', '(', ')' , '%', '&', '$', ';', ':', '+', '-'] then Result := Result + texto[ini];
+      if texto[ini] in['0'..'9','a'..'z','A'..'Z', ' ', '.', ',', '-', '/', '(', ')' , ';', ':', '+', '-'] then Result := Result + texto[ini];
     end;
+
+  //if Contido('&', Result) then Result := StringReplace(Result, '&', '&amp;', [rfReplaceAll]);
+    
 
   Result := trim(Result);
 end;
@@ -1144,8 +1154,8 @@ var
   tmp: string;
 begin
   tmp := Le_Nodo1('infNFe', ent);
-  tmp := copy(tmp, pos('Id="', tmp) + 7, pos('">', tmp));
-  tmp := copy(tmp, 1, pos('">', tmp) - 1);
+  tmp := copy(tmp, pos('Id="', tmp) + 7, 44);
+ // tmp := copy(tmp, 1, pos('">', tmp) - 1);
   Result := '';
   Result := tmp;
 

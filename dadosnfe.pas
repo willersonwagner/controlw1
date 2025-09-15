@@ -59,6 +59,8 @@ type
     ClientDataSet1cod_aliquota: TIntegerField;
     ClientDataSet1porc_aliquota: TCurrencyField;
     CheckBox2: TCheckBox;
+    CheckBox3: TCheckBox;
+    CheckBox4: TCheckBox;
     procedure notaKeyPress(Sender: TObject; var Key: Char);
     procedure numnfKeyPress(Sender: TObject; var Key: Char);
     procedure clienteKeyPress(Sender: TObject; var Key: Char);
@@ -151,8 +153,6 @@ var
   situacao : String;
 begin
 
-
-
   ButBaixar.Enabled := false;
   if cfop.Text = '' then begin
     acertaCFOP_Automatico;
@@ -238,6 +238,8 @@ begin
     NfeVenda.TAG_DOCREF  := TAG_DOCREF;
     NfeVenda.NFE_REF     := StrNum(NFE_REF);
     NfeVenda.freteNaBaseDeCalculo := CheckBox1.Checked;
+    NfeVenda.dataEntradaSaidaNaNotaDeDevolucao := CheckBox3.Checked;
+    NfeVenda.lancarDescontoDaVenda             := CheckBox4.Checked;
    except
     on e:exception do begin
       ShowMessage('erro188: ' + e.Message);
@@ -469,6 +471,12 @@ begin
       if buscaFinalidadeMaiorQue1 = '*' then exit;
 
       acertaCFOP_Automatico;
+
+      if contido(tedit(sender).Text, '4') then begin
+        CheckBox3.Visible := true;
+        CheckBox4.Visible := true;
+      end;
+
     end;
 
     tiponfe.SetFocus;
@@ -488,6 +496,8 @@ end;
 procedure TForm79.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   jsedit.LiberaMemoria(self);
+  CheckBox3.Visible := false;
+  CheckBox4.Visible := false;
 end;
 
 procedure TForm79.FormCreate(Sender: TObject);

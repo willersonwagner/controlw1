@@ -793,6 +793,7 @@ object dm: Tdm
   end
   object ACBrPSPPixPDV1: TACBrPSPPixPDV
     Scopes = [scCobWrite, scCobRead, scPixWrite, scPixRead]
+    APIVersao = apiVersao1
     Left = 808
     Top = 8
   end

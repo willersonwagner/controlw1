@@ -4,7 +4,7 @@ interface
 
 uses
   StdCtrls, Controls, Forms, Windows, Messages, SysUtils,  Variants,
-  Classes, Graphics,
+  Classes, Graphics, ACBrSocket,
   Dialogs, IniFiles, FireDAC.Comp.Client, SHELLAPI, db, dbgrids, ComCtrls, richedit, dbclient,
   
    ExtCtrls, printers, funcoesDAV, OleCtrls,
@@ -16,7 +16,8 @@ uses
   TLHelp32, PsAPI, ACBrCargaBal, pcnConversaoNFe,
   pcnConversao, System.Zip, ACBrMail
   , IdMultipartFormData, cadClicompleto, IBX.IBServices, mmsystem, ACBrUtil, RLReport,
-  FireDAC.Stan.Intf, calculadora, ACBrETQClass, Vcl.Imaging.jpeg, acbrpixbase;
+  FireDAC.Stan.Intf, calculadora, ACBrETQClass, Vcl.Imaging.jpeg, acbrpixbase,
+  Soap.InvokeRegistry, Soap.Rio, Soap.SOAPHTTPClient;
 
 const
   OffsetMemoryStream: Int64 = 0;
@@ -124,7 +125,7 @@ type
     cod: integer;
     codigoFornecedor: String;
     numProd: integer;
-    nome: string[60];
+    nome: string[80];
     quant: double;
     qtd: double;
     preco: double;
@@ -158,16 +159,23 @@ type
     IdSNTP1: TIdSNTP;
     FDTransaction1: TFDTransaction;
     ClientDataSet1: TClientDataSet;
+    HTTPRIO1: THTTPRIO;
     procedure FormCreate(Sender: TObject);
     procedure WebBrowser1DocumentComplete(Sender: TObject;
       const pDisp: IDispatch; var URL: OleVariant);
     procedure Timer1Timer(Sender: TObject);
     procedure Timer3Timer(Sender: TObject);
+    procedure IdHTTP1WorkBegin(ASender: TObject; AWorkMode: TWorkMode;
+      AWorkCountMax: Int64);
+    procedure IdHTTP1WorkEnd(ASender: TObject; AWorkMode: TWorkMode);
+    procedure IdHTTP1Work(ASender: TObject; AWorkMode: TWorkMode;
+      AWorkCount: Int64);
   private
-    texto: String;
+    texto, idhttpWork: String;
     cdsEquiva: TClientDataSet;
     buscaTimer: String;
     listaProdutos: Tprodutos;
+    tamArquivo : integer;
     function RecursiveDelete(FullPath: String): Boolean;
     procedure alteraDataHoraLocal(var data1 : TDateTime);
     procedure corrigeUnidades();
@@ -182,6 +190,7 @@ type
     function ReferenciaChavesObrigatoriasNFe(var info1 : string) : string;
     function recebeProduto_imagem(var arq: tstringList;var codigos: String): boolean;
     procedure marcaImagensExportado;
+    function lerNotasFiscaisxml : String;
     { Private declarations }
   public
     arqPIX : TStringList;
@@ -201,6 +210,10 @@ type
     fonteRelatorioForm19: integer;
     NegritoRelatorioForm19, saiComEnter: boolean;
     qtdProdImagem : integer;
+    procedure encontraXML_perdido(codigo,serie : String; var sql : String);
+    function GetFileSize(aFile: TFileName): Int64;
+    function DiaDaSemana: string;
+    function EnviarBackupSite(CaminhoArq: String): boolean;
     function gravaultimaDataComunicacaoComSite(var retorno : String) : String;
     function VerificaQTDpcs : String;
     procedure fecharTransacoesClose;
@@ -275,7 +288,7 @@ type
     function buscaAliqPISxml(cst : String; icmsosn : String) : string;
     function buscaAliqICMSxml(cst : String; icmsosn : String) : string;
     procedure verificaregistrosDuplicadosCaixa();
-    function buscaConfigEmail(): String;
+    function buscaConfigEmail(atualizaAleatorio: boolean = false): String;
     procedure AutoSizeDBGrid(const xDBGrid: TDBGrid);
     function Ret_Numero(Key: Char; texto: string;
       EhDecimal: boolean = False): Char;
@@ -694,7 +707,7 @@ type
     function verificaSePodeVenderFracionado(cod: integer; unid: String;
       quant: currency): boolean;
     procedure relEntregador(ini, fim, nota : String;Pagamento : boolean = false);
-
+    function sistemaDeTeste() : boolean;
   end;
 
 var
@@ -778,7 +791,7 @@ procedure completaStringList(var mat: tstringList; qtd: integer);
 
 const
   diasParaBloquear: integer = 14;
-  site: String = 'http://controlw.blog.br';
+  site:  String = 'http://controlw.blog.br';
   site1: String = 'http://controlw.blog.br';
   site2: String = 'http://controlw.blog.br';
 
@@ -792,7 +805,7 @@ uses Unit1, Math, dialog, formpagtoformulario, StrUtils,
   untnfceForm,
   Unit57, cadCli, dadosTransp, cadproduto, gifAguarde, param,
   caixaLista, unid, Unit69, consultaOrdem, Unit73, Unit76, email, Unit81,
-  pagamento, qrcodePIX;
+  pagamento, qrcodePIX, Unit97;
 
 {$R *.dfm}
 
@@ -3021,6 +3034,8 @@ var
   listaArquivos: Array of TFileName;
 begin
   SetLength(listaArquivos, 1);
+
+
   if rede then
   begin
     if not FileExists(caminhoEXE_com_barra_no_final + buscaNomeConfigDat) then
@@ -3057,29 +3072,35 @@ begin
       pastaServidorControlW := funcoes.buscaConfigNaPastaDoControlW
         ('pasta_ControlW_servidor', '\\' + ParamStr(1) + '\ControlW\')
     else
-      pastaServidorControlW := 'C:\ControlW\';
+      pastaServidorControlW := caminhoEXE_com_barra_no_final;
 
     unidade := funcoes.dialogo('generico', 0, 'ABCDEFGHIJLMNOPKXYZWQRSTUVXZ',
       50, False, 'S', Application.Title,
       'Confirme a unidade para Recebimento da Remessa:', funcoes.buscaParamGeral(33, 'D'));
     if unidade = '*' then
       exit;
+
+    arq := tstringList.Create;
+    Add := 0;
+    arq.LoadFromFile(caminhoEXE_com_barra_no_final + buscaNomeConfigDat);
+
   end;
 
   //ShowMessage(pastaServidorControlW);
-  if not DirectoryExists(pastaServidorControlW) then
+ { if not DirectoryExists(pastaServidorControlW) then
   begin
     ShowMessage('Backup de BD não foi realizado na pasta:' + #13 + arq.Values
       ['pasta_ControlW_servidor'] + #13 + 'Favor corrija o diretório.');
     arq.Free;
     exit;
-  end;
-
+  end;}
+ 
   if rede then
     pastaBackupBarraFinal := caminhoEXE_com_barra_no_final + 'Backup\'
   else
     pastaBackupBarraFinal := unidade + ':\' + 'Backup\';
   funcoes.CriaDiretorio(pastaBackupBarraFinal);
+
 
   dia := FormatDateTime('ddd', now);
   dia := dia + '\';
@@ -3094,6 +3115,7 @@ begin
       PChar(pastaBackupBarraFinal + dia + 'bd.fdb'), true);
     funcoes.GravaConfigNaPastaDoControlW('dataBackupBd',
       FormatDateTime('dd/mm/yyyy', now));
+
   end
   else
   begin
@@ -3103,6 +3125,7 @@ begin
       PChar(pastaBackupBarraFinal + dia + 'bd.fdb'), true);
     funcoes.GravaConfigNaPastaDoControlW('dataBackupBd',
       FormatDateTime('dd/mm/yyyy', now));
+
     try
       try
         // dm.bd.Connected := false;
@@ -3120,8 +3143,10 @@ begin
 
         ShowMessage('Cópia de Segurança Efetuada com Sucesso');
       except
+      on e:exception do
         ShowMessage
-          ('Ocorreu um Erro no Backup, Favor é necessario fechar o sistema em todos os terminais da rede');
+          ('Ocorreu um Erro no Backup, Favor é necessario fechar o sistema em todos os terminais da rede. ' + e.Message);
+
       end;
     finally
       // dm.bd.Connected := true;
@@ -3205,7 +3230,9 @@ var
   bb: TWebBrowser;
   arq: tstringList;
   dias : integer;
+
 begin
+
   Result := '';
 
   if buscaAtivacaoOK then exit;
@@ -3236,6 +3263,7 @@ begin
   th := 'emp=' + trim(emp1) + '&cnpj=' + cnpj + '&ende=' + ende ;
   th := trocaChar(trocaChar(th, '.', ''), ',', '');
   th := trocaChar(buscaNomeSite + '/si2/add.php?' + th, ' ', '_');
+  //th := trocaChar('http://controlw.zz.vc/si2/add.php?' + th, ' ', '_');
   th := trim(th);
 
  // ShowMessage(th);
@@ -3245,14 +3273,29 @@ begin
    arq.SaveToFile(ExtractFileDir(ParamStr(0)) + '\tex.txt');
 
   dm.IBselect.Close;
+
+ { HTTP := TACBrHTTP.Create(nil);
+  HTTP.TimeOut := 10000;
+  th := 'http://www.controlw.blog.br' ;
+  HTTP.HTTPGet(th);               }
   try
     IdHTTP1.Request.UserAgent :=
       'Mozilla/5.0 (Windows NT 5.1; rv:2.0b8) Gecko/20100101 Firefox/4.' +
       '0b8';
     IdHTTP1.HTTPOptions := [hoForceEncodeParams];
+    IdHTTP1.Request.ContentType := 'text/xml';
     th := IdHTTP1.Get(th);
+
+   { th := http.HTTPResponse;
+    ShowMessage(th);
+    HTTP.LimparHTTP;
+    http.Free;
+
+    exit;
+    }
+
+    //ShowMessage(th);
     Result := th;
-    IdHTTP1.Disconnect;
 
     arq.Clear;
     LE_CAMPOS(arq, th, '|', false);
@@ -3269,7 +3312,6 @@ begin
         buscaConfigEmail;
       end;
 
-
     if Contido('DESBLOQUEADO', th) then begin
       funcoes.limpaBloqueado(query1);
     end;
@@ -3285,6 +3327,7 @@ begin
   except
     on e: exception do
     begin
+      //ShowMessage('Erro.Http> 3290: ' + e.Message);
       if Contido('Host not found', e.Message) then
       begin
         th := buscaConfigNaPastaDoControlW('Site_Num', '1');
@@ -5498,8 +5541,8 @@ begin
     // form48.ClientDataSet1.FieldDefs.Add('DESONERADO', ftCurrency);
     form48.ClientDataSet1.FieldDefs.Add('CODBAR_ATUAL', ftString, 18);
     form48.ClientDataSet1.FieldDefs.Add('CODIGO', ftInteger);
-    form48.ClientDataSet1.FieldDefs.Add('DESCRICAO_FORNECEDOR', ftString, 60);
-    form48.ClientDataSet1.FieldDefs.Add('DESCRICAO_ATUAL', ftString, 60);
+    form48.ClientDataSet1.FieldDefs.Add('DESCRICAO_FORNECEDOR', ftString, 80);
+    form48.ClientDataSet1.FieldDefs.Add('DESCRICAO_ATUAL', ftString, 80);
     form48.ClientDataSet1.FieldDefs.Add('LUCRO', ftCurrency);
     form48.ClientDataSet1.FieldDefs.Add('PRECO_NFE', ftFloat);
     form48.ClientDataSet1.FieldDefs.Add('PRECO_NOVO', ftFloat);
@@ -5530,8 +5573,8 @@ begin
   begin
     form48.ClientDataSet1.FieldDefs.Add('CONT', ftInteger);
     form48.ClientDataSet1.FieldDefs.Add('CODIGO', ftInteger);
-    form48.ClientDataSet1.FieldDefs.Add('DESCRICAO_FORNECEDOR', ftString, 60);
-    form48.ClientDataSet1.FieldDefs.Add('DESCRICAO_ATUAL', ftString, 60);
+    form48.ClientDataSet1.FieldDefs.Add('DESCRICAO_FORNECEDOR', ftString, 80);
+    form48.ClientDataSet1.FieldDefs.Add('DESCRICAO_ATUAL', ftString, 80);
     form48.ClientDataSet1.FieldDefs.Add('PRECO_NFE', ftFloat);
     form48.ClientDataSet1.FieldDefs.Add('LUCRO', ftCurrency);
     form48.ClientDataSet1.FieldDefs.Add('PRECO_NOVO', ftFloat);
@@ -7141,6 +7184,167 @@ begin
   Result := true;
 end;
 
+function Tfuncoes.EnviarBackupSite(CaminhoArq: String): boolean;
+var
+  // Output: TIBOutputRawFile;
+  unid, linha, simFornece, simPromoc, paramExporta, versaoSite, pastaXMLs: string;
+  F: TextFile;
+  tot: integer;
+  listaArqui: tstringList;
+  mbody: TMemo;
+begin
+  if dm.execucaoEmail = 1 then
+    exit;
+
+  dm.IBselect.Close;
+  dm.IBselect.SQL.text := 'select max(data_backup) as data from registro';
+  dm.IBselect.Open;
+
+  if trunc(form22.dataMov - dm.IBselect.FieldByName('data').AsDateTime) < 2 then
+    exit;
+  dm.IBselect.Close;
+
+  versaoSite := buscaVersaoIBPT_Site;
+  if versaoSite = '' then
+  begin
+    // ShowMessage('Versao do WebService Não Encontrada!');
+    exit;
+  end;
+
+  if length(versaoSite) > 20 then
+  begin
+    // ShowMessage('Versao do WebService Inválida!' + #13 + 'Versão: ' + versaoSite);
+    exit;
+  end;
+
+  dm.IBQuery1.Close;
+  dm.IBQuery1.SQL.text := 'update registro set data_backup = :data';
+  dm.IBQuery1.ParamByName('data').AsDate := form22.dataMov;
+  dm.IBQuery1.ExecSQL;
+
+  try
+    dm.IBQuery1.Transaction.Commit;
+  except
+  end;
+
+
+
+  simFornece := 'S';
+  dm.execucaoEmail := 1;
+
+  // simFornece := funcoes.dialogo('generico', 0, 'SN', 20, false, 'S',
+  // Application.Title, 'Exportar Fornecedores ?', 'N');
+  simPromoc := (caminhoEXE_com_barra_no_final + 'BD.txt');
+  AssignFile(F, simPromoc);
+  Rewrite(F);
+
+  linha := '|SINCXX1|' + FormatDateTime('dd/mm/yy', now) + ' ' +
+    FormatDateTime('hh:mm:ss', now) + '|' + form22.USUARIO + '|';
+
+  Writeln(F, linha);
+
+  exportaTabela('produto', '*', F, dm.IBselect);
+  exportaTabela('PROMOC1', '*', F, dm.IBselect);
+  exportaTabela('CAIXA', '*', F, dm.IBselect);
+  exportaTabela('REGISTRO', '*', F, dm.IBselect);
+
+  exportaTabela('ACESSO', '*', F, dm.IBselect);
+  exportaTabela('CLIENTE', '*', F, dm.IBselect);
+
+  exportaTabela('FABRICANTE', '*', F, dm.IBselect);
+  exportaTabela('FORNECEDOR', '*', F, dm.IBselect);
+  exportaTabela('GRUPOPROD', '*', F, dm.IBselect);
+  exportaTabela('VENDEDOR', '*', F, dm.IBselect);
+  exportaTabela('AGENDA', '*', F, dm.IBselect);
+  exportaTabela('USUARIO', '*', F, dm.IBselect);
+
+  exportaTabela('VENDA', '*', F, dm.IBselect);
+  exportaTabela('ITEM_VENDA', '*', F, dm.IBselect);
+
+  exportaTabela('ENTRADA', '*', F, dm.IBselect);
+  exportaTabela('ITEM_ENTRADA', '*', F, dm.IBselect);
+
+  exportaTabela('CONTASRECEBER', '*', F, dm.IBselect);
+  exportaTabela('CONTASPAGAR', '*', F, dm.IBselect);
+  exportaTabela('PGERAIS', '*', F, dm.IBselect);
+  exportaTabela('NFCE', '*', F, dm.IBselect);
+  exportaTabela('NFE', '*', F, dm.IBselect);
+
+  exportaGenerators('GENERATORS', '', F, dm.IBselect);
+
+  CloseFile(F);
+  sleep(1000);
+
+   // Body da mensagem
+    dm.IBselect.Close;
+    dm.IBselect.SQL.Clear;
+    dm.IBselect.SQL.Add
+      ('select empresa,telres,telcom,titular,ende,bairro,cid,est, cnpj, ies from registro');
+    dm.IBselect.Open;
+
+    texto := '';
+    texto := texto + 'Empresa: ' + dm.IBselect.FieldByName('empresa').AsString
+      + #13;
+    texto := texto + 'CNPJ: ' + dm.IBselect.FieldByName('cnpj').AsString
+      + #13;
+    texto := texto + 'IES: ' + dm.IBselect.FieldByName('ies').AsString
+      + #13;
+    texto := texto + 'Telefones: ' + dm.IBselect.FieldByName('telres').AsString
+      + '  ' + dm.IBselect.FieldByName('telcom').AsString + #13;
+    texto := texto + 'Titular:' + dm.IBselect.FieldByName('titular').AsString
+      + #13;
+    texto := texto + 'Endereço: ' + dm.IBselect.FieldByName('ende').AsString +
+      ' - ' + dm.IBselect.FieldByName('bairro').AsString + #13;
+    texto := texto + 'Localidade: ' + dm.IBselect.FieldByName('cid').AsString +
+      '-' + dm.IBselect.FieldByName('est').AsString +#13;
+    texto := texto + 'Usuário: ' + form22.USUARIO + #13;
+
+    GravarTexto(caminhoEXE_com_barra_no_final + 'BACKUP\empresa.txt', texto);
+
+    unid := caminhoEXE_com_barra_no_final + 'BACKUP\'+StrNum(dm.IBselect.FieldByName('cnpj').AsString)+DiaDaSemana+'.zip';
+
+    CriaDiretorio(caminhoEXE_com_barra_no_final + 'BACKUP\');
+
+    //extrai do bd os xmls de nfe pra backup
+    pastaXMLs := lerNotasFiscaisxml;
+
+    //exclui o arquivo caso exista
+    if FileExists(unid) then excluiAqruivo(unid);
+
+    listaArqui := tstringList.Create;
+    listaArqui.Add(simPromoc);
+    listaArqui.Add(caminhoEXE_com_barra_no_final + 'BACKUP\empresa.txt');
+    listaArqui.Add(pastaXMLs);
+    funcoes.Zip(listaArqui, unid);
+
+    form97 := TForm97.Create(self);
+    idhttpWork := '1x';
+
+    tamArquivo := GetFileSize(unid);
+
+    form97.Show;
+
+
+    TRY
+      if SendPostDataBackup(IdHTTP1, unid, '', '') then begin
+        //ShowMessage('Backup Concluido!');
+        form97.Close;
+      end;
+    except
+      on e:exception do begin
+        ShowMessage('Erro7272: ' + e.Message);
+        form97.Close;
+      end;
+    END;
+
+
+
+
+  Result := true;
+end;
+
+
+
 function Tfuncoes.geraRelFechamento(const cod12: integer;
   vendedor: String): String;
 var
@@ -8309,8 +8513,8 @@ begin
       funcoes.limpaBloqueado(query);
     end;
 
-
-  {except
+ {
+  except
    on e:exception do begin
      try
        pergunta1.close;
@@ -8320,7 +8524,7 @@ begin
      Result := 'ERRO: ' + e.Message;
      exit;
    end;
-  end;     }
+  end;    }
 
   query.Free;
 end;
@@ -13020,6 +13224,24 @@ begin
       dm.IBQuery1.Transaction.Commit;
     end;
 
+    if funcoes.retornaTamanhoDoCampoBD('endereco', 'fornecedor') = 40 then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add
+        ('alter table fornecedor alter endereco type VARCHAR(80)');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
+    if funcoes.retornaTamanhoDoCampoBD('BAIRRO', 'fornecedor') = 25 then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add
+        ('alter table fornecedor alter BAIRRO type VARCHAR(50)');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
     if funcoes.retornaTamanhoDoCampoBD('nome', 'PRODUTO_DELETED') = 60 then begin
       dm.IBQuery1.Close;
       dm.IBQuery1.SQL.Clear;
@@ -13028,6 +13250,34 @@ begin
       if execSqlMostraErro(dm.IBQuery1) = false then exit;
       dm.IBQuery1.Transaction.Commit;
     end;
+
+    if funcoes.retornaTamanhoDoCampoBD('MENS', 'USUARIO') = 80 then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add
+        ('alter table USUARIO alter MENS type VARCHAR(400)');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
+    if funcoes.retornaTamanhoDoCampoBD('mens', 'usuario') = 40 then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add
+        ('alter table usuario alter mens type VARCHAR(80)');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
+    if funcoes.retornaTamanhoDoCampoBD('bairro', 'cliente') = 18 then begin
+      dm.IBQuery1.Close;
+      dm.IBQuery1.SQL.Clear;
+      dm.IBQuery1.SQL.Add
+        ('alter table cliente alter bairro type VARCHAR(40)');
+      if execSqlMostraErro(dm.IBQuery1) = false then exit;
+      dm.IBQuery1.Transaction.Commit;
+    end;
+
 
     if verSeExisteConstraint('PK_PRODUTO_IMAGEM') then begin
       dm.IBQuery1.Close;
@@ -13246,6 +13496,24 @@ begin
 
   Cliente.CreateDataSet;
   Cliente.EmptyDataSet;
+end;
+
+procedure Tfuncoes.IdHTTP1Work(ASender: TObject; AWorkMode: TWorkMode;
+  AWorkCount: Int64);
+begin
+  form97.Gauge1.Progress := AWorkCount;
+  //form97.Label2.Caption  := FormatCurr('0.00',(AWorkCount / 1048576)) +'/' + FormatCurr('0.00',(tamArquivo / 1048576)) + ' MB';
+end;
+
+procedure Tfuncoes.IdHTTP1WorkBegin(ASender: TObject; AWorkMode: TWorkMode;
+  AWorkCountMax: Int64);
+begin
+  form97.Gauge1.MaxValue := tamArquivo;
+end;
+
+procedure Tfuncoes.IdHTTP1WorkEnd(ASender: TObject; AWorkMode: TWorkMode);
+begin
+  form97.Gauge1.Progress := 0;
 end;
 
 function RetornaAcessoUsuario: integer;
@@ -14517,6 +14785,12 @@ begin
   arr.Add('ARREDONDA=' + UpperCase(dm.IBselect.FieldByName('valor').AsString));
   dm.IBselect.Close;
 
+  dm.IBselect.Close;
+  dm.IBselect.SQL.text := 'select * from email';
+  dm.IBselect.Open;
+
+  arr.Add('codemail=' + dm.IBselect.FieldByName('cod').AsString);
+
   dm.IBselect.SQL.Clear;
   dm.IBselect.SQL.Add('select * from usuario where cod=' + codUsu);
   dm.IBselect.Open;
@@ -14525,6 +14799,7 @@ begin
     (dm.IBselect.FieldByName('acesso').AsString));
   arr.Add('codvendedor=' + dm.IBselect.FieldByName('vendedor').AsString);
   arr.Add('configu=' + dm.IBselect.FieldByName('configu').AsString);
+  arr.Add('mensR=' + dm.IBselect.FieldByName('fun_foto').AsString);
 
   try
     arr.Add('mens=' + IfThen(dm.IBselect.FieldByName('mens').IsNull or
@@ -14647,6 +14922,8 @@ begin
     txt := buscaMSG_Venda(numNota);
   end;
 
+
+
   entrada := 0;
   dm.IBselect.Close;
   dm.IBselect.SQL.Clear;
@@ -14658,6 +14935,9 @@ begin
     if funcoes.buscaParamGeral(125, '') <> '' then begin
       txt := funcoes.buscaParamGeral(125, '');
     end;
+
+    if form22.Pgerais.Values['mensR'] <> '' then txt := form22.Pgerais.Values['mensR'];
+    txt := StringReplace(txt, '/n', #13, [rfReplaceAll]);
   end
   else if opcao = 2 then
   begin
@@ -14921,9 +15201,11 @@ begin
       if FileExists('C:\TEXTO.txt') then
         DeleteFile('C:\TEXTO.txt');
       form19.RichEdit1.Lines.SaveToFile('C:\TEXTO.txt');
+
     except
     end;
 
+    salvaRicheditForm19comoPDF;
     txt := funcoes.dialogo('generico', 0, 'SN' + #8, 0, true, 'S',
       'Control For Windows', 'Imprimir Esta Compra ?S/N:', 'N');
     if txt = 'N' then
@@ -17009,7 +17291,10 @@ begin
 
       imprime.textx('texto.txt');
     end
-    else if EnviarImpressora = 'N' then form19.ShowModal;
+    else if EnviarImpressora = 'N' then begin
+     salvaRicheditForm19comoPDF;
+     form19.ShowModal;
+    end;
   end;
 
   if tipo = 'V' then
@@ -17819,7 +18104,11 @@ begin
     begin
       if funcoes.LerConfig(form22.Pgerais.Values['configu'], 3) = 'S' then
       begin
-        addRelatorioForm19(funcoes.QuebraLinhas('', '', 'OBS: ' + txt, 40));
+       if ((contido(#13, txt)) or (contido('/n', txt))) then begin
+          addRelatorioForm19(txt + CRLF);
+        end
+        else addRelatorioForm19(funcoes.QuebraLinhas('', '', txt, 40));
+
         if length(txt) > 0 then
           form19.RichEdit1.Perform(EM_REPLACESEL, 1,
             Longint(PChar((funcoes.CompletaOuRepete('', '', '-', 40) + #13
@@ -21063,6 +21352,9 @@ begin
     Result := site1
   else
     Result := site2;
+
+  if funcoes.sistemaDeTeste = false then Result := 'controlw.ss';
+    
 end;
 
 procedure Tfuncoes.mostraValorDinheiroTela(const valor: currency);
@@ -25223,7 +25515,7 @@ function Tfuncoes.verificaNFCe(dataIni: String = ''; DataFim: String = '';
   sped: boolean = False): boolean;
 var
   arq: tstringList;
-  semProtocolo, pulos, erro, acc, puloInutilizado, ent1 : String;
+  semProtocolo, pulos, erro, acc, puloInutilizado, ent1, SQL : String;
   cont, serie, fi, i: integer;
 begin
   if dataIni = '' then
@@ -25294,10 +25586,12 @@ begin
   form33.ClientDataSet1.FieldDefs.Add('CHAVE', ftString, 45);
   form33.ClientDataSet1.FieldDefs.Add('SERIE', ftInteger);
   form33.ClientDataSet1.FieldDefs.Add('ERRO', ftString, 40);
+  form33.ClientDataSet1.FieldDefs.Add('SQL', ftString, 500);
   form33.ClientDataSet1.FieldDefs.Add('OK', ftInteger);
   form33.ClientDataSet1.CreateDataSet;
   form33.ClientDataSet1.LogChanges := False;
   form33.ClientDataSet1.FieldByName('ok').Visible := False;
+  //form33.ClientDataSet1.FieldByName('SQL').Visible := False;
   arq := tstringList.Create;
 
   while not dm.IBselect.Eof do
@@ -25387,6 +25681,8 @@ begin
           else begin
             acc := acc + IntToStr(cont) + ' - ';
             pulos := pulos + IntToStr(cont) + ' - ';
+
+            encontraXML_perdido(IntToStr(cont), IntToStr(serie), SQL);
           end
         end else begin
           erro := '2: NFCe Encontrada no dia ' + FormatDateTime('dd/mm/yy', dm.IBQuery2.FieldByName('data').AsDateTime);
@@ -25402,6 +25698,7 @@ begin
           form33.ClientDataSet1.FieldByName('erro').AsString := erro;
           form33.ClientDataSet1.FieldByName('SERIE').AsInteger := serie;
           form33.ClientDataSet1.FieldByName('ok').AsInteger := 0;
+          form33.ClientDataSet1.FieldByName('SQL').AsString := SQL;
           form33.ClientDataSet1.Post;
         end;
       end
@@ -28574,6 +28871,7 @@ function Tfuncoes.Zip(Files: tstringList; ZipName: String): boolean;
 // Compactaos arquivos
 var
   i: integer;
+  folder : String;
   Zipper: TZipFile;
 begin
   Zipper := TZipFile.Create();
@@ -28581,10 +28879,12 @@ begin
     Zipper.Open(ZipName, zmWrite);
     for i := 0 to Files.count - 1 do
     begin
-     // if RightStr(Files[i], 1) = '\' then Zipper.
-
-      //if FileExists(Files[i]) then
-        Zipper.Add(Files[i]);
+      if RightStr(Files[i], 1) = '\' then begin
+        folder := ExtractFileDir(Files[i]) + '\';
+        Zipper.ZipDirectoryContents(caminhoEXE_com_barra_no_final+ 'NFE\nfe.zip', Files[i]);
+        zipper.Add(caminhoEXE_com_barra_no_final+ 'NFE\nfe.zip');
+      end
+      else Zipper.Add(Files[i]);
     end;
     Zipper.Close;
   finally
@@ -30045,7 +30345,7 @@ begin
   end;
 end;
 
-function Tfuncoes.buscaConfigEmail(): String;
+function Tfuncoes.buscaConfigEmail(atualizaAleatorio: boolean = false): String;
 var
   th, msg, cod: String;
   fileDownload: TFileStream;
@@ -30054,10 +30354,12 @@ begin
   Result := '';
   msg := 'Buscando dados de Email, Aguarde...';
 
-  //funcoes.Mensagem(Application.Title, msg, 12, 'Courier New', False, 0, clRed);
-
   try
-    th := buscaNomeSite + '/si2/email.php';
+    if atualizaAleatorio then begin
+      th := buscaNomeSite + '/si2/email.php?cod=' + form22.Pgerais.Values['codemail'];
+    end
+    else th := buscaNomeSite + '/si2/email.php';
+
     dm.IBselect.Close;
     try
       IdHTTP1.Request.UserAgent :=
@@ -31486,6 +31788,10 @@ var
   h1 : String;
 begin
   Result := '';
+  if ACBrNFe.Configuracoes.WebServices.Ambiente = taHomologacao then begin
+    homolog := '2'
+  end;
+
   h1 := ' and ((tipo = '''') or (tipo is null))';
   if homolog = '2' then h1 := ' and (tipo = ''2'')';
 
@@ -31825,6 +32131,7 @@ begin
     imprime.textx('', true);
   end
   else imprime.textx('', true);
+
   //funcoes.ImprimirPedidoVias(1, false);
   //funcoes.ImprimirPedidoVias(1, false);
 end;
@@ -32644,7 +32951,8 @@ begin
     end;
   end;
 
-  if funcoes.buscaParamGeral(5, 'N') = 'S' then begin
+
+  if ((funcoes.buscaParamGeral(5, 'N') = 'S') and (venda = 1)) then begin
     imprime.RLLabel30.Caption := 'Referência';
     imprime.RLLabel52.Left    := 105;
     imprime.RLDBText13.Left   := 90;
@@ -32654,6 +32962,15 @@ begin
     imprime.RLDBText12.Font.Size := 7;
     imprime.RLDBText12.DataField := 'codbar';
     imprime.RLDBText12.Left      := imprime.RLLabel30.Left;
+    imprime.RLDBText12.Alignment := taLeftJustify;
+  end
+  else begin
+    imprime.RLDBText12.DataField := 'cod';
+    imprime.RLLabel30.Caption := 'Cód.';
+    imprime.RLLabel52.Left    := 49;
+    imprime.RLDBText13.Left   := 51;
+
+    imprime.RLDBText12.Font.Size := 8;
     imprime.RLDBText12.Alignment := taLeftJustify;
   end;
 
@@ -34043,11 +34360,11 @@ begin
 
   cds := TClientDataSet.Create(self);
   cds.FieldDefs.Add('CODIGO', ftInteger);
-  cds.FieldDefs.Add('DESCRICAO_ATUAL', ftString, 60);
+  cds.FieldDefs.Add('DESCRICAO_ATUAL', ftString, 80);
   cds.FieldDefs.Add('REF_ATUAL', ftString, 30);
   cds.FieldDefs.Add('PRECO_ATUAL', ftFloat);
   cds.FieldDefs.Add('COD_FORNEC', ftString, 30);
-  cds.FieldDefs.Add('DESCRICAO_FORNECEDOR', ftString, 60);
+  cds.FieldDefs.Add('DESCRICAO_FORNECEDOR', ftString, 80);
   cds.FieldDefs.Add('PRECO_FORNEC', ftFloat);
   cds.CreateDataSet;
 
@@ -34068,7 +34385,7 @@ begin
 
 
       cds.Append;
-      cds.FieldByName('DESCRICAO_FORNECEDOR').AsString := LeftStr(REMOVE_ACENTO(lis.Values['2']), 60);
+      cds.FieldByName('DESCRICAO_FORNECEDOR').AsString := LeftStr(REMOVE_ACENTO(lis.Values['2']), 80);
       cds.FieldByName('COD_FORNEC').AsString           := LeftStr(lis.Values['1'], 30);
       cds.FieldByName('PRECO_FORNEC').AsCurrency       := StrToCurrDef(trim(StringReplace(lis.Values['4'], '.', '', [rfReplaceAll])), 0);
       if dm.IBselect.IsEmpty = false then begin
@@ -34326,6 +34643,96 @@ begin
   end;
   FindClose(sr);
   Result := RemoveDir(FullPath)
+end;
+
+function Tfuncoes.sistemaDeTeste() : boolean;
+begin
+  Result := true;
+  if FileExists(caminhoEXE_com_barra_no_final + 'TESTE.DAT') then Result := false;
+end;
+
+function Tfuncoes.DiaDaSemana(): string;
+var
+  Dia: Integer;
+begin
+  Dia := DayOfWeek(Now);
+  case Dia of
+    1: Result := 'DOM';
+    2: Result := 'SEG';
+    3: Result := 'TER';
+    4: Result := 'QUA';
+    5: Result := 'QUI';
+    6: Result := 'SEX';
+    7: Result := 'SAB';
+  else
+    Result := 'Dia inválido';
+  end;
+end;
+
+function Tfuncoes.GetFileSize(aFile: TFileName): Int64;
+begin
+  with TFileStream.Create(aFile, fmOpenRead or fmShareExclusive) do
+  try
+    Result := Size;
+  finally
+   Free;
+  end;
+end;
+
+function Tfuncoes.lerNotasFiscaisxml : String;
+var
+  pasta : String;
+begin
+  Result := '';
+  dm.IBselect.Close;
+  dm.IBselect.SQL.Text := 'select * from nfe where data > :data';
+  dm.IBselect.ParamByName('data').AsDate := IncMonth(form22.datamov, -2);
+  dm.IBselect.open;
+
+  pasta := caminhoEXE_com_barra_no_final + 'NFE\TEMP\';
+  criaPasta(pasta);
+  DeleteFolder(pasta);
+
+  while not dm.IBselect.Eof do begin
+    GravarTexto(pasta + dm.IBselect.FieldByName('chave').AsString+ '-nfe.xml', dm.IBselect.FieldByName('xml').AsString);
+
+    dm.IBselect.Next;
+  end;
+
+  dm.IBselect.Close;
+  Result := pasta;
+end;
+
+procedure Tfuncoes.encontraXML_perdido(codigo,serie : String; var sql : String);
+var
+  pasta : String;
+  MES : INTEGER;
+  arquivos : TStringList;
+  i, cont : integer;
+  data : TDateTime;
+begin
+  cont := 0;
+  sql := '';
+  pasta := caminhoEXE_com_barra_no_final +'\NFCe\EMIT\'+ FormatDateTime('yy', now);
+  MES   := StrToInt( FormatDateTime('MM', now)) - 2;
+
+  while true do begin
+    cont := cont + 1;
+    mes  := mes  + 1;
+    if mes = 13 then mes := 1;
+
+    arquivos := listaArquivos(pasta + strzero(mes, 2) + '\*.xml');
+    for i := 0 to arquivos.Count-1 do begin
+      if (StrToIntDef(copy(arquivos[i], 26, 9) ,0) = StrToInt(codigo)) and ((StrToIntDef(copy(arquivos[i], 23, 3) ,0) = StrToInt(serie))) then begin
+        data := EncodeDate(StrToIntDef('20'+copy(arquivos[i], 3, 2), 0), StrToIntDef(copy(arquivos[i], 5, 2), 0), 1);
+        sql := 'insert into nfce(chave, data, cliente, adic) values('+QuotedStr(LeftStr(arquivos[i], 44))+','+QuotedStr(FormatDateTime('dd.mm.yyyy', data))+', 0, ''OFF'' )';
+      end;
+    end;
+
+    if cont > 2 then break;
+    
+
+  end;
 end;
 
 end.

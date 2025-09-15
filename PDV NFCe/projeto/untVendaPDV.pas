@@ -921,13 +921,13 @@ begin
       PIX_Val := tot_ge;
     end;
 
-    IF qrcodePIX.Form84.recebePIX1(PIX_Val, 'PDV CAIXA ' + getSerieNFCe) = 'OK' then begin
+   { IF qrcodePIX.Form84.recebePIX1(PIX_Val, 'PDV CAIXA ' + getSerieNFCe) = 'OK' then begin
       //ShowMessage('PIX Recebido com Sucessso!');
     end
     else begin
       ShowMessage('Erro no Recebimento do PIX');
       exit;
-    end;
+    end;     }
 
   end;
 
@@ -2430,10 +2430,10 @@ begin
     Application.ProcessMessages;
     Application.ProcessMessages;
 
-    Result := EnviarCupomEletronicoTitular(nota, statu, xmot, tpemissao, envi, cliente, obs, '', '',TRUE, recebido1, imp);
+    Result := EnviarCupomEletronicoTitularnovo(nota, statu, xmot, tpemissao, envi, cliente, obs, '', '',TRUE, recebido1, imp);
 
     if statu = '999' then begin
-      EnviarCupomEletronicoTitular(nota, statu, xmot, tpemissao, false, cliente, obs, '', '',true, recebido1, imp);
+      EnviarCupomEletronicoTitularnovo(nota, statu, xmot, tpemissao, false, cliente, obs, '', '',true, recebido1, imp);
       Result := true;
     end;
 

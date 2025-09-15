@@ -1,9 +1,9 @@
 object Form46: TForm46
   Left = 271
   Top = 198
-  Width = 497
-  Height = 248
   Caption = 'Dados do Contador'
+  ClientHeight = 209
+  ClientWidth = 481
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -118,6 +118,7 @@ object Form46: TForm46
     Visible = False
     FormularioComp = 'Form46'
     Indice = 0
+    TipoDeDado = teNumero
   end
   object nome: JsEdit
     Left = 48
@@ -130,6 +131,7 @@ object Form46: TForm46
     OnKeyPress = nomeKeyPress
     FormularioComp = 'Form46'
     Indice = 0
+    TipoDeDado = teNumero
   end
   object cpf: JsEditCPF
     Left = 48
@@ -161,6 +163,7 @@ object Form46: TForm46
     TabOrder = 4
     FormularioComp = 'Form46'
     Indice = 0
+    TipoDeDado = teNumero
   end
   object ende: JsEdit
     Left = 72
@@ -172,6 +175,7 @@ object Form46: TForm46
     TabOrder = 5
     FormularioComp = 'Form46'
     Indice = 0
+    TipoDeDado = teNumero
   end
   object numero: JsEdit
     Left = 280
@@ -183,6 +187,7 @@ object Form46: TForm46
     TabOrder = 6
     FormularioComp = 'Form46'
     Indice = 0
+    TipoDeDado = teNumero
   end
   object cep: JsEdit
     Left = 368
@@ -194,6 +199,7 @@ object Form46: TForm46
     TabOrder = 7
     FormularioComp = 'Form46'
     Indice = 0
+    TipoDeDado = teNumero
   end
   object bairro: JsEdit
     Left = 48
@@ -205,6 +211,7 @@ object Form46: TForm46
     TabOrder = 8
     FormularioComp = 'Form46'
     Indice = 0
+    TipoDeDado = teNumero
   end
   object fone: JsEdit
     Left = 224
@@ -216,6 +223,7 @@ object Form46: TForm46
     TabOrder = 9
     FormularioComp = 'Form46'
     Indice = 0
+    TipoDeDado = teNumero
   end
   object fax: JsEdit
     Left = 368
@@ -227,6 +235,7 @@ object Form46: TForm46
     TabOrder = 10
     FormularioComp = 'Form46'
     Indice = 0
+    TipoDeDado = teNumero
   end
   object est: JsEdit
     Left = 56
@@ -238,6 +247,7 @@ object Form46: TForm46
     TabOrder = 11
     FormularioComp = 'Form46'
     Indice = 0
+    TipoDeDado = teNumero
   end
   object cid: JsEdit
     Left = 144
@@ -249,6 +259,7 @@ object Form46: TForm46
     TabOrder = 12
     FormularioComp = 'Form46'
     Indice = 0
+    TipoDeDado = teNumero
   end
   object email: JsEdit
     Left = 312
@@ -260,22 +271,22 @@ object Form46: TForm46
     TabOrder = 13
     FormularioComp = 'Form46'
     Indice = 0
+    TipoDeDado = teNumero
   end
   object ToolBar1: TPanel
     Left = 0
-    Top = 179
+    Top = 178
     Width = 481
     Height = 31
     Align = alBottom
     TabOrder = 14
+    ExplicitTop = 179
     object JsBotao1: JsBotao
       Left = 0
       Top = 2
       Width = 75
       Height = 31
       Caption = 'Gravar'
-      TabOrder = 0
-      OnClick = JsBotao1Click
       Glyph.Data = {
         F6060000424DF606000000000000360000002800000018000000180000000100
         180000000000C0060000EB0A0000EB0A00000000000000000000CCCCCCCACACA
@@ -333,6 +344,8 @@ object Form46: TForm46
         3D8F64ACB8B1CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
         CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
         CCCCCCCCCCCCCCCCBAC0BCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC}
+      TabOrder = 0
+      OnClick = JsBotao1Click
     end
   end
 end

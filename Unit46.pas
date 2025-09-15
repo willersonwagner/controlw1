@@ -61,14 +61,18 @@ procedure TForm46.JsBotao1Click(Sender: TObject);
 begin
   JsEdit.GravaNoBD(self);
   cod.Text := '1';
-  JsEdit.SelecionaDoBD(self.Name);
+  if JsEdit.SelecionaDoBD(self.Name, false) = false then begin
+    cod.Text := '1';
+  end;
 end;
 
 procedure TForm46.FormShow(Sender: TObject);
 begin
   JsEdit.SetTabelaDoBd(self, 'spedcontador', dm.ibquery1);
   cod.Text := '1';
-  JsEdit.SelecionaDoBD(self.Name);
+  if JsEdit.SelecionaDoBD(self.Name, false) = false then begin
+    cod.Text := '1';
+  end;
 end;
 
 procedure TForm46.FormClose(Sender: TObject; var Action: TCloseAction);

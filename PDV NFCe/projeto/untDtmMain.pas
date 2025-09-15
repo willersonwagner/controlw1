@@ -107,7 +107,7 @@ const
 
 implementation
 
-uses FileCtrl, pcnNFe, pcnConversao, ACBrNFeNotasFiscais, DateUtils,
+uses FileCtrl, pcnConversao, ACBrNFeNotasFiscais, DateUtils,
   frmStatus, dialog, untConfiguracoesNFCe, Unit15;
 
 {$R *.DFM}

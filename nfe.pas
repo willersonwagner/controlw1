@@ -177,13 +177,13 @@ type
     TotalFrete, VLR_DESP : currency;
     pasta_Acbr, UF_EMI, UF_DEST, IND_FINAL, indIEDest, nodoFAT,
      ambienteProducao1homologacao2, generator, TAG_DI, notaComplementarDeICMS : String;
-     freteNaBaseDeCalculo : boolean;
+     freteNaBaseDeCalculo, dataEntradaSaidaNaNotaDeDevolucao, lancarDescontoDaVenda : boolean;
 
     procedure CriaLista_De_itens_Venda(var lista : Tlist);
     function abreDataSetIBselectPelaChave(chave : String) : boolean;
     function achaQTD(const preco, total : currency) : currency;
     function GeraXml1 : String;
-    procedure enviarPorEmail(chave : String = '');
+    function enviarPorEmail(chave : String = '') : String;
     function ExportarNotasEmitidas(nfe : string) : string;
     function ExportarNotasEmitidas1(nfe : string; email : boolean = false; ini : string = ''; fim : string = '') : string;
     function Le_Nodo1(const nome:string; const texto :string) : String;
@@ -236,7 +236,7 @@ implementation
 
 uses func, principal, Unit1, Math, relatorio, dialog, imprime1,
   StrUtils, ACBrNFeWebServices, pcnProcNFe, Unit2, cadproduto, gifAguarde, Unit48,
-  buscaSelecao;
+  buscaSelecao, email;
 
 {$R *.dfm}
 function TNfeVenda.verNCM11(const cod : integer) : String;
@@ -659,7 +659,7 @@ end;
 
 function TNfeVenda.cartaDeCorrecao1 : string;
 var
-  texto, cstat, cod_nota,cnpj,nf, just, te, cCmd, nSeqEvento, xCondUso, cod, xCorrecao, crlf, serie : string;
+  texto, cstat, homolog,nfOri,nomeGen, cod_nota,cnpj,nf, just, te, cCmd, nSeqEvento, xCondUso, cod, xCorrecao, crlf, serie : string;
   xml, cce : TStringList;
   lote     : integer;
   previ   : boolean;
@@ -667,12 +667,26 @@ begin
   carregaConfigsNFe();
   crlf := #13 + #10;
   CriaDirCaminho('NFE\CCE');
-  te := Incrementa_Generator('nfe', 0);
-  te := IntToStr(StrToIntDef(te, 1) -1);
-  nf := funcoes.dialogo('generico',100,'1234567890'+#8,100,false,'','Control For Windows','Informe o Número da Nota Fiscal Eletrônica:', te);
+  nf := IntToStr(StrToIntDef(funcoes.BuscaNumeracaoNFeSerie(nomeGen), 1) -1);
+  nf := funcoes.dialogo('generico',0,'1234567890'+#8,50,false,'','Control For Windows','Informe o Número da Nota Fiscal Eletrônica:', nf);
+  if nf = '*' then exit;
 
-  serie := funcoes.dialogo('generico',40,'1234567890'+#8,40,false,'','Control For Windows','Qual a Serie:', getSerieNFe);
+  serie := funcoes.dialogo('not', 0, '1234567890' + #8 + #32, 50, true, '',application.Title, 'Qual a Série ?', IntToStr(SerieNFe));
   if serie = '*' then exit;
+
+  homolog := funcoes.dialogo('generico',0,'12'+#8,50,false,'S','Control For Windows','Qual o Tipo(1-Produção 2-Homologação)', '1');
+  if homolog = '*' then exit;
+
+  nf := funcoes.buscaChaveNFe(nf, serie, homolog);
+
+  if nf = '' then nf := funcoes.buscaNFEsPorCPF_CNPJ('');
+
+  nfOri := nf;
+  if nf = '' then
+    begin
+      ShowMessage('Nota ' + nfOri + ' Não Encontrada');
+      exit;
+    end;
 
   te := nf;
   cod_nota := te + '-' + serie;
@@ -698,9 +712,6 @@ begin
   nSeqEvento := funcoes.dialogo('generico',40,'1234567890'+#8,40,false,'','Control For Windows','Informe o Número do Evento:', nSeqEvento);
   if nSeqEvento = '*' then exit;
 
-  te := funcoes.StrNum(nf);
-  nf := funcoes.recuperaChaveNFe(te, serie);
- 
   if nf = '' then
     begin
       ShowMessage('Não foi Encontrado NFe com este Número de Nota');
@@ -708,12 +719,29 @@ begin
       exit;
     end;
 
-  dm.IBselect.Close;
-  dm.IBselect.SQL.Clear;
-  dm.IBselect.SQL.Add('select cnpj from registro');
-  dm.IBselect.Open;
+    dm.IBselect.Close;
+    dm.IBselect.SQL.Text := 'select xml from nfe where chave = :chave';
+    dm.IBselect.ParamByName('chave').AsString := nf;
+    dm.IBselect.Open;
 
-  cnpj:= dm.IBselect.fieldbyname('cnpj').AsString;
+    if dm.IBselect.IsEmpty then begin
+      ShowMessage('Nenhuma NFe Encontrada!');
+      dm.IBselect.Close;
+      exit;
+    end;
+
+    if dm.IBselect.FieldByName('xml').IsNull then begin
+      ShowMessage('Nenhuma NFe Encontrada1!');
+      dm.IBselect.Close;
+      exit;
+    end;
+
+    Result := 'ok';
+
+    dm.ACBrNFe.NotasFiscais.Clear;
+    dm.ACBrNFe.NotasFiscais.LoadFromString(dm.IBselect.FieldByName('xml').AsString);
+        //dm
+  cnpj:= form22.Pgerais.Values['cnpj'];
   dm.IBselect.Close;
 
   cnpj := funcoes.StrNum(cnpj);
@@ -732,7 +760,7 @@ begin
   if ((xCorrecao = '*') or (trim(xCorrecao) = '')) then exit;
   xCorrecao := copy(xCorrecao, 1, 1000);
 
-  try
+  {try
     dm.ACBrNFe.NotasFiscais.Clear;
     dm.ACBrNFe.NotasFiscais.LoadFromFile(caminhoEXE_com_barra_no_final+'NFE\EMIT\'+ nf +'-nfe.xml');
   except
@@ -742,7 +770,7 @@ begin
                   mtError,[mbOK],0);
         exit;
       end;
-  end;
+  end; }
 
   //lote := StrToInt(FormatDateTime('yymmddhhmm', NOW));
    lote := 1;
@@ -774,7 +802,7 @@ begin
     finally
       pergunta1.Visible := false;
     end;
-
+  //  ShowMessage('1z');
     cStat := '-'+IntToStr(ACBrNFe.WebServices.EnvEvento.EventoRetorno.retEvento.Items[0].RetInfEvento.cStat) + '-';
 
     if funcoes.Contido(cstat, '-101-135-151-573-155-') then begin
@@ -797,6 +825,10 @@ begin
 
 
       //ShowMessage('NF-e Cancelada com Sucesso. '+ #13 +'Protocolo '+ ACBrNFe.WebServices.Retorno.Protocolo + #13 + 'xMotivo:' + tmp);
+    end
+    else begin
+      ShowMessage('erro803: ' + cstat + ' ' +ACBrNFe.WebServices.EnvEvento.EventoRetorno.retEvento.Items[0].RetInfEvento.xMotivo);
+      GravarTexto(pastaNFE_ControlW + 'NFE\EVENTO\CCE\'+ nf +'_'+ nSeqEvento + '_CCE_nfe.xml', ACBrNFe.WebServices.EnvEvento.EventoRetorno.retEvento.Items[0].RetInfEvento.XML);
     end;
 
 end;
@@ -1292,8 +1324,7 @@ begin
   serie := funcoes.dialogo('not', 0, '1234567890' + #8 + #32, 50, true, '',application.Title, 'Qual a Série ?', IntToStr(SerieNFe));
   if serie = '*' then exit;
 
-
-  {dm.IBselect.Close;
+  dm.IBselect.Close;
   dm.IBselect.SQL.Clear;
   dm.IBselect.SQL.Add('select * from nfe where nota = :nota');
   dm.IBselect.ParamByName('nota').AsString := nf;
@@ -1307,9 +1338,10 @@ begin
   else
     begin
       nf := dm.IBselect.fieldbyname('chave').AsString;
+      //GravarTexto();
     end;
   dm.IBselect.Close;
-  }
+
 
   nf1 := nf;
   nf  := funcoes.recuperaChaveNFe(nf, serie);
@@ -1331,11 +1363,12 @@ begin
 
   try
     ACBrNFe.NotasFiscais.Clear;
-    ACBrNFe.NotasFiscais.LoadFromFile(pastaNFE_ControlW + 'NFE\EMIT\'+ nf +'-nfe.xml');
+    ACBrNFe.NotasFiscais.LoadFromFile(caminhoEXE_com_barra_no_final + 'NFE\EMIT\'+ nf +'-nfe.xml');
 
     if ACBrNFe.Consultar then
       begin
-        emit := IntToStr(ACBrNFe.NotasFiscais[0].NFe.procNFe.cStat);
+        ACBrNFe.WebServices.Consulta.Executar;
+        emit := IntToStr(ACBrNFe.WebServices.Consulta.cStat);
         if Contido('|' + emit + '|',  '|217||613|') then begin
           pergunta1.Visible := false;
           funcoes.Mensagem(Application.Title ,'Aguarde, Enviando NFe...',15,'Courier New',false,0,clred, false);
@@ -1360,7 +1393,7 @@ begin
           end;
 
           pergunta1.Visible := false;
-          ACBrNFe.NotasFiscais[0].GravarXML(nf +'-nfe.xml', pastaNFE_ControlW + 'NFE\EMIT\');
+          ACBrNFe.NotasFiscais[0].GravarXML(nf +'-nfe.xml', caminhoEXE_com_barra_no_final + 'NFE\EMIT\');
           imprimirNFe();
           exit;
         end;
@@ -1419,14 +1452,15 @@ begin
 end;
 
 
-procedure TNfeVenda.enviarPorEmail(chave : String = '');
+function TNfeVenda.enviarPorEmail(chave : String = '') : String;
 var
  nf, email, ERRO, codCliente, cnpj : string;
  mmEmailMsg, arq : Tstrings;
  destinatario : TStringList;
  mbody : tmemo;
- i : integer;
+ i, cont1 : integer;
 begin
+  Result := 'x';
   if chave = '' then begin
     nf := Incrementa_Generator('nfe', 0);
     nf := IntToStr(StrToIntDef(nf, 1) -1);
@@ -1571,9 +1605,30 @@ begin
       AcbrEmail.AddAttachment(buscaPastaNFe(nf) + '\'+ nf +'-nfe.xml', '', adAttachment);
      dm.ACBrMail1.Send(true);
 
+     cont1 := 0;
      while true do begin
        Application.ProcessMessages;
-       if dm.execucaoEmail <> 1  then begin
+       //quando terminou o processe marca igual a 2 e sai
+       if dm.execucaoEmail = 2  then begin
+         break;
+       end;
+
+       //quando o envio excedeu o limite ai reconfigura e envia novamente
+       if dm.execucaoEmail = 4  then begin
+         cont1 := cont1 + 1;
+         dm.execucaoEmail := 1;
+         funcoes.configuraMail(dm.ACBrMail1);
+         dm.ACBrMail1.Send(true);
+       end;
+
+       //quando der um erro diferente nao tratado sai logo
+       if dm.execucaoEmail = 3  then begin
+         break;
+       end;
+
+       //quando ja troucou o email varias vezes e nao conseguiu enviar
+       if cont1 > 6 then begin
+         Form70.Memo1.Lines.Add('Erro 1596: Limite de envios excedidos!');
          break;
        end;
 
@@ -2474,20 +2529,31 @@ begin
   funcoes.Mensagem(Application.Title ,'Aguarde, Consultando NFe...',15,'Courier New',false,0,clred);
   Application.ProcessMessages;
 
-  ACBrNFe.NotasFiscais.Clear;
-  ACBrNFe.NotasFiscais.LoadFromFile(pastaNFE_ControlW + 'NFE\EMIT\' + IfThen(Contido('-nfe', nf), nf, nf + '-nfe') + '.xml');
-  ACBrNFe.NotasFiscais.GerarNFe;
+  //ShowMessage(caminhoEXE_com_barra_no_final + 'NFE\EMIT\' + nf + '-nfe.xml');
+  if FileExists(caminhoEXE_com_barra_no_final + 'NFE\EMIT\' + nf + '-nfe.xml') = false then begin
+    ShowMessage('xml ' +caminhoEXE_com_barra_no_final + 'NFE\EMIT\' + nf + '-nfe.xml Não encontrado!' );
+    pergunta1.Visible := false;
+    exit;
+  end;
+
+
+  dm.ACBrNFe.NotasFiscais.Clear;
+  dm.ACBrNFe.NotasFiscais.LoadFromFile(caminhoEXE_com_barra_no_final + 'NFE\EMIT\' + nf + '-nfe.xml', true);
+
+  ACBrNFe.Configuracoes.WebServices.Visualizar := true;
 
   while true do begin
     contador := contador + 1;
 
-    ACBrNFe.Configuracoes.WebServices.Visualizar := true;
     try
       ACBrNFe.Consultar;
       break;
     except
       on e:exception do begin
+
         erro := e.Message;
+        ShowMessage(e.Message);
+        ACBrNFe.Configuracoes.WebServices.Visualizar := false;
 
         if Contido('DigestValue', erro) = false then begin
           ShowMessage('Erro2257:' +e.Message);
@@ -3056,6 +3122,7 @@ begin
         if cdsProduto.Locate('index', item.itemIndex, []) then begin
           if ((cdsProduto.FieldByName('cod').AsInteger = item.cod) and (cdsProduto.FieldByName('BASEICMS').AsString <> cdsProduto.FieldByName('BASEICMS1').AsString)) then begin
             BASE_ICM := cdsProduto.FieldByName('BASEICMS').AsCurrency;
+            if BASE_ICM = 0.01 then BASE_ICM := 0;
           end;
         end;
 
@@ -3331,6 +3398,17 @@ IF mat.Reducao <> 0 then begin
   //TRIBUTADO INTEGRAL
   //BASE_ICM := tot + item.DespAcessorias; //retirado 14/07/2021 pq o josenir nao autorizou essa mudança
   BASE_ICM := tot;
+
+  //aqui busca a base informada em f2 na tela de emissao de nfe
+  //na tebaela de produtos tem a possibilidade de alterar a base de calculo
+  // e o cfop
+  if cdsProduto.Locate('index', item.itemIndex, []) then begin
+    if ((cdsProduto.FieldByName('cod').AsInteger = item.cod) and (cdsProduto.FieldByName('BASEICMS').AsString <> cdsProduto.FieldByName('BASEICMS1').AsString)) then begin
+      BASE_ICM := cdsProduto.FieldByName('BASEICMS').AsCurrency;
+    end;
+  end;
+
+
   item.base_icm := BASE_ICM;
   VLR_ICM := arrendondaNFe(BASE_ICM * mat.PercICMS / 100, 2);
   TOTICM := TOTICM + VLR_ICM;
@@ -3505,8 +3583,8 @@ begin
 
   dadosEmitente.Values['cod_mun'] := dm.IBselect.fieldbyname('cod_mun').AsString;
   dadosEmitente.Values['ies']     := funcoes.StrNum(dm.IBselect.fieldbyname('ies').AsString);
-  dadosEmitente.Values['razao']   := dm.IBselect.fieldbyname('nome').AsString;
-  dadosEmitente.Values['empresa'] := trim(dm.IBselect.fieldbyname('empresa').AsString);
+  dadosEmitente.Values['razao']   := removeCarateresEspeciais(dm.IBselect.fieldbyname('nome').AsString);
+  dadosEmitente.Values['empresa'] := removeCarateresEspeciais(trim(dm.IBselect.fieldbyname('empresa').AsString));
   dadosEmitente.Values['cnpj']    := funcoes.StrNum(dm.IBselect.fieldbyname('cnpj').AsString);
   dadosEmitente.Values['est']     := dm.IBselect.fieldbyname('est').AsString;
   dadosEmitente.Values['ende']    := dm.IBselect.fieldbyname('ende').AsString;
@@ -3535,13 +3613,13 @@ begin
     END
     ELSE IND_FINAL := '0';
 
-  dadosDest.Values['nome']    := dm.IBselect.fieldbyname('nome').AsString;
-  dadosDest.Values['ende']    := trim(dm.IBselect.fieldbyname('ende').AsString);
+  dadosDest.Values['nome']    := removeCarateresEspeciais(dm.IBselect.fieldbyname('nome').AsString);
+  dadosDest.Values['ende']    := removeCarateresEspeciais(trim(dm.IBselect.fieldbyname('ende').AsString));
   dadosDest.Values['est']     := trim(dm.IBselect.fieldbyname('est').AsString);
   dadosDest.Values['bairro']  := removeCarateresEspeciais(dm.IBselect.fieldbyname('bairro').AsString);
   dadosDest.Values['cep']     := funcoes.StrNum(dm.IBselect.fieldbyname('cep').AsString);
   dadosDest.Values['telres']  := funcoes.StrNum(dm.IBselect.fieldbyname('telres').AsString);
-  dadosDest.Values['cid']     := trim(dm.IBselect.fieldbyname('cid').AsString);
+  dadosDest.Values['cid']     := removeCarateresEspeciais(trim(dm.IBselect.fieldbyname('cid').AsString));
   dadosDest.Values['ies']     := StrNum(trim(dm.IBselect.fieldbyname('ies').AsString));
   if dadosDest.Values['ies'] = '0' then dadosDest.Values['ies'] := '';
   if Length(dadosDest.Values['ies']) < 3 then dadosDest.Values['ies'] := '';
@@ -3867,7 +3945,7 @@ end;
 
 FUNCTION TNfeVenda.NODO_IDE(UF, NUM_NF, FIN_NFE,  COD_CFOP, EXT_CFOP, DAT, FORMPAG, COD_MUNIC, DV_NF : string ) : string;
 var
-  TIPO_AMB, dHAtual, nodo_indIntermed : string;
+  TIPO_AMB, dHAtual, DHSaiEnt, nodo_indIntermed : string;
 begin
   TIPO_AMB := '1';
   if StrNum(cod_OP) = '0' then cod_OP := '5102';
@@ -3902,12 +3980,18 @@ begin
   if IND_PRES(FIN_NFE) = '0' then nodo_indIntermed := '';
 
 
-  dHAtual := getDataHoraAtualXML;
+  dHAtual  := getDataHoraAtualXML;
+  DHSaiEnt := dHAtual;
+  if FIN_NFE1 = '4' then begin
+    if dataEntradaSaidaNaNotaDeDevolucao = false then DHSaiEnt := '';
+  end;
+
+
 
 
   Result := '<ide><cUF>' + UF + '</cUF><cNF>' + codNumerico + '</cNF><natOp>' + LeftStr(removeCarateresEspeciais(COD_CFOP), 50) + '</natOp>' +
   '<indPag>' + IND_PAG  + '</indPag><mod>55</mod><serie>'+getSerieNFe+'</serie><nNF>' +
-  NUM_NF + '</nNF><dhEmi>' + dHAtual + '</dhEmi><dhSaiEnt>' + dHAtual + '</dhSaiEnt>' +
+  NUM_NF + '</nNF><dhEmi>' + dHAtual + '</dhEmi><dhSaiEnt>' + DHSaiEnt + '</dhSaiEnt>' +
   '<tpNF>'+ IfThen(Contido(cod_OP[1], '567'), '1', '0') +'</tpNF><idDest>'+ idDest +'</idDest><cMunFG>' + COD_MUNIC + '</cMunFG>' +
    '<tpImp>1</tpImp><tpEmis>1</tpEmis><cDV>' + DV_NF +
   '</cDV><tpAmb>' + TIPO_AMB + '</tpAmb>'+nodo_indIntermed+'<finNFe>' +
@@ -3920,7 +4004,7 @@ end;
 
 procedure TNfeVenda.CriaLista_De_itens_Venda(var lista : Tlist);
 var
-   desc,temp, tot, TOT1, temp1, p_venda : double;
+   desc,temp, tot, TOT1, temp1, p_venda, totDescTemp : double;
    i, fim, tem, acc : integer;
    aliq : string[3];
    CB : Boolean;
@@ -3932,6 +4016,7 @@ begin
   totDesc  := 0;
   totAcres := 0;
   TOT1 := 0;
+  totDescTemp := 0;
   totalNotaORIGI := 0;
   lista := TList.Create;
 
@@ -3986,7 +4071,7 @@ begin
     begin
       query1.Close;
       query1.SQL.Clear;
-      query1.SQL.Add('select cod, quant, total, p_venda, aliquota, P_compra, codbar, unid from item_venda where nota = :nota');
+      query1.SQL.Add('select cod, quant, total, p_venda, aliquota, P_compra, codbar, unid, desconto from item_venda where nota = :nota');
       query1.ParamByName('nota').AsString := nota;
       query1.Open;
 
@@ -4098,7 +4183,16 @@ begin
                  item.Total_Preco_Compra := abs(arrendondaNFe(query1.fieldbyname('p_compra').AsCurrency * query1.fieldbyname('quant').AsCurrency,2));
                  item.Pis                := query2.fieldbyname('is_pis').AsString;
                  item.codISPIS           := query2.fieldbyname('cod_ispis').AsString;
+
                  item.Desconto           := 0;
+
+                 if lancarDescontoDaVenda then begin
+                   item.Desconto  := query1.fieldbyname('desconto').AsCurrency;
+                   item.p_venda   := query1.fieldbyname('p_venda').AsCurrency;
+                   item.total     := item.total  + item.Desconto;
+                   totDescTemp    := totDescTemp + item.Desconto;
+                 end;
+
                  item.obs                := query2.fieldbyname('obs').AsString;
                  item.mva      := query2.fieldbyname('mva').AsCurrency;
                  item.icmsDeson      := query2.fieldbyname('ICMSDeson').AsCurrency;
@@ -4265,6 +4359,10 @@ begin
              end;
          end;
      end;
+
+  if lancarDescontoDaVenda then begin
+    totDesc := totDescTemp;
+  end;
 
   //calcula o icms
   fim := lista.Count - 1;
@@ -4501,6 +4599,7 @@ begin
   valida := false;
 
   ICMSSN := 0;
+  chaveRecria := '';
 
   try
     xml1 := GerarNFeTexto(arq);
@@ -4540,6 +4639,8 @@ begin
       end;
     end;
 
+    validaNodo_pag(FIN_NFE1);
+
     try
       dm.ACBrNFe.NotasFiscais.Validar;
     except
@@ -4553,7 +4654,23 @@ begin
       i := 0;
       csta := 999;
 
-      //funcoes.Mensagem(Application.Title ,'Aguarde, Enviando  NFe...',15,'Courier New',false,0,clred);
+      if FIN_NFE1 = '4' then begin
+        if MessageDlg('Deseja fazer a Pré-Visualização da NF-e ?', mtConfirmation, [mbYes, mbNo], mrYes) = idyes then begin
+          ACBrNFe.NotasFiscais[0].Imprimir;
+        end;
+
+        if MessageDlg('Deseja Prosseguir com a emissão ?', mtConfirmation, [mbYes, mbNo], mrYes) = idno then begin
+          exit;
+        end;
+      end;
+
+      ACBrNFe.WebServices.Enviar.Clear;
+      ACBrNFe.WebServices.Consulta.Clear;
+      ACBrNFe.WebServices.Retorno.Clear;
+      ACBrNFe.WebServices.Recibo.Clear;
+      enviouNFE := 'N';
+
+      //funcoes.Mensagem(Apgplication.Title ,'Aguarde, Enviando  NFe...',15,'Courier New',false,0,clred);
       Application.ProcessMessages;
       Application.ProcessMessages;
       funcoes.mensagemEnviandoNFCE('Aguarde, Enviando 0...', true, false);
@@ -4564,16 +4681,9 @@ begin
 
           form65.Label1.Caption := 'Aguarde, Enviando '+IntToStr(i)+'...';
           form65.Label1.Update;
-          //ACBrNFe.enviar(0, true);
-          //if false then begin
-          if acbrNFeEnviar(20) then begin
-            //se entrou aqui é pq passou do metodo acbr.Enviar
-            ACBrNFe.WebServices.Retorno.Recibo := ACBrNFe.WebServices.enviar.Recibo;
-            try
-              ACBrNFe.WebServices.Retorno.Executar;
-            except
-            end;
+         if acbrNFeEnviar(20) then begin
 
+            //se entrou aqui é pq passou do metodo acbr.Enviar
             csta := ACBrNFe.WebServices.Enviar.cStat;
           end
            else begin
@@ -4588,9 +4698,11 @@ begin
              csta := ACBrNFe.WebServices.Enviar.cStat;
            end;
           //ShowMessage(erro_dados + #13 + ACBrNFe.WebServices.Retorno.xMotivo + #13 + ACBrNFe.WebServices.Retorno.Msg);
-          if (((csta > 0) and (csta < 999)) or (i >= 15)) then break;
+          if (((csta > 0) and (csta < 999)) or (i >= 10)) then break;
           sleep(1500);
       end;
+
+      if ((csta = 539) or (csta = 204) or (csta = 613)) then ERRO_dados := ACBrNFe.WebServices.Enviar.xMotivo;
 
         form65.Label1.Caption := 'Aguarde, cSta: '+IntToStr(csta)+'...';
         form65.Label1.Update;
@@ -4612,15 +4724,19 @@ begin
               ACBrNFe.NotasFiscais[0].GravarXML(CHAVENF + '-nfe.xml', ExtractFileDir(arq) + '\');
             end;
 
+            if csta = 100 then ERRO_dados := '';
+
             ACBrNFe.NotasFiscais[0].GravarXML(CHAVENF + '-nfe11.xml', ExtractFileDir(arq) + '\');
             if (((csta > 0) and (csta < 999)) or (i >= 3)) then break;
             sleep(1500);
           end;
       end;
 
+      if (csta = 613) then ERRO_dados := ACBrNFe.WebServices.Consulta.xMotivo;
+
       form65.Label1.Caption := 'Aguarde, cStat: '+IntToStr(csta)+'...';
       form65.Label1.Update;
-      sleep(1500);
+      //sleep(1500);
 
       if csta = 217 then begin
         ERRO_dados := 'Erro 4040:Rejeição (217): NF-e não consta na base de dados da SEFAZ' ;
@@ -4632,6 +4748,7 @@ begin
 
       if ((csta = 0) and  (ERRO_dados = '')) then begin
         ERRO_dados := 'Erro 4047:Requisicao nao Enviada' + #13 + 'envi=' +ACBrNFe.WebServices.Enviar.xMotivo+ #13 + 'ret=' + ACBrNFe.WebServices.Consulta.XMotivo;
+
         Fechar_Datasets_limpar_Listas_e_variaveis;
         funcoes.mensagemEnviandoNFCE('', false, true);
         MessageDlg(erro_dados, mtError, [mbOK], 1);
@@ -4646,13 +4763,6 @@ begin
         exit;
       end;
 
-      if (i >= 5) then begin
-        MessageDlg('Tentativas de Envio Esgotadas, Verifique a Internet ou outros Problemas que estão Evitando o Envio da NFe' + #13 +#13 + erro_dados,mtError,[mbOK],0);
-        funcoes.mensagemEnviandoNFCE('', false, true);
-        Fechar_Datasets_limpar_Listas_e_variaveis;
-        exit;
-      end;
-
       if (Contido('Rejeicao:', erro_dados) and (Contido('Duplicidade', erro_dados) = false)) then begin
         MessageDlg('Erro: ' + erro_dados + #13 + 'xMotivo= ' + ACBrNFe.WebServices.Retorno.xMotivo + #13 + 'Cstat=' + IntToStr(ACBrNFe.WebServices.Retorno.cStat) + #13 + 'Esta NFe não pode ser transmitida.' + #13 + #13 +'Por Favor Tente Novamente',mtError,[mbOK],0);
         funcoes.mensagemEnviandoNFCE('', false, true);
@@ -4660,7 +4770,7 @@ begin
         exit;
       end;
 
-        if funcoes.Contido('USO DENEGADO', UpperCase(erro_dados)) THEN begin
+        if (funcoes.Contido('USO DENEGADO', UpperCase(erro_dados))) THEN begin
           csta := 301;
         end;
 
@@ -4682,7 +4792,7 @@ begin
           exit;
         end;
 
-    if Contido('-' + IntToStr(csta) + '-', '-100-204-110-205-301-302-303-') then begin
+    if Contido('-' + IntToStr(csta) + '-', '-100-204-110-205-') then begin
       ci       := 'E';
       situacao := 'E';
       if Contido('-' + IntToStr(csta) + '-', '-110-205-301-302-303-') then ci := 'D';
